@@ -1,78 +1,102 @@
-const { randomInt } = require("node:crypto");
-const { questions } = require("./questionBank");
+const gameRegistry = require("./gameRegistry");
 
-const TOTAL_ROUNDS = 5;
-const games = new Map();
+const sessions = new Map();
 
-const GAME_PHASES = Object.freeze([
-    "question",
-    "answer-submission",
-    "reveal",
-    "voting",
-    "results",
-    "finished"
-]);
-
-function shuffle(items) {
-    const shuffled = [...items];
-    for (let index = shuffled.length - 1; index > 0; index -= 1) {
-        const swapIndex = randomInt(index + 1);
-        [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+class GameSessionError extends Error {
+    constructor(code, message) {
+        super(message);
+        this.name = "GameSessionError";
+        this.code = code;
     }
-    return shuffled;
 }
 
-function startGame(room) {
-    if (!room || room.status !== "starting") {
-        throw new Error("A room must be starting before its game can be initialized.");
-    }
-    if (games.has(room.code)) {
-        throw new Error("A game has already been initialized for this room.");
-    }
-    if (questions.length < TOTAL_ROUNDS) {
-        throw new Error(`The question bank must contain at least ${TOTAL_ROUNDS} questions.`);
-    }
+function isPlayerCountSupported(game, playerCount) {
+    return (
+        Number.isInteger(playerCount) &&
+        playerCount >= game.supportedPlayers.min &&
+        playerCount <= game.supportedPlayers.max
+    );
+}
 
-    const questionOrder = shuffle(questions).slice(0, TOTAL_ROUNDS);
-    const game = {
-        roomCode: room.code,
-        phase: "question",
-        currentRound: 1,
-        totalRounds: TOTAL_ROUNDS,
-        currentQuestion: questionOrder[0],
-        questionOrder,
-        players: room.players.map(({ id, name }) => ({ id, name }))
-    };
-    games.set(room.code, game);
+function getGameDefinition(gameId) {
+    const game = gameRegistry.get(gameId);
+    if (!game) {
+        throw new GameSessionError("GAME_NOT_FOUND", "That game is not available.");
+    }
     return game;
 }
 
-function createPublicGameState(game) {
+function validatePlayerCount(game, playerCount) {
+    if (!isPlayerCountSupported(game, playerCount)) {
+        const supportedCount = game.supportedPlayers.min === game.supportedPlayers.max
+            ? `exactly ${game.supportedPlayers.min}`
+            : `${game.supportedPlayers.min} to ${game.supportedPlayers.max}`;
+        throw new GameSessionError(
+            "UNSUPPORTED_PLAYER_COUNT",
+            `${game.displayName} supports ${supportedCount} players.`
+        );
+    }
+}
+
+function validateGameStart(room, gameId) {
+    if (!room || room.status !== "lobby") {
+        throw new GameSessionError("ROOM_NOT_IN_LOBBY", "The room is no longer in the lobby.");
+    }
+    if (sessions.has(room.code)) {
+        throw new GameSessionError("GAME_ALREADY_STARTED", "A game session already exists for this room.");
+    }
+    const game = getGameDefinition(gameId);
+    validatePlayerCount(game, room.players.length);
+    return game;
+}
+
+function startGame(room, gameId) {
+    if (!room || room.status !== "starting") {
+        throw new GameSessionError("ROOM_NOT_STARTING", "The room must be starting before the game can begin.");
+    }
+    if (sessions.has(room.code)) {
+        throw new GameSessionError("GAME_ALREADY_STARTED", "A game session already exists for this room.");
+    }
+    const game = getGameDefinition(gameId);
+    validatePlayerCount(game, room.players.length);
+
+    const initialState = game.createInitialState(
+        room.players.map(({ id, name }) => ({ id, name }))
+    );
+    const privateState = game.start(initialState);
+    const session = {
+        roomCode: room.code,
+        gameId: game.id,
+        displayName: game.displayName,
+        status: "active",
+        players: room.players.map(({ id, name }) => ({ id, name })),
+        implementation: game,
+        privateState
+    };
+    sessions.set(room.code, session);
+    return createPublicGameState(session);
+}
+
+function createPublicGameState(session) {
     return {
-        roomCode: game.roomCode,
-        phase: game.phase,
-        currentRound: game.currentRound,
-        totalRounds: game.totalRounds,
-        question: {
-            id: game.currentQuestion.id,
-            text: game.currentQuestion.text
-        }
+        roomCode: session.roomCode,
+        gameId: session.gameId,
+        displayName: session.displayName,
+        status: session.status,
+        players: session.players.map(({ id, name }) => ({ id, name })),
+        state: session.implementation.createPublicState(session.privateState)
     };
 }
 
-function getGame(roomCode) {
-    return games.get(roomCode) ?? null;
-}
-
 function removeGame(roomCode) {
-    return games.delete(roomCode);
+    return sessions.delete(roomCode);
 }
 
 module.exports = {
-    GAME_PHASES,
-    TOTAL_ROUNDS,
-    createPublicGameState,
-    getGame,
+    GameSessionError,
+    getGameDefinition,
+    isPlayerCountSupported,
     removeGame,
-    startGame
+    startGame,
+    validateGameStart
 };

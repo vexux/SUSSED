@@ -153,7 +153,7 @@ function setPlayerReady(playerId, isReady) {
     return room;
 }
 
-function startRoom(playerId) {
+function validateRoomStart(playerId) {
     const room = getPlayerRoom(playerId);
     if (!room) {
         throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
@@ -171,6 +171,11 @@ function startRoom(playerId) {
         throw new RoomError("PLAYERS_NOT_READY", "Wait for all other players to be ready.");
     }
 
+    return room;
+}
+
+function startRoom(playerId) {
+    const room = validateRoomStart(playerId);
     room.status = "starting";
     return room;
 }
@@ -223,5 +228,6 @@ module.exports = {
     removePlayer,
     removeRoom,
     setPlayerReady,
-    startRoom
+    startRoom,
+    validateRoomStart
 };

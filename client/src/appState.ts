@@ -1,13 +1,6 @@
-export type AppView = "home" | "lobby" | "starting" | "question";
+export type AppView = "home" | "lobby" | "starting" | "game";
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 export type RoomStatus = "lobby" | "starting";
-export type GamePhase =
-  | "question"
-  | "answer-submission"
-  | "reveal"
-  | "voting"
-  | "results"
-  | "finished";
 
 export interface LobbyPlayer {
   id: string;
@@ -23,17 +16,18 @@ export interface LobbyState {
   players: LobbyPlayer[];
 }
 
-export interface GameQuestion {
+export interface GameParticipant {
   id: string;
-  text: string;
+  name: string;
 }
 
-export interface GameState {
+export interface GameSessionState {
   roomCode: string;
-  phase: GamePhase;
-  currentRound: number;
-  totalRounds: number;
-  question: GameQuestion;
+  gameId: string;
+  displayName: string;
+  status: "active" | "finished";
+  players: GameParticipant[];
+  state: unknown;
 }
 
 export interface AppState {
@@ -43,7 +37,7 @@ export interface AppState {
   localPlayerId: string | null;
   roomCode: string | null;
   lobby: LobbyState | null;
-  game: GameState | null;
+  game: GameSessionState | null;
   errorMessage: string | null;
   isBusy: boolean;
 }

@@ -1,7 +1,7 @@
 import "./style.css";
 import {
   createInitialAppState,
-  type GameState,
+  type GameSessionState,
   type LobbyState,
 } from "./appState";
 import { socket } from "./socket";
@@ -190,12 +190,12 @@ socket.on(
   },
 );
 
-socket.on("game-state", (game: GameState) => {
-  if (game.roomCode !== state.roomCode || game.phase !== "question") {
+socket.on("game-state", (game: GameSessionState) => {
+  if (game.roomCode !== state.roomCode || game.status !== "active") {
     return;
   }
   state.game = game;
-  state.currentView = "question";
+  state.currentView = "game";
   state.errorMessage = null;
   state.isBusy = false;
   render();

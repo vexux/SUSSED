@@ -1,5 +1,6 @@
 const roomManager = require("./roomManager");
 const gameManager = require("./gameManager");
+const DEFAULT_GAME_ID = "fake-answer";
 
 function isRecord(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -13,6 +14,9 @@ function acknowledgeError(acknowledge, code, message) {
 
 function getOperationError(error) {
     if (error instanceof roomManager.RoomError) {
+        return { code: error.code, message: error.message };
+    }
+    if (error instanceof gameManager.GameSessionError) {
         return { code: error.code, message: error.message };
     }
 
@@ -171,20 +175,29 @@ function registerRoomHandlers(io, socket) {
         if (!isAcknowledgement(acknowledge)) {
             return;
         }
-        if (hasPayload) {
-            acknowledgeError(acknowledge, "INVALID_REQUEST", "Start game does not accept a payload.");
+        const gameId = hasPayload
+            ? isRecord(payload) &&
+              Object.keys(payload).length === 1 &&
+              typeof payload.gameId === "string"
+                ? payload.gameId
+                : null
+            : DEFAULT_GAME_ID;
+        if (gameId === null) {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "A registered gameId is required.");
             return;
         }
 
         try {
-            const room = roomManager.startRoom(socket.id);
-            const lobby = roomManager.createLobbyState(room);
-            const game = gameManager.startGame(room);
-            io.to(room.code).emit("game-starting", {
-                roomCode: room.code,
+            const room = roomManager.validateRoomStart(socket.id);
+            gameManager.validateGameStart(room, gameId);
+            const startingRoom = roomManager.startRoom(socket.id);
+            const lobby = roomManager.createLobbyState(startingRoom);
+            const game = gameManager.startGame(startingRoom, gameId);
+            io.to(startingRoom.code).emit("game-starting", {
+                roomCode: startingRoom.code,
                 lobby
             });
-            io.to(room.code).emit("game-state", gameManager.createPublicGameState(game));
+            io.to(startingRoom.code).emit("game-state", game);
             acknowledge({ starting: true });
         } catch (error) {
             const operationError = getOperationError(error);
@@ -204,4 +217,4 @@ function handleDisconnect(io, socket) {
     }
 }
 
-module.exports = { handleDisconnect, registerRoomHandlers };
+module.exports = { DEFAULT_GAME_ID, handleDisconnect, registerRoomHandlers };

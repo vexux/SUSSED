@@ -1,4 +1,5 @@
 import type { AppState } from "./appState";
+import { renderFakeAnswerGame } from "./games/fakeAnswer";
 
 export interface AppActions {
   onPlayerNameChange(name: string): void;
@@ -242,27 +243,29 @@ function renderStarting(state: AppState): HTMLElement {
   return screen;
 }
 
-function renderQuestion(state: AppState): HTMLElement {
-  const screen = createElement("section", "app-screen question-screen");
+function renderGame(state: AppState): HTMLElement {
   const game = state.game;
   if (!game) {
+    const screen = createElement("section", "app-screen starting-screen");
     screen.append(
-      createElement("h1", undefined, "Loading question"),
+      createElement("h1", undefined, "Game starting"),
       createElement("p", "screen-description", "Waiting for the server game state…"),
     );
     return screen;
   }
 
-  screen.append(
-    createElement("h1", undefined, "Question"),
-    createElement(
-      "p",
-      "round-counter",
-      `Round ${game.currentRound} / ${game.totalRounds}`,
-    ),
-    createElement("p", "question-text", game.question.text),
-  );
-  return screen;
+  switch (game.gameId) {
+    case "fake-answer":
+      return renderFakeAnswerGame(game.state);
+    default: {
+      const screen = createElement("section", "app-screen starting-screen");
+      screen.append(
+        createElement("h1", undefined, game.displayName),
+        createElement("p", "screen-description", "This game is starting."),
+      );
+      return screen;
+    }
+  }
 }
 
 export function renderApp(
@@ -275,8 +278,8 @@ export function renderApp(
   shell.append(
     state.currentView === "starting"
       ? renderStarting(state)
-      : state.currentView === "question"
-        ? renderQuestion(state)
+      : state.currentView === "game"
+        ? renderGame(state)
         : state.currentView === "lobby"
         ? renderLobby(state, actions)
         : renderHome(state, actions),
