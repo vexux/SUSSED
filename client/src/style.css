@@ -238,6 +238,29 @@ button:focus-visible {
   font-weight: 700;
 }
 
+.ready-badge,
+.not-ready-badge {
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: #a8edba;
+  background: #23432e;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.not-ready-badge {
+  color: #d1c7d7;
+  background: #39313f;
+}
+
+.start-reason {
+  margin-top: 10px;
+}
+
+.starting-screen {
+  justify-content: center;
+}
+
 @media (max-width: 560px) {
   .app-screen {
     padding: 40px 0;

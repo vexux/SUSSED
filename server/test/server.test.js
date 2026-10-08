@@ -111,6 +111,8 @@ test("starts the server and keeps the legacy create-room acknowledgement", async
     assert.equal(lobby.players[0].id, client.id);
     assert.equal(lobby.players[0].name, "Player");
     assert.equal(lobby.players[0].isHost, true);
+    assert.equal(lobby.players[0].isReady, false);
+    assert.equal(lobby.status, "lobby");
 
     const serverSocket = harness.io.sockets.sockets.get(client.id);
     assert.ok(serverSocket.rooms.has(response.roomCode));
@@ -159,10 +161,12 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
         "playerCount",
         "players",
         "roomCode",
+        "status",
     ]);
     assert.deepEqual(Object.keys(response.lobby.players[0]).sort(), [
         "id",
         "isHost",
+        "isReady",
         "name",
     ]);
 
@@ -276,10 +280,23 @@ test("leaving removes the player, broadcasts the update, and preserves the origi
     assert.deepEqual(response, { left: true });
     const updatedLobby = await updateEvent;
     assert.deepEqual(updatedLobby.players, [
-        { id: host.id, name: "Host", isHost: true },
+        { id: host.id, name: "Host", isHost: true, isReady: false },
     ]);
     assert.equal(updatedLobby.playerCount, 1);
     assert.equal(roomManager.getPlayerRoom(guest.id), null);
+});
+
+test("leaving deletes a room when the last player leaves", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Host",
+    });
+    harness.trackRoom(created.roomCode);
+
+    assert.deepEqual(await emitWithAck(host, "leave-room"), { left: true });
+    assert.equal(roomManager.getRoom(created.roomCode), null);
+    assert.equal(roomManager.getPlayerRoom(host.id), null);
 });
 
 test("malformed Socket.IO payloads return errors without crashing the server", async (context) => {
@@ -330,4 +347,262 @@ test("removes a newly created room when the creator socket cannot join it", asyn
     assert.ok(createdRoom);
     assert.equal(response.error.code, "INTERNAL_ERROR");
     assert.equal(roomManager.getRoom(createdRoom.code), null);
+});
+
+test("disconnect removes a player and broadcasts the updated lobby", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const createResponse = await emitWithAck(host, "create-room", {
+        playerName: "Host",
+    });
+    harness.trackRoom(createResponse.roomCode);
+    const hostSocket = harness.io.sockets.sockets.get(host.id);
+    await emitWithAck(guest, "join-room", {
+        roomCode: createResponse.roomCode,
+        playerName: "Guest",
+    });
+
+    const lobbyUpdate = waitForLobby(host, (lobby) => lobby.playerCount === 1);
+    const disconnected = new Promise((resolve) =>
+        harness.io.sockets.sockets.get(guest.id).once("disconnect", resolve)
+    );
+    guest.disconnect();
+    await disconnected;
+    const lobby = await lobbyUpdate;
+
+    assert.deepEqual(lobby.players, [
+        { id: host.id, name: "Host", isHost: true, isReady: false },
+    ]);
+    assert.equal(roomManager.getPlayerRoom(guest.id), null);
+    assert.equal(roomManager.getRoom(createResponse.roomCode).players.length, 1);
+    assert.ok(hostSocket.rooms.has(createResponse.roomCode));
+});
+
+test("disconnect deletes a room when its last player leaves", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const response = await emitWithAck(host, "create-room", {
+        playerName: "Host",
+    });
+    harness.trackRoom(response.roomCode);
+    const serverSocket = harness.io.sockets.sockets.get(host.id);
+    const disconnected = new Promise((resolve) =>
+        serverSocket.once("disconnect", resolve)
+    );
+    host.disconnect();
+    await disconnected;
+
+    assert.equal(roomManager.getRoom(response.roomCode), null);
+    assert.equal(roomManager.getPlayerRoom(host.id), null);
+});
+
+test("host disconnect migrates host to the earliest remaining player", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const nextHost = await harness.connect();
+    const lastPlayer = await harness.connect();
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Original host",
+    });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(nextHost, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Next host",
+    });
+    await emitWithAck(lastPlayer, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Last player",
+    });
+    const hostUpdate = waitForLobby(nextHost, (lobby) => lobby.playerCount === 2);
+    const lastPlayerUpdate = waitForLobby(lastPlayer, (lobby) => lobby.playerCount === 2);
+    const disconnected = new Promise((resolve) =>
+        harness.io.sockets.sockets.get(host.id).once("disconnect", resolve)
+    );
+    host.disconnect();
+    await disconnected;
+
+    const lobby = await hostUpdate;
+    assert.deepEqual(await lastPlayerUpdate, lobby);
+    assert.equal(lobby.players[0].id, nextHost.id);
+    assert.equal(lobby.players[0].isHost, true);
+    assert.equal(lobby.players.some((player) => player.isHost), true);
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, nextHost.id);
+});
+
+test("host leaving migrates host to the earliest remaining player", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const nextHost = await harness.connect();
+    const lastPlayer = await harness.connect();
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Original host",
+    });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(nextHost, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Next host",
+    });
+    await emitWithAck(lastPlayer, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Last player",
+    });
+
+    const nextHostUpdate = waitForLobby(nextHost, (lobby) => lobby.playerCount === 2);
+    const lastPlayerUpdate = waitForLobby(lastPlayer, (lobby) => lobby.playerCount === 2);
+    assert.deepEqual(await emitWithAck(host, "leave-room"), { left: true });
+    const lobby = await nextHostUpdate;
+    assert.deepEqual(await lastPlayerUpdate, lobby);
+    assert.equal(lobby.players[0].id, nextHost.id);
+    assert.equal(lobby.players[0].isHost, true);
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, nextHost.id);
+    assert.equal(roomManager.getPlayerRoom(host.id), null);
+});
+
+test("players can toggle ready state and receive authoritative lobby updates", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Host",
+    });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(guest, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Guest",
+    });
+
+    const hostReadyUpdate = waitForLobby(
+        host,
+        (lobby) => lobby.players.find((player) => player.id === guest.id)?.isReady
+    );
+    const guestReadyUpdate = waitForLobby(
+        guest,
+        (lobby) => lobby.players.find((player) => player.id === guest.id)?.isReady
+    );
+    assert.deepEqual(
+        await emitWithAck(guest, "set-ready", { isReady: true }),
+        { isReady: true }
+    );
+    const readyLobby = await hostReadyUpdate;
+    assert.deepEqual(await guestReadyUpdate, readyLobby);
+    assert.equal(
+        roomManager.getRoom(created.roomCode).players.find((player) => player.id === guest.id)
+            .isReady,
+        true
+    );
+
+    const unreadyUpdate = waitForLobby(
+        host,
+        (lobby) => !lobby.players.find((player) => player.id === guest.id)?.isReady
+    );
+    await emitWithAck(guest, "set-ready", { isReady: false });
+    assert.equal(
+        (await unreadyUpdate).players.find((player) => player.id === guest.id).isReady,
+        false
+    );
+});
+
+test("rejects non-host start attempts and starting with fewer than two players", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Host",
+    });
+    harness.trackRoom(created.roomCode);
+    assert.equal(
+        (await emitWithAck(host, "start-game")).error.code,
+        "NOT_ENOUGH_PLAYERS"
+    );
+
+    await emitWithAck(guest, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Guest",
+    });
+    assert.equal((await emitWithAck(guest, "start-game")).error.code, "NOT_HOST");
+});
+
+test("host cannot start until all non-host players are ready", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Host",
+    });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(guest, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Guest",
+    });
+
+    const notReady = await emitWithAck(host, "start-game");
+    assert.equal(notReady.error.code, "PLAYERS_NOT_READY");
+    await emitWithAck(guest, "set-ready", { isReady: true });
+    const response = await emitWithAck(host, "start-game");
+    assert.deepEqual(response, { starting: true });
+});
+
+test("host can start when requirements are met and a second start is rejected", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Host",
+    });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(guest, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Guest",
+    });
+    await emitWithAck(guest, "set-ready", { isReady: true });
+    let startEventCount = 0;
+    host.on("game-starting", () => {
+        startEventCount += 1;
+    });
+
+    const hostStarting = new Promise((resolve, reject) => {
+        const timeout = setTimeout(
+            () => reject(new Error("host game-starting event timed out")),
+            3000
+        );
+        host.once("game-starting", (payload) => {
+            clearTimeout(timeout);
+            resolve(payload);
+        });
+    });
+    const guestStarting = new Promise((resolve, reject) => {
+        const timeout = setTimeout(
+            () => reject(new Error("guest game-starting event timed out")),
+            3000
+        );
+        guest.once("game-starting", (payload) => {
+            clearTimeout(timeout);
+            resolve(payload);
+        });
+    });
+
+    assert.deepEqual(await emitWithAck(host, "start-game"), { starting: true });
+    const hostPayload = await hostStarting;
+    assert.deepEqual(await guestStarting, hostPayload);
+    assert.equal(hostPayload.roomCode, created.roomCode);
+    assert.equal(hostPayload.lobby.status, "starting");
+    assert.equal(roomManager.getRoom(created.roomCode).status, "starting");
+    assert.equal((await emitWithAck(host, "start-game")).error.code, "ROOM_NOT_IN_LOBBY");
+    assert.equal(startEventCount, 1);
+});
+
+test("malformed ready/start/leave payloads return structured errors", async (context) => {
+    const harness = await createHarness(context);
+    const client = await harness.connect();
+    const created = await emitWithAck(client, "create-room", {
+        playerName: "Host",
+    });
+    harness.trackRoom(created.roomCode);
+
+    assert.equal((await emitWithAck(client, "set-ready", {})).error.code, "INVALID_REQUEST");
+    assert.equal((await emitWithAck(client, "start-game", {})).error.code, "INVALID_REQUEST");
+    assert.equal((await emitWithAck(client, "leave-room", {})).error.code, "INVALID_REQUEST");
+    assert.equal((await emitWithAck(client, "set-ready", null)).error.code, "INVALID_REQUEST");
+    assert.equal(roomManager.getRoom(created.roomCode).players.length, 1);
 });

@@ -68,10 +68,11 @@ function createRoom(playerId, playerName) {
         throw new RoomError("NO_ROOM_CODES", "No room codes are available.");
     }
 
-    const host = { id: playerId, name: normalizePlayerName(playerName) };
+    const host = { id: playerId, name: normalizePlayerName(playerName), isReady: false };
     const room = {
         code: generateRoomCode(),
         hostId: playerId,
+        status: "lobby",
         players: [host]
     };
 
@@ -93,11 +94,14 @@ function joinRoom(roomCode, playerId, playerName) {
     }
 
     const name = normalizePlayerName(playerName);
+    if (room.status !== "lobby") {
+        throw new RoomError("ROOM_NOT_IN_LOBBY", "That room is no longer accepting players.");
+    }
     if (room.players.length >= MAX_PLAYERS) {
         throw new RoomError("ROOM_FULL", "That room is full.");
     }
 
-    const player = { id: playerId, name };
+    const player = { id: playerId, name, isReady: false };
     room.players.push(player);
     playerRooms.set(playerId, room.code);
     return room;
@@ -121,6 +125,53 @@ function removePlayer(playerId) {
         return null;
     }
 
+    if (room.hostId === playerId) {
+        room.hostId = room.players[0].id;
+    }
+
+    return room;
+}
+
+function setPlayerReady(playerId, isReady) {
+    if (typeof isReady !== "boolean") {
+        throw new RoomError("INVALID_READY_STATE", "Ready state must be true or false.");
+    }
+
+    const room = getPlayerRoom(playerId);
+    if (!room) {
+        throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
+    }
+    if (room.status !== "lobby") {
+        throw new RoomError("ROOM_NOT_IN_LOBBY", "The room is no longer in the lobby.");
+    }
+
+    const player = room.players.find((entry) => entry.id === playerId);
+    if (!player) {
+        throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
+    }
+    player.isReady = isReady;
+    return room;
+}
+
+function startRoom(playerId) {
+    const room = getPlayerRoom(playerId);
+    if (!room) {
+        throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
+    }
+    if (room.hostId !== playerId) {
+        throw new RoomError("NOT_HOST", "Only the host can start the game.");
+    }
+    if (room.status !== "lobby") {
+        throw new RoomError("ROOM_NOT_IN_LOBBY", "The room is no longer in the lobby.");
+    }
+    if (room.players.length < 2) {
+        throw new RoomError("NOT_ENOUGH_PLAYERS", "At least 2 players are required to start.");
+    }
+    if (room.players.some((player) => player.id !== room.hostId && !player.isReady)) {
+        throw new RoomError("PLAYERS_NOT_READY", "Wait for all other players to be ready.");
+    }
+
+    room.status = "starting";
     return room;
 }
 
@@ -136,11 +187,13 @@ function getPlayerRoom(playerId) {
 function createLobbyState(room) {
     return {
         roomCode: room.code,
+        status: room.status,
         playerCount: room.players.length,
         players: room.players.map((player) => ({
             id: player.id,
             name: player.name,
-            isHost: player.id === room.hostId
+            isHost: player.id === room.hostId,
+            isReady: player.isReady
         }))
     };
 }
@@ -168,5 +221,7 @@ module.exports = {
     joinRoom,
     normalizePlayerName,
     removePlayer,
-    removeRoom
+    removeRoom,
+    setPlayerReady,
+    startRoom
 };

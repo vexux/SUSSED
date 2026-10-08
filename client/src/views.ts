@@ -5,6 +5,8 @@ export interface AppActions {
   onCreateRoom(): void;
   onJoinRoom(roomCode: string): void;
   onLeaveRoom(): void;
+  onSetReady(isReady: boolean): void;
+  onStartGame(): void;
 }
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
@@ -160,6 +162,13 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     if (player.isHost) {
       item.append(createElement("span", "host-badge", "Host"));
     }
+    item.append(
+      createElement(
+        "span",
+        player.isReady ? "ready-badge" : "not-ready-badge",
+        player.isReady ? "Ready" : "Not ready",
+      ),
+    );
     if (player.id === state.localPlayerId) {
       item.classList.add("local-player");
     }
@@ -171,13 +180,64 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   leaveButton.disabled = state.isBusy;
   leaveButton.addEventListener("click", actions.onLeaveRoom);
 
-  screen.append(heading, roomCode, playerCount, playerName, playerList, leaveButton);
+  const readyButton = createElement(
+    "button",
+    "secondary-button",
+    localPlayer?.isReady ? "Mark not ready" : "Ready",
+  );
+  readyButton.type = "button";
+  readyButton.disabled = state.isBusy || lobby.status !== "lobby";
+  readyButton.addEventListener("click", () => {
+    actions.onSetReady(!localPlayer?.isReady);
+  });
+
+  screen.append(heading, roomCode, playerCount, playerName, playerList);
+  if (lobby.status === "lobby") {
+    screen.append(readyButton);
+  }
+
+  if (localPlayer?.isHost) {
+    const unreadyPlayers = lobby.players.filter(
+      (player) => !player.isHost && !player.isReady,
+    );
+    let startReason: string | null = null;
+    if (lobby.status !== "lobby") {
+      startReason = "The game is already starting.";
+    } else if (lobby.playerCount < 2) {
+      startReason = "At least 2 players are needed to start.";
+    } else if (unreadyPlayers.length > 0) {
+      startReason = "Waiting for all other players to be ready.";
+    }
+
+    const startButton = createElement("button", "primary-button", "Start game");
+    startButton.type = "button";
+    startButton.disabled = state.isBusy || startReason !== null;
+    startButton.addEventListener("click", actions.onStartGame);
+    screen.append(startButton);
+    if (startReason) {
+      screen.append(createElement("p", "status-message start-reason", startReason));
+    }
+  }
+
+  screen.append(leaveButton);
   if (state.isBusy) {
-    screen.append(createElement("p", "status-message", "Leaving room…"));
+    screen.append(createElement("p", "status-message", "Updating room…"));
   }
   const error = createErrorMessage(state.errorMessage);
   if (error) {
     screen.append(error);
+  }
+  return screen;
+}
+
+function renderStarting(state: AppState): HTMLElement {
+  const screen = createElement("section", "app-screen starting-screen");
+  screen.append(
+    createElement("h1", undefined, "Game starting"),
+    createElement("p", "screen-description", "The host has started the game."),
+  );
+  if (state.roomCode) {
+    screen.append(createElement("p", "lobby-room-code", state.roomCode));
   }
   return screen;
 }
@@ -190,9 +250,11 @@ export function renderApp(
   const shell = createElement("main", "app-shell");
   shell.append(createHeader(state));
   shell.append(
-    state.currentView === "lobby"
-      ? renderLobby(state, actions)
-      : renderHome(state, actions),
+    state.currentView === "starting"
+      ? renderStarting(state)
+      : state.currentView === "lobby"
+        ? renderLobby(state, actions)
+        : renderHome(state, actions),
   );
   root.replaceChildren(shell);
 }

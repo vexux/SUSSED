@@ -39,7 +39,7 @@ function applyLobbyState(lobby: LobbyState): void {
     return;
   }
 
-  state.currentView = "lobby";
+  state.currentView = lobby.status === "starting" ? "starting" : "lobby";
   state.roomCode = lobby.roomCode;
   state.localPlayerId = localPlayer.id;
   state.playerName = localPlayer.name;
@@ -110,19 +110,66 @@ const actions: AppActions = {
       render();
     });
   },
+  onSetReady(isReady) {
+    state.errorMessage = null;
+    state.isBusy = true;
+    render();
+    socket.emit(
+      "set-ready",
+      { isReady },
+      (response: RoomOperationResponse) => {
+        if (response.error) {
+          showOperationError(response);
+          return;
+        }
+        state.isBusy = false;
+        render();
+      },
+    );
+  },
+  onStartGame() {
+    state.errorMessage = null;
+    state.isBusy = true;
+    render();
+    socket.emit("start-game", (response: RoomOperationResponse) => {
+      if (response.error) {
+        showOperationError(response);
+        return;
+      }
+      state.isBusy = false;
+      render();
+    });
+  },
 };
 
 socket.on("lobby-state", (lobby: LobbyState) => {
   applyLobbyState(lobby);
 });
 
+socket.on(
+  "game-starting",
+  (payload: { roomCode: string; lobby: LobbyState }) => {
+    if (payload.roomCode !== state.roomCode) {
+      return;
+    }
+    applyLobbyState(payload.lobby);
+  },
+);
+
+let connectionWasLost = false;
+let hasConnectedOnce = false;
 socket.on("connect", () => {
   state.connectionStatus = "connected";
-  state.errorMessage = null;
+  state.errorMessage = hasConnectedOnce && connectionWasLost
+    ? "Connection restored. Create or join a room to continue."
+    : null;
+  connectionWasLost = false;
+  hasConnectedOnce = true;
   render();
 });
 
 socket.on("disconnect", () => {
+  connectionWasLost = true;
   state.connectionStatus = "disconnected";
   state.currentView = "home";
   state.roomCode = null;
@@ -130,6 +177,14 @@ socket.on("disconnect", () => {
   state.lobby = null;
   state.isBusy = false;
   state.errorMessage = "Connection lost. Reconnect to create or join a room.";
+  render();
+});
+
+socket.on("connect_error", () => {
+  connectionWasLost = true;
+  state.connectionStatus = "disconnected";
+  state.isBusy = false;
+  state.errorMessage = "Unable to connect to the server. Retrying…";
   render();
 });
 

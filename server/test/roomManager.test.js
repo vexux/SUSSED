@@ -29,7 +29,7 @@ test("creates rooms with unique codes and the creator as host and first player",
         assert.match(room.code, ROOM_CODE_PATTERN);
         assert.equal(room.hostId, `player-${index}`);
         assert.deepEqual(room.players, [
-            { id: `player-${index}`, name: `Player ${index}` },
+            { id: `player-${index}`, name: `Player ${index}`, isReady: false },
         ]);
     }
 });

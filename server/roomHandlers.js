@@ -23,6 +23,10 @@ function broadcastLobby(io, room) {
     io.to(room.code).emit("lobby-state", roomManager.createLobbyState(room));
 }
 
+function isAcknowledgement(value) {
+    return typeof value === "function";
+}
+
 function registerRoomHandlers(io, socket) {
     socket.on("create-room", async (payload, acknowledge) => {
         const isLegacyCall = typeof payload === "function";
@@ -30,7 +34,7 @@ function registerRoomHandlers(io, socket) {
             acknowledge = payload;
             payload = undefined;
         }
-        if (typeof acknowledge !== "function") {
+        if (!isAcknowledgement(acknowledge)) {
             return;
         }
         if (roomManager.getPlayerRoom(socket.id)) {
@@ -63,7 +67,7 @@ function registerRoomHandlers(io, socket) {
     });
 
     socket.on("join-room", async (payload, acknowledge) => {
-        if (typeof acknowledge !== "function") {
+        if (!isAcknowledgement(acknowledge)) {
             return;
         }
         if (!isRecord(payload)) {
@@ -98,8 +102,16 @@ function registerRoomHandlers(io, socket) {
         acknowledge({ lobby });
     });
 
-    socket.on("leave-room", async (acknowledge) => {
-        if (typeof acknowledge !== "function") {
+    socket.on("leave-room", async (payload, acknowledge) => {
+        const hasPayload = typeof payload !== "function";
+        if (!hasPayload) {
+            acknowledge = payload;
+        }
+        if (!isAcknowledgement(acknowledge)) {
+            return;
+        }
+        if (hasPayload) {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "Leave room does not accept a payload.");
             return;
         }
         const room = roomManager.getPlayerRoom(socket.id);
@@ -123,6 +135,56 @@ function registerRoomHandlers(io, socket) {
             broadcastLobby(io, updatedRoom);
         }
         acknowledge({ left: true });
+    });
+
+    socket.on("set-ready", (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) {
+            return;
+        }
+        if (!isRecord(payload) || typeof payload.isReady !== "boolean") {
+            acknowledgeError(
+                acknowledge,
+                "INVALID_REQUEST",
+                "A boolean isReady value is required."
+            );
+            return;
+        }
+
+        try {
+            const room = roomManager.setPlayerReady(socket.id, payload.isReady);
+            broadcastLobby(io, room);
+            acknowledge({ isReady: payload.isReady });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
+    });
+
+    socket.on("start-game", (payload, acknowledge) => {
+        const hasPayload = typeof payload !== "function";
+        if (!hasPayload) {
+            acknowledge = payload;
+        }
+        if (!isAcknowledgement(acknowledge)) {
+            return;
+        }
+        if (hasPayload) {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "Start game does not accept a payload.");
+            return;
+        }
+
+        try {
+            const room = roomManager.startRoom(socket.id);
+            const lobby = roomManager.createLobbyState(room);
+            io.to(room.code).emit("game-starting", {
+                roomCode: room.code,
+                lobby
+            });
+            acknowledge({ starting: true });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
     });
 }
 
