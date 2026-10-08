@@ -1,5 +1,9 @@
 import "./style.css";
-import { createInitialAppState, type LobbyState } from "./appState";
+import {
+  createInitialAppState,
+  type GameState,
+  type LobbyState,
+} from "./appState";
 import { socket } from "./socket";
 import { renderApp } from "./views";
 import type { AppActions } from "./views";
@@ -186,6 +190,17 @@ socket.on(
   },
 );
 
+socket.on("game-state", (game: GameState) => {
+  if (game.roomCode !== state.roomCode || game.phase !== "question") {
+    return;
+  }
+  state.game = game;
+  state.currentView = "question";
+  state.errorMessage = null;
+  state.isBusy = false;
+  render();
+});
+
 let connectionWasLost = false;
 let hasConnectedOnce = false;
 socket.on("connect", () => {
@@ -205,6 +220,7 @@ socket.on("disconnect", () => {
   state.roomCode = null;
   state.localPlayerId = null;
   state.lobby = null;
+  state.game = null;
   state.isBusy = false;
   state.errorMessage = "Connection lost. Reconnect to create or join a room.";
   render();

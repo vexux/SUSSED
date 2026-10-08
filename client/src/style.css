@@ -261,6 +261,25 @@ button:focus-visible {
   justify-content: center;
 }
 
+.question-screen {
+  justify-content: center;
+  gap: 16px;
+}
+
+.round-counter {
+  margin: 0;
+  color: #d4a8ff;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.question-text {
+  width: min(100%, 720px);
+  margin: 8px 0 0;
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  line-height: 1.35;
+}
+
 @media (max-width: 560px) {
   .app-screen {
     padding: 40px 0;

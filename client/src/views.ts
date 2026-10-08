@@ -242,6 +242,29 @@ function renderStarting(state: AppState): HTMLElement {
   return screen;
 }
 
+function renderQuestion(state: AppState): HTMLElement {
+  const screen = createElement("section", "app-screen question-screen");
+  const game = state.game;
+  if (!game) {
+    screen.append(
+      createElement("h1", undefined, "Loading question"),
+      createElement("p", "screen-description", "Waiting for the server game state…"),
+    );
+    return screen;
+  }
+
+  screen.append(
+    createElement("h1", undefined, "Question"),
+    createElement(
+      "p",
+      "round-counter",
+      `Round ${game.currentRound} / ${game.totalRounds}`,
+    ),
+    createElement("p", "question-text", game.question.text),
+  );
+  return screen;
+}
+
 export function renderApp(
   root: HTMLElement,
   state: AppState,
@@ -252,7 +275,9 @@ export function renderApp(
   shell.append(
     state.currentView === "starting"
       ? renderStarting(state)
-      : state.currentView === "lobby"
+      : state.currentView === "question"
+        ? renderQuestion(state)
+        : state.currentView === "lobby"
         ? renderLobby(state, actions)
         : renderHome(state, actions),
   );

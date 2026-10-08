@@ -1,4 +1,5 @@
 const roomManager = require("./roomManager");
+const gameManager = require("./gameManager");
 
 function isRecord(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -133,6 +134,8 @@ function registerRoomHandlers(io, socket) {
         const updatedRoom = roomManager.removePlayer(socket.id);
         if (updatedRoom) {
             broadcastLobby(io, updatedRoom);
+        } else {
+            gameManager.removeGame(room.code);
         }
         acknowledge({ left: true });
     });
@@ -176,10 +179,12 @@ function registerRoomHandlers(io, socket) {
         try {
             const room = roomManager.startRoom(socket.id);
             const lobby = roomManager.createLobbyState(room);
+            const game = gameManager.startGame(room);
             io.to(room.code).emit("game-starting", {
                 roomCode: room.code,
                 lobby
             });
+            io.to(room.code).emit("game-state", gameManager.createPublicGameState(game));
             acknowledge({ starting: true });
         } catch (error) {
             const operationError = getOperationError(error);
@@ -189,10 +194,13 @@ function registerRoomHandlers(io, socket) {
 }
 
 function handleDisconnect(io, socket) {
+    const room = roomManager.getPlayerRoom(socket.id);
     const updatedRoom = roomManager.removePlayer(socket.id);
     socket.data.roomCode = undefined;
     if (updatedRoom) {
         broadcastLobby(io, updatedRoom);
+    } else if (room) {
+        gameManager.removeGame(room.code);
     }
 }
 
