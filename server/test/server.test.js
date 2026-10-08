@@ -107,6 +107,44 @@ function waitForGameState(client, predicate = () => true) {
     });
 }
 
+function waitForGameStart(client) {
+    return new Promise((resolve, reject) => {
+        const events = [];
+        let startingPayload;
+        let gameState;
+        const timeout = setTimeout(() => {
+            client.off("game-starting", onStarting);
+            client.off("game-state", onGameState);
+            reject(new Error("game start flow timed out"));
+        }, 3000);
+
+        function finishIfComplete() {
+            if (!startingPayload || !gameState) {
+                return;
+            }
+            clearTimeout(timeout);
+            client.off("game-starting", onStarting);
+            client.off("game-state", onGameState);
+            resolve({ events, startingPayload, gameState });
+        }
+
+        function onStarting(payload) {
+            events.push("game-starting");
+            startingPayload = payload;
+            finishIfComplete();
+        }
+
+        function onGameState(payload) {
+            events.push("game-state");
+            gameState = payload;
+            finishIfComplete();
+        }
+
+        client.on("game-starting", onStarting);
+        client.on("game-state", onGameState);
+    });
+}
+
 async function joinPlayers(harness, roomCode, count) {
     const players = [];
     for (let index = 0; index < count; index += 1) {
@@ -695,15 +733,21 @@ test("host start initializes and broadcasts the same safe question state to ever
         await emitWithAck(guest, "set-ready", { isReady: true });
     }
 
-    const hostGameState = waitForGameState(host);
-    const guestGameState = waitForGameState(guests[0]);
+    const startFlows = [host, ...guests].map(waitForGameStart);
     assert.deepEqual(
         await emitWithAck(host, "start-game", { gameId: "fake-answer" }),
         { starting: true }
     );
-    const hostState = await hostGameState;
-    const guestState = await guestGameState;
-    assert.deepEqual(hostState, guestState);
+    const receivedFlows = await Promise.all(startFlows);
+    const { startingPayload, gameState: hostState } = receivedFlows[0];
+    assert.equal(startingPayload.roomCode, created.roomCode);
+    assert.equal(startingPayload.lobby.status, "starting");
+    assert.equal(startingPayload.lobby.playerCount, 4);
+    for (const flow of receivedFlows) {
+        assert.deepEqual(flow.events, ["game-starting", "game-state"]);
+        assert.deepEqual(flow.startingPayload, startingPayload);
+        assert.deepEqual(flow.gameState, hostState);
+    }
     assert.equal(hostState.roomCode, created.roomCode);
     assert.equal(hostState.gameId, "fake-answer");
     assert.equal(hostState.displayName, "Fake Answer");
@@ -711,6 +755,7 @@ test("host start initializes and broadcasts the same safe question state to ever
     assert.equal(hostState.state.phase, "question");
     assert.equal(hostState.state.currentRound, 1);
     assert.equal(hostState.state.totalRounds, 5);
+    assert.equal(hostState.state.prompt.text.length > 0, true);
     assert.deepEqual(
         hostState.players.map(({ id, name }) => ({ id, name })),
         [
