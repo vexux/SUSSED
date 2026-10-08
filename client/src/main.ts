@@ -21,6 +21,7 @@ if (!app) {
 const appRoot: HTMLElement = app;
 
 const state = createInitialAppState();
+state.connectionStatus = socket.connected ? "connected" : "connecting";
 
 function render(): void {
   renderApp(appRoot, state, actions);
@@ -31,6 +32,35 @@ function showOperationError(response: RoomOperationResponse): void {
   state.errorMessage =
     response.error?.message ?? "The room operation could not be completed.";
   render();
+}
+
+function emitRoomOperation(
+  event: string,
+  payload: object | undefined,
+  onResponse: (response: RoomOperationResponse) => void,
+): void {
+  const acknowledge = (
+    error: Error | null,
+    response?: RoomOperationResponse,
+  ): void => {
+    if (error || !response) {
+      showOperationError({
+        error: {
+          code: "SERVER_TIMEOUT",
+          message: "The server did not respond. Please try again.",
+        },
+      });
+      return;
+    }
+    onResponse(response);
+  };
+
+  const timedSocket = socket.timeout(5000);
+  if (payload === undefined) {
+    timedSocket.emit(event, acknowledge);
+  } else {
+    timedSocket.emit(event, payload, acknowledge);
+  }
 }
 
 function applyLobbyState(lobby: LobbyState): void {
@@ -58,10 +88,10 @@ const actions: AppActions = {
     state.errorMessage = null;
     state.isBusy = true;
     render();
-    socket.emit(
+    emitRoomOperation(
       "create-room",
       { playerName: state.playerName },
-      (response: RoomOperationResponse) => {
+      (response) => {
         if (response.error) {
           showOperationError(response);
           return;
@@ -75,10 +105,10 @@ const actions: AppActions = {
     state.errorMessage = null;
     state.isBusy = true;
     render();
-    socket.emit(
+    emitRoomOperation(
       "join-room",
       { roomCode, playerName: state.playerName },
-      (response: RoomOperationResponse) => {
+      (response) => {
         if (response.error) {
           showOperationError(response);
           return;
@@ -92,7 +122,7 @@ const actions: AppActions = {
     state.errorMessage = null;
     state.isBusy = true;
     render();
-    socket.emit("leave-room", (response: RoomOperationResponse) => {
+    emitRoomOperation("leave-room", undefined, (response) => {
       if (response.error) {
         showOperationError(response);
         return;
@@ -114,10 +144,10 @@ const actions: AppActions = {
     state.errorMessage = null;
     state.isBusy = true;
     render();
-    socket.emit(
+    emitRoomOperation(
       "set-ready",
       { isReady },
-      (response: RoomOperationResponse) => {
+      (response) => {
         if (response.error) {
           showOperationError(response);
           return;
@@ -131,7 +161,7 @@ const actions: AppActions = {
     state.errorMessage = null;
     state.isBusy = true;
     render();
-    socket.emit("start-game", (response: RoomOperationResponse) => {
+    emitRoomOperation("start-game", undefined, (response) => {
       if (response.error) {
         showOperationError(response);
         return;
