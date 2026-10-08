@@ -1,5 +1,8 @@
 import type { AppState } from "./appState";
-import { renderFakeAnswerGame } from "./games/fakeAnswer";
+import {
+  renderFakeAnswerGame,
+  type FakeAnswerSubmissionViewState,
+} from "./games/fakeAnswer";
 
 export interface AppActions {
   onPlayerNameChange(name: string): void;
@@ -8,6 +11,7 @@ export interface AppActions {
   onLeaveRoom(): void;
   onSetReady(isReady: boolean): void;
   onStartGame(): void;
+  onSubmitFakeAnswer(completion: string): void;
 }
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
@@ -243,7 +247,11 @@ function renderStarting(state: AppState): HTMLElement {
   return screen;
 }
 
-function renderGame(state: AppState): HTMLElement {
+function renderGame(
+  state: AppState,
+  actions: AppActions,
+  submission: FakeAnswerSubmissionViewState,
+): HTMLElement {
   const game = state.game;
   if (!game) {
     const screen = createElement("section", "app-screen starting-screen");
@@ -256,7 +264,7 @@ function renderGame(state: AppState): HTMLElement {
 
   switch (game.gameId) {
     case "fake-answer":
-      return renderFakeAnswerGame(game.state);
+      return renderFakeAnswerGame(game.state, submission, actions.onSubmitFakeAnswer);
     default: {
       const screen = createElement("section", "app-screen starting-screen");
       screen.append(
@@ -272,6 +280,7 @@ export function renderApp(
   root: HTMLElement,
   state: AppState,
   actions: AppActions,
+  fakeAnswerSubmission: FakeAnswerSubmissionViewState,
 ): void {
   const shell = createElement("main", "app-shell");
   shell.append(createHeader(state));
@@ -279,7 +288,7 @@ export function renderApp(
     state.currentView === "starting"
       ? renderStarting(state)
       : state.currentView === "game"
-        ? renderGame(state)
+        ? renderGame(state, actions, fakeAnswerSubmission)
         : state.currentView === "lobby"
         ? renderLobby(state, actions)
         : renderHome(state, actions),

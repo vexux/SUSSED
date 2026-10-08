@@ -88,6 +88,30 @@ function createPublicGameState(session) {
     };
 }
 
+function performGameAction(roomCode, gameId, playerId, action, payload) {
+    const session = sessions.get(roomCode);
+    if (!session || session.status !== "active") {
+        throw new GameSessionError("GAME_NOT_ACTIVE", "There is no active game in this room.");
+    }
+    if (session.gameId !== gameId) {
+        throw new GameSessionError("GAME_MISMATCH", "That game is not active in this room.");
+    }
+    if (typeof session.implementation.handleAction !== "function") {
+        throw new GameSessionError("ACTION_NOT_SUPPORTED", "This game does not support that action.");
+    }
+
+    const result = session.implementation.handleAction(
+        session.privateState,
+        action,
+        playerId,
+        payload
+    );
+    return {
+        result,
+        gameState: createPublicGameState(session)
+    };
+}
+
 function removeGame(roomCode) {
     return sessions.delete(roomCode);
 }
@@ -96,6 +120,7 @@ module.exports = {
     GameSessionError,
     getGameDefinition,
     isPlayerCountSupported,
+    performGameAction,
     removeGame,
     startGame,
     validateGameStart

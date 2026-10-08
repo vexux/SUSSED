@@ -1,5 +1,6 @@
 const roomManager = require("./roomManager");
 const gameManager = require("./gameManager");
+const fakeAnswerSocketHandlers = require("./games/fake-answer/socketHandlers");
 const DEFAULT_GAME_ID = "fake-answer";
 
 function isRecord(value) {
@@ -33,6 +34,8 @@ function isAcknowledgement(value) {
 }
 
 function registerRoomHandlers(io, socket) {
+    fakeAnswerSocketHandlers.registerSocketHandlers(io, socket);
+
     socket.on("create-room", async (payload, acknowledge) => {
         const isLegacyCall = typeof payload === "function";
         if (isLegacyCall) {
@@ -198,6 +201,9 @@ function registerRoomHandlers(io, socket) {
                 lobby
             });
             io.to(startingRoom.code).emit("game-state", game);
+            if (gameId === DEFAULT_GAME_ID) {
+                fakeAnswerSocketHandlers.scheduleSubmissionPhase(io, startingRoom.code);
+            }
             acknowledge({ starting: true });
         } catch (error) {
             const operationError = getOperationError(error);

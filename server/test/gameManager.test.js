@@ -36,8 +36,9 @@ test("generic game sessions start registered games and expose only public state"
         fakeAnswer.createInitialState(room.players)
     );
     const publicQuestion = questions.find(
-        (question) => question.id === publicState.state.question.id
+        (question) => question.id === publicState.state.prompt.id
     );
+    const moduleState = fakeAnswer.createPublicState(privateState);
 
     try {
         assert.equal(publicState.gameId, "fake-answer");
@@ -47,16 +48,54 @@ test("generic game sessions start registered games and expose only public state"
         assert.equal(publicState.state.currentRound, 1);
         assert.equal(publicState.state.totalRounds, 5);
         assert.ok(publicQuestion);
+        assert.equal(moduleState.prompt.id, privateState.currentQuestion.id);
         assert.equal(
-            JSON.stringify(publicState).includes(publicQuestion.correctAnswer),
+            JSON.stringify(publicState).includes(publicQuestion.correctCompletion),
             false
         );
-        assert.equal(Object.hasOwn(publicState.state.question, "correctAnswer"), false);
+        assert.equal(Object.hasOwn(publicState.state.prompt, "correctCompletion"), false);
         assert.equal(Object.hasOwn(publicState, "implementation"), false);
-        assert.equal(typeof privateState.currentQuestion.correctAnswer, "string");
+        assert.equal(typeof privateState.currentQuestion.correctCompletion, "string");
     } finally {
         gameManager.removeGame(room.code);
     }
+});
+
+test("fake-answer can move from question to answer-submission and then reveal", () => {
+    const room = createStartingRoom();
+    gameManager.startGame(room, "fake-answer");
+    assert.throws(
+        () => gameManager.performGameAction(
+            room.code,
+            "fake-answer",
+            "player-1",
+            "submit-completion",
+            "Too early"
+        ),
+        { code: "SUBMISSIONS_NOT_OPEN" }
+    );
+    const initial = gameManager.performGameAction(
+        room.code,
+        "fake-answer",
+        null,
+        "open-submissions"
+    );
+
+    assert.equal(initial.gameState.state.phase, "answer-submission");
+    assert.equal(initial.gameState.state.submissionCount, 0);
+    let finalState;
+    for (const player of room.players) {
+        finalState = gameManager.performGameAction(
+            room.code,
+            "fake-answer",
+            player.id,
+            "submit-completion",
+            `Invented completion by ${player.name}`
+        );
+    }
+
+    assert.equal(finalState.gameState.state.phase, "reveal");
+    gameManager.removeGame(room.code);
 });
 
 test("fake-answer owns a four-player requirement without imposing it on other games", () => {
@@ -67,4 +106,16 @@ test("fake-answer owns a four-player requirement without imposing it on other ga
     const futureGame = { supportedPlayers: { min: 2, max: 6 } };
     assert.equal(gameManager.isPlayerCountSupported(futureGame, 6), true);
     assert.equal(gameManager.isPlayerCountSupported(futureGame, 7), false);
+});
+
+test("question bank contains at least 15 unique sourced prompts", () => {
+    assert.ok(questions.length >= 15);
+    assert.equal(new Set(questions.map(({ id }) => id)).size, questions.length);
+    for (const question of questions) {
+        assert.ok(question.id);
+        assert.ok(question.text);
+        assert.ok(question.correctCompletion);
+        assert.ok(question.sourceName);
+        assert.match(question.sourceUrl, /^https:\/\//);
+    }
 });

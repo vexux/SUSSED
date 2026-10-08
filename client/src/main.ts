@@ -7,6 +7,18 @@ import {
 import { socket } from "./socket";
 import { renderApp } from "./views";
 import type { AppActions } from "./views";
+import {
+  isFakeAnswerPublicState,
+  updateFakeAnswerProgress,
+} from "./games/fakeAnswer";
+
+interface FakeAnswerSubmissionResponse {
+  submitted?: boolean;
+  error?: {
+    code: string;
+    message: string;
+  };
+}
 
 interface RoomOperationResponse {
   roomCode?: string;
@@ -26,9 +38,16 @@ const appRoot: HTMLElement = app;
 
 const state = createInitialAppState();
 state.connectionStatus = socket.connected ? "connected" : "connecting";
+let fakeAnswerHasSubmitted = false;
+let fakeAnswerIsSubmitting = false;
+let fakeAnswerErrorMessage: string | null = null;
 
 function render(): void {
-  renderApp(appRoot, state, actions);
+  renderApp(appRoot, state, actions, {
+    hasSubmitted: fakeAnswerHasSubmitted,
+    isSubmitting: fakeAnswerIsSubmitting,
+    errorMessage: fakeAnswerErrorMessage,
+  });
 }
 
 function showOperationError(response: RoomOperationResponse): void {
@@ -139,6 +158,10 @@ const actions: AppActions = {
       state.roomCode = null;
       state.localPlayerId = null;
       state.lobby = null;
+      state.game = null;
+      fakeAnswerHasSubmitted = false;
+      fakeAnswerIsSubmitting = false;
+      fakeAnswerErrorMessage = null;
       state.isBusy = false;
       state.errorMessage = null;
       render();
@@ -174,6 +197,33 @@ const actions: AppActions = {
       render();
     });
   },
+  onSubmitFakeAnswer(completion) {
+    if (fakeAnswerHasSubmitted || fakeAnswerIsSubmitting) {
+      return;
+    }
+
+    fakeAnswerErrorMessage = null;
+    fakeAnswerIsSubmitting = true;
+    render();
+    socket.timeout(5000).emit(
+      "fake-answer:submit",
+      { completion },
+      (error: Error | null, response?: FakeAnswerSubmissionResponse) => {
+        fakeAnswerIsSubmitting = false;
+        if (error || !response) {
+          fakeAnswerErrorMessage = "The server did not respond. Please try again.";
+        } else if (response.error) {
+          fakeAnswerErrorMessage = response.error.message;
+        } else if (response.submitted) {
+          fakeAnswerHasSubmitted = true;
+          fakeAnswerErrorMessage = null;
+        } else {
+          fakeAnswerErrorMessage = "Your completion could not be submitted.";
+        }
+        render();
+      },
+    );
+  },
 };
 
 socket.on("lobby-state", (lobby: LobbyState) => {
@@ -194,10 +244,42 @@ socket.on("game-state", (game: GameSessionState) => {
   if (game.roomCode !== state.roomCode || game.status !== "active") {
     return;
   }
+  const previousGame = state.game;
+  const previousState = previousGame?.state;
+  const nextState = game.state;
+  const isSubmissionProgressOnly =
+    state.currentView === "game" &&
+    previousGame?.roomCode === game.roomCode &&
+    previousGame.gameId === game.gameId &&
+    game.gameId === "fake-answer" &&
+    isFakeAnswerPublicState(previousState) &&
+    isFakeAnswerPublicState(nextState) &&
+    previousState.phase === "answer-submission" &&
+    nextState.phase === "answer-submission" &&
+    previousState.currentRound === nextState.currentRound &&
+    previousState.totalRounds === nextState.totalRounds &&
+    previousState.playerCount === nextState.playerCount &&
+    previousState.prompt?.id === nextState.prompt?.id &&
+    previousState.prompt?.text === nextState.prompt?.text &&
+    previousState.submissionCount !== nextState.submissionCount;
+  if (
+    state.game?.roomCode !== game.roomCode ||
+    state.game?.gameId !== game.gameId
+  ) {
+    fakeAnswerHasSubmitted = false;
+    fakeAnswerIsSubmitting = false;
+    fakeAnswerErrorMessage = null;
+  }
   state.game = game;
   state.currentView = "game";
   state.errorMessage = null;
   state.isBusy = false;
+  if (
+    isSubmissionProgressOnly &&
+    updateFakeAnswerProgress(appRoot, game.state)
+  ) {
+    return;
+  }
   render();
 });
 
@@ -221,6 +303,9 @@ socket.on("disconnect", () => {
   state.localPlayerId = null;
   state.lobby = null;
   state.game = null;
+  fakeAnswerHasSubmitted = false;
+  fakeAnswerIsSubmitting = false;
+  fakeAnswerErrorMessage = null;
   state.isBusy = false;
   state.errorMessage = "Connection lost. Reconnect to create or join a room.";
   render();

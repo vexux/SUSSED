@@ -280,6 +280,19 @@ button:focus-visible {
   line-height: 1.35;
 }
 
+.submission-form {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 520px);
+  text-align: left;
+}
+
+.submission-progress {
+  margin: 0;
+  color: #d4a8ff;
+  font-weight: 700;
+}
+
 @media (max-width: 560px) {
   .app-screen {
     padding: 40px 0;
