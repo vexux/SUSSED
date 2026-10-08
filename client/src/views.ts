@@ -1,34 +1,198 @@
 import type { AppState } from "./appState";
 
-const viewContent = {
-  home: {
-    heading: "SUSSED!",
-    description: "A multiplayer social deduction game.",
-  },
-  lobby: {
-    heading: "Lobby",
-    description: "The lobby screen is ready for future development.",
-  },
-  game: {
-    heading: "Game",
-    description: "The game screen is ready for future development.",
-  },
-} as const;
+export interface AppActions {
+  onPlayerNameChange(name: string): void;
+  onCreateRoom(): void;
+  onJoinRoom(roomCode: string): void;
+  onLeaveRoom(): void;
+}
 
-export function renderApp(root: HTMLElement, state: AppState): void {
-  const content = viewContent[state.currentView];
-  root.innerHTML = `
-    <main class="app-shell">
-      <header class="app-header">
-        <span class="brand">SUSSED!</span>
-        <span class="connection-status" data-status="${state.connectionStatus}">
-          ${state.connectionStatus}
-        </span>
-      </header>
-      <section class="app-screen" aria-labelledby="screen-heading">
-        <h1 id="screen-heading">${content.heading}</h1>
-        <p>${content.description}</p>
-      </section>
-    </main>
-  `;
+function createElement<K extends keyof HTMLElementTagNameMap>(
+  tagName: K,
+  className?: string,
+  text?: string,
+): HTMLElementTagNameMap[K] {
+  const element = document.createElement(tagName);
+  if (className) {
+    element.className = className;
+  }
+  if (text !== undefined) {
+    element.textContent = text;
+  }
+  return element;
+}
+
+function createStatus(state: AppState): HTMLElement {
+  const status = createElement(
+    "span",
+    "connection-status",
+    state.connectionStatus,
+  );
+  status.dataset.status = state.connectionStatus;
+  return status;
+}
+
+function createHeader(state: AppState): HTMLElement {
+  const header = createElement("header", "app-header");
+  header.append(
+    createElement("span", "brand", "SUSSED!"),
+    createStatus(state),
+  );
+  return header;
+}
+
+function createErrorMessage(message: string | null): HTMLElement | null {
+  if (!message) {
+    return null;
+  }
+  const error = createElement("p", "error-message", message);
+  error.setAttribute("role", "alert");
+  return error;
+}
+
+function renderHome(
+  state: AppState,
+  actions: AppActions,
+): HTMLElement {
+  const screen = createElement("section", "app-screen home-screen");
+  const title = createElement("h1", undefined, "SUSSED!");
+  const introduction = createElement(
+    "p",
+    "screen-description",
+    "Create a room or join your friends in a social deduction game.",
+  );
+  screen.append(title, introduction);
+
+  const playerNameLabel = createElement("label", "field-label", "Player name");
+  playerNameLabel.htmlFor = "player-name";
+  const playerNameInput = createElement("input", "text-input");
+  playerNameInput.id = "player-name";
+  playerNameInput.name = "playerName";
+  playerNameInput.type = "text";
+  playerNameInput.autocomplete = "name";
+  playerNameInput.maxLength = 20;
+  playerNameInput.required = true;
+  playerNameInput.value = state.playerName;
+  playerNameInput.addEventListener("input", () => {
+    actions.onPlayerNameChange(playerNameInput.value);
+  });
+
+  const identityField = createElement("div", "field");
+  identityField.append(playerNameLabel, playerNameInput);
+  screen.append(identityField);
+
+  const createButton = createElement("button", "primary-button", "Create room");
+  createButton.type = "button";
+  createButton.disabled =
+    state.connectionStatus !== "connected" || state.isBusy;
+  createButton.addEventListener("click", actions.onCreateRoom);
+
+  const createPanel = createElement("div", "action-panel");
+  createPanel.append(createButton);
+
+  const joinLabel = createElement("label", "field-label", "Room code");
+  joinLabel.htmlFor = "room-code";
+  const roomCodeInput = createElement("input", "text-input room-code-input");
+  roomCodeInput.id = "room-code";
+  roomCodeInput.name = "roomCode";
+  roomCodeInput.type = "text";
+  roomCodeInput.autocomplete = "off";
+  roomCodeInput.maxLength = 4;
+  roomCodeInput.placeholder = "ABCD";
+  roomCodeInput.setAttribute("aria-label", "Room code");
+
+  const joinButton = createElement("button", "secondary-button", "Join room");
+  joinButton.type = "button";
+  joinButton.disabled =
+    state.connectionStatus !== "connected" || state.isBusy;
+  joinButton.addEventListener("click", () => {
+    actions.onJoinRoom(roomCodeInput.value);
+  });
+
+  const joinPanel = createElement("div", "join-panel");
+  const roomCodeField = createElement("div", "field");
+  roomCodeField.append(joinLabel, roomCodeInput);
+  joinPanel.append(roomCodeField, joinButton);
+
+  const actionsPanel = createElement("div", "room-actions");
+  actionsPanel.append(createPanel, joinPanel);
+  screen.append(actionsPanel);
+
+  if (state.isBusy) {
+    screen.append(createElement("p", "status-message", "Connecting to room…"));
+  }
+  const error = createErrorMessage(state.errorMessage);
+  if (error) {
+    screen.append(error);
+  }
+  return screen;
+}
+
+function renderLobby(state: AppState, actions: AppActions): HTMLElement {
+  const lobby = state.lobby;
+  const screen = createElement("section", "app-screen lobby-screen");
+  if (!lobby) {
+    return screen;
+  }
+
+  const heading = createElement("h1", undefined, "Lobby");
+  const roomCode = createElement("p", "lobby-room-code", lobby.roomCode);
+  roomCode.setAttribute("aria-label", `Room code ${lobby.roomCode}`);
+  const playerCount = createElement(
+    "p",
+    "player-count",
+    `${lobby.playerCount} / 8 players`,
+  );
+  const localPlayer = lobby.players.find(
+    (player) => player.id === state.localPlayerId,
+  );
+  const playerName = createElement(
+    "p",
+    "local-player-name",
+    localPlayer ? `You are ${localPlayer.name}` : "",
+  );
+  const playerList = createElement("ul", "player-list");
+
+  for (const player of lobby.players) {
+    const item = createElement("li", "player-card");
+    const name = createElement("span", "player-name", player.name);
+    item.append(name);
+    if (player.isHost) {
+      item.append(createElement("span", "host-badge", "Host"));
+    }
+    if (player.id === state.localPlayerId) {
+      item.classList.add("local-player");
+    }
+    playerList.append(item);
+  }
+
+  const leaveButton = createElement("button", "secondary-button", "Leave room");
+  leaveButton.type = "button";
+  leaveButton.disabled = state.isBusy;
+  leaveButton.addEventListener("click", actions.onLeaveRoom);
+
+  screen.append(heading, roomCode, playerCount, playerName, playerList, leaveButton);
+  if (state.isBusy) {
+    screen.append(createElement("p", "status-message", "Leaving room…"));
+  }
+  const error = createErrorMessage(state.errorMessage);
+  if (error) {
+    screen.append(error);
+  }
+  return screen;
+}
+
+export function renderApp(
+  root: HTMLElement,
+  state: AppState,
+  actions: AppActions,
+): void {
+  const shell = createElement("main", "app-shell");
+  shell.append(createHeader(state));
+  shell.append(
+    state.currentView === "lobby"
+      ? renderLobby(state, actions)
+      : renderHome(state, actions),
+  );
+  root.replaceChildren(shell);
 }

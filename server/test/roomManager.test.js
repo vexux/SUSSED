@@ -15,7 +15,7 @@ test("creates rooms with unique codes and the creator as host and first player",
     });
 
     for (let index = 0; index < 100; index += 1) {
-        rooms.push(roomManager.createRoom(`player-${index}`));
+        rooms.push(roomManager.createRoom(`player-${index}`, `Player ${index}`));
     }
 
     assert.equal(
@@ -27,8 +27,9 @@ test("creates rooms with unique codes and the creator as host and first player",
     for (let index = 0; index < rooms.length; index += 1) {
         const room = rooms[index];
         assert.match(room.code, ROOM_CODE_PATTERN);
-        assert.equal(room.host.id, `player-${index}`);
-        assert.equal(room.players[0], room.host);
-        assert.deepEqual(room.players, [room.host]);
+        assert.equal(room.hostId, `player-${index}`);
+        assert.deepEqual(room.players, [
+            { id: `player-${index}`, name: `Player ${index}` },
+        ]);
     }
 });

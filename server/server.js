@@ -1,6 +1,6 @@
 const { Server } = require("socket.io");
 const { port: defaultPort } = require("./config");
-const { registerRoomHandlers } = require("./roomHandlers");
+const { handleDisconnect, registerRoomHandlers } = require("./roomHandlers");
 
 function startServer(port = defaultPort) {
     const io = new Server(port, {
@@ -13,10 +13,11 @@ function startServer(port = defaultPort) {
 
     io.on("connection", (socket) => {
         console.log("Player connected:", socket.id);
-        registerRoomHandlers(socket);
+        registerRoomHandlers(io, socket);
 
         socket.on("disconnect", () => {
             console.log("Player disconnected:", socket.id);
+            handleDisconnect(io, socket);
         });
     });
 
