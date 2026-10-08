@@ -162,7 +162,7 @@ module.exports = {
     FakeAnswerError,
     id: "fake-answer",
     displayName: "Fake Answer",
-    supportedPlayers: Object.freeze({ min: 4, max: 4 }),
+    supportedPlayers: Object.freeze({ min: 2, max: 8 }),
     createInitialState,
     start,
     createPublicState,

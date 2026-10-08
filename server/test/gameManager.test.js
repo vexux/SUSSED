@@ -5,11 +5,11 @@ const gameRegistry = require("../gameRegistry");
 const fakeAnswer = require("../games/fake-answer/game");
 const { questions } = require("../games/fake-answer/questionBank");
 
-function createStartingRoom() {
+function createStartingRoom(playerCount = 4) {
     return {
         code: "TEST",
         status: "starting",
-        players: Array.from({ length: 4 }, (_, index) => ({
+        players: Array.from({ length: playerCount }, (_, index) => ({
             id: `player-${index + 1}`,
             name: `Player ${index + 1}`
         }))
@@ -98,14 +98,93 @@ test("fake-answer can move from question to answer-submission and then reveal", 
     gameManager.removeGame(room.code);
 });
 
-test("fake-answer owns a four-player requirement without imposing it on other games", () => {
-    assert.deepEqual(fakeAnswer.supportedPlayers, { min: 4, max: 4 });
-    assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, 4), true);
-    assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, 3), false);
+test("fake-answer supports every player count within the room capacity", () => {
+    assert.deepEqual(fakeAnswer.supportedPlayers, { min: 2, max: 8 });
+    for (const playerCount of [2, 3, 4, 5, 6, 7, 8]) {
+        assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, playerCount), true);
+        const room = createStartingRoom(playerCount);
+        const publicState = gameManager.startGame(room, "fake-answer");
+        try {
+            assert.equal(publicState.players.length, playerCount);
+            assert.equal(publicState.state.playerCount, playerCount);
+        } finally {
+            gameManager.removeGame(room.code);
+        }
+    }
+    assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, 1), false);
+    assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, 9), false);
+
+    for (const playerCount of [1, 9]) {
+        assert.throws(
+            () => gameManager.startGame(createStartingRoom(playerCount), "fake-answer"),
+            { code: "UNSUPPORTED_PLAYER_COUNT" }
+        );
+    }
 
     const futureGame = { supportedPlayers: { min: 2, max: 6 } };
     assert.equal(gameManager.isPlayerCountSupported(futureGame, 6), true);
     assert.equal(gameManager.isPlayerCountSupported(futureGame, 7), false);
+});
+
+test("two-player fake-answer game reaches reveal after both players submit once", () => {
+    const room = createStartingRoom(2);
+    const initialState = gameManager.startGame(room, "fake-answer");
+
+    try {
+        assert.equal(initialState.state.phase, "question");
+        assert.equal(initialState.state.playerCount, 2);
+        const question = questions.find(({ id }) => id === initialState.state.prompt.id);
+        assert.ok(question);
+        assert.equal(JSON.stringify(initialState).includes(question.correctCompletion), false);
+
+        gameManager.performGameAction(
+            room.code,
+            "fake-answer",
+            null,
+            "open-submissions"
+        );
+        const firstSubmission = gameManager.performGameAction(
+            room.code,
+            "fake-answer",
+            "player-1",
+            "submit-completion",
+            "A tiny orchestra performs inside."
+        );
+        assert.equal(firstSubmission.gameState.state.submissionCount, 1);
+        assert.equal(firstSubmission.gameState.state.playerCount, 2);
+        assert.equal(firstSubmission.gameState.state.phase, "answer-submission");
+        assert.equal(
+            JSON.stringify(firstSubmission.gameState).includes(question.correctCompletion),
+            false
+        );
+        assert.throws(
+            () => gameManager.performGameAction(
+                room.code,
+                "fake-answer",
+                "player-1",
+                "submit-completion",
+                "A second invented answer."
+            ),
+            { code: "ALREADY_SUBMITTED" }
+        );
+
+        const finalSubmission = gameManager.performGameAction(
+            room.code,
+            "fake-answer",
+            "player-2",
+            "submit-completion",
+            "It opens only at midnight."
+        );
+        assert.equal(finalSubmission.gameState.state.phase, "reveal");
+        assert.equal(finalSubmission.gameState.state.submissionCount, 2);
+        assert.equal(finalSubmission.gameState.state.prompt, null);
+        assert.equal(
+            JSON.stringify(finalSubmission.gameState).includes(question.correctCompletion),
+            false
+        );
+    } finally {
+        gameManager.removeGame(room.code);
+    }
 });
 
 test("question bank contains at least 15 unique sourced prompts", () => {
