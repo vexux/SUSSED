@@ -229,6 +229,31 @@ function returnToLobby(playerId) {
     return room;
 }
 
+function recoverRoomToLobby(room) {
+    if (!room || rooms.get(room.code) !== room || room.status !== "starting") {
+        throw new RoomError(
+            "ROOM_NOT_IN_GAME",
+            "The room cannot be recovered to the lobby."
+        );
+    }
+    room.status = "lobby";
+    for (const player of room.players) {
+        player.isReady = false;
+    }
+    return room;
+}
+
+function cancelRoomStart(room) {
+    if (!room || rooms.get(room.code) !== room || room.status !== "starting") {
+        throw new RoomError(
+            "ROOM_NOT_IN_GAME",
+            "The room cannot cancel its start transition."
+        );
+    }
+    room.status = "lobby";
+    return room;
+}
+
 function getRoom(roomCode) {
     return rooms.get(normalizeRoomCode(roomCode)) ?? null;
 }
@@ -279,6 +304,7 @@ module.exports = {
     RoomError,
     createLobbyState,
     createRoom,
+    cancelRoomStart,
     getPlayerRoom,
     getRoom,
     joinRoom,
@@ -286,6 +312,7 @@ module.exports = {
     removePlayer,
     removeRoom,
     returnToLobby,
+    recoverRoomToLobby,
     selectGame,
     setPlayerReady,
     startRoom,

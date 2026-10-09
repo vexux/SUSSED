@@ -35,9 +35,15 @@ function broadcastPlayerGameStates(io, roomCode, players) {
     }
 }
 
-function validateRoundId(roomCode, playerId, suppliedRoundId) {
+function validateRequestIdentity(roomCode, playerId, sessionId, roundId) {
     const currentGame = gameManager.getPublicGameState(roomCode, playerId);
-    if (suppliedRoundId !== currentGame.state.roundId) {
+    if (sessionId !== currentGame.sessionId) {
+        throw new gameManager.GameSessionError(
+            "SESSION_MISMATCH",
+            "That action belongs to a different game session."
+        );
+    }
+    if (roundId !== currentGame.state.roundId) {
         throw new FakeAnswerError(
             "ROUND_MISMATCH",
             "That action belongs to a different round."
@@ -52,14 +58,15 @@ function registerSocketHandlers(io, socket) {
         }
         if (
             !isRecord(payload) ||
-            Object.keys(payload).length !== 2 ||
+            Object.keys(payload).length !== 3 ||
+            typeof payload.sessionId !== "string" ||
             typeof payload.roundId !== "string" ||
             typeof payload.completion !== "string"
         ) {
             acknowledgeError(
                 acknowledge,
                 "INVALID_REQUEST",
-                "A completion string and current roundId are required."
+                "A completion, sessionId, and current roundId are required."
             );
             return;
         }
@@ -71,13 +78,15 @@ function registerSocketHandlers(io, socket) {
         }
 
         try {
-            validateRoundId(room.code, socket.id, payload.roundId);
+            validateRequestIdentity(room.code, socket.id, payload.sessionId, payload.roundId);
             const result = gameManager.performGameAction(
                 room.code,
                 "fake-answer",
                 socket.id,
                 "submit-completion",
-                payload.completion
+                payload.completion,
+                socket.id,
+                payload.sessionId
             );
             if (result.gameState.state.phase === "reveal") {
                 broadcastPlayerGameStates(io, room.code, result.gameState.players);
@@ -85,7 +94,10 @@ function registerSocketHandlers(io, socket) {
                     room.code,
                     "fake-answer",
                     null,
-                    "begin-voting"
+                    "begin-voting",
+                    undefined,
+                    undefined,
+                    payload.sessionId
                 );
                 broadcastPlayerGameStates(io, room.code, result.gameState.players);
             } else {
@@ -104,14 +116,15 @@ function registerSocketHandlers(io, socket) {
         }
         if (
             !isRecord(payload) ||
-            Object.keys(payload).length !== 2 ||
+            Object.keys(payload).length !== 3 ||
+            typeof payload.sessionId !== "string" ||
             typeof payload.roundId !== "string" ||
             typeof payload.optionId !== "string"
         ) {
             acknowledgeError(
                 acknowledge,
                 "INVALID_REQUEST",
-                "An optionId and current roundId are required."
+                "An optionId, sessionId, and current roundId are required."
             );
             return;
         }
@@ -123,13 +136,15 @@ function registerSocketHandlers(io, socket) {
         }
 
         try {
-            validateRoundId(room.code, socket.id, payload.roundId);
+            validateRequestIdentity(room.code, socket.id, payload.sessionId, payload.roundId);
             const result = gameManager.performGameAction(
                 room.code,
                 "fake-answer",
                 socket.id,
                 "vote",
-                payload.optionId
+                payload.optionId,
+                socket.id,
+                payload.sessionId
             );
             broadcastPlayerGameStates(io, room.code, result.gameState.players);
             if (result.gameState.state.phase === "waiting-for-results") {
@@ -137,7 +152,10 @@ function registerSocketHandlers(io, socket) {
                     room.code,
                     "fake-answer",
                     null,
-                    "publish-results"
+                    "publish-results",
+                    undefined,
+                    undefined,
+                    payload.sessionId
                 );
                 broadcastPlayerGameStates(io, room.code, result.gameState.players);
             }
@@ -154,13 +172,14 @@ function registerSocketHandlers(io, socket) {
         }
         if (
             !isRecord(payload) ||
-            Object.keys(payload).length !== 1 ||
+            Object.keys(payload).length !== 2 ||
+            typeof payload.sessionId !== "string" ||
             typeof payload.roundId !== "string"
         ) {
             acknowledgeError(
                 acknowledge,
                 "INVALID_REQUEST",
-                "The current roundId is required to continue."
+                "The current sessionId and roundId are required to continue."
             );
             return;
         }
@@ -172,16 +191,24 @@ function registerSocketHandlers(io, socket) {
         }
 
         try {
-            validateRoundId(room.code, socket.id, payload.roundId);
+            validateRequestIdentity(room.code, socket.id, payload.sessionId, payload.roundId);
             const result = gameManager.performGameAction(
                 room.code,
                 "fake-answer",
                 socket.id,
-                "continue"
+                "continue",
+                undefined,
+                socket.id,
+                payload.sessionId
             );
             broadcastPlayerGameStates(io, room.code, result.gameState.players);
             if (result.result.advanced) {
-                scheduleSubmissionPhase(io, room.code);
+                scheduleSubmissionPhase(
+                    io,
+                    room.code,
+                    result.gameState.sessionId,
+                    result.gameState.state.roundId
+                );
             }
             acknowledge(result.result);
         } catch (error) {
@@ -191,20 +218,29 @@ function registerSocketHandlers(io, socket) {
     });
 }
 
-function scheduleSubmissionPhase(io, roomCode) {
+function scheduleSubmissionPhase(io, roomCode, sessionId, roundId) {
     const timer = setTimeout(() => {
         try {
             const result = gameManager.performGameAction(
                 roomCode,
                 "fake-answer",
                 null,
-                "open-submissions"
+                "open-submissions",
+                { roundId },
+                undefined,
+                sessionId
             );
             io.to(roomCode).emit("game-state", result.gameState);
         } catch (error) {
             if (
                 error instanceof gameManager.GameSessionError &&
-                error.code === "GAME_NOT_ACTIVE"
+                ["GAME_NOT_ACTIVE", "SESSION_MISMATCH"].includes(error.code)
+            ) {
+                return;
+            }
+            if (
+                error instanceof FakeAnswerError &&
+                (error.code === "ROUND_MISMATCH" || error.code === "SUBMISSIONS_NOT_OPEN")
             ) {
                 return;
             }

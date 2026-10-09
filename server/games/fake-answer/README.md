@@ -22,11 +22,12 @@ explicitly if the curated bank contains fewer prompts than the configured
 round count.
 
 The participant roster is fixed when the game starts. If a player disconnects
-or leaves, they are removed from room membership by the room manager but are
-not silently removed from an in-progress game's submission, voting, or
-continuation quorum. The round therefore waits for all original participants;
-this phase does not add reconnect identity or mid-round forfeits. If all room
-members leave, the existing room cleanup removes the game session as well.
+or leaves before the game finishes, the server aborts and retires that active
+session and returns any remaining room members to the lobby unready. This
+avoids changing a round's submission or vote quorum after actions have been
+accepted. A finished session remains available for results and host-driven
+return to the lobby after a membership change. If all room members leave, the
+existing room cleanup removes the game session and room.
 
 After final results, the room remains in its in-game state until the host
 returns it to the lobby. The server retires the finished session, resets every

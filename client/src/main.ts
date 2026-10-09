@@ -93,6 +93,21 @@ function render(): void {
 
 function showOperationError(response: RoomOperationResponse): void {
   state.isBusy = false;
+  if (
+    response.error?.code === "NOT_IN_ROOM" ||
+    response.error?.code === "ROOM_NOT_FOUND"
+  ) {
+    state.currentView = "home";
+    state.roomCode = null;
+    state.localPlayerId = null;
+    state.lobby = null;
+    state.game = null;
+    resetFakeAnswerViewState();
+    state.errorMessage =
+      "This room is no longer available. Create a room or join another room to continue.";
+    render();
+    return;
+  }
   state.errorMessage =
     response.error?.message ?? "The room operation could not be completed.";
   render();
@@ -155,14 +170,41 @@ function applyLobbyState(lobby: LobbyState): void {
   render();
 }
 
-function currentFakeAnswerRoundId(): string | null {
+function currentFakeAnswerIdentity(): { sessionId: string; roundId: string } | null {
   if (
     state.game?.gameId !== "fake-answer" ||
     !isFakeAnswerPublicState(state.game.state)
   ) {
     return null;
   }
-  return state.game.state.roundId;
+  return {
+    sessionId: state.game.sessionId,
+    roundId: state.game.state.roundId,
+  };
+}
+
+function isCurrentFakeAnswerIdentity(identity: {
+  sessionId: string;
+  roundId: string;
+}): boolean {
+  return (
+    state.game?.sessionId === identity.sessionId &&
+    isFakeAnswerPublicState(state.game.state) &&
+    state.game.state.roundId === identity.roundId
+  );
+}
+
+function recoverFromUnavailableGame(): void {
+  state.currentView = "home";
+  state.roomCode = null;
+  state.localPlayerId = null;
+  state.lobby = null;
+  state.game = null;
+  resetFakeAnswerViewState();
+  state.isBusy = false;
+  state.errorMessage =
+    "This game session is no longer available. Create a room or join another room to continue.";
+  render();
 }
 
 const actions: AppActions = {
@@ -272,8 +314,8 @@ const actions: AppActions = {
     });
   },
   onSubmitFakeAnswer(completion) {
-    const roundId = currentFakeAnswerRoundId();
-    if (!roundId || fakeAnswerHasSubmitted || fakeAnswerIsSubmitting) {
+    const identity = currentFakeAnswerIdentity();
+    if (!identity || fakeAnswerHasSubmitted || fakeAnswerIsSubmitting) {
       return;
     }
 
@@ -282,13 +324,23 @@ const actions: AppActions = {
     render();
     socket.timeout(5000).emit(
       "fake-answer:submit",
-      { completion, roundId },
+      { completion, ...identity },
       (error: Error | null, response?: FakeAnswerSubmissionResponse) => {
+        if (!isCurrentFakeAnswerIdentity(identity)) {
+          return;
+        }
         fakeAnswerIsSubmitting = false;
         if (error || !response) {
           fakeAnswerErrorMessage = "The server did not respond. Please try again.";
         } else if (response.error) {
           fakeAnswerErrorMessage = response.error.message;
+          if (
+            response.error.code === "GAME_NOT_ACTIVE" ||
+            response.error.code === "SESSION_MISMATCH"
+          ) {
+            recoverFromUnavailableGame();
+            return;
+          }
         } else if (response.submitted) {
           fakeAnswerHasSubmitted = true;
           fakeAnswerErrorMessage = null;
@@ -305,8 +357,8 @@ const actions: AppActions = {
     render();
   },
   onVoteFakeAnswer(optionId) {
-    const roundId = currentFakeAnswerRoundId();
-    if (!roundId || fakeAnswerHasVoted || fakeAnswerIsVoting) {
+    const identity = currentFakeAnswerIdentity();
+    if (!identity || fakeAnswerHasVoted || fakeAnswerIsVoting) {
       return;
     }
 
@@ -315,13 +367,23 @@ const actions: AppActions = {
     render();
     socket.timeout(5000).emit(
       "fake-answer:vote",
-      { optionId, roundId },
+      { optionId, ...identity },
       (error: Error | null, response?: FakeAnswerSubmissionResponse) => {
+        if (!isCurrentFakeAnswerIdentity(identity)) {
+          return;
+        }
         fakeAnswerIsVoting = false;
         if (error || !response) {
           fakeAnswerVoteError = "The server did not respond. Please try again.";
         } else if (response.error) {
           fakeAnswerVoteError = response.error.message;
+          if (
+            response.error.code === "GAME_NOT_ACTIVE" ||
+            response.error.code === "SESSION_MISMATCH"
+          ) {
+            recoverFromUnavailableGame();
+            return;
+          }
         } else if (response.voted) {
           fakeAnswerHasVoted = true;
           fakeAnswerVoteError = null;
@@ -333,8 +395,8 @@ const actions: AppActions = {
     );
   },
   onContinueFakeAnswer() {
-    const roundId = currentFakeAnswerRoundId();
-    if (!roundId || fakeAnswerIsContinuing) {
+    const identity = currentFakeAnswerIdentity();
+    if (!identity || fakeAnswerIsContinuing) {
       return;
     }
 
@@ -343,13 +405,23 @@ const actions: AppActions = {
     render();
     socket.timeout(5000).emit(
       "fake-answer:continue",
-      { roundId },
+      identity,
       (error: Error | null, response?: FakeAnswerSubmissionResponse) => {
+        if (!isCurrentFakeAnswerIdentity(identity)) {
+          return;
+        }
         fakeAnswerIsContinuing = false;
         if (error || !response) {
           fakeAnswerContinueError = "The server did not respond. Please try again.";
         } else if (response.error) {
           fakeAnswerContinueError = response.error.message;
+          if (
+            response.error.code === "GAME_NOT_ACTIVE" ||
+            response.error.code === "SESSION_MISMATCH"
+          ) {
+            recoverFromUnavailableGame();
+            return;
+          }
         } else if (!response.ready) {
           fakeAnswerContinueError = "You could not continue to the next round.";
         } else {
@@ -360,22 +432,31 @@ const actions: AppActions = {
     );
   },
   onReturnToLobby() {
-    if (fakeAnswerIsReturningToLobby) {
+    if (fakeAnswerIsReturningToLobby || !state.game) {
       return;
     }
 
+    const sessionId = state.game.sessionId;
     fakeAnswerReturnToLobbyError = null;
     fakeAnswerIsReturningToLobby = true;
     render();
     socket.timeout(5000).emit(
       "return-to-lobby",
+      { sessionId },
       (error: Error | null, response?: RoomOperationResponse) => {
+        if (state.game?.sessionId !== sessionId) {
+          return;
+        }
         fakeAnswerIsReturningToLobby = false;
         if (error || !response) {
           fakeAnswerReturnToLobbyError =
             "The server did not respond. Please try again.";
         } else if (response.error) {
           fakeAnswerReturnToLobbyError = response.error.message;
+          if (response.error.code === "SESSION_MISMATCH") {
+            recoverFromUnavailableGame();
+            return;
+          }
         } else if (!response.returned) {
           fakeAnswerReturnToLobbyError =
             "The room could not be returned to the lobby.";
@@ -450,6 +531,9 @@ socket.on("game-state", (game: GameSessionState) => {
     state.game?.roomCode !== game.roomCode ||
     state.game?.gameId !== game.gameId ||
     state.game?.sessionId !== game.sessionId;
+  if (state.game && isNewGame) {
+    retiredGameSessionIds.add(state.game.sessionId);
+  }
   const isNewRound =
     !isNewGame &&
     isFakeAnswerPublicState(previousState) &&

@@ -73,11 +73,17 @@ function normalizeCompletion(completion) {
         .trim();
 }
 
-function openSubmissions(state) {
+function openSubmissions(state, expectedRoundId) {
     if (state.phase !== "question") {
         throw new FakeAnswerError(
             "SUBMISSIONS_NOT_OPEN",
             "The answer submission phase cannot be opened now."
+        );
+    }
+    if (expectedRoundId !== undefined && state.roundId !== expectedRoundId) {
+        throw new FakeAnswerError(
+            "ROUND_MISMATCH",
+            "That action belongs to a different round."
         );
     }
     state.phase = "answer-submission";
@@ -395,7 +401,7 @@ function continueToNextRound(state, playerId) {
 function handleAction(state, action, playerId, payload) {
     switch (action) {
         case "open-submissions":
-            return openSubmissions(state);
+            return openSubmissions(state, payload?.roundId);
         case "submit-completion":
             return submitCompletion(state, playerId, payload);
         case "begin-voting":

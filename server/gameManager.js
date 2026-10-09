@@ -91,10 +91,24 @@ function createPublicGameState(session, playerId) {
     };
 }
 
-function performGameAction(roomCode, gameId, playerId, action, payload, viewerId = playerId) {
+function performGameAction(
+    roomCode,
+    gameId,
+    playerId,
+    action,
+    payload,
+    viewerId = playerId,
+    expectedSessionId
+) {
     const session = sessions.get(roomCode);
     if (!session || session.status !== "active") {
         throw new GameSessionError("GAME_NOT_ACTIVE", "There is no active game in this room.");
+    }
+    if (expectedSessionId !== undefined && session.sessionId !== expectedSessionId) {
+        throw new GameSessionError(
+            "SESSION_MISMATCH",
+            "That action belongs to a different game session."
+        );
     }
     if (session.gameId !== gameId) {
         throw new GameSessionError("GAME_MISMATCH", "That game is not active in this room.");
@@ -131,11 +145,18 @@ function getPublicGameState(roomCode, playerId) {
     return createPublicGameState(session, playerId);
 }
 
-function removeGame(roomCode) {
+function removeGame(roomCode, expectedSessionId) {
+    const session = sessions.get(roomCode);
+    if (
+        expectedSessionId !== undefined &&
+        (!session || session.sessionId !== expectedSessionId)
+    ) {
+        return false;
+    }
     return sessions.delete(roomCode);
 }
 
-function retireFinishedGame(roomCode) {
+function retireFinishedGame(roomCode, expectedSessionId) {
     const session = sessions.get(roomCode);
     if (!session) {
         throw new GameSessionError(
@@ -149,11 +170,27 @@ function retireFinishedGame(roomCode) {
             "The game must be finished before returning to the lobby."
         );
     }
+    if (session.sessionId !== expectedSessionId) {
+        throw new GameSessionError(
+            "SESSION_MISMATCH",
+            "That request belongs to a different game session."
+        );
+    }
+    sessions.delete(roomCode);
+    return true;
+}
+
+function abortActiveGame(roomCode) {
+    const session = sessions.get(roomCode);
+    if (!session || session.status !== "active") {
+        return false;
+    }
     sessions.delete(roomCode);
     return true;
 }
 
 module.exports = {
+    abortActiveGame,
     GameSessionError,
     getGameDefinition,
     getPublicGameState,

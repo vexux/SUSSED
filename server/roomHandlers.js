@@ -128,20 +128,22 @@ function registerRoomHandlers(io, socket) {
             return;
         }
 
+        socket.data.roomCode = undefined;
+        const updatedRoom = roomManager.removePlayer(socket.id);
+        if (updatedRoom) {
+            if (gameManager.abortActiveGame(updatedRoom.code)) {
+                roomManager.recoverRoomToLobby(updatedRoom);
+            }
+            broadcastLobby(io, updatedRoom);
+        } else {
+            gameManager.removeGame(room.code);
+        }
         try {
             await socket.leave(room.code);
         } catch (error) {
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
             return;
-        }
-
-        socket.data.roomCode = undefined;
-        const updatedRoom = roomManager.removePlayer(socket.id);
-        if (updatedRoom) {
-            broadcastLobby(io, updatedRoom);
-        } else {
-            gameManager.removeGame(room.code);
         }
         acknowledge({ left: true });
     });
@@ -205,10 +207,11 @@ function registerRoomHandlers(io, socket) {
             return;
         }
 
+        let startingRoom;
         try {
             const room = roomManager.validateRoomStart(socket.id);
             gameManager.validateGameStart(room, room.selectedGameId);
-            const startingRoom = roomManager.startRoom(socket.id);
+            startingRoom = roomManager.startRoom(socket.id);
             const lobby = roomManager.createLobbyState(startingRoom);
             const game = gameManager.startGame(startingRoom, startingRoom.selectedGameId);
             io.to(startingRoom.code).emit("game-starting", {
@@ -217,35 +220,44 @@ function registerRoomHandlers(io, socket) {
             });
             io.to(startingRoom.code).emit("game-state", game);
             if (startingRoom.selectedGameId === "fake-answer") {
-                fakeAnswerSocketHandlers.scheduleSubmissionPhase(io, startingRoom.code);
+                fakeAnswerSocketHandlers.scheduleSubmissionPhase(
+                    io,
+                    startingRoom.code,
+                    game.sessionId,
+                    game.state.roundId
+                );
             }
             acknowledge({ starting: true });
         } catch (error) {
+            if (startingRoom) {
+                gameManager.abortActiveGame(startingRoom.code);
+                roomManager.cancelRoomStart(startingRoom);
+            }
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
         }
     });
 
     socket.on("return-to-lobby", (payload, acknowledge) => {
-        const hasPayload = typeof payload !== "function";
-        if (!hasPayload) {
-            acknowledge = payload;
-        }
         if (!isAcknowledgement(acknowledge)) {
-            return;
-        }
-        if (hasPayload) {
-            acknowledgeError(
-                acknowledge,
-                "INVALID_REQUEST",
-                "Return to lobby does not accept a payload."
-            );
             return;
         }
 
         try {
+            if (
+                !isRecord(payload) ||
+                Object.keys(payload).length !== 1 ||
+                typeof payload.sessionId !== "string"
+            ) {
+                acknowledgeError(
+                    acknowledge,
+                    "INVALID_REQUEST",
+                    "The finished game sessionId is required."
+                );
+                return;
+            }
             const room = roomManager.validateReturnToLobby(socket.id);
-            gameManager.retireFinishedGame(room.code);
+            gameManager.retireFinishedGame(room.code, payload.sessionId);
             const lobbyRoom = roomManager.returnToLobby(socket.id);
             broadcastLobby(io, lobbyRoom);
             acknowledge({ returned: true });
@@ -261,6 +273,9 @@ function handleDisconnect(io, socket) {
     const updatedRoom = roomManager.removePlayer(socket.id);
     socket.data.roomCode = undefined;
     if (updatedRoom) {
+        if (gameManager.abortActiveGame(updatedRoom.code)) {
+            roomManager.recoverRoomToLobby(updatedRoom);
+        }
         broadcastLobby(io, updatedRoom);
     } else if (room) {
         gameManager.removeGame(room.code);

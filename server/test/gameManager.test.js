@@ -100,6 +100,40 @@ test("generic game manager retires only finished sessions", () => {
     }
 });
 
+test("retired session IDs cannot act on or remove a replacement session", () => {
+    const room = createStartingRoom(2);
+    const first = gameManager.startGame(room, "fake-answer");
+    assert.throws(
+        () => gameManager.startGame(room, "fake-answer"),
+        { code: "GAME_ALREADY_STARTED" }
+    );
+    assert.equal(gameManager.abortActiveGame(room.code), true);
+    const second = gameManager.startGame(room, "fake-answer");
+
+    try {
+        assert.notEqual(first.sessionId, second.sessionId);
+        assert.throws(
+            () => gameManager.performGameAction(
+                room.code,
+                "fake-answer",
+                null,
+                "open-submissions",
+                undefined,
+                undefined,
+                first.sessionId
+            ),
+            { code: "SESSION_MISMATCH" }
+        );
+        assert.equal(gameManager.removeGame(room.code, first.sessionId), false);
+        assert.equal(
+            gameManager.getPublicGameState(room.code, room.players[0].id).sessionId,
+            second.sessionId
+        );
+    } finally {
+        gameManager.removeGame(room.code, second.sessionId);
+    }
+});
+
 test("fake-answer reveals options and enters voting after every participant submits", () => {
     const room = createStartingRoom();
     gameManager.startGame(room, "fake-answer");

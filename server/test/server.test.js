@@ -71,7 +71,11 @@ function emitWithAck(client, event, payload, timeoutMs = 3000) {
 }
 
 function withRoundId(gameState, payload) {
-    return { ...payload, roundId: gameState.state.roundId };
+    return {
+        ...payload,
+        sessionId: gameState.sessionId,
+        roundId: gameState.state.roundId
+    };
 }
 
 function waitForLobby(client, predicate = () => true) {
@@ -670,6 +674,68 @@ test("host disconnect migrates host to the earliest remaining player", async (co
     assert.equal(roomManager.getRoom(created.roomCode).hostId, nextHost.id);
 });
 
+test("disconnect during an active game aborts the round and recovers remaining players to lobby", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, { playerCount: 3 });
+    const originalHostSocket = harness.io.sockets.sockets.get(game.host.id);
+    const room = roomManager.getRoom(game.roomCode);
+    const originalSessionId = game.gameState.sessionId;
+    const hostUpdate = waitForLobby(
+        game.players[0],
+        (lobby) => lobby.status === "lobby" && lobby.playerCount === 2
+    );
+    const otherPlayerUpdate = waitForLobby(
+        game.players[1],
+        (lobby) => lobby.status === "lobby" && lobby.playerCount === 2
+    );
+    const disconnected = new Promise((resolve) =>
+        originalHostSocket.once("disconnect", resolve)
+    );
+
+    game.host.disconnect();
+    await disconnected;
+    const [firstLobby, secondLobby] = await Promise.all([
+        hostUpdate,
+        otherPlayerUpdate,
+    ]);
+
+    assert.deepEqual(firstLobby, secondLobby);
+    assert.equal(firstLobby.roomCode, game.roomCode);
+    assert.equal(firstLobby.status, "lobby");
+    assert.equal(firstLobby.playerCount, 2);
+    assert.equal(firstLobby.players[0].id, game.players[0].id);
+    assert.equal(firstLobby.players[0].isHost, true);
+    assert.ok(firstLobby.players.every((player) => !player.isReady));
+    assert.equal(roomManager.getRoom(game.roomCode), room);
+    assert.equal(room.hostId, game.players[0].id);
+    assert.equal(room.players.length, 2);
+    assert.equal(roomManager.getPlayerRoom(game.host.id), null);
+    assert.throws(
+        () => roomManager.setPlayerReady(game.host.id, true),
+        { code: "NOT_IN_ROOM" }
+    );
+    assert.throws(
+        () => gameManager.getPublicGameState(game.roomCode, game.players[0].id),
+        { code: "GAME_NOT_ACTIVE" }
+    );
+    assert.equal(
+        (await emitWithAck(game.players[0], "fake-answer:submit", {
+            completion: "Cannot be accepted after a game-aborting disconnect",
+            sessionId: originalSessionId,
+            roundId: game.gameState.state.roundId,
+        })).error.code,
+        "GAME_NOT_ACTIVE"
+    );
+
+    await emitWithAck(game.players[0], "leave-room");
+    await emitWithAck(game.players[1], "leave-room");
+    assert.equal(roomManager.getRoom(game.roomCode), null);
+    assert.throws(
+        () => gameManager.getPublicGameState(game.roomCode, game.players[0].id),
+        { code: "GAME_NOT_ACTIVE" }
+    );
+});
+
 test("host leaving migrates host to the earliest remaining player", async (context) => {
     const harness = await createHarness(context);
     const host = await harness.connect();
@@ -831,7 +897,17 @@ test("host can start when requirements are met and a second start is rejected", 
         });
     });
 
-    assert.deepEqual(await emitWithAck(host, "start-game"), { starting: true });
+    const concurrentStarts = await Promise.all([
+        emitWithAck(host, "start-game"),
+        emitWithAck(host, "start-game"),
+    ]);
+    assert.equal(concurrentStarts.filter((response) => response.starting).length, 1);
+    assert.equal(
+        concurrentStarts.filter(
+            (response) => response.error?.code === "ROOM_NOT_IN_LOBBY"
+        ).length,
+        1
+    );
     const hostPayload = await hostStarting;
     assert.deepEqual(await guestStarting, hostPayload);
     assert.equal(hostPayload.roomCode, created.roomCode);
@@ -956,6 +1032,7 @@ test("fake-answer opens submissions after the question state and rejects early s
     assert.equal(
         (await emitWithAck(game.players[0], "fake-answer:vote", {
             optionId: "not-an-option",
+            sessionId: game.questionState.sessionId,
             roundId: game.questionState.state.roundId,
         })).error.code,
         "VOTING_NOT_OPEN"
@@ -1206,6 +1283,7 @@ test("two-player fake-answer reveal hides own answer and voting reaches results"
     assert.equal(
         (await emitWithAck(outsider, "fake-answer:vote", {
             optionId: "outsider",
+            sessionId: votingStates[1].sessionId,
             roundId: votingStates[1].state.roundId,
         })).error.code,
         "NOT_IN_ROOM"
@@ -1227,26 +1305,23 @@ test("two-player fake-answer reveal hides own answer and voting reaches results"
         players[0],
         (state) => state.state.phase === "results"
     );
-    const hostVote = await emitWithAck(host, "fake-answer:vote", {
-        ...withRoundId(votingStates[0], {
-        optionId: votingStates[0].state.options[0].id,
-        }),
-    });
+    const simultaneousVotes = await Promise.all([
+        emitWithAck(host, "fake-answer:vote", withRoundId(votingStates[0], {
+            optionId: votingStates[0].state.options[0].id,
+        })),
+        emitWithAck(host, "fake-answer:vote", withRoundId(votingStates[0], {
+            optionId: votingStates[0].state.options[1].id,
+        })),
+    ]);
+    const hostVote = simultaneousVotes[0];
     assert.deepEqual(hostVote, { voted: true, voteCount: 1, playerCount: 2 });
+    assert.equal(simultaneousVotes[1].error.code, "ALREADY_VOTED");
     const guestVoteProgress = await waitForGameState(
         players[0],
         (state) => state.state.phase === "voting" && state.state.voteCount === 1
     );
     assert.equal(guestVoteProgress.state.voteCount, 1);
     assert.equal(Object.hasOwn(guestVoteProgress.state, "votes"), false);
-    assert.equal(
-        (await emitWithAck(host, "fake-answer:vote", {
-            ...withRoundId(votingStates[0], {
-            optionId: votingStates[0].state.options[1].id,
-            }),
-        })).error.code,
-        "ALREADY_VOTED"
-    );
     const guestVote = await emitWithAck(players[0], "fake-answer:vote", {
         ...withRoundId(votingStates[1], {
         optionId: votingStates[1].state.options[0].id,
@@ -1321,6 +1396,7 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
 
         if (round < roundGameState.state.totalRounds) {
             const previousRoundId = roundGameState.state.roundId;
+            const previousSessionId = roundGameState.sessionId;
             const previousPromptId = roundGameState.state.prompt.id;
             const previousOptionId = resultStates[0].state.results.options[0].id;
             const guestProgress = waitForGameState(
@@ -1331,9 +1407,11 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
             );
             const duplicateContinueResponses = await Promise.all([
                 emitWithAck(game.host, "fake-answer:continue", {
+                    sessionId: previousSessionId,
                     roundId: previousRoundId,
                 }),
                 emitWithAck(game.host, "fake-answer:continue", {
+                    sessionId: previousSessionId,
                     roundId: previousRoundId,
                 }),
             ]);
@@ -1359,6 +1437,7 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
             );
             assert.deepEqual(
                 await emitWithAck(game.players[0], "fake-answer:continue", {
+                    sessionId: previousSessionId,
                     roundId: previousRoundId,
                 }),
                 {
@@ -1379,6 +1458,7 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
             assert.equal(
                 (await emitWithAck(game.host, "fake-answer:submit", {
                     completion: "Delayed answer from the previous round",
+                    sessionId: previousSessionId,
                     roundId: previousRoundId,
                 })).error.code,
                 "ROUND_MISMATCH"
@@ -1386,12 +1466,14 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
             assert.equal(
                 (await emitWithAck(game.host, "fake-answer:vote", {
                     optionId: previousOptionId,
+                    sessionId: previousSessionId,
                     roundId: previousRoundId,
                 })).error.code,
                 "ROUND_MISMATCH"
             );
             assert.equal(
                 (await emitWithAck(game.host, "fake-answer:continue", {
+                    sessionId: previousSessionId,
                     roundId: previousRoundId,
                 })).error.code,
                 "ROUND_MISMATCH"
@@ -1423,15 +1505,18 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
     }
 
     const finalRoundId = roundGameState.state.roundId;
+    const finalSessionId = roundGameState.sessionId;
     assert.equal(
         (await emitWithAck(game.host, "fake-answer:submit", {
             completion: "No more answers",
+            sessionId: finalSessionId,
             roundId: finalRoundId,
         })).error.code,
         "GAME_NOT_ACTIVE"
     );
     assert.equal(
         (await emitWithAck(game.host, "fake-answer:continue", {
+            sessionId: finalSessionId,
             roundId: finalRoundId,
         })).error.code,
         "GAME_NOT_ACTIVE"
@@ -1440,8 +1525,8 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
     const nonHostLobby = waitForLobby(game.players[0], (lobby) => lobby.status === "lobby");
     const hostLobby = waitForLobby(game.host, (lobby) => lobby.status === "lobby");
     const returnResponses = await Promise.all([
-        emitWithAck(game.host, "return-to-lobby"),
-        emitWithAck(game.host, "return-to-lobby"),
+        emitWithAck(game.host, "return-to-lobby", { sessionId: finalSessionId }),
+        emitWithAck(game.host, "return-to-lobby", { sessionId: finalSessionId }),
     ]);
     assert.deepEqual(returnResponses[0], { returned: true });
     assert.equal(returnResponses[1].error.code, "ROOM_NOT_IN_GAME");
@@ -1514,25 +1599,30 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
     assert.equal(
         (await emitWithAck(game.host, "fake-answer:submit", {
             completion: "Stale answer from the previous session",
+            sessionId: finalSessionId,
             roundId: finalRoundId,
         })).error.code,
-        "ROUND_MISMATCH"
+        "SESSION_MISMATCH"
     );
     assert.equal(
         (await emitWithAck(game.host, "fake-answer:vote", {
             optionId: "stale-option",
+            sessionId: finalSessionId,
             roundId: finalRoundId,
         })).error.code,
-        "ROUND_MISMATCH"
+        "SESSION_MISMATCH"
     );
     assert.equal(
         (await emitWithAck(game.host, "fake-answer:continue", {
+            sessionId: finalSessionId,
             roundId: finalRoundId,
         })).error.code,
-        "ROUND_MISMATCH"
+        "SESSION_MISMATCH"
     );
     assert.equal(
-        (await emitWithAck(game.players[0], "return-to-lobby")).error.code,
+        (await emitWithAck(game.players[0], "return-to-lobby", {
+            sessionId: replayGuest.sessionId,
+        })).error.code,
         "NOT_HOST"
     );
 });
@@ -1542,11 +1632,15 @@ test("return-to-lobby is host-only and requires a finished game", async (context
     const game = await startFakeAnswer(harness, { playerCount: 2 });
 
     assert.equal(
-        (await emitWithAck(game.players[0], "return-to-lobby")).error.code,
+        (await emitWithAck(game.players[0], "return-to-lobby", {
+            sessionId: game.gameState.sessionId,
+        })).error.code,
         "NOT_HOST"
     );
     assert.equal(
-        (await emitWithAck(game.host, "return-to-lobby")).error.code,
+        (await emitWithAck(game.host, "return-to-lobby", {
+            sessionId: game.gameState.sessionId,
+        })).error.code,
         "GAME_NOT_FINISHED"
     );
     const room = roomManager.getRoom(game.roomCode);
@@ -1594,14 +1688,19 @@ test("fake-answer rejects empty, long, correct, duplicate, malformed, and impers
         assert.equal(response.error.code, "INVALID_REQUEST");
     }
 
-    const accepted = await emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
-        completion: "  A believable invented detail.  ",
-    }));
-    assert.equal(accepted.submitted, true);
-    const duplicate = await emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
-        completion: "A different answer",
-    }));
-    assert.equal(duplicate.error.code, "ALREADY_SUBMITTED");
+    const simultaneousSubmissions = await Promise.all([
+        emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
+            completion: "  A believable invented detail.  ",
+        })),
+        emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
+            completion: "A different answer",
+        })),
+    ]);
+    assert.equal(simultaneousSubmissions[0].submitted, true);
+    assert.equal(
+        simultaneousSubmissions[1].error.code,
+        "ALREADY_SUBMITTED"
+    );
 
     const outsider = await harness.connect();
     const outsideRoom = await emitWithAck(outsider, "fake-answer:submit", withRoundId(gameState, {
