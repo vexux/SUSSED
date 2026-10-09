@@ -1,5 +1,15 @@
+export interface FakeAnswerOption {
+  id: string;
+  completion: string;
+}
+
 export interface FakeAnswerPublicState {
-  phase: "question" | "answer-submission" | "reveal" | "voting" | "results";
+  phase:
+    | "question"
+    | "answer-submission"
+    | "reveal"
+    | "voting"
+    | "waiting-for-results";
   currentRound: number;
   totalRounds: number;
   prompt: {
@@ -8,12 +18,18 @@ export interface FakeAnswerPublicState {
   } | null;
   submissionCount: number;
   playerCount: number;
+  options?: FakeAnswerOption[];
+  voteCount?: number;
 }
 
-export interface FakeAnswerSubmissionViewState {
+export interface FakeAnswerViewState {
   hasSubmitted: boolean;
   isSubmitting: boolean;
-  errorMessage: string | null;
+  submissionError: string | null;
+  hasVoted: boolean;
+  isVoting: boolean;
+  selectedOptionId: string | null;
+  voteError: string | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -32,24 +48,37 @@ export function isFakeAnswerPublicState(
     (isRecord(value.prompt) &&
       typeof value.prompt.id === "string" &&
       typeof value.prompt.text === "string");
+  const optionsAreValid =
+    value.options === undefined ||
+    (Array.isArray(value.options) &&
+      value.options.every(
+        (option) =>
+          isRecord(option) &&
+          typeof option.id === "string" &&
+          typeof option.completion === "string" &&
+          Object.keys(option).sort().join(",") === "completion,id",
+      ));
+  const phaseIsValid =
+    value.phase === "question" ||
+    value.phase === "answer-submission" ||
+    value.phase === "reveal" ||
+    value.phase === "voting" ||
+    value.phase === "waiting-for-results";
 
   return (
-    value.phase === "question" &&
+    phaseIsValid &&
     typeof value.currentRound === "number" &&
     typeof value.totalRounds === "number" &&
     typeof value.submissionCount === "number" &&
     typeof value.playerCount === "number" &&
-    promptIsValid
-  ) || (
-    (value.phase === "answer-submission" ||
-      value.phase === "reveal" ||
-      value.phase === "voting" ||
-      value.phase === "results") &&
-    typeof value.currentRound === "number" &&
-    typeof value.totalRounds === "number" &&
-    typeof value.submissionCount === "number" &&
-    typeof value.playerCount === "number" &&
-    promptIsValid
+    promptIsValid &&
+    optionsAreValid &&
+    ((value.phase !== "reveal" && value.phase !== "voting") ||
+      (Array.isArray(value.options) &&
+        value.options.length >= 2 &&
+        value.options.length === value.playerCount)) &&
+    ((value.phase !== "voting" && value.phase !== "waiting-for-results") ||
+      typeof value.voteCount === "number")
   );
 }
 
@@ -74,10 +103,33 @@ export function updateFakeAnswerProgress(
   return true;
 }
 
+export function updateFakeAnswerVoteProgress(
+  root: ParentNode,
+  publicState: unknown,
+): boolean {
+  if (
+    !isFakeAnswerPublicState(publicState) ||
+    publicState.phase !== "voting" ||
+    typeof publicState.voteCount !== "number"
+  ) {
+    return false;
+  }
+
+  const progress = root.querySelector<HTMLElement>(".vote-progress");
+  if (!progress) {
+    return false;
+  }
+  progress.textContent =
+    `${publicState.voteCount} / ${publicState.playerCount} players voted`;
+  return true;
+}
+
 export function renderFakeAnswerGame(
   publicState: unknown,
-  submission: FakeAnswerSubmissionViewState,
+  submission: FakeAnswerViewState,
   onSubmit: (completion: string) => void,
+  onSelectVote: (optionId: string) => void,
+  onVote: (optionId: string) => void,
 ): HTMLElement {
   const screen = document.createElement("section");
   screen.className = "app-screen question-screen";
@@ -90,18 +142,27 @@ export function renderFakeAnswerGame(
   }
 
   const title = document.createElement("h1");
-  title.textContent =
-    publicState.phase === "reveal" ? "All answers submitted" : "Question";
+  title.textContent = publicState.phase === "reveal"
+    ? "Answers revealed"
+    : publicState.phase === "voting"
+      ? "Vote for the real completion"
+      : publicState.phase === "waiting-for-results"
+        ? "All votes are in"
+        : "Question";
   const round = document.createElement("p");
   round.className = "round-counter";
   round.textContent = `Round ${publicState.currentRound} / ${publicState.totalRounds}`;
   screen.append(title, round);
 
-  if (publicState.phase === "reveal") {
+  if (publicState.phase === "waiting-for-results") {
     const waiting = document.createElement("p");
     waiting.className = "screen-description";
-    waiting.textContent = "Waiting for the next phase.";
-    screen.append(waiting);
+    waiting.textContent = "Waiting for results.";
+    const progress = document.createElement("p");
+    progress.className = "vote-progress";
+    progress.textContent =
+      `${publicState.voteCount} / ${publicState.playerCount} players voted`;
+    screen.append(waiting, progress);
     return screen;
   }
 
@@ -163,11 +224,70 @@ export function renderFakeAnswerGame(
     screen.append(form);
   }
 
-  if (submission.errorMessage) {
+  if (publicState.phase === "reveal") {
+    const revealedOptions = document.createElement("ul");
+    revealedOptions.className = "revealed-options";
+    for (const option of publicState.options ?? []) {
+      const item = document.createElement("li");
+      item.textContent = option.completion;
+      revealedOptions.append(item);
+    }
+    screen.append(revealedOptions);
+    return screen;
+  }
+
+  if (publicState.phase === "voting") {
+    const progress = document.createElement("p");
+    progress.className = "vote-progress";
+    progress.textContent =
+      `${publicState.voteCount} / ${publicState.playerCount} players voted`;
+    screen.append(progress);
+
+    if (submission.hasVoted) {
+      const waiting = document.createElement("p");
+      waiting.className = "status-message";
+      waiting.textContent = "Your vote has been recorded. Waiting for other players…";
+      screen.append(waiting);
+      return screen;
+    }
+
+    const form = document.createElement("form");
+    form.className = "vote-form";
+    for (const option of publicState.options ?? []) {
+      const label = document.createElement("label");
+      label.className = "vote-option";
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "vote-option";
+      input.value = option.id;
+      input.checked = submission.selectedOptionId === option.id;
+      input.disabled = submission.isVoting;
+      input.addEventListener("change", () => onSelectVote(option.id));
+      const answer = document.createElement("span");
+      answer.textContent = option.completion;
+      label.append(input, answer);
+      form.append(label);
+    }
+    const submit = document.createElement("button");
+    submit.className = "primary-button";
+    submit.type = "submit";
+    submit.disabled = submission.isVoting || submission.selectedOptionId === null;
+    submit.textContent = submission.isVoting ? "Submitting vote…" : "Submit vote";
+    form.append(submit);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (submission.selectedOptionId) {
+        onVote(submission.selectedOptionId);
+      }
+    });
+    screen.append(form);
+  }
+
+  if (submission.submissionError || submission.voteError) {
     const error = document.createElement("p");
     error.className = "error-message";
     error.setAttribute("role", "alert");
-    error.textContent = submission.errorMessage;
+    error.textContent = submission.submissionError ?? submission.voteError ?? "";
     screen.append(error);
   }
 

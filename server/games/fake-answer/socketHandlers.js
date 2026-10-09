@@ -26,6 +26,15 @@ function getOperationError(error) {
     };
 }
 
+function broadcastPlayerGameStates(io, roomCode, players) {
+    for (const player of players) {
+        io.to(player.id).emit(
+            "game-state",
+            gameManager.getPublicGameState(roomCode, player.id)
+        );
+    }
+}
+
 function registerSocketHandlers(io, socket) {
     socket.on("fake-answer:submit", (payload, acknowledge) => {
         if (typeof acknowledge !== "function") {
@@ -58,7 +67,53 @@ function registerSocketHandlers(io, socket) {
                 "submit-completion",
                 payload.completion
             );
-            io.to(room.code).emit("game-state", result.gameState);
+            if (result.gameState.state.phase === "reveal") {
+                broadcastPlayerGameStates(io, room.code, result.gameState.players);
+                gameManager.performGameAction(
+                    room.code,
+                    "fake-answer",
+                    null,
+                    "begin-voting"
+                );
+                broadcastPlayerGameStates(io, room.code, result.gameState.players);
+            } else {
+                io.to(room.code).emit("game-state", result.gameState);
+            }
+            acknowledge(result.result);
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
+    });
+
+    socket.on("fake-answer:vote", (payload, acknowledge) => {
+        if (typeof acknowledge !== "function") {
+            return;
+        }
+        if (
+            !isRecord(payload) ||
+            Object.keys(payload).length !== 1 ||
+            typeof payload.optionId !== "string"
+        ) {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "An optionId is required.");
+            return;
+        }
+
+        const room = roomManager.getPlayerRoom(socket.id);
+        if (!room) {
+            acknowledgeError(acknowledge, "NOT_IN_ROOM", "You are not in a room.");
+            return;
+        }
+
+        try {
+            const result = gameManager.performGameAction(
+                room.code,
+                "fake-answer",
+                socket.id,
+                "vote",
+                payload.optionId
+            );
+            broadcastPlayerGameStates(io, room.code, result.gameState.players);
             acknowledge(result.result);
         } catch (error) {
             const operationError = getOperationError(error);
@@ -91,4 +146,8 @@ function scheduleSubmissionPhase(io, roomCode) {
     timer.unref();
 }
 
-module.exports = { registerSocketHandlers, scheduleSubmissionPhase };
+module.exports = {
+    broadcastPlayerGameStates,
+    registerSocketHandlers,
+    scheduleSubmissionPhase
+};

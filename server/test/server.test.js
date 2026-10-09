@@ -901,6 +901,12 @@ test("fake-answer opens submissions after the question state and rejects early s
     });
     assert.equal(response.error.code, "SUBMISSIONS_NOT_OPEN");
     assert.equal(
+        (await emitWithAck(game.players[0], "fake-answer:vote", {
+            optionId: "not-an-option",
+        })).error.code,
+        "VOTING_NOT_OPEN"
+    );
+    assert.equal(
         (await waitForGameState(
             game.host,
             (state) => state.state.phase === "answer-submission"
@@ -954,8 +960,15 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
         assert.equal(response.submissionCount, index + 1);
     }
 
+    const selectedQuestion = questions.find(
+        (question) => question.id === gameState.state.prompt.id
+    );
+    assert.ok(selectedQuestion);
     const completedEvents = clients.map((client) =>
         waitForGameState(client, (state) => state.state.phase === "reveal")
+    );
+    const votingEvents = clients.map((client) =>
+        waitForGameState(client, (state) => state.state.phase === "voting")
     );
     const finalResponse = await emitWithAck(host, "fake-answer:submit", {
         completion: submittedCompletions[0],
@@ -966,27 +979,39 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
         playerCount: clients.length,
     });
     const revealStates = await Promise.all(completedEvents);
-    for (const state of revealStates) {
-        assert.deepEqual(state, revealStates[0]);
+    for (let index = 0; index < revealStates.length; index += 1) {
+        const state = revealStates[index];
         assert.equal(state.state.phase, "reveal");
         assert.equal(state.state.submissionCount, clients.length);
-        assert.equal(state.state.prompt, null);
-        for (const completion of submittedCompletions) {
-            assert.equal(JSON.stringify(state).includes(completion), false);
-        }
+        assert.equal(state.state.options.length, clients.length);
+        assert.equal(
+            state.state.options.some(
+                ({ completion }) => completion === submittedCompletions[index]
+            ),
+            false
+        );
+        assert.equal(
+            state.state.options.some(
+                ({ completion }) => completion === selectedQuestion.correctCompletion
+            ),
+            true
+        );
+        assert.ok(
+            state.state.options.every(
+                (option) => Object.keys(option).sort().join(",") === "completion,id"
+            )
+        );
     }
 
-    const selectedQuestion = questions.find(
-        (question) => question.id === gameState.state.prompt.id
-    );
-    assert.ok(selectedQuestion);
-    assert.equal(
-        JSON.stringify(revealStates[0]).includes(selectedQuestion.correctCompletion),
-        false
-    );
+    const votingStates = await Promise.all(votingEvents);
+    for (const state of votingStates) {
+        assert.equal(state.state.voteCount, 0);
+        assert.equal(Object.hasOwn(state.state, "votes"), false);
+        assert.equal(Object.hasOwn(state.state, "correctOptionId"), false);
+    }
 });
 
-test("two-player fake-answer game supports both submissions and reaches the waiting state", async (context) => {
+test("two-player fake-answer reveal hides own answer and voting reaches waiting-for-results", async (context) => {
     const harness = await createHarness(context);
     const { host, players, questionState, gameState } = await startFakeAnswer(
         harness,
@@ -1022,11 +1047,18 @@ test("two-player fake-answer game supports both submissions and reaches the wait
         "ALREADY_SUBMITTED"
     );
 
+    const ownCompletions = [
+        "A secret underwater library.",
+        "A miniature observatory.",
+    ];
     const revealEvents = clients.map((client) =>
         waitForGameState(client, (state) => state.state.phase === "reveal")
     );
+    const votingEvents = clients.map((client) =>
+        waitForGameState(client, (state) => state.state.phase === "voting")
+    );
     const secondResponse = await emitWithAck(players[0], "fake-answer:submit", {
-        completion: "A miniature observatory.",
+        completion: ownCompletions[1],
     });
     assert.deepEqual(secondResponse, {
         submitted: true,
@@ -1034,10 +1066,100 @@ test("two-player fake-answer game supports both submissions and reaches the wait
         playerCount: 2,
     });
     const revealStates = await Promise.all(revealEvents);
-    for (const state of revealStates) {
-        assert.deepEqual(state, revealStates[0]);
+    for (let index = 0; index < revealStates.length; index += 1) {
+        const state = revealStates[index];
         assert.equal(state.state.phase, "reveal");
         assert.equal(state.state.submissionCount, 2);
+        assert.equal(state.state.options.length, 2);
+        assert.equal(
+            state.state.options.some(({ completion }) => completion === ownCompletions[index]),
+            false
+        );
+        assert.equal(
+            state.state.options.some(({ completion }) => completion === question.correctCompletion),
+            true
+        );
+        assert.ok(
+            state.state.options.every(
+                (option) =>
+                    Object.keys(option).sort().join(",") === "completion,id" &&
+                    /^[0-9a-f-]{36}$/i.test(option.id)
+            )
+        );
+    }
+    assert.notDeepEqual(
+        revealStates[0].state.options.map(({ id }) => id),
+        revealStates[1].state.options.map(({ id }) => id)
+    );
+
+    const votingStates = await Promise.all(votingEvents);
+    for (let index = 0; index < votingStates.length; index += 1) {
+        const state = votingStates[index];
+        assert.equal(state.state.phase, "voting");
+        assert.equal(state.state.voteCount, 0);
+        assert.deepEqual(state.state.options, revealStates[index].state.options);
+        assert.equal(JSON.stringify(state).includes(question.correctCompletion), true);
+        assert.equal(JSON.stringify(state).includes(ownCompletions[index]), false);
+    }
+
+    const hostOwnOptionId = votingStates[1].state.options.find(
+        ({ completion }) => completion === ownCompletions[0]
+    ).id;
+    assert.equal(
+        (await emitWithAck(host, "fake-answer:vote", { optionId: hostOwnOptionId })).error.code,
+        "OWN_ANSWER_NOT_ALLOWED"
+    );
+    assert.equal(
+        (await emitWithAck(host, "fake-answer:vote", { optionId: "fabricated-option" })).error.code,
+        "INVALID_OPTION"
+    );
+    assert.equal(
+        (await emitWithAck(host, "fake-answer:vote", {
+            optionId: votingStates[0].state.options[0].id,
+            playerId: players[0].id,
+        })).error.code,
+        "INVALID_REQUEST"
+    );
+    const outsider = await harness.connect();
+    assert.equal(
+        (await emitWithAck(outsider, "fake-answer:vote", { optionId: "outsider" })).error.code,
+        "NOT_IN_ROOM"
+    );
+
+    const hostWaiting = waitForGameState(
+        host,
+        (state) => state.state.phase === "waiting-for-results"
+    );
+    const guestWaiting = waitForGameState(
+        players[0],
+        (state) => state.state.phase === "waiting-for-results"
+    );
+    const hostVote = await emitWithAck(host, "fake-answer:vote", {
+        optionId: votingStates[0].state.options[0].id,
+    });
+    assert.deepEqual(hostVote, { voted: true, voteCount: 1, playerCount: 2 });
+    const guestVoteProgress = await waitForGameState(
+        players[0],
+        (state) => state.state.phase === "voting" && state.state.voteCount === 1
+    );
+    assert.equal(guestVoteProgress.state.voteCount, 1);
+    assert.equal(Object.hasOwn(guestVoteProgress.state, "votes"), false);
+    assert.equal(
+        (await emitWithAck(host, "fake-answer:vote", {
+            optionId: votingStates[0].state.options[1].id,
+        })).error.code,
+        "ALREADY_VOTED"
+    );
+    const guestVote = await emitWithAck(players[0], "fake-answer:vote", {
+        optionId: votingStates[1].state.options[0].id,
+    });
+    assert.deepEqual(guestVote, { voted: true, voteCount: 2, playerCount: 2 });
+    for (const state of await Promise.all([hostWaiting, guestWaiting])) {
+        assert.equal(state.state.phase, "waiting-for-results");
+        assert.equal(state.state.voteCount, 2);
+        assert.equal(Object.hasOwn(state.state, "options"), false);
+        assert.equal(Object.hasOwn(state.state, "votes"), false);
+        assert.equal(Object.hasOwn(state.state, "correctOptionId"), false);
         assert.equal(state.state.prompt, null);
         assert.equal(JSON.stringify(state).includes(question.correctCompletion), false);
     }

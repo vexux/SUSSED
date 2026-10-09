@@ -1,4 +1,4 @@
-const { randomInt } = require("node:crypto");
+const { randomInt, randomUUID } = require("node:crypto");
 const { questions } = require("./questionBank");
 
 const TOTAL_ROUNDS = 5;
@@ -30,7 +30,9 @@ function createInitialState(players) {
         questionOrder: [],
         currentQuestion: null,
         submissions: new Map(),
-        submissionStatus: new Map()
+        submissionStatus: new Map(),
+        options: [],
+        votes: new Map()
     };
 }
 
@@ -43,7 +45,9 @@ function start(state) {
         questionOrder,
         currentQuestion: questionOrder[0],
         submissions: new Map(),
-        submissionStatus: new Map(state.participants.map(({ id }) => [id, false]))
+        submissionStatus: new Map(state.participants.map(({ id }) => [id, false])),
+        options: [],
+        votes: new Map()
     };
 }
 
@@ -121,6 +125,20 @@ function submitCompletion(state, playerId, payload) {
     state.submissions.set(playerId, completion);
     state.submissionStatus.set(playerId, true);
     if (state.submissions.size === state.participants.length) {
+        state.options = shuffleOptions([
+            ...Array.from(state.submissions, ([authorId, answer]) => ({
+                id: randomUUID(),
+                completion: answer,
+                authorId,
+                correct: false
+            })),
+            {
+                id: randomUUID(),
+                completion: state.currentQuestion.correctCompletion,
+                authorId: null,
+                correct: true
+            }
+        ]);
         state.phase = "reveal";
     }
 
@@ -131,30 +149,113 @@ function submitCompletion(state, playerId, payload) {
     };
 }
 
+function shuffleOptions(options) {
+    for (let index = options.length - 1; index > 0; index -= 1) {
+        const swapIndex = randomInt(index + 1);
+        [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
+    }
+    return options;
+}
+
+function beginVoting(state) {
+    if (state.phase !== "reveal" || state.options.length === 0) {
+        throw new FakeAnswerError(
+            "REVEAL_NOT_READY",
+            "Answer reveal is not ready for voting."
+        );
+    }
+    if (
+        state.participants.some(
+            (player) => !state.options.some((option) => option.authorId !== player.id)
+        )
+    ) {
+        throw new FakeAnswerError(
+            "NO_ELIGIBLE_OPTIONS",
+            "Every player must have at least one answer they are allowed to vote for."
+        );
+    }
+    state.phase = "voting";
+    return { opened: true };
+}
+
+function vote(state, playerId, optionId) {
+    if (state.phase !== "voting") {
+        throw new FakeAnswerError("VOTING_NOT_OPEN", "Voting is not open.");
+    }
+
+    const player = state.participants.find((participant) => participant.id === playerId);
+    if (!player) {
+        throw new FakeAnswerError(
+            "NOT_A_GAME_PLAYER",
+            "You are not participating in this game."
+        );
+    }
+    if (state.votes.has(playerId)) {
+        throw new FakeAnswerError("ALREADY_VOTED", "You have already voted.");
+    }
+
+    const option = state.options.find((entry) => entry.id === optionId);
+    if (!option) {
+        throw new FakeAnswerError("INVALID_OPTION", "That answer option is not available.");
+    }
+    if (option.authorId === playerId) {
+        throw new FakeAnswerError(
+            "OWN_ANSWER_NOT_ALLOWED",
+            "You cannot vote for your own completion."
+        );
+    }
+
+    state.votes.set(playerId, optionId);
+    if (state.votes.size === state.participants.length) {
+        state.phase = "waiting-for-results";
+    }
+
+    return {
+        voted: true,
+        voteCount: state.votes.size,
+        playerCount: state.participants.length
+    };
+}
+
 function handleAction(state, action, playerId, payload) {
     switch (action) {
         case "open-submissions":
             return openSubmissions(state);
         case "submit-completion":
             return submitCompletion(state, playerId, payload);
+        case "begin-voting":
+            return beginVoting(state);
+        case "vote":
+            return vote(state, playerId, payload);
         default:
             throw new FakeAnswerError("UNKNOWN_ACTION", "That game action is not available.");
     }
 }
 
-function createPublicState(state) {
+function createPublicState(state, viewerId) {
+    const includesVoteOptions = state.phase === "reveal" || state.phase === "voting";
     return {
         phase: state.phase,
         currentRound: state.currentRound,
         totalRounds: state.totalRounds,
-        prompt: state.phase === "reveal"
+        prompt: state.phase === "waiting-for-results"
             ? null
             : {
                 id: state.currentQuestion.id,
                 text: state.currentQuestion.text
             },
         submissionCount: state.submissions.size,
-        playerCount: state.participants.length
+        playerCount: state.participants.length,
+        ...(includesVoteOptions
+            ? {
+                options: state.options
+                    .filter((option) => option.authorId !== viewerId)
+                    .map(({ id, completion }) => ({ id, completion }))
+            }
+            : {}),
+        ...(state.phase === "voting" || state.phase === "waiting-for-results"
+            ? { voteCount: state.votes.size }
+            : {})
     };
 }
 

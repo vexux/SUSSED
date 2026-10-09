@@ -77,18 +77,18 @@ function startGame(room, gameId) {
     return createPublicGameState(session);
 }
 
-function createPublicGameState(session) {
+function createPublicGameState(session, playerId) {
     return {
         roomCode: session.roomCode,
         gameId: session.gameId,
         displayName: session.displayName,
         status: session.status,
         players: session.players.map(({ id, name }) => ({ id, name })),
-        state: session.implementation.createPublicState(session.privateState)
+        state: session.implementation.createPublicState(session.privateState, playerId)
     };
 }
 
-function performGameAction(roomCode, gameId, playerId, action, payload) {
+function performGameAction(roomCode, gameId, playerId, action, payload, viewerId = playerId) {
     const session = sessions.get(roomCode);
     if (!session || session.status !== "active") {
         throw new GameSessionError("GAME_NOT_ACTIVE", "There is no active game in this room.");
@@ -108,8 +108,19 @@ function performGameAction(roomCode, gameId, playerId, action, payload) {
     );
     return {
         result,
-        gameState: createPublicGameState(session)
+        gameState: createPublicGameState(session, viewerId)
     };
+}
+
+function getPublicGameState(roomCode, playerId) {
+    const session = sessions.get(roomCode);
+    if (!session || session.status !== "active") {
+        throw new GameSessionError("GAME_NOT_ACTIVE", "There is no active game in this room.");
+    }
+    if (!session.players.some((player) => player.id === playerId)) {
+        throw new GameSessionError("NOT_A_GAME_PLAYER", "You are not participating in this game.");
+    }
+    return createPublicGameState(session, playerId);
 }
 
 function removeGame(roomCode) {
@@ -119,6 +130,7 @@ function removeGame(roomCode) {
 module.exports = {
     GameSessionError,
     getGameDefinition,
+    getPublicGameState,
     isPlayerCountSupported,
     performGameAction,
     removeGame,

@@ -10,10 +10,12 @@ import type { AppActions } from "./views";
 import {
   isFakeAnswerPublicState,
   updateFakeAnswerProgress,
+  updateFakeAnswerVoteProgress,
 } from "./games/fakeAnswer";
 
 interface FakeAnswerSubmissionResponse {
   submitted?: boolean;
+  voted?: boolean;
   error?: {
     code: string;
     message: string;
@@ -42,12 +44,20 @@ state.connectionStatus = socket.connected ? "connected" : "connecting";
 let fakeAnswerHasSubmitted = false;
 let fakeAnswerIsSubmitting = false;
 let fakeAnswerErrorMessage: string | null = null;
+let fakeAnswerHasVoted = false;
+let fakeAnswerIsVoting = false;
+let fakeAnswerSelectedOptionId: string | null = null;
+let fakeAnswerVoteError: string | null = null;
 
 function render(): void {
   renderApp(appRoot, state, actions, {
     hasSubmitted: fakeAnswerHasSubmitted,
     isSubmitting: fakeAnswerIsSubmitting,
-    errorMessage: fakeAnswerErrorMessage,
+    submissionError: fakeAnswerErrorMessage,
+    hasVoted: fakeAnswerHasVoted,
+    isVoting: fakeAnswerIsVoting,
+    selectedOptionId: fakeAnswerSelectedOptionId,
+    voteError: fakeAnswerVoteError,
   });
 }
 
@@ -163,6 +173,10 @@ const actions: AppActions = {
       fakeAnswerHasSubmitted = false;
       fakeAnswerIsSubmitting = false;
       fakeAnswerErrorMessage = null;
+      fakeAnswerHasVoted = false;
+      fakeAnswerIsVoting = false;
+      fakeAnswerSelectedOptionId = null;
+      fakeAnswerVoteError = null;
       state.isBusy = false;
       state.errorMessage = null;
       render();
@@ -238,6 +252,38 @@ const actions: AppActions = {
       },
     );
   },
+  onSelectVote(optionId) {
+    fakeAnswerSelectedOptionId = optionId;
+    fakeAnswerVoteError = null;
+    render();
+  },
+  onVoteFakeAnswer(optionId) {
+    if (fakeAnswerHasVoted || fakeAnswerIsVoting) {
+      return;
+    }
+
+    fakeAnswerVoteError = null;
+    fakeAnswerIsVoting = true;
+    render();
+    socket.timeout(5000).emit(
+      "fake-answer:vote",
+      { optionId },
+      (error: Error | null, response?: FakeAnswerSubmissionResponse) => {
+        fakeAnswerIsVoting = false;
+        if (error || !response) {
+          fakeAnswerVoteError = "The server did not respond. Please try again.";
+        } else if (response.error) {
+          fakeAnswerVoteError = response.error.message;
+        } else if (response.voted) {
+          fakeAnswerHasVoted = true;
+          fakeAnswerVoteError = null;
+        } else {
+          fakeAnswerVoteError = "Your vote could not be submitted.";
+        }
+        render();
+      },
+    );
+  },
 };
 
 socket.on("lobby-state", (lobby: LobbyState) => {
@@ -276,6 +322,18 @@ socket.on("game-state", (game: GameSessionState) => {
     previousState.prompt?.id === nextState.prompt?.id &&
     previousState.prompt?.text === nextState.prompt?.text &&
     previousState.submissionCount !== nextState.submissionCount;
+  const isVoteProgressOnly =
+    state.currentView === "game" &&
+    previousGame?.roomCode === game.roomCode &&
+    previousGame.gameId === game.gameId &&
+    game.gameId === "fake-answer" &&
+    isFakeAnswerPublicState(previousState) &&
+    isFakeAnswerPublicState(nextState) &&
+    previousState.phase === "voting" &&
+    nextState.phase === "voting" &&
+    previousState.currentRound === nextState.currentRound &&
+    previousState.voteCount !== nextState.voteCount &&
+    JSON.stringify(previousState.options) === JSON.stringify(nextState.options);
   if (
     state.game?.roomCode !== game.roomCode ||
     state.game?.gameId !== game.gameId
@@ -283,6 +341,10 @@ socket.on("game-state", (game: GameSessionState) => {
     fakeAnswerHasSubmitted = false;
     fakeAnswerIsSubmitting = false;
     fakeAnswerErrorMessage = null;
+    fakeAnswerHasVoted = false;
+    fakeAnswerIsVoting = false;
+    fakeAnswerSelectedOptionId = null;
+    fakeAnswerVoteError = null;
   }
   state.game = game;
   state.currentView = "game";
@@ -291,6 +353,12 @@ socket.on("game-state", (game: GameSessionState) => {
   if (
     isSubmissionProgressOnly &&
     updateFakeAnswerProgress(appRoot, game.state)
+  ) {
+    return;
+  }
+  if (
+    isVoteProgressOnly &&
+    updateFakeAnswerVoteProgress(appRoot, game.state)
   ) {
     return;
   }

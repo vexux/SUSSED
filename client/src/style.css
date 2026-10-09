@@ -284,6 +284,43 @@ button:focus-visible {
   display: grid;
   gap: 12px;
   width: min(100%, 520px);
+}
+
+.revealed-options,
+.vote-form {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 640px);
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.revealed-options li,
+.vote-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 14px 16px;
+  border: 1px solid #554b5e;
+  border-radius: 8px;
+  background: #211b27;
+  text-align: left;
+}
+
+.vote-option {
+  cursor: pointer;
+}
+
+.vote-progress {
+  margin: 16px 0 0;
+  color: #c5b9ce;
+}
+
+.vote-form .primary-button {
+  justify-self: center;
+  margin-top: 8px;
   text-align: left;
 }
 
