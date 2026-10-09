@@ -289,6 +289,17 @@ test("starts the server and keeps the legacy create-room acknowledgement", async
     assert.ok(serverSocket.rooms.has(response.roomCode));
 });
 
+test("serves a minimal HTTP health endpoint without exposing game state", async (context) => {
+    const harness = await createHarness(context);
+    const address = harness.io.httpServer.address();
+    assert.ok(address && typeof address === "object");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/healthz`);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "application/json; charset=utf-8");
+    assert.deepEqual(await response.json(), { status: "ok" });
+});
+
 test("joins an existing room, normalizes its code, and sends lobby state to both players", async (context) => {
     const harness = await createHarness(context);
     const host = await harness.connect();
