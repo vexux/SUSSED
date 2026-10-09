@@ -67,6 +67,7 @@ test("generic game sessions start registered games and expose only public state"
 
     try {
         assert.equal(publicState.gameId, "fake-answer");
+        assert.match(publicState.sessionId, /^[0-9a-f-]{36}$/i);
         assert.equal(publicState.status, "active");
         assert.equal(publicState.displayName, fakeAnswer.displayName);
         assert.equal(publicState.state.phase, "question");
@@ -81,6 +82,19 @@ test("generic game sessions start registered games and expose only public state"
         assert.equal(Object.hasOwn(publicState.state.prompt, "correctCompletion"), false);
         assert.equal(Object.hasOwn(publicState, "implementation"), false);
         assert.equal(typeof privateState.currentQuestion.correctCompletion, "string");
+    } finally {
+        gameManager.removeGame(room.code);
+    }
+});
+
+test("generic game manager retires only finished sessions", () => {
+    const room = createStartingRoom(2);
+    gameManager.startGame(room, "fake-answer");
+    try {
+        assert.throws(
+            () => gameManager.retireFinishedGame(room.code),
+            { code: "GAME_NOT_FINISHED" }
+        );
     } finally {
         gameManager.removeGame(room.code);
     }

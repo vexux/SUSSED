@@ -887,6 +887,7 @@ test("host starts the room-selected registered game and broadcasts its safe ques
         "gameId",
         "players",
         "roomCode",
+        "sessionId",
         "state",
         "status",
     ]);
@@ -1435,6 +1436,126 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
         })).error.code,
         "GAME_NOT_ACTIVE"
     );
+
+    const nonHostLobby = waitForLobby(game.players[0], (lobby) => lobby.status === "lobby");
+    const hostLobby = waitForLobby(game.host, (lobby) => lobby.status === "lobby");
+    const returnResponses = await Promise.all([
+        emitWithAck(game.host, "return-to-lobby"),
+        emitWithAck(game.host, "return-to-lobby"),
+    ]);
+    assert.deepEqual(returnResponses[0], { returned: true });
+    assert.equal(returnResponses[1].error.code, "ROOM_NOT_IN_GAME");
+    const [hostLobbyState, nonHostLobbyState] = await Promise.all([
+        hostLobby,
+        nonHostLobby,
+    ]);
+    assert.deepEqual(hostLobbyState, nonHostLobbyState);
+    assert.equal(hostLobbyState.roomCode, game.roomCode);
+    assert.equal(hostLobbyState.status, "lobby");
+    assert.equal(hostLobbyState.selectedGameId, "fake-answer");
+    assert.deepEqual(
+        hostLobbyState.players.map(({ id, isHost, isReady }) => ({
+            id,
+            isHost,
+            isReady,
+        })),
+        initialPlayerIds.map((id, index) => ({
+            id,
+            isHost: index === 0,
+            isReady: false,
+        }))
+    );
+    assert.equal(roomManager.getRoom(game.roomCode), room);
+    assert.equal(room.hostId, initialHostId);
+    assert.equal(room.players.length, 2);
+    assert.throws(
+        () => gameManager.getPublicGameState(game.roomCode, game.host.id),
+        { code: "GAME_NOT_ACTIVE" }
+    );
+    assert.equal(
+        (await emitWithAck(game.host, "start-game")).error.code,
+        "PLAYERS_NOT_READY"
+    );
+
+    const readyLobby = waitForLobby(game.host, (lobby) =>
+        lobby.players.every((player) => player.isReady || player.isHost)
+    );
+    await emitWithAck(game.players[0], "set-ready", { isReady: true });
+    await readyLobby;
+    const replayHostState = waitForGameState(
+        game.host,
+        (state) => state.state.phase === "question"
+    );
+    const replayGuestState = waitForGameState(
+        game.players[0],
+        (state) => state.state.phase === "question"
+    );
+    assert.deepEqual(await emitWithAck(game.host, "start-game"), { starting: true });
+    const [replayHost, replayGuest] = await Promise.all([
+        replayHostState,
+        replayGuestState,
+    ]);
+    assert.deepEqual(replayHost, replayGuest);
+    assert.equal(replayHost.roomCode, game.roomCode);
+    assert.equal(replayHost.status, "active");
+    assert.equal(replayHost.gameId, room.selectedGameId);
+    assert.notEqual(replayHost.sessionId, roundGameState.sessionId);
+    assert.equal(replayHost.state.phase, "question");
+    assert.equal(replayHost.state.currentRound, 1);
+    assert.equal(replayHost.state.submissionCount, 0);
+    assert.equal(Object.hasOwn(replayHost.state, "options"), false);
+    assert.equal(Object.hasOwn(replayHost.state, "votes"), false);
+    assert.equal(Object.hasOwn(replayHost.state, "results"), false);
+    assert.equal(Object.hasOwn(replayHost.state, "scores"), false);
+    assert.equal(roomManager.getRoom(game.roomCode), room);
+    assert.equal(room.hostId, initialHostId);
+    assert.equal(room.players.length, 2);
+
+    assert.equal(
+        (await emitWithAck(game.host, "fake-answer:submit", {
+            completion: "Stale answer from the previous session",
+            roundId: finalRoundId,
+        })).error.code,
+        "ROUND_MISMATCH"
+    );
+    assert.equal(
+        (await emitWithAck(game.host, "fake-answer:vote", {
+            optionId: "stale-option",
+            roundId: finalRoundId,
+        })).error.code,
+        "ROUND_MISMATCH"
+    );
+    assert.equal(
+        (await emitWithAck(game.host, "fake-answer:continue", {
+            roundId: finalRoundId,
+        })).error.code,
+        "ROUND_MISMATCH"
+    );
+    assert.equal(
+        (await emitWithAck(game.players[0], "return-to-lobby")).error.code,
+        "NOT_HOST"
+    );
+});
+
+test("return-to-lobby is host-only and requires a finished game", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, { playerCount: 2 });
+
+    assert.equal(
+        (await emitWithAck(game.players[0], "return-to-lobby")).error.code,
+        "NOT_HOST"
+    );
+    assert.equal(
+        (await emitWithAck(game.host, "return-to-lobby")).error.code,
+        "GAME_NOT_FINISHED"
+    );
+    const room = roomManager.getRoom(game.roomCode);
+    assert.equal(room.status, "starting");
+    assert.deepEqual(
+        room.players.map(({ isReady }) => isReady),
+        [false, true]
+    );
+    assert.equal(gameManager.getPublicGameState(game.roomCode, game.host.id).status, "active");
 });
 
 test("fake-answer rejects empty, long, correct, duplicate, malformed, and impersonated submissions", async (context) => {

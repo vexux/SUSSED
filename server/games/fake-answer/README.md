@@ -27,3 +27,11 @@ not silently removed from an in-progress game's submission, voting, or
 continuation quorum. The round therefore waits for all original participants;
 this phase does not add reconnect identity or mid-round forfeits. If all room
 members leave, the existing room cleanup removes the game session as well.
+
+After final results, the room remains in its in-game state until the host
+returns it to the lobby. The server retires the finished session, resets every
+remaining member's ready state, and preserves the room code, host, membership,
+and selected game. Starting again creates a new generic session and initializes
+new fake-answer state, including fresh scores and a fresh round ID. Each generic
+session has an opaque session ID so clients can ignore delayed state updates
+from a retired session.

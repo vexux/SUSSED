@@ -33,6 +33,7 @@ export interface GameParticipant {
 
 export interface GameSessionState {
   roomCode: string;
+  sessionId: string;
   gameId: string;
   displayName: string;
   status: "active" | "finished";

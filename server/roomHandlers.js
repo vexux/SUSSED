@@ -225,6 +225,35 @@ function registerRoomHandlers(io, socket) {
             acknowledgeError(acknowledge, operationError.code, operationError.message);
         }
     });
+
+    socket.on("return-to-lobby", (payload, acknowledge) => {
+        const hasPayload = typeof payload !== "function";
+        if (!hasPayload) {
+            acknowledge = payload;
+        }
+        if (!isAcknowledgement(acknowledge)) {
+            return;
+        }
+        if (hasPayload) {
+            acknowledgeError(
+                acknowledge,
+                "INVALID_REQUEST",
+                "Return to lobby does not accept a payload."
+            );
+            return;
+        }
+
+        try {
+            const room = roomManager.validateReturnToLobby(socket.id);
+            gameManager.retireFinishedGame(room.code);
+            const lobbyRoom = roomManager.returnToLobby(socket.id);
+            broadcastLobby(io, lobbyRoom);
+            acknowledge({ returned: true });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
+    });
 }
 
 function handleDisconnect(io, socket) {

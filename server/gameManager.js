@@ -1,3 +1,4 @@
+const { randomUUID } = require("node:crypto");
 const gameRegistry = require("./gameRegistry");
 
 const sessions = new Map();
@@ -66,6 +67,7 @@ function startGame(room, gameId) {
     const privateState = game.start(initialState);
     const session = {
         roomCode: room.code,
+        sessionId: randomUUID(),
         gameId: game.id,
         displayName: game.displayName,
         status: "active",
@@ -80,6 +82,7 @@ function startGame(room, gameId) {
 function createPublicGameState(session, playerId) {
     return {
         roomCode: session.roomCode,
+        sessionId: session.sessionId,
         gameId: session.gameId,
         displayName: session.displayName,
         status: session.status,
@@ -132,12 +135,31 @@ function removeGame(roomCode) {
     return sessions.delete(roomCode);
 }
 
+function retireFinishedGame(roomCode) {
+    const session = sessions.get(roomCode);
+    if (!session) {
+        throw new GameSessionError(
+            "GAME_SESSION_NOT_FOUND",
+            "There is no game session to retire for this room."
+        );
+    }
+    if (session.status !== "finished") {
+        throw new GameSessionError(
+            "GAME_NOT_FINISHED",
+            "The game must be finished before returning to the lobby."
+        );
+    }
+    sessions.delete(roomCode);
+    return true;
+}
+
 module.exports = {
     GameSessionError,
     getGameDefinition,
     getPublicGameState,
     isPlayerCountSupported,
     performGameAction,
+    retireFinishedGame,
     removeGame,
     startGame,
     validateGameStart

@@ -72,6 +72,9 @@ export interface FakeAnswerViewState {
   voteError: string | null;
   isContinuing: boolean;
   continueError: string | null;
+  isHost: boolean;
+  isReturningToLobby: boolean;
+  returnToLobbyError: string | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -221,6 +224,7 @@ export function renderFakeAnswerGame(
   onSelectVote: (optionId: string) => void,
   onVote: (optionId: string) => void,
   onContinue: () => void,
+  onReturnToLobby: () => void,
 ): HTMLElement {
   const screen = document.createElement("section");
   screen.className = "app-screen question-screen";
@@ -313,6 +317,30 @@ export function renderFakeAnswerGame(
       finished.className = "status-message";
       finished.textContent = "The game is complete.";
       screen.append(finished);
+      if (submission.isHost) {
+        const returnButton = document.createElement("button");
+        returnButton.className = "primary-button";
+        returnButton.type = "button";
+        returnButton.disabled = submission.isReturningToLobby;
+        returnButton.textContent = submission.isReturningToLobby
+          ? "Returning to lobby…"
+          : "Return to lobby";
+        returnButton.addEventListener("click", onReturnToLobby);
+        screen.append(returnButton);
+      } else {
+        const waiting = document.createElement("p");
+        waiting.className = "status-message";
+        waiting.textContent =
+          "Waiting for the host to return everyone to the lobby…";
+        screen.append(waiting);
+      }
+      if (submission.returnToLobbyError) {
+        const error = document.createElement("p");
+        error.className = "error-message";
+        error.setAttribute("role", "alert");
+        error.textContent = submission.returnToLobbyError;
+        screen.append(error);
+      }
     } else {
       const continueProgress = document.createElement("p");
       continueProgress.className = "continue-progress";

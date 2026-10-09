@@ -28,6 +28,7 @@ interface RoomOperationResponse {
   roomCode?: string;
   lobby?: LobbyState;
   left?: boolean;
+  returned?: boolean;
   selectedGameId?: string;
   error?: {
     code: string;
@@ -52,6 +53,23 @@ let fakeAnswerSelectedOptionId: string | null = null;
 let fakeAnswerVoteError: string | null = null;
 let fakeAnswerIsContinuing = false;
 let fakeAnswerContinueError: string | null = null;
+let fakeAnswerIsReturningToLobby = false;
+let fakeAnswerReturnToLobbyError: string | null = null;
+const retiredGameSessionIds = new Set<string>();
+
+function resetFakeAnswerViewState(): void {
+  fakeAnswerHasSubmitted = false;
+  fakeAnswerIsSubmitting = false;
+  fakeAnswerErrorMessage = null;
+  fakeAnswerHasVoted = false;
+  fakeAnswerIsVoting = false;
+  fakeAnswerSelectedOptionId = null;
+  fakeAnswerVoteError = null;
+  fakeAnswerIsContinuing = false;
+  fakeAnswerContinueError = null;
+  fakeAnswerIsReturningToLobby = false;
+  fakeAnswerReturnToLobbyError = null;
+}
 
 function render(): void {
   renderApp(appRoot, state, actions, {
@@ -64,6 +82,12 @@ function render(): void {
     voteError: fakeAnswerVoteError,
     isContinuing: fakeAnswerIsContinuing,
     continueError: fakeAnswerContinueError,
+    isHost:
+      state.lobby?.players.some(
+        (player) => player.id === state.localPlayerId && player.isHost,
+      ) ?? false,
+    isReturningToLobby: fakeAnswerIsReturningToLobby,
+    returnToLobbyError: fakeAnswerReturnToLobbyError,
   });
 }
 
@@ -109,7 +133,19 @@ function applyLobbyState(lobby: LobbyState): void {
     return;
   }
 
-  state.currentView = lobby.status === "starting" ? "starting" : "lobby";
+  if (lobby.status === "lobby") {
+    if (state.game) {
+      retiredGameSessionIds.add(state.game.sessionId);
+    }
+    state.game = null;
+    resetFakeAnswerViewState();
+  }
+  state.currentView =
+    lobby.status === "lobby"
+      ? "lobby"
+      : state.game
+        ? "game"
+        : "starting";
   state.roomCode = lobby.roomCode;
   state.localPlayerId = localPlayer.id;
   state.playerName = localPlayer.name;
@@ -186,15 +222,7 @@ const actions: AppActions = {
       state.localPlayerId = null;
       state.lobby = null;
       state.game = null;
-      fakeAnswerHasSubmitted = false;
-      fakeAnswerIsSubmitting = false;
-      fakeAnswerErrorMessage = null;
-      fakeAnswerHasVoted = false;
-      fakeAnswerIsVoting = false;
-      fakeAnswerSelectedOptionId = null;
-      fakeAnswerVoteError = null;
-      fakeAnswerIsContinuing = false;
-      fakeAnswerContinueError = null;
+      resetFakeAnswerViewState();
       state.isBusy = false;
       state.errorMessage = null;
       render();
@@ -331,6 +359,33 @@ const actions: AppActions = {
       },
     );
   },
+  onReturnToLobby() {
+    if (fakeAnswerIsReturningToLobby) {
+      return;
+    }
+
+    fakeAnswerReturnToLobbyError = null;
+    fakeAnswerIsReturningToLobby = true;
+    render();
+    socket.timeout(5000).emit(
+      "return-to-lobby",
+      (error: Error | null, response?: RoomOperationResponse) => {
+        fakeAnswerIsReturningToLobby = false;
+        if (error || !response) {
+          fakeAnswerReturnToLobbyError =
+            "The server did not respond. Please try again.";
+        } else if (response.error) {
+          fakeAnswerReturnToLobbyError = response.error.message;
+        } else if (!response.returned) {
+          fakeAnswerReturnToLobbyError =
+            "The room could not be returned to the lobby.";
+        } else {
+          fakeAnswerReturnToLobbyError = null;
+        }
+        render();
+      },
+    );
+  },
 };
 
 socket.on("lobby-state", (lobby: LobbyState) => {
@@ -350,7 +405,14 @@ socket.on(
 socket.on("game-state", (game: GameSessionState) => {
   if (
     game.roomCode !== state.roomCode ||
+    typeof game.sessionId !== "string" ||
     (game.status !== "active" && game.status !== "finished")
+  ) {
+    return;
+  }
+  if (
+    retiredGameSessionIds.has(game.sessionId) ||
+    (state.currentView === "lobby" && state.lobby?.status === "lobby")
   ) {
     return;
   }
@@ -386,22 +448,15 @@ socket.on("game-state", (game: GameSessionState) => {
     JSON.stringify(previousState.options) === JSON.stringify(nextState.options);
   const isNewGame =
     state.game?.roomCode !== game.roomCode ||
-    state.game?.gameId !== game.gameId;
+    state.game?.gameId !== game.gameId ||
+    state.game?.sessionId !== game.sessionId;
   const isNewRound =
     !isNewGame &&
     isFakeAnswerPublicState(previousState) &&
     isFakeAnswerPublicState(nextState) &&
     previousState.currentRound !== nextState.currentRound;
   if (isNewGame || isNewRound) {
-    fakeAnswerHasSubmitted = false;
-    fakeAnswerIsSubmitting = false;
-    fakeAnswerErrorMessage = null;
-    fakeAnswerHasVoted = false;
-    fakeAnswerIsVoting = false;
-    fakeAnswerSelectedOptionId = null;
-    fakeAnswerVoteError = null;
-    fakeAnswerIsContinuing = false;
-    fakeAnswerContinueError = null;
+    resetFakeAnswerViewState();
   }
   state.game = game;
   state.currentView = "game";
@@ -442,15 +497,7 @@ socket.on("disconnect", () => {
   state.localPlayerId = null;
   state.lobby = null;
   state.game = null;
-  fakeAnswerHasSubmitted = false;
-  fakeAnswerIsSubmitting = false;
-  fakeAnswerErrorMessage = null;
-  fakeAnswerHasVoted = false;
-  fakeAnswerIsVoting = false;
-  fakeAnswerSelectedOptionId = null;
-  fakeAnswerVoteError = null;
-  fakeAnswerIsContinuing = false;
-  fakeAnswerContinueError = null;
+  resetFakeAnswerViewState();
   state.isBusy = false;
   state.errorMessage = "Connection lost. Reconnect to create or join a room.";
   render();

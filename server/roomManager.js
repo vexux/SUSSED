@@ -206,6 +206,29 @@ function startRoom(playerId) {
     return room;
 }
 
+function validateReturnToLobby(playerId) {
+    const room = getPlayerRoom(playerId);
+    if (!room) {
+        throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
+    }
+    if (room.hostId !== playerId) {
+        throw new RoomError("NOT_HOST", "Only the host can return the room to the lobby.");
+    }
+    if (room.status !== "starting") {
+        throw new RoomError("ROOM_NOT_IN_GAME", "The room is not in a game.");
+    }
+    return room;
+}
+
+function returnToLobby(playerId) {
+    const room = validateReturnToLobby(playerId);
+    room.status = "lobby";
+    for (const player of room.players) {
+        player.isReady = false;
+    }
+    return room;
+}
+
 function getRoom(roomCode) {
     return rooms.get(normalizeRoomCode(roomCode)) ?? null;
 }
@@ -262,8 +285,10 @@ module.exports = {
     normalizePlayerName,
     removePlayer,
     removeRoom,
+    returnToLobby,
     selectGame,
     setPlayerReady,
     startRoom,
-    validateRoomStart
+    validateRoomStart,
+    validateReturnToLobby
 };

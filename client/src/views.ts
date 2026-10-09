@@ -16,6 +16,7 @@ export interface AppActions {
   onSelectVote(optionId: string): void;
   onVoteFakeAnswer(optionId: string): void;
   onContinueFakeAnswer(): void;
+  onReturnToLobby(): void;
 }
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
@@ -312,6 +313,7 @@ function renderGame(
         actions.onSelectVote,
         actions.onVoteFakeAnswer,
         actions.onContinueFakeAnswer,
+        actions.onReturnToLobby,
       );
     default: {
       const screen = createElement("section", "app-screen starting-screen");
