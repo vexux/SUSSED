@@ -46,6 +46,7 @@ export interface FakeAnswerPublicState {
     | "results";
   currentRound: number;
   totalRounds: number;
+  roundId: string;
   prompt: {
     id: string;
     text: string;
@@ -54,6 +55,10 @@ export interface FakeAnswerPublicState {
   playerCount: number;
   options?: FakeAnswerOption[];
   voteCount?: number;
+  isFinalRound?: boolean;
+  continueReadyCount?: number;
+  continuePlayerCount?: number;
+  viewerReadyToContinue?: boolean;
   results?: FakeAnswerResults;
 }
 
@@ -65,6 +70,8 @@ export interface FakeAnswerViewState {
   isVoting: boolean;
   selectedOptionId: string | null;
   voteError: string | null;
+  isContinuing: boolean;
+  continueError: string | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -104,6 +111,7 @@ export function isFakeAnswerPublicState(
     value.phase !== "results" ||
     (isRecord(value.results) &&
       typeof value.playerCount === "number" &&
+      typeof value.isFinalRound === "boolean" &&
       typeof value.results.correctCompletion === "string" &&
       Array.isArray(value.results.options) &&
       value.results.options.length === value.playerCount + 1 &&
@@ -139,12 +147,17 @@ export function isFakeAnswerPublicState(
           typeof standing.name === "string" &&
           typeof standing.totalScore === "number" &&
           typeof standing.rank === "number",
-      ));
+      ) &&
+      (value.isFinalRound === true ||
+        (typeof value.continueReadyCount === "number" &&
+          typeof value.continuePlayerCount === "number" &&
+          typeof value.viewerReadyToContinue === "boolean")));
 
   return (
     phaseIsValid &&
     typeof value.currentRound === "number" &&
     typeof value.totalRounds === "number" &&
+    typeof value.roundId === "string" &&
     typeof value.submissionCount === "number" &&
     typeof value.playerCount === "number" &&
     promptIsValid &&
@@ -207,6 +220,7 @@ export function renderFakeAnswerGame(
   onSubmit: (completion: string) => void,
   onSelectVote: (optionId: string) => void,
   onVote: (optionId: string) => void,
+  onContinue: () => void,
 ): HTMLElement {
   const screen = document.createElement("section");
   screen.className = "app-screen question-screen";
@@ -226,11 +240,13 @@ export function renderFakeAnswerGame(
       : publicState.phase === "waiting-for-results"
         ? "All votes are in"
         : publicState.phase === "results"
-          ? "Round results"
+          ? publicState.isFinalRound
+            ? "Final results"
+            : "Round results"
         : "Question";
   const round = document.createElement("p");
   round.className = "round-counter";
-  round.textContent = `Round ${publicState.currentRound} / ${publicState.totalRounds}`;
+  round.textContent = `Round ${publicState.currentRound} of ${publicState.totalRounds}`;
   screen.append(title, round);
 
   if (publicState.phase === "results" && publicState.results) {
@@ -278,7 +294,9 @@ export function renderFakeAnswerGame(
     screen.append(playerResultsHeading, playerResults);
 
     const standingsHeading = document.createElement("h2");
-    standingsHeading.textContent = "Standings";
+    standingsHeading.textContent = publicState.isFinalRound
+      ? "Final standings — total scores"
+      : "Standings — total scores";
     const standings = document.createElement("ol");
     standings.className = "revealed-options";
     for (const standing of publicState.results.standings) {
@@ -289,6 +307,43 @@ export function renderFakeAnswerGame(
         standings.append(item);
     }
     screen.append(standingsHeading, standings);
+
+    if (publicState.isFinalRound) {
+      const finished = document.createElement("p");
+      finished.className = "status-message";
+      finished.textContent = "The game is complete.";
+      screen.append(finished);
+    } else {
+      const continueProgress = document.createElement("p");
+      continueProgress.className = "continue-progress";
+      continueProgress.textContent =
+        `${publicState.continueReadyCount} / ${publicState.continuePlayerCount} players ready to continue`;
+      screen.append(continueProgress);
+
+      if (publicState.viewerReadyToContinue) {
+        const waiting = document.createElement("p");
+        waiting.className = "status-message";
+        waiting.textContent = "You’re ready. Waiting for the other players…";
+        screen.append(waiting);
+      } else {
+        const continueButton = document.createElement("button");
+        continueButton.className = "primary-button";
+        continueButton.type = "button";
+        continueButton.disabled = submission.isContinuing;
+        continueButton.textContent = submission.isContinuing
+          ? "Continuing…"
+          : "Continue";
+        continueButton.addEventListener("click", onContinue);
+        screen.append(continueButton);
+      }
+    }
+    if (submission.continueError) {
+      const error = document.createElement("p");
+      error.className = "error-message";
+      error.setAttribute("role", "alert");
+      error.textContent = submission.continueError;
+      screen.append(error);
+    }
     return screen;
   }
 

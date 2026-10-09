@@ -543,6 +543,117 @@ test("fake-answer results and scores stay private until a single scoring publica
     );
 });
 
+test("fake-answer continuation waits for everyone and resets round data without resetting totals", () => {
+    const room = createStartingRoom(2);
+    gameManager.startGame(room, "fake-answer");
+
+    function finishRound() {
+        const questionState = gameManager.getPublicGameState(room.code, "player-1").state;
+        gameManager.performGameAction(room.code, "fake-answer", null, "open-submissions");
+        for (const player of room.players) {
+            gameManager.performGameAction(
+                room.code,
+                "fake-answer",
+                player.id,
+                "submit-completion",
+                `Round ${questionState.currentRound} answer from ${player.name}`
+            );
+        }
+        gameManager.performGameAction(room.code, "fake-answer", null, "begin-voting");
+        const correctCompletion = questions.find(
+            ({ id }) => id === questionState.prompt.id
+        ).correctCompletion;
+        for (const player of room.players) {
+            const options = gameManager.getPublicGameState(room.code, player.id).state.options;
+            const correctOption = options.find(
+                ({ completion }) => completion === correctCompletion
+            );
+            gameManager.performGameAction(
+                room.code,
+                "fake-answer",
+                player.id,
+                "vote",
+                correctOption.id
+            );
+        }
+        return gameManager.performGameAction(
+            room.code,
+            "fake-answer",
+            null,
+            "publish-results"
+        );
+    }
+
+    try {
+        const firstResults = finishRound().gameState;
+        const firstRoundId = firstResults.state.roundId;
+        const firstPromptId = firstResults.state.prompt.id;
+        assert.equal(firstResults.status, "active");
+        assert.equal(firstResults.state.results.players[0].totalScore, 1);
+
+        const hostReady = gameManager.performGameAction(
+            room.code,
+            "fake-answer",
+            "player-1",
+            "continue"
+        );
+        assert.deepEqual(hostReady.result, {
+            ready: true,
+            advanced: false,
+            readyCount: 1,
+            playerCount: 2
+        });
+        assert.equal(hostReady.gameState.state.phase, "results");
+        assert.equal(hostReady.gameState.state.continueReadyCount, 1);
+        assert.equal(hostReady.gameState.state.viewerReadyToContinue, true);
+        assert.throws(
+            () => gameManager.performGameAction(
+                room.code,
+                "fake-answer",
+                "player-1",
+                "continue"
+            ),
+            { code: "ALREADY_READY" }
+        );
+
+        const advanced = gameManager.performGameAction(
+            room.code,
+            "fake-answer",
+            "player-2",
+            "continue"
+        );
+        assert.equal(advanced.result.advanced, true);
+        assert.equal(advanced.gameState.state.phase, "question");
+        assert.equal(advanced.gameState.state.currentRound, 2);
+        assert.notEqual(advanced.gameState.state.roundId, firstRoundId);
+        assert.notEqual(advanced.gameState.state.prompt.id, firstPromptId);
+        assert.equal(advanced.gameState.state.submissionCount, 0);
+        assert.equal(Object.hasOwn(advanced.gameState.state, "options"), false);
+        assert.equal(Object.hasOwn(advanced.gameState.state, "results"), false);
+
+        const secondResults = finishRound().gameState;
+        assert.equal(secondResults.state.currentRound, 2);
+        assert.equal(secondResults.state.results.players[0].roundPoints, 1);
+        assert.equal(secondResults.state.results.players[0].totalScore, 2);
+        assert.equal(secondResults.state.results.players[1].totalScore, 2);
+        assert.deepEqual(
+            secondResults.state.results.standings.map(({ rank }) => rank),
+            [1, 1]
+        );
+        assert.throws(
+            () => gameManager.performGameAction(
+                room.code,
+                "fake-answer",
+                null,
+                "publish-results"
+            ),
+            { code: "RESULTS_ALREADY_PUBLISHED" }
+        );
+    } finally {
+        gameManager.removeGame(room.code);
+    }
+});
+
 test("question bank contains at least 15 unique sourced prompts", () => {
     assert.ok(questions.length >= 15);
     assert.equal(new Set(questions.map(({ id }) => id)).size, questions.length);

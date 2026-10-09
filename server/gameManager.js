@@ -106,6 +106,11 @@ function performGameAction(roomCode, gameId, playerId, action, payload, viewerId
         playerId,
         payload
     );
+    if (
+        session.implementation.isFinished?.(session.privateState) === true
+    ) {
+        session.status = "finished";
+    }
     return {
         result,
         gameState: createPublicGameState(session, viewerId)
@@ -114,7 +119,7 @@ function performGameAction(roomCode, gameId, playerId, action, payload, viewerId
 
 function getPublicGameState(roomCode, playerId) {
     const session = sessions.get(roomCode);
-    if (!session || session.status !== "active") {
+    if (!session || (session.status !== "active" && session.status !== "finished")) {
         throw new GameSessionError("GAME_NOT_ACTIVE", "There is no active game in this room.");
     }
     if (!session.players.some((player) => player.id === playerId)) {

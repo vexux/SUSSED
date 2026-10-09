@@ -16,6 +16,8 @@ import {
 interface FakeAnswerSubmissionResponse {
   submitted?: boolean;
   voted?: boolean;
+  ready?: boolean;
+  advanced?: boolean;
   error?: {
     code: string;
     message: string;
@@ -48,6 +50,8 @@ let fakeAnswerHasVoted = false;
 let fakeAnswerIsVoting = false;
 let fakeAnswerSelectedOptionId: string | null = null;
 let fakeAnswerVoteError: string | null = null;
+let fakeAnswerIsContinuing = false;
+let fakeAnswerContinueError: string | null = null;
 
 function render(): void {
   renderApp(appRoot, state, actions, {
@@ -58,6 +62,8 @@ function render(): void {
     isVoting: fakeAnswerIsVoting,
     selectedOptionId: fakeAnswerSelectedOptionId,
     voteError: fakeAnswerVoteError,
+    isContinuing: fakeAnswerIsContinuing,
+    continueError: fakeAnswerContinueError,
   });
 }
 
@@ -111,6 +117,16 @@ function applyLobbyState(lobby: LobbyState): void {
   state.errorMessage = null;
   state.isBusy = false;
   render();
+}
+
+function currentFakeAnswerRoundId(): string | null {
+  if (
+    state.game?.gameId !== "fake-answer" ||
+    !isFakeAnswerPublicState(state.game.state)
+  ) {
+    return null;
+  }
+  return state.game.state.roundId;
 }
 
 const actions: AppActions = {
@@ -177,6 +193,8 @@ const actions: AppActions = {
       fakeAnswerIsVoting = false;
       fakeAnswerSelectedOptionId = null;
       fakeAnswerVoteError = null;
+      fakeAnswerIsContinuing = false;
+      fakeAnswerContinueError = null;
       state.isBusy = false;
       state.errorMessage = null;
       render();
@@ -226,7 +244,8 @@ const actions: AppActions = {
     });
   },
   onSubmitFakeAnswer(completion) {
-    if (fakeAnswerHasSubmitted || fakeAnswerIsSubmitting) {
+    const roundId = currentFakeAnswerRoundId();
+    if (!roundId || fakeAnswerHasSubmitted || fakeAnswerIsSubmitting) {
       return;
     }
 
@@ -235,7 +254,7 @@ const actions: AppActions = {
     render();
     socket.timeout(5000).emit(
       "fake-answer:submit",
-      { completion },
+      { completion, roundId },
       (error: Error | null, response?: FakeAnswerSubmissionResponse) => {
         fakeAnswerIsSubmitting = false;
         if (error || !response) {
@@ -258,7 +277,8 @@ const actions: AppActions = {
     render();
   },
   onVoteFakeAnswer(optionId) {
-    if (fakeAnswerHasVoted || fakeAnswerIsVoting) {
+    const roundId = currentFakeAnswerRoundId();
+    if (!roundId || fakeAnswerHasVoted || fakeAnswerIsVoting) {
       return;
     }
 
@@ -267,7 +287,7 @@ const actions: AppActions = {
     render();
     socket.timeout(5000).emit(
       "fake-answer:vote",
-      { optionId },
+      { optionId, roundId },
       (error: Error | null, response?: FakeAnswerSubmissionResponse) => {
         fakeAnswerIsVoting = false;
         if (error || !response) {
@@ -279,6 +299,33 @@ const actions: AppActions = {
           fakeAnswerVoteError = null;
         } else {
           fakeAnswerVoteError = "Your vote could not be submitted.";
+        }
+        render();
+      },
+    );
+  },
+  onContinueFakeAnswer() {
+    const roundId = currentFakeAnswerRoundId();
+    if (!roundId || fakeAnswerIsContinuing) {
+      return;
+    }
+
+    fakeAnswerContinueError = null;
+    fakeAnswerIsContinuing = true;
+    render();
+    socket.timeout(5000).emit(
+      "fake-answer:continue",
+      { roundId },
+      (error: Error | null, response?: FakeAnswerSubmissionResponse) => {
+        fakeAnswerIsContinuing = false;
+        if (error || !response) {
+          fakeAnswerContinueError = "The server did not respond. Please try again.";
+        } else if (response.error) {
+          fakeAnswerContinueError = response.error.message;
+        } else if (!response.ready) {
+          fakeAnswerContinueError = "You could not continue to the next round.";
+        } else {
+          fakeAnswerContinueError = null;
         }
         render();
       },
@@ -301,7 +348,10 @@ socket.on(
 );
 
 socket.on("game-state", (game: GameSessionState) => {
-  if (game.roomCode !== state.roomCode || game.status !== "active") {
+  if (
+    game.roomCode !== state.roomCode ||
+    (game.status !== "active" && game.status !== "finished")
+  ) {
     return;
   }
   const previousGame = state.game;
@@ -334,10 +384,15 @@ socket.on("game-state", (game: GameSessionState) => {
     previousState.currentRound === nextState.currentRound &&
     previousState.voteCount !== nextState.voteCount &&
     JSON.stringify(previousState.options) === JSON.stringify(nextState.options);
-  if (
+  const isNewGame =
     state.game?.roomCode !== game.roomCode ||
-    state.game?.gameId !== game.gameId
-  ) {
+    state.game?.gameId !== game.gameId;
+  const isNewRound =
+    !isNewGame &&
+    isFakeAnswerPublicState(previousState) &&
+    isFakeAnswerPublicState(nextState) &&
+    previousState.currentRound !== nextState.currentRound;
+  if (isNewGame || isNewRound) {
     fakeAnswerHasSubmitted = false;
     fakeAnswerIsSubmitting = false;
     fakeAnswerErrorMessage = null;
@@ -345,6 +400,8 @@ socket.on("game-state", (game: GameSessionState) => {
     fakeAnswerIsVoting = false;
     fakeAnswerSelectedOptionId = null;
     fakeAnswerVoteError = null;
+    fakeAnswerIsContinuing = false;
+    fakeAnswerContinueError = null;
   }
   state.game = game;
   state.currentView = "game";
@@ -388,6 +445,12 @@ socket.on("disconnect", () => {
   fakeAnswerHasSubmitted = false;
   fakeAnswerIsSubmitting = false;
   fakeAnswerErrorMessage = null;
+  fakeAnswerHasVoted = false;
+  fakeAnswerIsVoting = false;
+  fakeAnswerSelectedOptionId = null;
+  fakeAnswerVoteError = null;
+  fakeAnswerIsContinuing = false;
+  fakeAnswerContinueError = null;
   state.isBusy = false;
   state.errorMessage = "Connection lost. Reconnect to create or join a room.";
   render();

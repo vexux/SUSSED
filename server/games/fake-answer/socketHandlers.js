@@ -35,6 +35,16 @@ function broadcastPlayerGameStates(io, roomCode, players) {
     }
 }
 
+function validateRoundId(roomCode, playerId, suppliedRoundId) {
+    const currentGame = gameManager.getPublicGameState(roomCode, playerId);
+    if (suppliedRoundId !== currentGame.state.roundId) {
+        throw new FakeAnswerError(
+            "ROUND_MISMATCH",
+            "That action belongs to a different round."
+        );
+    }
+}
+
 function registerSocketHandlers(io, socket) {
     socket.on("fake-answer:submit", (payload, acknowledge) => {
         if (typeof acknowledge !== "function") {
@@ -42,13 +52,14 @@ function registerSocketHandlers(io, socket) {
         }
         if (
             !isRecord(payload) ||
-            Object.keys(payload).length !== 1 ||
+            Object.keys(payload).length !== 2 ||
+            typeof payload.roundId !== "string" ||
             typeof payload.completion !== "string"
         ) {
             acknowledgeError(
                 acknowledge,
                 "INVALID_REQUEST",
-                "A completion string is required."
+                "A completion string and current roundId are required."
             );
             return;
         }
@@ -60,6 +71,7 @@ function registerSocketHandlers(io, socket) {
         }
 
         try {
+            validateRoundId(room.code, socket.id, payload.roundId);
             const result = gameManager.performGameAction(
                 room.code,
                 "fake-answer",
@@ -92,10 +104,15 @@ function registerSocketHandlers(io, socket) {
         }
         if (
             !isRecord(payload) ||
-            Object.keys(payload).length !== 1 ||
+            Object.keys(payload).length !== 2 ||
+            typeof payload.roundId !== "string" ||
             typeof payload.optionId !== "string"
         ) {
-            acknowledgeError(acknowledge, "INVALID_REQUEST", "An optionId is required.");
+            acknowledgeError(
+                acknowledge,
+                "INVALID_REQUEST",
+                "An optionId and current roundId are required."
+            );
             return;
         }
 
@@ -106,6 +123,7 @@ function registerSocketHandlers(io, socket) {
         }
 
         try {
+            validateRoundId(room.code, socket.id, payload.roundId);
             const result = gameManager.performGameAction(
                 room.code,
                 "fake-answer",
@@ -122,6 +140,48 @@ function registerSocketHandlers(io, socket) {
                     "publish-results"
                 );
                 broadcastPlayerGameStates(io, room.code, result.gameState.players);
+            }
+            acknowledge(result.result);
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
+    });
+
+    socket.on("fake-answer:continue", (payload, acknowledge) => {
+        if (typeof acknowledge !== "function") {
+            return;
+        }
+        if (
+            !isRecord(payload) ||
+            Object.keys(payload).length !== 1 ||
+            typeof payload.roundId !== "string"
+        ) {
+            acknowledgeError(
+                acknowledge,
+                "INVALID_REQUEST",
+                "The current roundId is required to continue."
+            );
+            return;
+        }
+
+        const room = roomManager.getPlayerRoom(socket.id);
+        if (!room) {
+            acknowledgeError(acknowledge, "NOT_IN_ROOM", "You are not in a room.");
+            return;
+        }
+
+        try {
+            validateRoundId(room.code, socket.id, payload.roundId);
+            const result = gameManager.performGameAction(
+                room.code,
+                "fake-answer",
+                socket.id,
+                "continue"
+            );
+            broadcastPlayerGameStates(io, room.code, result.gameState.players);
+            if (result.result.advanced) {
+                scheduleSubmissionPhase(io, room.code);
             }
             acknowledge(result.result);
         } catch (error) {

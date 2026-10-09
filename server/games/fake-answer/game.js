@@ -13,6 +13,12 @@ class FakeAnswerError extends Error {
 }
 
 function shuffledQuestions() {
+    if (questions.length < TOTAL_ROUNDS) {
+        throw new FakeAnswerError(
+            "QUESTION_POOL_EXHAUSTED",
+            `The question bank needs at least ${TOTAL_ROUNDS} unique prompts.`
+        );
+    }
     const shuffled = [...questions];
     for (let index = shuffled.length - 1; index > 0; index -= 1) {
         const swapIndex = randomInt(index + 1);
@@ -26,6 +32,7 @@ function createInitialState(players) {
         phase: "unstarted",
         currentRound: 0,
         totalRounds: TOTAL_ROUNDS,
+        roundId: null,
         participants: players.map(({ id, name }) => ({ id, name })),
         questionOrder: [],
         currentQuestion: null,
@@ -35,6 +42,7 @@ function createInitialState(players) {
         votes: new Map(),
         scores: new Map(players.map(({ id }) => [id, 0])),
         scoredRounds: new Set(),
+        continueReady: new Set(),
         results: null
     };
 }
@@ -45,12 +53,14 @@ function start(state) {
         ...state,
         phase: "question",
         currentRound: 1,
+        roundId: randomUUID(),
         questionOrder,
         currentQuestion: questionOrder[0],
         submissions: new Map(),
         submissionStatus: new Map(state.participants.map(({ id }) => [id, false])),
         options: [],
         votes: new Map(),
+        continueReady: new Set(),
         results: null
     };
 }
@@ -310,9 +320,76 @@ function publishResults(state) {
         ).totalScore);
     }
     state.scoredRounds.add(state.currentRound);
+    state.continueReady = new Set();
     state.results = results;
     state.phase = "results";
     return { published: true, currentRound: state.currentRound };
+}
+
+function continueToNextRound(state, playerId) {
+    if (state.phase !== "results") {
+        throw new FakeAnswerError(
+            "RESULTS_NOT_READY",
+            "The current round's results must be available before continuing."
+        );
+    }
+    if (state.currentRound >= state.totalRounds) {
+        throw new FakeAnswerError(
+            "GAME_FINISHED",
+            "The final round is complete."
+        );
+    }
+    if (!state.participants.some((player) => player.id === playerId)) {
+        throw new FakeAnswerError(
+            "NOT_A_GAME_PLAYER",
+            "You are not participating in this game."
+        );
+    }
+    if (state.continueReady.has(playerId)) {
+        throw new FakeAnswerError(
+            "ALREADY_READY",
+            "You are already ready to continue."
+        );
+    }
+
+    state.continueReady.add(playerId);
+    const readyCount = state.continueReady.size;
+    if (readyCount < state.participants.length) {
+        return {
+            ready: true,
+            advanced: false,
+            readyCount,
+            playerCount: state.participants.length
+        };
+    }
+
+    const nextRound = state.currentRound + 1;
+    const nextQuestion = state.questionOrder[nextRound - 1];
+    if (!nextQuestion) {
+        throw new FakeAnswerError(
+            "QUESTION_POOL_EXHAUSTED",
+            "No unused question is available for the next round."
+        );
+    }
+
+    state.currentRound = nextRound;
+    state.roundId = randomUUID();
+    state.currentQuestion = nextQuestion;
+    state.phase = "question";
+    state.submissions = new Map();
+    state.submissionStatus = new Map(
+        state.participants.map(({ id }) => [id, false])
+    );
+    state.options = [];
+    state.votes = new Map();
+    state.continueReady = new Set();
+    state.results = null;
+    return {
+        ready: true,
+        advanced: true,
+        readyCount: 0,
+        playerCount: state.participants.length
+    };
 }
 
 function handleAction(state, action, playerId, payload) {
@@ -327,6 +404,8 @@ function handleAction(state, action, playerId, payload) {
             return vote(state, playerId, payload);
         case "publish-results":
             return publishResults(state);
+        case "continue":
+            return continueToNextRound(state, playerId);
         default:
             throw new FakeAnswerError("UNKNOWN_ACTION", "That game action is not available.");
     }
@@ -339,6 +418,7 @@ function createPublicState(state, viewerId) {
             phase: state.phase,
             currentRound: state.currentRound,
             totalRounds: state.totalRounds,
+            roundId: state.roundId,
             prompt: {
                 id: state.currentQuestion.id,
                 text: state.currentQuestion.text
@@ -346,6 +426,14 @@ function createPublicState(state, viewerId) {
             submissionCount: state.submissions.size,
             playerCount: state.participants.length,
             voteCount: state.votes.size,
+            isFinalRound: state.currentRound === state.totalRounds,
+            ...(state.currentRound < state.totalRounds
+                ? {
+                    continueReadyCount: state.continueReady.size,
+                    continuePlayerCount: state.participants.length,
+                    viewerReadyToContinue: state.continueReady.has(viewerId)
+                }
+                : {}),
             results: state.results
         };
     }
@@ -353,6 +441,7 @@ function createPublicState(state, viewerId) {
         phase: state.phase,
         currentRound: state.currentRound,
         totalRounds: state.totalRounds,
+        roundId: state.roundId,
         prompt: state.phase === "waiting-for-results"
             ? null
             : {
@@ -383,6 +472,9 @@ module.exports = {
     start,
     createPublicState,
     handleAction,
+    isFinished(state) {
+        return state.phase === "results" && state.currentRound === state.totalRounds;
+    },
     calculateRoundResults,
     MAX_COMPLETION_LENGTH
 };

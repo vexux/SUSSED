@@ -70,6 +70,10 @@ function emitWithAck(client, event, payload, timeoutMs = 3000) {
     });
 }
 
+function withRoundId(gameState, payload) {
+    return { ...payload, roundId: gameState.state.roundId };
+}
+
 function waitForLobby(client, predicate = () => true) {
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
@@ -198,6 +202,54 @@ async function startFakeAnswer(
         questionState,
         gameState: receivedStates[0]
     };
+}
+
+async function completeSocketRound(host, players, gameState) {
+    const clients = [host, ...players];
+    const question = questions.find(
+        ({ id }) => id === gameState.state.prompt.id
+    );
+    assert.ok(question);
+    const votingEvents = clients.map((client) =>
+        waitForGameState(
+            client,
+            (state) =>
+                state.state.phase === "voting" &&
+                state.state.roundId === gameState.state.roundId
+        )
+    );
+    for (let index = 0; index < clients.length; index += 1) {
+        const response = await emitWithAck(
+            clients[index],
+            "fake-answer:submit",
+            withRoundId(gameState, {
+                completion: `Round ${gameState.state.currentRound} answer ${index + 1}`,
+            })
+        );
+        assert.equal(response.error, undefined);
+    }
+    const votingStates = await Promise.all(votingEvents);
+    const resultsEvents = clients.map((client) =>
+        waitForGameState(
+            client,
+            (state) =>
+                state.state.phase === "results" &&
+                state.state.roundId === gameState.state.roundId
+        )
+    );
+    for (let index = 0; index < clients.length; index += 1) {
+        const option = votingStates[index].state.options.find(
+            ({ completion }) => completion === question.correctCompletion
+        );
+        assert.ok(option);
+        const response = await emitWithAck(
+            clients[index],
+            "fake-answer:vote",
+            withRoundId(votingStates[index], { optionId: option.id })
+        );
+        assert.equal(response.error, undefined);
+    }
+    return Promise.all(resultsEvents);
 }
 
 test("starts the server and keeps the legacy create-room acknowledgement", async (context) => {
@@ -897,12 +949,13 @@ test("fake-answer opens submissions after the question state and rejects early s
     assert.equal(game.questionState.state.phase, "question");
     assert.ok(game.questionState.state.prompt.text);
     const response = await emitWithAck(game.players[0], "fake-answer:submit", {
-        completion: "Too early",
+        ...withRoundId(game.questionState, { completion: "Too early" }),
     });
     assert.equal(response.error.code, "SUBMISSIONS_NOT_OPEN");
     assert.equal(
         (await emitWithAck(game.players[0], "fake-answer:vote", {
             optionId: "not-an-option",
+            roundId: game.questionState.state.roundId,
         })).error.code,
         "VOTING_NOT_OPEN"
     );
@@ -931,6 +984,7 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
         "phase",
         "playerCount",
         "prompt",
+        "roundId",
         "submissionCount",
         "totalRounds",
     ]);
@@ -939,7 +993,9 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
         waitForGameState(client, (state) => state.state.submissionCount === 1)
     );
     const firstResponse = await emitWithAck(players[0], "fake-answer:submit", {
+        ...withRoundId(gameState, {
         completion: submittedCompletions[1],
+        }),
     });
     assert.deepEqual(firstResponse, {
         submitted: true,
@@ -955,7 +1011,9 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
 
     for (let index = 1; index < players.length; index += 1) {
         const response = await emitWithAck(players[index], "fake-answer:submit", {
+            ...withRoundId(gameState, {
             completion: submittedCompletions[index + 1],
+            }),
         });
         assert.equal(response.submissionCount, index + 1);
     }
@@ -971,7 +1029,9 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
         waitForGameState(client, (state) => state.state.phase === "voting")
     );
     const finalResponse = await emitWithAck(host, "fake-answer:submit", {
+        ...withRoundId(gameState, {
         completion: submittedCompletions[0],
+        }),
     });
     assert.deepEqual(finalResponse, {
         submitted: true,
@@ -1011,7 +1071,7 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
     }
 });
 
-test("two-player fake-answer reveal hides own answer and voting reaches waiting-for-results", async (context) => {
+test("two-player fake-answer reveal hides own answer and voting reaches results", async (context) => {
     const harness = await createHarness(context);
     const { host, players, questionState, gameState } = await startFakeAnswer(
         harness,
@@ -1033,7 +1093,9 @@ test("two-player fake-answer reveal hides own answer and voting reaches waiting-
     assert.equal(JSON.stringify(gameState).includes(question.correctCompletion), false);
 
     const firstResponse = await emitWithAck(host, "fake-answer:submit", {
+        ...withRoundId(gameState, {
         completion: "A secret underwater library.",
+        }),
     });
     assert.deepEqual(firstResponse, {
         submitted: true,
@@ -1042,7 +1104,9 @@ test("two-player fake-answer reveal hides own answer and voting reaches waiting-
     });
     assert.equal(
         (await emitWithAck(host, "fake-answer:submit", {
+            ...withRoundId(gameState, {
             completion: "A second answer from the host.",
+            }),
         })).error.code,
         "ALREADY_SUBMITTED"
     );
@@ -1058,7 +1122,9 @@ test("two-player fake-answer reveal hides own answer and voting reaches waiting-
         waitForGameState(client, (state) => state.state.phase === "voting")
     );
     const secondResponse = await emitWithAck(players[0], "fake-answer:submit", {
+        ...withRoundId(gameState, {
         completion: ownCompletions[1],
+        }),
     });
     assert.deepEqual(secondResponse, {
         submitted: true,
@@ -1106,30 +1172,41 @@ test("two-player fake-answer reveal hides own answer and voting reaches waiting-
         ({ completion }) => completion === ownCompletions[0]
     ).id;
     assert.equal(
-        (await emitWithAck(host, "fake-answer:vote", { optionId: hostOwnOptionId })).error.code,
+        (await emitWithAck(host, "fake-answer:vote", withRoundId(votingStates[1], {
+            optionId: hostOwnOptionId,
+        }))).error.code,
         "OWN_ANSWER_NOT_ALLOWED"
     );
     assert.equal(
-        (await emitWithAck(host, "fake-answer:vote", { optionId: "fabricated-option" })).error.code,
+        (await emitWithAck(host, "fake-answer:vote", withRoundId(votingStates[1], {
+            optionId: "fabricated-option",
+        }))).error.code,
         "INVALID_OPTION"
     );
     assert.equal(
         (await emitWithAck(host, "fake-answer:vote", {
+            ...withRoundId(votingStates[1], {
             optionId: votingStates[0].state.options[0].id,
             playerId: players[0].id,
+            }),
         })).error.code,
         "INVALID_REQUEST"
     );
     assert.equal(
         (await emitWithAck(host, "fake-answer:vote", {
+            ...withRoundId(votingStates[1], {
             optionId: votingStates[0].state.options[0].id,
             score: 999,
+            }),
         })).error.code,
         "INVALID_REQUEST"
     );
     const outsider = await harness.connect();
     assert.equal(
-        (await emitWithAck(outsider, "fake-answer:vote", { optionId: "outsider" })).error.code,
+        (await emitWithAck(outsider, "fake-answer:vote", {
+            optionId: "outsider",
+            roundId: votingStates[1].state.roundId,
+        })).error.code,
         "NOT_IN_ROOM"
     );
 
@@ -1150,7 +1227,9 @@ test("two-player fake-answer reveal hides own answer and voting reaches waiting-
         (state) => state.state.phase === "results"
     );
     const hostVote = await emitWithAck(host, "fake-answer:vote", {
+        ...withRoundId(votingStates[0], {
         optionId: votingStates[0].state.options[0].id,
+        }),
     });
     assert.deepEqual(hostVote, { voted: true, voteCount: 1, playerCount: 2 });
     const guestVoteProgress = await waitForGameState(
@@ -1161,12 +1240,16 @@ test("two-player fake-answer reveal hides own answer and voting reaches waiting-
     assert.equal(Object.hasOwn(guestVoteProgress.state, "votes"), false);
     assert.equal(
         (await emitWithAck(host, "fake-answer:vote", {
+            ...withRoundId(votingStates[0], {
             optionId: votingStates[0].state.options[1].id,
+            }),
         })).error.code,
         "ALREADY_VOTED"
     );
     const guestVote = await emitWithAck(players[0], "fake-answer:vote", {
+        ...withRoundId(votingStates[1], {
         optionId: votingStates[1].state.options[0].id,
+        }),
     });
     assert.deepEqual(guestVote, { voted: true, voteCount: 2, playerCount: 2 });
     for (const state of await Promise.all([hostWaiting, guestWaiting])) {
@@ -1203,6 +1286,157 @@ test("two-player fake-answer reveal hides own answer and voting reaches waiting-
     assert.deepEqual(resultsStates[0].state.results, resultsStates[1].state.results);
 });
 
+test("fake-answer progresses through five scored rounds, preserves a final tie, and keeps the room", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, { playerCount: 2 });
+    const clients = [game.host, ...game.players];
+    const room = roomManager.getRoom(game.roomCode);
+    const initialHostId = room.hostId;
+    const initialPlayerIds = room.players.map(({ id }) => id);
+    const promptIds = new Set();
+    let roundGameState = game.gameState;
+
+    for (let round = 1; round <= roundGameState.state.totalRounds; round += 1) {
+        assert.equal(roundGameState.state.currentRound, round);
+        assert.equal(roundGameState.status, "active");
+        assert.equal(promptIds.has(roundGameState.state.prompt.id), false);
+        promptIds.add(roundGameState.state.prompt.id);
+
+        const resultStates = await completeSocketRound(
+            game.host,
+            game.players,
+            roundGameState
+        );
+        for (const state of resultStates) {
+            assert.equal(state.state.phase, "results");
+            assert.equal(state.state.currentRound, round);
+            assert.deepEqual(state.state.results.standings.map(
+                ({ totalScore, rank }) => ({ totalScore, rank })
+            ), [
+                { totalScore: round, rank: 1 },
+                { totalScore: round, rank: 1 },
+            ]);
+        }
+
+        if (round < roundGameState.state.totalRounds) {
+            const previousRoundId = roundGameState.state.roundId;
+            const previousPromptId = roundGameState.state.prompt.id;
+            const previousOptionId = resultStates[0].state.results.options[0].id;
+            const guestProgress = waitForGameState(
+                game.players[0],
+                (state) =>
+                    state.state.phase === "results" &&
+                    state.state.continueReadyCount === 1
+            );
+            const duplicateContinueResponses = await Promise.all([
+                emitWithAck(game.host, "fake-answer:continue", {
+                    roundId: previousRoundId,
+                }),
+                emitWithAck(game.host, "fake-answer:continue", {
+                    roundId: previousRoundId,
+                }),
+            ]);
+            assert.deepEqual(duplicateContinueResponses[0], {
+                ready: true,
+                advanced: false,
+                readyCount: 1,
+                playerCount: 2,
+            });
+            assert.equal(
+                duplicateContinueResponses[1].error.code,
+                "ALREADY_READY"
+            );
+            assert.equal((await guestProgress).state.viewerReadyToContinue, false);
+
+            const nextQuestionStates = clients.map((client) =>
+                waitForGameState(
+                    client,
+                    (state) =>
+                        state.state.phase === "question" &&
+                        state.state.currentRound === round + 1
+                )
+            );
+            assert.deepEqual(
+                await emitWithAck(game.players[0], "fake-answer:continue", {
+                    roundId: previousRoundId,
+                }),
+                {
+                    ready: true,
+                    advanced: true,
+                    readyCount: 0,
+                    playerCount: 2,
+                }
+            );
+            const nextQuestionStatesReceived = await Promise.all(nextQuestionStates);
+            const nextQuestionState = nextQuestionStatesReceived[0];
+            assert.equal(nextQuestionState.status, "active");
+            assert.notEqual(nextQuestionState.state.roundId, previousRoundId);
+            assert.equal(nextQuestionState.state.submissionCount, 0);
+            assert.equal(Object.hasOwn(nextQuestionState.state, "options"), false);
+            assert.notEqual(nextQuestionState.state.prompt.id, previousPromptId);
+
+            assert.equal(
+                (await emitWithAck(game.host, "fake-answer:submit", {
+                    completion: "Delayed answer from the previous round",
+                    roundId: previousRoundId,
+                })).error.code,
+                "ROUND_MISMATCH"
+            );
+            assert.equal(
+                (await emitWithAck(game.host, "fake-answer:vote", {
+                    optionId: previousOptionId,
+                    roundId: previousRoundId,
+                })).error.code,
+                "ROUND_MISMATCH"
+            );
+            assert.equal(
+                (await emitWithAck(game.host, "fake-answer:continue", {
+                    roundId: previousRoundId,
+                })).error.code,
+                "ROUND_MISMATCH"
+            );
+            const nextSubmissionStates = clients.map((client) =>
+                waitForGameState(
+                    client,
+                    (state) =>
+                        state.state.phase === "answer-submission" &&
+                        state.state.currentRound === round + 1
+                )
+            );
+            roundGameState = (await Promise.all(nextSubmissionStates))[0];
+        } else {
+            assert.equal(resultStates[0].status, "finished");
+            assert.equal(resultStates[1].status, "finished");
+            assert.equal(resultStates[0].state.isFinalRound, true);
+        }
+    }
+
+    assert.equal(promptIds.size, roundGameState.state.totalRounds);
+    assert.equal(roomManager.getRoom(game.roomCode), room);
+    assert.equal(room.hostId, initialHostId);
+    assert.deepEqual(room.players.map(({ id }) => id), initialPlayerIds);
+    assert.equal(room.selectedGameId, "fake-answer");
+    assert.equal(room.players.length, 2);
+    for (const client of clients) {
+        assert.equal(client.connected, true);
+    }
+
+    const finalRoundId = roundGameState.state.roundId;
+    assert.equal(
+        (await emitWithAck(game.host, "fake-answer:submit", {
+            completion: "No more answers",
+            roundId: finalRoundId,
+        })).error.code,
+        "GAME_NOT_ACTIVE"
+    );
+    assert.equal(
+        (await emitWithAck(game.host, "fake-answer:continue", {
+            roundId: finalRoundId,
+        })).error.code,
+        "GAME_NOT_ACTIVE"
+    );
+});
+
 test("fake-answer rejects empty, long, correct, duplicate, malformed, and impersonated submissions", async (context) => {
     const harness = await createHarness(context);
     const { host, players, gameState } = await startFakeAnswer(harness);
@@ -1212,26 +1446,26 @@ test("fake-answer rejects empty, long, correct, duplicate, malformed, and impers
     assert.ok(question);
 
     for (const completion of ["   ", "x".repeat(161)]) {
-        const response = await emitWithAck(players[0], "fake-answer:submit", {
+        const response = await emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
             completion,
-        });
+        }));
         assert.equal(response.error.code, "INVALID_COMPLETION");
     }
 
-    const correctResponse = await emitWithAck(players[0], "fake-answer:submit", {
+    const correctResponse = await emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
         completion: `  ${question.correctCompletion.toUpperCase()}  `,
-    });
+    }));
     assert.equal(correctResponse.error.code, "CORRECT_COMPLETION_NOT_ALLOWED");
 
-    const impersonation = await emitWithAck(players[0], "fake-answer:submit", {
+    const impersonation = await emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
         completion: "I am borrowing another player's identity",
         playerId: players[1].id,
-    });
+    }));
     assert.equal(impersonation.error.code, "INVALID_REQUEST");
-    const clientCorrectAnswer = await emitWithAck(players[0], "fake-answer:submit", {
+    const clientCorrectAnswer = await emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
         completion: "A made up completion",
         correctCompletion: question.correctCompletion,
-    });
+    }));
     assert.equal(clientCorrectAnswer.error.code, "INVALID_REQUEST");
 
     for (const payload of [null, [], "malformed", {}, { completion: 1 }]) {
@@ -1239,19 +1473,19 @@ test("fake-answer rejects empty, long, correct, duplicate, malformed, and impers
         assert.equal(response.error.code, "INVALID_REQUEST");
     }
 
-    const accepted = await emitWithAck(players[0], "fake-answer:submit", {
+    const accepted = await emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
         completion: "  A believable invented detail.  ",
-    });
+    }));
     assert.equal(accepted.submitted, true);
-    const duplicate = await emitWithAck(players[0], "fake-answer:submit", {
+    const duplicate = await emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
         completion: "A different answer",
-    });
+    }));
     assert.equal(duplicate.error.code, "ALREADY_SUBMITTED");
 
     const outsider = await harness.connect();
-    const outsideRoom = await emitWithAck(outsider, "fake-answer:submit", {
+    const outsideRoom = await emitWithAck(outsider, "fake-answer:submit", withRoundId(gameState, {
         completion: "Not a participant",
-    });
+    }));
     assert.equal(outsideRoom.error.code, "NOT_IN_ROOM");
 });
 

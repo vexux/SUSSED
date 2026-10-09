@@ -318,6 +318,11 @@ button:focus-visible {
   color: #c5b9ce;
 }
 
+.continue-progress {
+  margin: 16px 0 0;
+  color: #c5b9ce;
+}
+
 .vote-form .primary-button {
   justify-self: center;
   margin-top: 8px;
