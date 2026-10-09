@@ -24,6 +24,7 @@ interface RoomOperationResponse {
   roomCode?: string;
   lobby?: LobbyState;
   left?: boolean;
+  selectedGameId?: string;
   error?: {
     code: string;
     message: string;
@@ -183,6 +184,19 @@ const actions: AppActions = {
         render();
       },
     );
+  },
+  onSelectGame(gameId) {
+    state.errorMessage = null;
+    state.isBusy = true;
+    render();
+    emitRoomOperation("select-game", { gameId }, (response) => {
+      if (response.error) {
+        showOperationError(response);
+        return;
+      }
+      state.isBusy = false;
+      render();
+    });
   },
   onStartGame() {
     state.errorMessage = null;

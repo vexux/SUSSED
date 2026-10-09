@@ -1,4 +1,5 @@
 const { randomInt } = require("node:crypto");
+const gameRegistry = require("./gameRegistry");
 
 const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const ROOM_CODE_LENGTH = 4;
@@ -73,6 +74,7 @@ function createRoom(playerId, playerName) {
         code: generateRoomCode(),
         hostId: playerId,
         status: "lobby",
+        selectedGameId: gameRegistry.DEFAULT_GAME_ID,
         players: [host]
     };
 
@@ -153,6 +155,30 @@ function setPlayerReady(playerId, isReady) {
     return room;
 }
 
+function selectGame(playerId, gameId) {
+    const room = getPlayerRoom(playerId);
+    if (!room) {
+        throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
+    }
+    if (room.hostId !== playerId) {
+        throw new RoomError("NOT_HOST", "Only the host can select a game.");
+    }
+    if (room.status !== "lobby") {
+        throw new RoomError("ROOM_NOT_IN_LOBBY", "The room is no longer in the lobby.");
+    }
+    if (typeof gameId !== "string" || !gameRegistry.get(gameId)) {
+        throw new RoomError("GAME_NOT_FOUND", "That game is not available.");
+    }
+
+    room.selectedGameId = gameId;
+    for (const player of room.players) {
+        if (player.id !== room.hostId) {
+            player.isReady = false;
+        }
+    }
+    return room;
+}
+
 function validateRoomStart(playerId) {
     const room = getPlayerRoom(playerId);
     if (!room) {
@@ -190,10 +216,19 @@ function getPlayerRoom(playerId) {
 }
 
 function createLobbyState(room) {
+    const selectedGame = gameRegistry.get(room.selectedGameId);
     return {
         roomCode: room.code,
         status: room.status,
         playerCount: room.players.length,
+        selectedGameId: room.selectedGameId,
+        selectedGame: {
+            id: selectedGame.id,
+            displayName: selectedGame.displayName,
+            minPlayers: selectedGame.supportedPlayers.min,
+            maxPlayers: selectedGame.supportedPlayers.max
+        },
+        availableGames: gameRegistry.list(),
         players: room.players.map((player) => ({
             id: player.id,
             name: player.name,
@@ -227,6 +262,7 @@ module.exports = {
     normalizePlayerName,
     removePlayer,
     removeRoom,
+    selectGame,
     setPlayerReady,
     startRoom,
     validateRoomStart

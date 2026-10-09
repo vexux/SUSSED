@@ -1,7 +1,6 @@
 const roomManager = require("./roomManager");
 const gameManager = require("./gameManager");
 const fakeAnswerSocketHandlers = require("./games/fake-answer/socketHandlers");
-const DEFAULT_GAME_ID = "fake-answer";
 
 function isRecord(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -170,6 +169,29 @@ function registerRoomHandlers(io, socket) {
         }
     });
 
+    socket.on("select-game", (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) {
+            return;
+        }
+        if (
+            !isRecord(payload) ||
+            Object.keys(payload).length !== 1 ||
+            typeof payload.gameId !== "string"
+        ) {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "A registered gameId is required.");
+            return;
+        }
+
+        try {
+            const room = roomManager.selectGame(socket.id, payload.gameId);
+            broadcastLobby(io, room);
+            acknowledge({ selectedGameId: room.selectedGameId });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
+    });
+
     socket.on("start-game", (payload, acknowledge) => {
         const hasPayload = typeof payload !== "function";
         if (!hasPayload) {
@@ -178,30 +200,23 @@ function registerRoomHandlers(io, socket) {
         if (!isAcknowledgement(acknowledge)) {
             return;
         }
-        const gameId = hasPayload
-            ? isRecord(payload) &&
-              Object.keys(payload).length === 1 &&
-              typeof payload.gameId === "string"
-                ? payload.gameId
-                : null
-            : DEFAULT_GAME_ID;
-        if (gameId === null) {
-            acknowledgeError(acknowledge, "INVALID_REQUEST", "A registered gameId is required.");
+        if (hasPayload) {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "Start game does not accept a payload.");
             return;
         }
 
         try {
             const room = roomManager.validateRoomStart(socket.id);
-            gameManager.validateGameStart(room, gameId);
+            gameManager.validateGameStart(room, room.selectedGameId);
             const startingRoom = roomManager.startRoom(socket.id);
             const lobby = roomManager.createLobbyState(startingRoom);
-            const game = gameManager.startGame(startingRoom, gameId);
+            const game = gameManager.startGame(startingRoom, startingRoom.selectedGameId);
             io.to(startingRoom.code).emit("game-starting", {
                 roomCode: startingRoom.code,
                 lobby
             });
             io.to(startingRoom.code).emit("game-state", game);
-            if (gameId === DEFAULT_GAME_ID) {
+            if (startingRoom.selectedGameId === "fake-answer") {
                 fakeAnswerSocketHandlers.scheduleSubmissionPhase(io, startingRoom.code);
             }
             acknowledge({ starting: true });
@@ -223,4 +238,4 @@ function handleDisconnect(io, socket) {
     }
 }
 
-module.exports = { DEFAULT_GAME_ID, handleDisconnect, registerRoomHandlers };
+module.exports = { handleDisconnect, registerRoomHandlers };

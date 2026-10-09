@@ -13,7 +13,17 @@ export interface LobbyState {
   roomCode: string;
   playerCount: number;
   status: RoomStatus;
+  selectedGameId: string;
+  selectedGame: LobbyGame;
+  availableGames: LobbyGame[];
   players: LobbyPlayer[];
+}
+
+export interface LobbyGame {
+  id: string;
+  displayName: string;
+  minPlayers: number;
+  maxPlayers: number;
 }
 
 export interface GameParticipant {

@@ -115,6 +115,14 @@ test("fake-answer supports every player count within the room capacity", () => {
     assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, 9), false);
 
     for (const playerCount of [1, 9]) {
+        const lobbyRoom = {
+            ...createStartingRoom(playerCount),
+            status: "lobby"
+        };
+        assert.throws(
+            () => gameManager.validateGameStart(lobbyRoom, "fake-answer"),
+            { code: "UNSUPPORTED_PLAYER_COUNT" }
+        );
         assert.throws(
             () => gameManager.startGame(createStartingRoom(playerCount), "fake-answer"),
             { code: "UNSUPPORTED_PLAYER_COUNT" }
