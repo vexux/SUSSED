@@ -16,6 +16,31 @@ function createStartingRoom(playerCount = 4) {
     };
 }
 
+function createFakeAnswerVotingState(playerCount) {
+    const players = Array.from({ length: playerCount }, (_, index) => ({
+        id: `scorer-${index + 1}`,
+        name: `Scorer ${index + 1}`
+    }));
+    let state = fakeAnswer.start(fakeAnswer.createInitialState(players));
+    fakeAnswer.handleAction(state, "open-submissions");
+    for (const player of players) {
+        fakeAnswer.handleAction(
+            state,
+            "submit-completion",
+            player.id,
+            `Invented completion by ${player.name}`
+        );
+    }
+    fakeAnswer.handleAction(state, "begin-voting");
+    return { players, state };
+}
+
+function submitFakeAnswerVote(state, playerId, selector) {
+    const option = selector(state.options);
+    fakeAnswer.handleAction(state, "vote", playerId, option.id);
+    return option;
+}
+
 test("registry resolves the fake-answer implementation by its game ID", () => {
     assert.equal(gameRegistry.get("fake-answer"), fakeAnswer);
     assert.equal(fakeAnswer.id, "fake-answer");
@@ -401,6 +426,121 @@ test("fake-answer voting supports every player count from two through eight", ()
             gameManager.removeGame(room.code);
         }
     }
+});
+
+test("fake-answer scoring awards correct-vote and fake-answer points independently", () => {
+    const { players, state } = createFakeAnswerVotingState(3);
+    const realOption = state.options.find(({ correct }) => correct);
+    const playerOneFake = state.options.find(
+        ({ authorId }) => authorId === players[0].id
+    );
+
+    submitFakeAnswerVote(state, players[0].id, (options) =>
+        options.find(({ correct }) => correct)
+    );
+    submitFakeAnswerVote(state, players[1].id, (options) =>
+        options.find(({ authorId }) => authorId === players[0].id)
+    );
+    submitFakeAnswerVote(state, players[2].id, (options) =>
+        options.find(({ authorId }) => authorId === players[0].id)
+    );
+
+    assert.equal(state.phase, "waiting-for-results");
+    assert.equal(state.scores.get(players[0].id), 0);
+    fakeAnswer.handleAction(state, "publish-results");
+    assert.equal(state.phase, "results");
+    assert.equal(state.results.players[0].voteOptionId, realOption.id);
+    assert.equal(state.results.players[0].roundPoints, 3);
+    assert.equal(state.results.players[0].totalScore, 3);
+    assert.equal(state.results.options.find(({ id }) => id === playerOneFake.id).authorId, players[0].id);
+    for (const player of state.results.players.slice(1)) {
+        assert.equal(player.voteCorrect, false);
+        assert.equal(player.roundPoints, 0);
+    }
+});
+
+test("fake-answer scoring handles 2, 3, 4, and 8 players with tied standings", () => {
+    for (const playerCount of [2, 3, 4, 8]) {
+        const { players, state } = createFakeAnswerVotingState(playerCount);
+        for (const player of players) {
+            submitFakeAnswerVote(state, player.id, (options) =>
+                options.find(({ correct }) => correct)
+            );
+        }
+
+        fakeAnswer.handleAction(state, "publish-results");
+        assert.equal(state.results.players.length, playerCount);
+        assert.ok(state.results.players.every(({ roundPoints, totalScore }) =>
+            roundPoints === 1 && totalScore === 1
+        ));
+        assert.ok(state.results.standings.every(({ totalScore, rank }) =>
+            totalScore === 1 && rank === 1
+        ));
+        assert.equal(
+            state.results.options.filter(({ isCorrect, authorId }) =>
+                isCorrect && authorId === null
+            ).length,
+            1
+        );
+    }
+});
+
+test("fake-answer incorrect votes only score when another player selects that fake", () => {
+    const { players, state } = createFakeAnswerVotingState(2);
+    submitFakeAnswerVote(state, players[0].id, (options) =>
+        options.find(({ authorId }) => authorId === players[1].id)
+    );
+    submitFakeAnswerVote(state, players[1].id, (options) =>
+        options.find(({ authorId }) => authorId === players[0].id)
+    );
+
+    const expectedResults = fakeAnswer.calculateRoundResults(state);
+    assert.ok(expectedResults.players.every(({ voteCorrect, roundPoints }) =>
+        !voteCorrect && roundPoints === 1
+    ));
+    fakeAnswer.handleAction(state, "publish-results");
+    assert.deepEqual(
+        state.results.players.map(({ roundPoints }) => roundPoints),
+        [1, 1]
+    );
+    assert.deepEqual(
+        state.results.standings.map(({ rank }) => rank),
+        [1, 1]
+    );
+});
+
+test("fake-answer results and scores stay private until a single scoring publication", () => {
+    const { players, state } = createFakeAnswerVotingState(2);
+    submitFakeAnswerVote(state, players[0].id, (options) =>
+        options.find(({ correct }) => correct)
+    );
+    submitFakeAnswerVote(state, players[1].id, (options) =>
+        options.find(({ authorId }) => authorId === players[0].id)
+    );
+
+    const waitingState = fakeAnswer.createPublicState(state, players[0].id);
+    assert.equal(waitingState.phase, "waiting-for-results");
+    assert.equal(Object.hasOwn(waitingState, "results"), false);
+    assert.equal(JSON.stringify(waitingState).includes(state.currentQuestion.correctCompletion), false);
+    assert.deepEqual([...state.scores.values()], [0, 0]);
+
+    const publicResults = fakeAnswer.handleAction(state, "publish-results");
+    assert.deepEqual(publicResults, { published: true, currentRound: 1 });
+    const resultsState = fakeAnswer.createPublicState(state, players[0].id);
+    assert.equal(resultsState.phase, "results");
+    assert.equal(resultsState.results.correctCompletion, state.currentQuestion.correctCompletion);
+    assert.equal(resultsState.results.players.length, players.length);
+    const scoresAfterPublication = [...state.scores.entries()];
+
+    assert.throws(
+        () => fakeAnswer.handleAction(state, "publish-results"),
+        { code: "RESULTS_ALREADY_PUBLISHED" }
+    );
+    assert.deepEqual([...state.scores.entries()], scoresAfterPublication);
+    assert.throws(
+        () => fakeAnswer.handleAction(state, "vote", players[0].id, "fake-client-score"),
+        { code: "VOTING_NOT_OPEN" }
+    );
 });
 
 test("question bank contains at least 15 unique sourced prompts", () => {

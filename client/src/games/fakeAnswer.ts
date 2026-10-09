@@ -3,13 +3,47 @@ export interface FakeAnswerOption {
   completion: string;
 }
 
+export interface FakeAnswerResultOption {
+  id: string;
+  completion: string;
+  authorId: string | null;
+  authorName: string | null;
+  isCorrect: boolean;
+}
+
+export interface FakeAnswerResultPlayer {
+  playerId: string;
+  name: string;
+  submittedCompletion: string;
+  voteOptionId: string;
+  voteCompletion: string;
+  voteCorrect: boolean;
+  roundPoints: number;
+  totalScore: number;
+}
+
+export interface FakeAnswerStanding {
+  playerId: string;
+  name: string;
+  totalScore: number;
+  rank: number;
+}
+
+export interface FakeAnswerResults {
+  correctCompletion: string;
+  options: FakeAnswerResultOption[];
+  players: FakeAnswerResultPlayer[];
+  standings: FakeAnswerStanding[];
+}
+
 export interface FakeAnswerPublicState {
   phase:
     | "question"
     | "answer-submission"
     | "reveal"
     | "voting"
-    | "waiting-for-results";
+    | "waiting-for-results"
+    | "results";
   currentRound: number;
   totalRounds: number;
   prompt: {
@@ -20,6 +54,7 @@ export interface FakeAnswerPublicState {
   playerCount: number;
   options?: FakeAnswerOption[];
   voteCount?: number;
+  results?: FakeAnswerResults;
 }
 
 export interface FakeAnswerViewState {
@@ -63,7 +98,48 @@ export function isFakeAnswerPublicState(
     value.phase === "answer-submission" ||
     value.phase === "reveal" ||
     value.phase === "voting" ||
-    value.phase === "waiting-for-results";
+    value.phase === "waiting-for-results" ||
+    value.phase === "results";
+  const resultsAreValid =
+    value.phase !== "results" ||
+    (isRecord(value.results) &&
+      typeof value.playerCount === "number" &&
+      typeof value.results.correctCompletion === "string" &&
+      Array.isArray(value.results.options) &&
+      value.results.options.length === value.playerCount + 1 &&
+      value.results.options.every(
+        (option) =>
+          isRecord(option) &&
+          typeof option.id === "string" &&
+          typeof option.completion === "string" &&
+          (typeof option.authorId === "string" || option.authorId === null) &&
+          (typeof option.authorName === "string" || option.authorName === null) &&
+          typeof option.isCorrect === "boolean",
+      ) &&
+      Array.isArray(value.results.players) &&
+      value.results.players.length === value.playerCount &&
+      value.results.players.every(
+        (player) =>
+          isRecord(player) &&
+          typeof player.playerId === "string" &&
+          typeof player.name === "string" &&
+          typeof player.submittedCompletion === "string" &&
+          typeof player.voteOptionId === "string" &&
+          typeof player.voteCompletion === "string" &&
+          typeof player.voteCorrect === "boolean" &&
+          typeof player.roundPoints === "number" &&
+          typeof player.totalScore === "number",
+      ) &&
+      Array.isArray(value.results.standings) &&
+      value.results.standings.length === value.playerCount &&
+      value.results.standings.every(
+        (standing) =>
+          isRecord(standing) &&
+          typeof standing.playerId === "string" &&
+          typeof standing.name === "string" &&
+          typeof standing.totalScore === "number" &&
+          typeof standing.rank === "number",
+      ));
 
   return (
     phaseIsValid &&
@@ -73,6 +149,7 @@ export function isFakeAnswerPublicState(
     typeof value.playerCount === "number" &&
     promptIsValid &&
     optionsAreValid &&
+    resultsAreValid &&
     ((value.phase !== "reveal" && value.phase !== "voting") ||
       (Array.isArray(value.options) &&
         value.options.length >= 2 &&
@@ -148,11 +225,72 @@ export function renderFakeAnswerGame(
       ? "Vote for the real completion"
       : publicState.phase === "waiting-for-results"
         ? "All votes are in"
+        : publicState.phase === "results"
+          ? "Round results"
         : "Question";
   const round = document.createElement("p");
   round.className = "round-counter";
   round.textContent = `Round ${publicState.currentRound} / ${publicState.totalRounds}`;
   screen.append(title, round);
+
+  if (publicState.phase === "results" && publicState.results) {
+    if (publicState.prompt) {
+      const prompt = document.createElement("p");
+      prompt.className = "question-text";
+      prompt.textContent = publicState.prompt.text;
+      screen.append(prompt);
+    }
+    const correctHeading = document.createElement("h2");
+    correctHeading.textContent = "Real completion";
+    const correct = document.createElement("p");
+    correct.className = "correct-completion";
+    correct.textContent = publicState.results.correctCompletion;
+    screen.append(correctHeading, correct);
+
+    const optionsHeading = document.createElement("h2");
+    optionsHeading.textContent = "All completions";
+    const options = document.createElement("ul");
+    options.className = "revealed-options";
+    for (const option of publicState.results.options) {
+        const item = document.createElement("li");
+        const author = option.isCorrect
+          ? "Real answer"
+          : `Fake answer by ${option.authorName}`;
+        item.textContent = `${option.completion} — ${author}${option.isCorrect ? " (correct)" : ""}`;
+        options.append(item);
+    }
+    screen.append(optionsHeading, options);
+
+    const playerResultsHeading = document.createElement("h2");
+    playerResultsHeading.textContent = "Votes and round points";
+    const playerResults = document.createElement("ul");
+    playerResults.className = "revealed-options";
+    for (const player of publicState.results.players) {
+        const item = document.createElement("li");
+        item.textContent =
+          `${player.name}: voted for “${player.voteCompletion}” ` +
+          `(${player.voteCorrect ? "correct" : "incorrect"}); submitted ` +
+          `“${player.submittedCompletion}”; +${player.roundPoints} ` +
+          `point${player.roundPoints === 1 ? "" : "s"}, ` +
+          `${player.totalScore} total`;
+        playerResults.append(item);
+    }
+    screen.append(playerResultsHeading, playerResults);
+
+    const standingsHeading = document.createElement("h2");
+    standingsHeading.textContent = "Standings";
+    const standings = document.createElement("ol");
+    standings.className = "revealed-options";
+    for (const standing of publicState.results.standings) {
+        const item = document.createElement("li");
+        item.textContent =
+          `#${standing.rank} ${standing.name} — ${standing.totalScore} ` +
+          `point${standing.totalScore === 1 ? "" : "s"}`;
+        standings.append(item);
+    }
+    screen.append(standingsHeading, standings);
+    return screen;
+  }
 
   if (publicState.phase === "waiting-for-results") {
     const waiting = document.createElement("p");

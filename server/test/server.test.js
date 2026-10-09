@@ -1120,6 +1120,13 @@ test("two-player fake-answer reveal hides own answer and voting reaches waiting-
         })).error.code,
         "INVALID_REQUEST"
     );
+    assert.equal(
+        (await emitWithAck(host, "fake-answer:vote", {
+            optionId: votingStates[0].state.options[0].id,
+            score: 999,
+        })).error.code,
+        "INVALID_REQUEST"
+    );
     const outsider = await harness.connect();
     assert.equal(
         (await emitWithAck(outsider, "fake-answer:vote", { optionId: "outsider" })).error.code,
@@ -1133,6 +1140,14 @@ test("two-player fake-answer reveal hides own answer and voting reaches waiting-
     const guestWaiting = waitForGameState(
         players[0],
         (state) => state.state.phase === "waiting-for-results"
+    );
+    const hostResults = waitForGameState(
+        host,
+        (state) => state.state.phase === "results"
+    );
+    const guestResults = waitForGameState(
+        players[0],
+        (state) => state.state.phase === "results"
     );
     const hostVote = await emitWithAck(host, "fake-answer:vote", {
         optionId: votingStates[0].state.options[0].id,
@@ -1163,6 +1178,29 @@ test("two-player fake-answer reveal hides own answer and voting reaches waiting-
         assert.equal(state.state.prompt, null);
         assert.equal(JSON.stringify(state).includes(question.correctCompletion), false);
     }
+    const resultsStates = await Promise.all([hostResults, guestResults]);
+    for (const state of resultsStates) {
+        assert.equal(state.state.results.correctCompletion, question.correctCompletion);
+        assert.equal(state.state.results.options.length, 3);
+        assert.equal(state.state.results.players.length, 2);
+        assert.equal(
+            state.state.results.players.reduce((sum, player) => sum + player.roundPoints, 0),
+            state.state.results.players.reduce(
+                (sum, player) => sum + (player.voteCorrect ? 1 : 0),
+                0
+            ) + state.state.results.options.reduce(
+                (sum, option) => sum + state.state.results.players.filter(
+                    (player) => player.voteOptionId === option.id && option.authorId !== null
+                ).length,
+                0
+            )
+        );
+        assert.equal(
+            state.state.results.standings.length,
+            2
+        );
+    }
+    assert.deepEqual(resultsStates[0].state.results, resultsStates[1].state.results);
 });
 
 test("fake-answer rejects empty, long, correct, duplicate, malformed, and impersonated submissions", async (context) => {

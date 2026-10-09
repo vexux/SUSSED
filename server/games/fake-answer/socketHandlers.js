@@ -114,6 +114,15 @@ function registerSocketHandlers(io, socket) {
                 payload.optionId
             );
             broadcastPlayerGameStates(io, room.code, result.gameState.players);
+            if (result.gameState.state.phase === "waiting-for-results") {
+                gameManager.performGameAction(
+                    room.code,
+                    "fake-answer",
+                    null,
+                    "publish-results"
+                );
+                broadcastPlayerGameStates(io, room.code, result.gameState.players);
+            }
             acknowledge(result.result);
         } catch (error) {
             const operationError = getOperationError(error);

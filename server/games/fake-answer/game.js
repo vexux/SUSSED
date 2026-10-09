@@ -32,7 +32,10 @@ function createInitialState(players) {
         submissions: new Map(),
         submissionStatus: new Map(),
         options: [],
-        votes: new Map()
+        votes: new Map(),
+        scores: new Map(players.map(({ id }) => [id, 0])),
+        scoredRounds: new Set(),
+        results: null
     };
 }
 
@@ -47,7 +50,8 @@ function start(state) {
         submissions: new Map(),
         submissionStatus: new Map(state.participants.map(({ id }) => [id, false])),
         options: [],
-        votes: new Map()
+        votes: new Map(),
+        results: null
     };
 }
 
@@ -217,6 +221,100 @@ function vote(state, playerId, optionId) {
     };
 }
 
+function calculateRoundResults(state) {
+    const roundPoints = new Map(state.participants.map(({ id }) => [id, 0]));
+    const options = state.options.map((option) => ({
+        id: option.id,
+        completion: option.completion,
+        authorId: option.authorId,
+        authorName: option.authorId === null
+            ? null
+            : state.participants.find(({ id }) => id === option.authorId).name,
+        isCorrect: option.correct
+    }));
+
+    for (const [voterId, optionId] of state.votes) {
+        const option = state.options.find(({ id }) => id === optionId);
+        if (option.correct) {
+            roundPoints.set(voterId, roundPoints.get(voterId) + 1);
+        }
+        if (option.authorId !== null && option.authorId !== voterId) {
+            roundPoints.set(option.authorId, roundPoints.get(option.authorId) + 1);
+        }
+    }
+
+    const players = state.participants.map((player) => {
+        const voteOptionId = state.votes.get(player.id);
+        const voteOption = state.options.find(({ id }) => id === voteOptionId);
+        const points = roundPoints.get(player.id);
+        const totalScore = state.scores.get(player.id) + points;
+        return {
+            playerId: player.id,
+            name: player.name,
+            submittedCompletion: state.submissions.get(player.id),
+            voteOptionId,
+            voteCompletion: voteOption.completion,
+            voteCorrect: voteOption.correct,
+            roundPoints: points,
+            totalScore
+        };
+    });
+    const sortedScores = [...players].sort((first, second) =>
+        second.totalScore - first.totalScore ||
+        state.participants.findIndex(({ id }) => id === first.playerId) -
+            state.participants.findIndex(({ id }) => id === second.playerId)
+    );
+    let currentRank = 0;
+    let previousScore = null;
+    const standings = sortedScores.map((player, index) => {
+        if (index === 0 || player.totalScore !== previousScore) {
+            currentRank = index + 1;
+        }
+        previousScore = player.totalScore;
+        return {
+            playerId: player.playerId,
+            name: player.name,
+            totalScore: player.totalScore,
+            rank: currentRank
+        };
+    });
+
+    return {
+        correctCompletion: state.currentQuestion.correctCompletion,
+        options,
+        players,
+        standings
+    };
+}
+
+function publishResults(state) {
+    if (state.phase !== "waiting-for-results") {
+        throw new FakeAnswerError(
+            state.phase === "results" ? "RESULTS_ALREADY_PUBLISHED" : "VOTES_NOT_COMPLETE",
+            state.phase === "results"
+                ? "Results for this round have already been published."
+                : "Results are not ready until all players have voted."
+        );
+    }
+    if (state.scoredRounds.has(state.currentRound)) {
+        throw new FakeAnswerError(
+            "RESULTS_ALREADY_PUBLISHED",
+            "Results for this round have already been published."
+        );
+    }
+
+    const results = calculateRoundResults(state);
+    for (const player of state.participants) {
+        state.scores.set(player.id, results.players.find(
+            ({ playerId }) => playerId === player.id
+        ).totalScore);
+    }
+    state.scoredRounds.add(state.currentRound);
+    state.results = results;
+    state.phase = "results";
+    return { published: true, currentRound: state.currentRound };
+}
+
 function handleAction(state, action, playerId, payload) {
     switch (action) {
         case "open-submissions":
@@ -227,6 +325,8 @@ function handleAction(state, action, playerId, payload) {
             return beginVoting(state);
         case "vote":
             return vote(state, playerId, payload);
+        case "publish-results":
+            return publishResults(state);
         default:
             throw new FakeAnswerError("UNKNOWN_ACTION", "That game action is not available.");
     }
@@ -234,6 +334,21 @@ function handleAction(state, action, playerId, payload) {
 
 function createPublicState(state, viewerId) {
     const includesVoteOptions = state.phase === "reveal" || state.phase === "voting";
+    if (state.phase === "results") {
+        return {
+            phase: state.phase,
+            currentRound: state.currentRound,
+            totalRounds: state.totalRounds,
+            prompt: {
+                id: state.currentQuestion.id,
+                text: state.currentQuestion.text
+            },
+            submissionCount: state.submissions.size,
+            playerCount: state.participants.length,
+            voteCount: state.votes.size,
+            results: state.results
+        };
+    }
     return {
         phase: state.phase,
         currentRound: state.currentRound,
@@ -268,5 +383,6 @@ module.exports = {
     start,
     createPublicState,
     handleAction,
+    calculateRoundResults,
     MAX_COMPLETION_LENGTH
 };
