@@ -54,6 +54,47 @@ export interface FakeAnswerResults {
   standings: FakeAnswerStanding[];
 }
 
+export function getRevealAnswerGroups(options: FakeAnswerResultOption[]): {
+  realOption: FakeAnswerResultOption | null;
+  fakeOptions: FakeAnswerResultOption[];
+} {
+  return {
+    realOption: options.find(({ isCorrect }) => isCorrect) ?? null,
+    fakeOptions: options.filter(({ isCorrect }) => !isCorrect),
+  };
+}
+
+export function getPersonalRoundFeedback(
+  results: FakeAnswerResults,
+  currentPlayerId: string | null,
+): { outcome: "correct" | "fooled" | "neutral"; title: string; detail: string } {
+  const player = results.players.find(
+    ({ playerId }) => playerId === currentPlayerId,
+  );
+  const selectedOption = player
+    ? results.options.find(({ id }) => id === player.voteOptionId)
+    : undefined;
+  if (selectedOption?.isCorrect && player) {
+    return {
+      outcome: "correct",
+      title: "Correct!",
+      detail: `+${player.correctVotePoints} points`,
+    };
+  }
+  if (
+    selectedOption?.authorId &&
+    selectedOption.authorId !== currentPlayerId &&
+    selectedOption.authorName
+  ) {
+    return {
+      outcome: "fooled",
+      title: "Sike!",
+      detail: `${selectedOption.authorName} fooled you!`,
+    };
+  }
+  return { outcome: "neutral", title: "No vote submitted", detail: "" };
+}
+
 export interface FakeAnswerPublicState {
   phase:
     | "question"
@@ -249,6 +290,14 @@ export function isFakeAnswerPublicState(
               typeof voter.name === "string",
           ),
       ) &&
+      new Set(
+        value.results.options
+          .filter(isRecord)
+          .map((option) => option.id),
+      ).size === value.results.options.length &&
+      value.results.options.filter(
+        (option) => isRecord(option) && option.isCorrect === true,
+      ).length === 1 &&
       Array.isArray(value.results.players) &&
       value.results.players.length === value.playerCount &&
       value.results.players.every(
@@ -412,42 +461,69 @@ function appendRoundFeedback(
   if (submission.isRoundFeedbackDismissed) {
     return;
   }
-  const personalResult = publicState.results?.players.find(
-    ({ playerId }) => playerId === submission.currentPlayerId,
-  );
-  let message = "No vote submitted this round.";
-  let feedbackClass = "personal-result-feedback";
-  if (personalResult) {
-    const selectedResult = publicState.results?.options.find(
-      ({ id }) => id === personalResult.voteOptionId,
-    );
-    if (selectedResult?.isCorrect) {
-      message = "Correct! +2 points";
-      feedbackClass += " personal-result-correct";
-    } else if (
-      selectedResult?.authorId !== null &&
-      selectedResult?.authorId !== undefined &&
-      selectedResult.authorId !== submission.currentPlayerId
-    ) {
-      message = `Sike! You got fooled by ${selectedResult.authorName ?? "another player"}!`;
-      feedbackClass += " personal-result-fooled";
-    }
-  }
+  const feedback = publicState.results
+    ? getPersonalRoundFeedback(publicState.results, submission.currentPlayerId)
+    : { outcome: "neutral" as const, title: "No vote submitted", detail: "" };
 
-  const feedback = document.createElement("aside");
-  feedback.className = `round-feedback ${feedbackClass}`;
-  feedback.setAttribute("role", "status");
-  feedback.setAttribute("aria-live", "polite");
-  const messageElement = document.createElement("span");
-  messageElement.textContent = message;
-  const dismiss = document.createElement("button");
-  dismiss.className = "feedback-dismiss";
-  dismiss.type = "button";
-  dismiss.setAttribute("aria-label", "Dismiss round feedback");
-  dismiss.textContent = "×";
-  dismiss.addEventListener("click", onDismissFeedback);
-  feedback.append(messageElement, dismiss);
-  screen.append(feedback);
+  const content = document.createElement("div");
+  content.className = "reveal-content";
+  content.inert = true;
+  const heading = screen.querySelector("h1");
+  if (heading) {
+    heading.tabIndex = -1;
+  }
+  while (screen.firstChild) {
+    content.append(screen.firstChild);
+  }
+  screen.append(content);
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "round-feedback-backdrop";
+  const dialog = document.createElement("section");
+  dialog.className = `round-feedback-dialog round-feedback-${feedback.outcome}`;
+  dialog.setAttribute("role", "dialog");
+  dialog.setAttribute("aria-modal", "true");
+  dialog.setAttribute("aria-labelledby", "round-feedback-title");
+  const titleElement = document.createElement("h2");
+  titleElement.id = "round-feedback-title";
+  titleElement.textContent = feedback.title;
+  dialog.append(titleElement);
+  if (feedback.detail) {
+    const detailElement = document.createElement("p");
+    detailElement.className = "round-feedback-detail";
+    detailElement.textContent = feedback.detail;
+    dialog.append(detailElement);
+  }
+  const continueButton = document.createElement("button");
+  continueButton.className = "primary-button round-feedback-continue";
+  continueButton.type = "button";
+  continueButton.textContent = "Continue";
+  const dismiss = (): void => {
+    onDismissFeedback();
+    document.querySelector<HTMLElement>(".question-screen h1")?.focus();
+  };
+  continueButton.addEventListener("click", dismiss);
+  dialog.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (event.key === "Tab") {
+      event.preventDefault();
+      continueButton.focus();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      dismiss();
+    }
+  });
+  dialog.append(continueButton);
+  backdrop.append(dialog);
+  screen.append(backdrop);
+  queueMicrotask(() => {
+    if (dialog.isConnected) {
+      const appHeader = document.querySelector<HTMLElement>(".app-header");
+      if (appHeader) {
+        appHeader.inert = true;
+      }
+      continueButton.focus();
+    }
+  });
 }
 
 function createFinalResultsScreen(
@@ -468,7 +544,6 @@ function createFinalResultsScreen(
   round.className = "round-counter";
   round.textContent = `Round ${publicState.currentRound} of ${publicState.totalRounds}`;
   screen.append(gameName, title, round);
-  appendRoundFeedback(screen, publicState, submission, onDismissFeedback);
 
   const results = publicState.results;
   if (!results || !publicState.finalStatistics) {
@@ -567,6 +642,7 @@ function createFinalResultsScreen(
     error.textContent = submission.returnToLobbyError;
     screen.append(error);
   }
+  appendRoundFeedback(screen, publicState, submission, onDismissFeedback);
   return screen;
 }
 
@@ -634,33 +710,51 @@ export function renderFakeAnswerGame(
       prompt.textContent = publicState.prompt.text;
       screen.append(prompt);
     }
-    const correctHeading = document.createElement("h2");
-    correctHeading.className = "results-section-heading";
-    correctHeading.textContent = "The real completion";
-    const correct = document.createElement("p");
-    correct.className = "correct-completion";
-    correct.textContent = formatAnswerForDisplay(publicState.results.correctCompletion);
-    screen.append(correctHeading, correct);
+    const { realOption, fakeOptions } = getRevealAnswerGroups(
+      publicState.results.options,
+    );
+    const realHeading = document.createElement("h2");
+    realHeading.className = "results-section-heading";
+    realHeading.textContent = "The real completion";
+    const realAnswerCard = document.createElement("article");
+    realAnswerCard.className = "result-card result-card-correct real-answer-card";
+    const realCardHeading = document.createElement("div");
+    realCardHeading.className = "result-card-heading";
+    const realBadge = document.createElement("span");
+    realBadge.className = "answer-badge answer-badge-correct";
+    realBadge.textContent = "Real answer";
+    const realVoteCount = document.createElement("span");
+    realVoteCount.className = "answer-vote-count";
+    const realVoters = realOption?.voters ?? [];
+    realVoteCount.textContent =
+      `${realVoters.length} vote${realVoters.length === 1 ? "" : "s"}`;
+    realCardHeading.append(realBadge, realVoteCount);
+    const realAnswer = document.createElement("p");
+    realAnswer.className = "result-answer-text";
+    realAnswer.textContent = formatAnswerForDisplay(
+      realOption?.completion ?? publicState.results.correctCompletion,
+    );
+    const realVoterNames = document.createElement("p");
+    realVoterNames.className = "result-detail";
+    realVoterNames.textContent = realVoters.length > 0
+      ? `Chosen by: ${realVoters.map(({ name }) => name).join(", ")}`
+      : "No one chose this answer.";
+    realAnswerCard.append(realCardHeading, realAnswer, realVoterNames);
+    screen.append(realHeading, realAnswerCard);
 
     const optionsHeading = document.createElement("h2");
     optionsHeading.className = "results-section-heading";
-    optionsHeading.textContent = "Answers and votes";
+    optionsHeading.textContent = "Bluff answers";
     const options = document.createElement("ul");
     options.className = "result-card-list";
-    for (const option of publicState.results.options) {
+    for (const option of fakeOptions) {
       const item = document.createElement("li");
-      item.className = option.isCorrect
-        ? "result-card result-card-correct"
-        : "result-card";
+      item.className = "result-card";
       const answerHeading = document.createElement("div");
       answerHeading.className = "result-card-heading";
       const answerType = document.createElement("span");
-      answerType.className = option.isCorrect
-        ? "answer-badge answer-badge-correct"
-        : "answer-badge answer-badge-fake";
-      answerType.textContent = option.isCorrect
-        ? "Real answer"
-        : `Bluff by ${option.authorName}`;
+      answerType.className = "answer-badge answer-badge-fake";
+      answerType.textContent = `Bluff by ${option.authorName ?? "Unknown player"}`;
       const voteCount = document.createElement("span");
       voteCount.className = "answer-vote-count";
       voteCount.textContent =
@@ -676,64 +770,17 @@ export function renderFakeAnswerGame(
         ? `Chosen by: ${option.voters.map(({ name }) => name).join(", ")}`
         : "No one chose this answer.";
       item.append(answerHeading, answer, voters);
-      if (!option.isCorrect) {
-        const bluffAward = document.createElement("p");
-        bluffAward.className = "result-award";
-        bluffAward.textContent =
-          `Bluff reward: ${option.voters.length} point${option.voters.length === 1 ? "" : "s"} to ${option.authorName}`;
-        item.append(bluffAward);
-      }
+      const bluffReward = publicState.results.players.find(
+        ({ playerId }) => playerId === option.authorId,
+      )?.bluffPoints ?? 0;
+      const bluffAward = document.createElement("p");
+      bluffAward.className = "result-award";
+      bluffAward.textContent =
+        `Bluff reward: ${bluffReward} point${bluffReward === 1 ? "" : "s"} to ${option.authorName ?? "Unknown player"}`;
+      item.append(bluffAward);
       options.append(item);
     }
     screen.append(optionsHeading, options);
-
-    appendRoundFeedback(
-      screen,
-      publicState,
-      submission,
-      onDismissFeedback,
-    );
-
-    const playerResultsHeading = document.createElement("h2");
-    playerResultsHeading.className = "results-section-heading";
-    playerResultsHeading.textContent = "Player score breakdown";
-    const playerResults = document.createElement("ul");
-    playerResults.className = "result-card-list player-score-list";
-    for (const player of publicState.results.players) {
-      const item = document.createElement("li");
-      item.className = "result-card player-score-card";
-      const name = document.createElement("h3");
-      name.className = "player-score-name";
-      name.textContent = player.name;
-      const submitted = document.createElement("p");
-      submitted.className = "result-detail";
-      submitted.textContent =
-        `Your submitted answer: “${formatAnswerForDisplay(player.submittedCompletion)}”`;
-      const vote = document.createElement("p");
-      vote.className = player.voteCorrect
-        ? "result-detail vote-correct"
-        : "result-detail vote-incorrect";
-      vote.textContent =
-        `Voted for “${formatAnswerForDisplay(player.voteCompletion)}” — ${player.voteCorrect ? "correct" : "incorrect"}`;
-      const scoreReasons = document.createElement("ul");
-      scoreReasons.className = "score-reasons";
-      const correctReason = document.createElement("li");
-      correctReason.textContent = player.correctVotePoints > 0
-        ? `+${player.correctVotePoints} for finding the real answer (+2 per correct vote)`
-        : "0 for the vote (not the real answer)";
-      const bluffReason = document.createElement("li");
-      bluffReason.textContent = player.bluffPoints > 0
-        ? `+${player.bluffPoints} from votes for your bluff`
-        : "0 from votes for your bluff";
-      const scoreSummary = document.createElement("p");
-      scoreSummary.className = "score-summary";
-      scoreSummary.textContent =
-        `Round: +${player.roundPoints} · Total: ${player.totalScore}`;
-      scoreReasons.append(correctReason, bluffReason);
-      item.append(name, submitted, vote, scoreReasons, scoreSummary);
-      playerResults.append(item);
-    }
-    screen.append(playerResultsHeading, playerResults);
 
     const standingsHeading = document.createElement("h2");
     standingsHeading.className = "results-section-heading";
@@ -753,7 +800,22 @@ export function renderFakeAnswerGame(
       score.className = "standing-score";
       score.textContent =
         `${standing.totalScore} point${standing.totalScore === 1 ? "" : "s"}`;
-      item.append(rank, standingName, score);
+      const roundScore = document.createElement("span");
+      const roundPoints = publicState.results.players.find(
+        ({ playerId }) => playerId === standing.playerId,
+      )?.roundPoints ?? 0;
+      roundScore.className = roundPoints > 0
+        ? "standing-round-score standing-round-score-positive"
+        : roundPoints < 0
+          ? "standing-round-score standing-round-score-negative"
+          : "standing-round-score";
+      roundScore.textContent =
+        `${roundPoints > 0 ? "+" : ""}${roundPoints} this round`;
+      roundScore.setAttribute(
+        "aria-label",
+        `${roundPoints > 0 ? "Gained" : roundPoints < 0 ? "Lost" : "Earned"} ${Math.abs(roundPoints)} points this round`,
+      );
+      item.append(rank, standingName, score, roundScore);
       standings.append(item);
     }
     screen.append(standingsHeading, standings);
@@ -800,6 +862,7 @@ export function renderFakeAnswerGame(
       error.textContent = submission.continueError;
       screen.append(error);
     }
+    appendRoundFeedback(screen, publicState, submission, onDismissFeedback);
     return screen;
   }
 
