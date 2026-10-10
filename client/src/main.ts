@@ -58,6 +58,7 @@ let fakeAnswerContinueError: string | null = null;
 let fakeAnswerIsReturningToLobby = false;
 let fakeAnswerReturnToLobbyError: string | null = null;
 const retiredGameSessionIds = new Set<string>();
+const FACT_OR_CAP_GAME_IDS = new Set(["fact-or-cap", "fact-or-cap-anime"]);
 
 function resetFakeAnswerViewState(): void {
   fakeAnswerHasSubmitted = false;
@@ -175,7 +176,8 @@ function applyLobbyState(lobby: LobbyState): void {
 
 function currentFakeAnswerIdentity(): { sessionId: string; roundId: string } | null {
   if (
-    state.game?.gameId !== "fake-answer" ||
+    !state.game ||
+    !FACT_OR_CAP_GAME_IDS.has(state.game.gameId) ||
     !isFakeAnswerPublicState(state.game.state)
   ) {
     return null;
@@ -231,7 +233,7 @@ function applyGameState(game: GameSessionState): void {
     state.currentView === "game" &&
     previousGame?.roomCode === game.roomCode &&
     previousGame.gameId === game.gameId &&
-    game.gameId === "fake-answer" &&
+    FACT_OR_CAP_GAME_IDS.has(game.gameId) &&
     isFakeAnswerPublicState(previousState) &&
     isFakeAnswerPublicState(nextState) &&
     previousState.phase === "answer-submission" &&
@@ -247,7 +249,7 @@ function applyGameState(game: GameSessionState): void {
     state.currentView === "game" &&
     previousGame?.roomCode === game.roomCode &&
     previousGame.gameId === game.gameId &&
-    game.gameId === "fake-answer" &&
+    FACT_OR_CAP_GAME_IDS.has(game.gameId) &&
     isFakeAnswerPublicState(previousState) &&
     isFakeAnswerPublicState(nextState) &&
     previousState.phase === "voting" &&

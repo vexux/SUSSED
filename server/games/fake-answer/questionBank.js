@@ -2,23 +2,6 @@ const { randomInt } = require("node:crypto");
 const path = require("node:path");
 const { loadQuestionPacks } = require("./questionLibrary");
 
-const { questions, warnings } = loadQuestionPacks(
-    path.join(__dirname, "content")
-);
-
-for (const warning of warnings) {
-    console.warn(`Question library warning: ${warning}`);
-}
-for (const question of questions) {
-    if (question.tags) {
-        Object.freeze(question.tags);
-    }
-    Object.freeze(question);
-}
-Object.freeze(questions);
-
-let recentlySelectedQuestionIds = new Set();
-
 function selectQuestionOrder(
     pool,
     count,
@@ -69,14 +52,38 @@ function selectQuestionOrder(
     return [...fresh, ...previouslyUsed].slice(0, count);
 }
 
-function selectQuestions(count) {
-    const selected = selectQuestionOrder(
+function createQuestionBank(contentDirectory) {
+    const { questions, warnings } = loadQuestionPacks(contentDirectory);
+    for (const warning of warnings) {
+        console.warn(`Question library warning: ${warning}`);
+    }
+    for (const question of questions) {
+        if (question.tags) {
+            Object.freeze(question.tags);
+        }
+        Object.freeze(question);
+    }
+    Object.freeze(questions);
+
+    let recentlySelectedQuestionIds = new Set();
+    return Object.freeze({
         questions,
-        count,
-        recentlySelectedQuestionIds
-    );
-    recentlySelectedQuestionIds = new Set(selected.map(({ id }) => id));
-    return selected;
+        selectQuestions(count) {
+            const selected = selectQuestionOrder(
+                questions,
+                count,
+                recentlySelectedQuestionIds
+            );
+            recentlySelectedQuestionIds = new Set(selected.map(({ id }) => id));
+            return selected;
+        }
+    });
 }
 
-module.exports = { questions, selectQuestionOrder, selectQuestions };
+const defaultQuestionBank = createQuestionBank(path.join(__dirname, "content"));
+
+module.exports = {
+    ...defaultQuestionBank,
+    createQuestionBank,
+    selectQuestionOrder
+};

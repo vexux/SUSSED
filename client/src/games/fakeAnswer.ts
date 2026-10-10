@@ -292,6 +292,7 @@ export function renderFakeAnswerGame(
   onVote: (optionId: string) => void,
   onContinue: () => void,
   onReturnToLobby: () => void,
+  gameDisplayName: string,
 ): HTMLElement {
   const screen = document.createElement("section");
   screen.className = "app-screen question-screen";
@@ -318,7 +319,10 @@ export function renderFakeAnswerGame(
   const round = document.createElement("p");
   round.className = "round-counter";
   round.textContent = `Round ${publicState.currentRound} of ${publicState.totalRounds}`;
-  screen.append(title, round);
+  const gameName = document.createElement("p");
+  gameName.className = "screen-description";
+  gameName.textContent = gameDisplayName;
+  screen.append(gameName, title, round);
 
   if (publicState.phase === "results" && publicState.results) {
     if (publicState.prompt) {

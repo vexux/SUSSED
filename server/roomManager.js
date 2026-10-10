@@ -273,6 +273,7 @@ function createLobbyState(room) {
         selectedGame: {
             id: selectedGame.id,
             displayName: selectedGame.displayName,
+            description: selectedGame.description,
             minPlayers: selectedGame.supportedPlayers.min,
             maxPlayers: selectedGame.supportedPlayers.max
         },

@@ -1,5 +1,5 @@
 const { randomInt, randomUUID } = require("node:crypto");
-const { selectQuestions } = require("./questionBank");
+const questionBank = require("./questionBank");
 
 const TOTAL_ROUNDS = 5;
 const MAX_COMPLETION_LENGTH = 160;
@@ -32,7 +32,7 @@ function createInitialState(players) {
     };
 }
 
-function start(state) {
+function start(state, selectQuestions) {
     let questionOrder;
     try {
         questionOrder = selectQuestions(TOTAL_ROUNDS);
@@ -510,18 +510,39 @@ function createPublicState(state, viewerId) {
     };
 }
 
+function createFakeAnswerGame({ id, displayName, description, questionBank: bank }) {
+    if (!bank || typeof bank.selectQuestions !== "function") {
+        throw new TypeError("A question bank with selectQuestions(count) is required.");
+    }
+    return Object.freeze({
+        id,
+        displayName,
+        description,
+        socketProtocol: "fake-answer",
+        supportedPlayers: Object.freeze({ min: 2, max: 8 }),
+        createInitialState,
+        start(state) {
+            return start(state, bank.selectQuestions);
+        },
+        createPublicState,
+        handleAction,
+        isFinished(state) {
+            return state.phase === "results" && state.currentRound === state.totalRounds;
+        },
+        calculateRoundResults,
+        MAX_COMPLETION_LENGTH
+    });
+}
+
+const factOrCap = createFakeAnswerGame({
+    id: "fact-or-cap",
+    displayName: "Fact or Cap",
+    description: "A bluffing party game about surprising facts.",
+    questionBank
+});
+
 module.exports = {
+    ...factOrCap,
     FakeAnswerError,
-    id: "fake-answer",
-    displayName: "Fake Answer",
-    supportedPlayers: Object.freeze({ min: 2, max: 8 }),
-    createInitialState,
-    start,
-    createPublicState,
-    handleAction,
-    isFinished(state) {
-        return state.phase === "results" && state.currentRound === state.totalRounds;
-    },
-    calculateRoundResults,
-    MAX_COMPLETION_LENGTH
+    createFakeAnswerGame
 };

@@ -49,6 +49,7 @@ function validateRequestIdentity(roomCode, playerId, sessionId, roundId) {
             "That action belongs to a different round."
         );
     }
+    return currentGame.gameId;
 }
 
 function registerSocketHandlers(io, socket) {
@@ -78,10 +79,15 @@ function registerSocketHandlers(io, socket) {
         }
 
         try {
-            validateRequestIdentity(room.code, socket.id, payload.sessionId, payload.roundId);
+            const gameId = validateRequestIdentity(
+                room.code,
+                socket.id,
+                payload.sessionId,
+                payload.roundId
+            );
             const result = gameManager.performGameAction(
                 room.code,
-                "fake-answer",
+                gameId,
                 socket.id,
                 "submit-completion",
                 payload.completion,
@@ -92,7 +98,7 @@ function registerSocketHandlers(io, socket) {
                 broadcastPlayerGameStates(io, room.code, result.gameState.players);
                 gameManager.performGameAction(
                     room.code,
-                    "fake-answer",
+                    gameId,
                     null,
                     "begin-voting",
                     undefined,
@@ -136,10 +142,15 @@ function registerSocketHandlers(io, socket) {
         }
 
         try {
-            validateRequestIdentity(room.code, socket.id, payload.sessionId, payload.roundId);
+            const gameId = validateRequestIdentity(
+                room.code,
+                socket.id,
+                payload.sessionId,
+                payload.roundId
+            );
             const result = gameManager.performGameAction(
                 room.code,
-                "fake-answer",
+                gameId,
                 socket.id,
                 "vote",
                 payload.optionId,
@@ -150,7 +161,7 @@ function registerSocketHandlers(io, socket) {
             if (result.gameState.state.phase === "waiting-for-results") {
                 gameManager.performGameAction(
                     room.code,
-                    "fake-answer",
+                    gameId,
                     null,
                     "publish-results",
                     undefined,
@@ -191,10 +202,15 @@ function registerSocketHandlers(io, socket) {
         }
 
         try {
-            validateRequestIdentity(room.code, socket.id, payload.sessionId, payload.roundId);
+            const gameId = validateRequestIdentity(
+                room.code,
+                socket.id,
+                payload.sessionId,
+                payload.roundId
+            );
             const result = gameManager.performGameAction(
                 room.code,
-                "fake-answer",
+                gameId,
                 socket.id,
                 "continue",
                 undefined,
@@ -207,7 +223,8 @@ function registerSocketHandlers(io, socket) {
                     io,
                     room.code,
                     result.gameState.sessionId,
-                    result.gameState.state.roundId
+                    result.gameState.state.roundId,
+                    gameId
                 );
             }
             acknowledge(result.result);
@@ -218,12 +235,12 @@ function registerSocketHandlers(io, socket) {
     });
 }
 
-function scheduleSubmissionPhase(io, roomCode, sessionId, roundId) {
+function scheduleSubmissionPhase(io, roomCode, sessionId, roundId, gameId = "fact-or-cap") {
     const timer = setTimeout(() => {
         try {
             const result = gameManager.performGameAction(
                 roomCode,
-                "fake-answer",
+                gameId,
                 null,
                 "open-submissions",
                 { roundId },

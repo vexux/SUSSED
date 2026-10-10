@@ -3,6 +3,8 @@ const test = require("node:test");
 const gameManager = require("../gameManager");
 const gameRegistry = require("../gameRegistry");
 const fakeAnswer = require("../games/fake-answer/game");
+const factOrCapAnime = require("../games/fake-answer/anime");
+const { questions: animeQuestions } = require("../games/fake-answer/animeQuestionBank");
 const {
     questions,
     selectQuestionOrder,
@@ -45,9 +47,36 @@ function submitFakeAnswerVote(state, playerId, selector) {
 }
 
 test("registry resolves the fake-answer implementation by its game ID", () => {
-    assert.equal(gameRegistry.get("fake-answer"), fakeAnswer);
-    assert.equal(fakeAnswer.id, "fake-answer");
-    assert.equal(fakeAnswer.displayName, "Fake Answer");
+    assert.equal(gameRegistry.get("fact-or-cap"), fakeAnswer);
+    assert.equal(fakeAnswer.id, "fact-or-cap");
+    assert.equal(fakeAnswer.displayName, "Fact or Cap");
+});
+
+test("both registered identities share the same engine and use isolated question banks", () => {
+    assert.deepEqual(gameRegistry.list().map(({ id, displayName }) => ({ id, displayName })), [
+        { id: "fact-or-cap", displayName: "Fact or Cap" },
+        { id: "fact-or-cap-anime", displayName: "Fact or Cap (Anime)" }
+    ]);
+    assert.equal(factOrCapAnime.createInitialState, fakeAnswer.createInitialState);
+    assert.equal(factOrCapAnime.handleAction, fakeAnswer.handleAction);
+    assert.equal(factOrCapAnime.calculateRoundResults, fakeAnswer.calculateRoundResults);
+    assert.equal(factOrCapAnime.supportedPlayers.min, 2);
+    assert.equal(factOrCapAnime.supportedPlayers.max, 8);
+    assert.equal(animeQuestions.length, 5);
+    assert.equal(questions.length, 20);
+    assert.equal(
+        questions.some(({ id }) => animeQuestions.some((animeQuestion) => animeQuestion.id === id)),
+        false
+    );
+    assert.equal(
+        questions.some(({ text, correctCompletion }) =>
+            animeQuestions.some((animeQuestion) =>
+                animeQuestion.text === text &&
+                animeQuestion.correctCompletion === correctCompletion
+            )
+        ),
+        false
+    );
 });
 
 test("rejects unregistered game IDs", () => {
@@ -59,7 +88,7 @@ test("rejects unregistered game IDs", () => {
 
 test("generic game sessions start registered games and expose only public state", () => {
     const room = createStartingRoom();
-    const publicState = gameManager.startGame(room, "fake-answer");
+    const publicState = gameManager.startGame(room, "fact-or-cap");
     const privateState = fakeAnswer.start(
         fakeAnswer.createInitialState(room.players)
     );
@@ -69,7 +98,7 @@ test("generic game sessions start registered games and expose only public state"
     const moduleState = fakeAnswer.createPublicState(privateState);
 
     try {
-        assert.equal(publicState.gameId, "fake-answer");
+        assert.equal(publicState.gameId, "fact-or-cap");
         assert.match(publicState.sessionId, /^[0-9a-f-]{36}$/i);
         assert.equal(publicState.status, "active");
         assert.equal(publicState.displayName, fakeAnswer.displayName);
@@ -98,9 +127,27 @@ test("generic game sessions start registered games and expose only public state"
     }
 });
 
+test("Anime sessions initialize from their own sourced pool and keep source metadata private", () => {
+    const room = createStartingRoom(2);
+    const publicState = gameManager.startGame(room, "fact-or-cap-anime");
+    const selectedQuestion = animeQuestions.find(
+        ({ id }) => id === publicState.state.prompt.id
+    );
+    try {
+        assert.equal(publicState.gameId, "fact-or-cap-anime");
+        assert.equal(publicState.displayName, "Fact or Cap (Anime)");
+        assert.ok(selectedQuestion);
+        assert.equal(questions.some(({ id }) => id === selectedQuestion.id), false);
+        assert.equal(JSON.stringify(publicState).includes(selectedQuestion.correctCompletion), false);
+        assert.equal(JSON.stringify(publicState).includes(selectedQuestion.sourceUrl), false);
+    } finally {
+        gameManager.removeGame(room.code);
+    }
+});
+
 test("generic game manager retires only finished sessions", () => {
     const room = createStartingRoom(2);
-    gameManager.startGame(room, "fake-answer");
+    gameManager.startGame(room, "fact-or-cap");
     try {
         assert.throws(
             () => gameManager.retireFinishedGame(room.code),
@@ -113,20 +160,20 @@ test("generic game manager retires only finished sessions", () => {
 
 test("retired session IDs cannot act on or remove a replacement session", () => {
     const room = createStartingRoom(2);
-    const first = gameManager.startGame(room, "fake-answer");
+    const first = gameManager.startGame(room, "fact-or-cap");
     assert.throws(
-        () => gameManager.startGame(room, "fake-answer"),
+        () => gameManager.startGame(room, "fact-or-cap"),
         { code: "GAME_ALREADY_STARTED" }
     );
     assert.equal(gameManager.abortActiveGame(room.code), true);
-    const second = gameManager.startGame(room, "fake-answer");
+    const second = gameManager.startGame(room, "fact-or-cap");
 
     try {
         assert.notEqual(first.sessionId, second.sessionId);
         assert.throws(
             () => gameManager.performGameAction(
                 room.code,
-                "fake-answer",
+                "fact-or-cap",
                 null,
                 "open-submissions",
                 undefined,
@@ -147,11 +194,11 @@ test("retired session IDs cannot act on or remove a replacement session", () => 
 
 test("fake-answer reveals anonymous options, marks own answer, and enters voting after all submit", () => {
     const room = createStartingRoom();
-    gameManager.startGame(room, "fake-answer");
+    gameManager.startGame(room, "fact-or-cap");
     assert.throws(
         () => gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             "player-1",
             "submit-completion",
             "Too early"
@@ -160,7 +207,7 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     );
     const initial = gameManager.performGameAction(
         room.code,
-        "fake-answer",
+        "fact-or-cap",
         null,
         "open-submissions"
     );
@@ -171,7 +218,7 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     for (const player of room.players) {
         finalState = gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             player.id,
             "submit-completion",
             `Invented completion by ${player.name}`
@@ -206,7 +253,7 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     assert.throws(
         () => gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             "player-1",
             "vote",
             ownAnswerId
@@ -215,7 +262,7 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     );
     gameManager.performGameAction(
         room.code,
-        "fake-answer",
+        "fact-or-cap",
         null,
         "begin-voting"
     );
@@ -254,7 +301,7 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     assert.throws(
         () => gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             "player-1",
             "vote",
             ownOption.id
@@ -264,7 +311,7 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     const voteOption = playerOneOptions.find(({ isOwnAnswer }) => !isOwnAnswer);
     const vote = gameManager.performGameAction(
         room.code,
-        "fake-answer",
+        "fact-or-cap",
         "player-1",
         "vote",
         voteOption.id
@@ -275,7 +322,7 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     assert.throws(
         () => gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             "player-1",
             "vote",
             voteOption.id
@@ -288,7 +335,7 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
         const options = gameManager.getPublicGameState(room.code, player.id).state.options;
         resultsState = gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             player.id,
             "vote",
             options.find(({ isOwnAnswer }) => !isOwnAnswer).id
@@ -310,7 +357,7 @@ test("fake-answer supports every player count within the room capacity", () => {
     for (const playerCount of [2, 3, 4, 5, 6, 7, 8]) {
         assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, playerCount), true);
         const room = createStartingRoom(playerCount);
-        const publicState = gameManager.startGame(room, "fake-answer");
+        const publicState = gameManager.startGame(room, "fact-or-cap");
         try {
             assert.equal(publicState.players.length, playerCount);
             assert.equal(publicState.state.playerCount, playerCount);
@@ -327,11 +374,11 @@ test("fake-answer supports every player count within the room capacity", () => {
             status: "lobby"
         };
         assert.throws(
-            () => gameManager.validateGameStart(lobbyRoom, "fake-answer"),
+            () => gameManager.validateGameStart(lobbyRoom, "fact-or-cap"),
             { code: "UNSUPPORTED_PLAYER_COUNT" }
         );
         assert.throws(
-            () => gameManager.startGame(createStartingRoom(playerCount), "fake-answer"),
+            () => gameManager.startGame(createStartingRoom(playerCount), "fact-or-cap"),
             { code: "UNSUPPORTED_PLAYER_COUNT" }
         );
     }
@@ -370,7 +417,7 @@ test("fake-answer randomizes anonymous option order with opaque round IDs", () =
 
 test("two-player fake-answer game reaches reveal after both players submit once", () => {
     const room = createStartingRoom(2);
-    const initialState = gameManager.startGame(room, "fake-answer");
+    const initialState = gameManager.startGame(room, "fact-or-cap");
 
     try {
         assert.equal(initialState.state.phase, "question");
@@ -381,13 +428,13 @@ test("two-player fake-answer game reaches reveal after both players submit once"
 
         gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             null,
             "open-submissions"
         );
         const firstSubmission = gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             "player-1",
             "submit-completion",
             "A tiny orchestra performs inside."
@@ -402,7 +449,7 @@ test("two-player fake-answer game reaches reveal after both players submit once"
         assert.throws(
             () => gameManager.performGameAction(
                 room.code,
-                "fake-answer",
+                "fact-or-cap",
                 "player-1",
                 "submit-completion",
                 "A second invented answer."
@@ -412,7 +459,7 @@ test("two-player fake-answer game reaches reveal after both players submit once"
 
         const finalSubmission = gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             "player-2",
             "submit-completion",
             "It opens only at midnight."
@@ -438,18 +485,18 @@ test("two-player fake-answer game reaches reveal after both players submit once"
 test("fake-answer voting supports every player count from two through eight", () => {
     for (const playerCount of [2, 3, 4, 5, 6, 7, 8]) {
         const room = createStartingRoom(playerCount);
-        gameManager.startGame(room, "fake-answer");
+        gameManager.startGame(room, "fact-or-cap");
         try {
             gameManager.performGameAction(
                 room.code,
-                "fake-answer",
+                "fact-or-cap",
                 null,
                 "open-submissions"
             );
             for (const player of room.players) {
                 gameManager.performGameAction(
                     room.code,
-                    "fake-answer",
+                    "fact-or-cap",
                     player.id,
                     "submit-completion",
                     `Invented answer for ${player.id}`
@@ -457,7 +504,7 @@ test("fake-answer voting supports every player count from two through eight", ()
             }
             gameManager.performGameAction(
                 room.code,
-                "fake-answer",
+                "fact-or-cap",
                 null,
                 "begin-voting"
             );
@@ -483,7 +530,7 @@ test("fake-answer voting supports every player count from two through eight", ()
                 );
                 finalVote = gameManager.performGameAction(
                     room.code,
-                    "fake-answer",
+                    "fact-or-cap",
                     player.id,
                     "vote",
                     publicState.state.options.find(
@@ -634,21 +681,21 @@ test("fake-answer results and scores stay private until a single scoring publica
 
 test("fake-answer continuation waits for everyone and resets round data without resetting totals", () => {
     const room = createStartingRoom(2);
-    gameManager.startGame(room, "fake-answer");
+    gameManager.startGame(room, "fact-or-cap");
 
     function finishRound() {
         const questionState = gameManager.getPublicGameState(room.code, "player-1").state;
-        gameManager.performGameAction(room.code, "fake-answer", null, "open-submissions");
+        gameManager.performGameAction(room.code, "fact-or-cap", null, "open-submissions");
         for (const player of room.players) {
             gameManager.performGameAction(
                 room.code,
-                "fake-answer",
+                "fact-or-cap",
                 player.id,
                 "submit-completion",
                 `Round ${questionState.currentRound} answer from ${player.name}`
             );
         }
-        gameManager.performGameAction(room.code, "fake-answer", null, "begin-voting");
+        gameManager.performGameAction(room.code, "fact-or-cap", null, "begin-voting");
         const correctCompletion = questions.find(
             ({ id }) => id === questionState.prompt.id
         ).correctCompletion;
@@ -659,7 +706,7 @@ test("fake-answer continuation waits for everyone and resets round data without 
             );
             gameManager.performGameAction(
                 room.code,
-                "fake-answer",
+                "fact-or-cap",
                 player.id,
                 "vote",
                 correctOption.id
@@ -667,7 +714,7 @@ test("fake-answer continuation waits for everyone and resets round data without 
         }
         return gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             null,
             "publish-results"
         );
@@ -682,7 +729,7 @@ test("fake-answer continuation waits for everyone and resets round data without 
 
         const hostReady = gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             "player-1",
             "continue"
         );
@@ -698,7 +745,7 @@ test("fake-answer continuation waits for everyone and resets round data without 
         assert.throws(
             () => gameManager.performGameAction(
                 room.code,
-                "fake-answer",
+                "fact-or-cap",
                 "player-1",
                 "continue"
             ),
@@ -707,7 +754,7 @@ test("fake-answer continuation waits for everyone and resets round data without 
 
         const advanced = gameManager.performGameAction(
             room.code,
-            "fake-answer",
+            "fact-or-cap",
             "player-2",
             "continue"
         );
@@ -732,7 +779,7 @@ test("fake-answer continuation waits for everyone and resets round data without 
         assert.throws(
             () => gameManager.performGameAction(
                 room.code,
-                "fake-answer",
+                "fact-or-cap",
                 null,
                 "publish-results"
             ),

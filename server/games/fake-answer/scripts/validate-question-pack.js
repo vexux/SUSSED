@@ -1,10 +1,22 @@
 const path = require("node:path");
-const { questions: libraryQuestions } = require("../questionBank");
+const { questions: generalQuestions } = require("../questionBank");
+const { questions: animeQuestions } = require("../animeQuestionBank");
 const { duplicateKey, readPack, validateQuestionPack } = require("../questionLibrary");
 
-const inputFile = process.argv[2];
+const args = process.argv.slice(2);
+let gameId = "fact-or-cap";
+if (args[0] === "--game") {
+    gameId = args[1];
+    args.splice(0, 2);
+} else if (["fact-or-cap", "fact-or-cap-anime"].includes(args[0])) {
+    gameId = args.shift();
+}
+const inputFile = args[0];
 if (!inputFile) {
-    console.error("Usage: npm run validate:questions -- <content-pack.json>");
+    console.error("Usage: npm run validate:questions -- [fact-or-cap|fact-or-cap-anime] <content-pack.json>");
+    process.exitCode = 2;
+} else if (!["fact-or-cap", "fact-or-cap-anime"].includes(gameId)) {
+    console.error(`Unknown game "${gameId}". Use fact-or-cap or fact-or-cap-anime.`);
     process.exitCode = 2;
 } else {
     const absolutePath = path.resolve(inputFile);
@@ -14,11 +26,25 @@ if (!inputFile) {
         const result = validateQuestionPack(data, displayPath);
         const errors = [...result.errors];
         const warnings = [...result.warnings];
+        const libraryQuestions = gameId === "fact-or-cap-anime"
+            ? animeQuestions
+            : generalQuestions;
+        const allQuestions = [...generalQuestions, ...animeQuestions];
+        const currentLibraryDirectory = path.resolve(
+            __dirname,
+            gameId === "fact-or-cap-anime" ? "../content-anime" : "../content"
+        );
+        const isCurrentLibraryPack = path.dirname(absolutePath) === currentLibraryDirectory;
+        const currentLibraryIds = new Set(libraryQuestions.map((question) => question.id));
         const existingIds = new Map(
-            libraryQuestions.map((question) => [question.id, question])
+            allQuestions
+                .filter((question) => !isCurrentLibraryPack || !currentLibraryIds.has(question.id))
+                .map((question) => [question.id, question])
         );
         const existingContent = new Map(
-            libraryQuestions.map((question) => [duplicateKey(question), question])
+            libraryQuestions
+                .filter((question) => !isCurrentLibraryPack || !currentLibraryIds.has(question.id))
+                .map((question) => [duplicateKey(question), question])
         );
 
         for (const question of result.questions) {

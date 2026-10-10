@@ -186,6 +186,11 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     createElement(
       "p",
       "screen-description",
+      lobby.selectedGame.description,
+    ),
+    createElement(
+      "p",
+      "screen-description",
       `Supports ${lobby.selectedGame.minPlayers}–${lobby.selectedGame.maxPlayers} players`,
     ),
   );
@@ -305,7 +310,8 @@ function renderGame(
   }
 
   switch (game.gameId) {
-    case "fake-answer":
+    case "fact-or-cap":
+    case "fact-or-cap-anime":
       return renderFakeAnswerGame(
         game.state,
         submission,
@@ -314,6 +320,7 @@ function renderGame(
         actions.onVoteFakeAnswer,
         actions.onContinueFakeAnswer,
         actions.onReturnToLobby,
+        game.displayName,
       );
     default: {
       const screen = createElement("section", "app-screen starting-screen");

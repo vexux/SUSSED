@@ -22,6 +22,7 @@ export interface LobbyState {
 export interface LobbyGame {
   id: string;
   displayName: string;
+  description: string;
   minPlayers: number;
   maxPlayers: number;
 }

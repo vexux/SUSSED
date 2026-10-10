@@ -210,7 +210,7 @@ function registerRoomHandlers(io, socket) {
         let startingRoom;
         try {
             const room = roomManager.validateRoomStart(socket.id);
-            gameManager.validateGameStart(room, room.selectedGameId);
+            const selectedGame = gameManager.validateGameStart(room, room.selectedGameId);
             startingRoom = roomManager.startRoom(socket.id);
             const lobby = roomManager.createLobbyState(startingRoom);
             const game = gameManager.startGame(startingRoom, startingRoom.selectedGameId);
@@ -220,12 +220,13 @@ function registerRoomHandlers(io, socket) {
                 game
             });
             io.to(startingRoom.code).emit("game-state", game);
-            if (startingRoom.selectedGameId === "fake-answer") {
+            if (selectedGame.socketProtocol === "fake-answer") {
                 fakeAnswerSocketHandlers.scheduleSubmissionPhase(
                     io,
                     startingRoom.code,
                     game.sessionId,
-                    game.state.roundId
+                    game.state.roundId,
+                    startingRoom.selectedGameId
                 );
             }
             acknowledge({ starting: true, game });

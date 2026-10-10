@@ -1,15 +1,28 @@
-# Fake Answer
+# Fact or Cap
+
+## Game variants
+
+The registered game IDs are `fact-or-cap` and `fact-or-cap-anime`. Both IDs
+use the same submission, voting, scoring, reveal, round, and rematch engine.
+The general game reads packs only from `content/`; the Anime game reads packs
+only from `content-anime/`. Each bank has independent question selection history.
+Anime's initial curated pack contains five concise canon facts sourced from
+Toei Animation's official catalog. The Anime game requires five questions to
+start; adding fewer than five valid questions will produce an explicit
+`QUESTION_POOL_EXHAUSTED` error.
 
 ## Question library
 
-Question content lives in JSON packs under `content/`; the game engine reads
-the validated library through `questionBank.js`. Existing player-facing fields
+General-game question content lives in JSON packs under `content/`; the Anime
+library lives separately under `content-anime/`. The shared engine reads each
+validated library through its own question bank. Existing player-facing fields
 remain `id`, `text`, and `correctCompletion`. Source attribution
 (`sourceName`/`sourceUrl`) and optional `category`, `tags`, `difficulty`, and
 `contentPackId` metadata are stored separately and are not included in public
 game-state projections.
 
-To add a pack, create a JSON file in `content/` with a top-level
+To add a general pack, create a JSON file in `content/`; add an Anime pack in
+`content-anime/`. Use a top-level
 `contentPackId` and a `questions` array. Each entry needs a unique stable `id`,
 non-empty `text`, and non-empty `correctCompletion`. Source title and URL are
 optional, but missing attribution is reported by the validation tool. Sources
@@ -21,6 +34,7 @@ Validate a candidate file before adding it:
 ```sh
 cd server
 npm run validate:questions -- path/to/candidate-pack.json
+npm run validate:questions -- fact-or-cap-anime path/to/anime-pack.json
 ```
 
 The validator reports blocking schema/ID errors, missing-source warnings, and
@@ -81,6 +95,6 @@ After final results, the room remains in its in-game state until the host
 returns it to the lobby. The server retires the finished session, resets every
 remaining member's ready state, and preserves the room code, host, membership,
 and selected game. Starting again creates a new generic session and initializes
-new fake-answer state, including fresh scores and a fresh round ID. Each generic
+new game state, including fresh scores and a fresh round ID. Each generic
 session has an opaque session ID so clients can ignore delayed state updates
 from a retired session.

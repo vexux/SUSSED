@@ -1,0 +1,55 @@
+{
+  "contentPackId": "anime-foundations",
+  "questions": [
+    {
+      "id": "anime-sailor-moon-luna",
+      "text": "In Toei Animation's Sailor Moon series description, the talking cat who gives Usagi a transformation brooch is",
+      "correctCompletion": "Luna",
+      "sourceName": "Toei Animation — Sailor Moon",
+      "sourceUrl": "https://www.toei-animation.com/catalog/sailor-moon/",
+      "category": "anime",
+      "tags": ["Sailor Moon", "official-anime-series"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "anime-one-piece-roger",
+      "text": "In the official Toei Animation series description, the legendary treasure sought by Luffy and his crew once belonged to",
+      "correctCompletion": "the Pirate King Roger",
+      "sourceName": "Toei Animation — One Piece",
+      "sourceUrl": "https://www.toei-animation.com/catalog/one-piece/",
+      "category": "anime",
+      "tags": ["One Piece", "official-anime-series"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "anime-dragon-ball-wish",
+      "text": "In Toei Animation's Dragon Ball series description, gathering all seven Dragon Balls grants",
+      "correctCompletion": "one wish",
+      "sourceName": "Toei Animation — Dragon Ball",
+      "sourceUrl": "https://www.toei-animation.com/catalog/dragon-ball/",
+      "category": "anime",
+      "tags": ["Dragon Ball", "official-anime-series"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "anime-slam-dunk-hanamichi",
+      "text": "In Toei Animation's Slam Dunk synopsis, the high-school student whose basketball life begins after a game with a team captain is",
+      "correctCompletion": "Hanamichi",
+      "sourceName": "Toei Animation — Slam Dunk",
+      "sourceUrl": "https://www.toei-animation.com/catalog/slam-dunk/",
+      "category": "anime",
+      "tags": ["Slam Dunk", "official-anime-series"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "anime-saint-seiya-athena",
+      "text": "In Toei Animation's Saint Seiya series description, the Saints are destined to protect the goddess",
+      "correctCompletion": "Athena",
+      "sourceName": "Toei Animation — Saint Seiya",
+      "sourceUrl": "https://www.toei-animation.com/catalog/saint-seiya/",
+      "category": "anime",
+      "tags": ["Saint Seiya", "official-anime-series"],
+      "difficulty": "easy"
+    }
+  ]
+}
