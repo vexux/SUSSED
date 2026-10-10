@@ -1,4 +1,42 @@
-# Fake Answer scoring
+# Fake Answer
+
+## Question library
+
+Question content lives in JSON packs under `content/`; the game engine reads
+the validated library through `questionBank.js`. Existing player-facing fields
+remain `id`, `text`, and `correctCompletion`. Source attribution
+(`sourceName`/`sourceUrl`) and optional `category`, `tags`, `difficulty`, and
+`contentPackId` metadata are stored separately and are not included in public
+game-state projections.
+
+To add a pack, create a JSON file in `content/` with a top-level
+`contentPackId` and a `questions` array. Each entry needs a unique stable `id`,
+non-empty `text`, and non-empty `correctCompletion`. Source title and URL are
+optional, but missing attribution is reported by the validation tool. Sources
+should be verified and have suitable reuse rights before content is added.
+Optional difficulty values are `easy`, `medium`, or `hard`.
+
+Validate a candidate file before adding it:
+
+```sh
+cd server
+npm run validate:questions -- path/to/candidate-pack.json
+```
+
+The validator reports blocking schema/ID errors, missing-source warnings, and
+likely duplicate-content candidates. It never writes to or overwrites the
+library. Duplicate detection compares normalized prompt-and-answer pairs
+(Unicode normalization, case folding, and punctuation/spacing normalization);
+it warns rather than deleting content.
+
+The game shuffles valid playable questions and selects five unique prompts per
+session. If a session needs more prompts than the library contains, game start
+fails with `QUESTION_POOL_EXHAUSTED`. A new session avoids questions used by
+the immediately preceding session when enough unused questions remain; when
+the library is too small for that, it fills the selection from previously used
+questions while still preventing repeats within the session.
+
+## Scoring
 
 After every player has voted, the server publishes round results and updates the
 scores exactly once for that round:
@@ -18,8 +56,8 @@ After results are published, every player in the game-start roster must send
 Continue before the next round begins. A fresh opaque round ID protects answer,
 vote, and continuation requests from delayed events belonging to an earlier
 round. The prompt order is shuffled without replacement; starting fails
-explicitly if the curated bank contains fewer prompts than the configured
-round count.
+explicitly if the validated question library contains fewer prompts than the
+configured round count.
 
 The participant roster is fixed when the game starts. If a player disconnects
 or leaves before the game finishes, the server aborts and retires that active

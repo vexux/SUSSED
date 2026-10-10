@@ -1,0 +1,35 @@
+{
+  "contentPackId": "world-and-culture",
+  "questions": [
+    {
+      "id": "scotland-unicorn",
+      "text": "Scotland's national animal is...",
+      "correctCompletion": "the unicorn",
+      "sourceName": "VisitScotland",
+      "sourceUrl": "https://www.visitscotland.com/blog/culture/scotlands-national-animal-unicorn",
+      "category": "culture",
+      "tags": ["scotland", "symbols"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "eiffel-expansion",
+      "text": "The Eiffel Tower can grow slightly taller on hot days because...",
+      "correctCompletion": "its iron expands as it warms",
+      "sourceName": "Eiffel Tower official site",
+      "sourceUrl": "https://www.toureiffel.paris/en/news/history-and-culture/why-does-eiffel-tower-change-size",
+      "category": "engineering",
+      "tags": ["landmarks", "physics"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "banana-berry",
+      "text": "Botanically speaking, a banana is a berry, but a strawberry is...",
+      "correctCompletion": "not a true berry",
+      "sourceName": "Encyclopaedia Britannica",
+      "sourceUrl": "https://www.britannica.com/story/are-strawberries-really-berries",
+      "category": "nature",
+      "tags": ["botany", "food"],
+      "difficulty": "medium"
+    }
+  ]
+}

@@ -3,7 +3,10 @@ const test = require("node:test");
 const gameManager = require("../gameManager");
 const gameRegistry = require("../gameRegistry");
 const fakeAnswer = require("../games/fake-answer/game");
-const { questions } = require("../games/fake-answer/questionBank");
+const {
+    questions,
+    selectQuestionOrder,
+} = require("../games/fake-answer/questionBank");
 
 function createStartingRoom(playerCount = 4) {
     return {
@@ -77,6 +80,14 @@ test("generic game sessions start registered games and expose only public state"
         assert.equal(moduleState.prompt.id, privateState.currentQuestion.id);
         assert.equal(
             JSON.stringify(publicState).includes(publicQuestion.correctCompletion),
+            false
+        );
+        assert.equal(
+            JSON.stringify(publicState).includes(publicQuestion.sourceName),
+            false
+        );
+        assert.equal(
+            JSON.stringify(publicState).includes(publicQuestion.sourceUrl),
             false
         );
         assert.equal(Object.hasOwn(publicState.state.prompt, "correctCompletion"), false);
@@ -702,7 +713,7 @@ test("fake-answer continuation waits for everyone and resets round data without 
     }
 });
 
-test("question bank contains at least 15 unique sourced prompts", () => {
+test("question bank contains at least 15 unique prompts with source attribution", () => {
     assert.ok(questions.length >= 15);
     assert.equal(new Set(questions.map(({ id }) => id)).size, questions.length);
     for (const question of questions) {
@@ -712,4 +723,49 @@ test("question bank contains at least 15 unique sourced prompts", () => {
         assert.ok(question.sourceName);
         assert.match(question.sourceUrl, /^https:\/\//);
     }
+});
+
+test("question selection prevents within-session repeats and prefers questions unused by the last session", () => {
+    const pool = Array.from({ length: 10 }, (_, index) => ({
+        id: `prompt-${index}`,
+        text: `Prompt ${index}`,
+        correctCompletion: `Answer ${index}`,
+    }));
+    const previousSessionIds = new Set(pool.slice(0, 5).map(({ id }) => id));
+    const selected = selectQuestionOrder(
+        pool,
+        5,
+        previousSessionIds,
+        () => 0
+    );
+
+    assert.equal(new Set(selected.map(({ id }) => id)).size, 5);
+    assert.equal(selected.some(({ id }) => previousSessionIds.has(id)), false);
+});
+
+test("question selection uses prior questions only when needed and fails clearly for insufficient playable content", () => {
+    const pool = Array.from({ length: 6 }, (_, index) => ({
+        id: `prompt-${index}`,
+        text: `Prompt ${index}`,
+        correctCompletion: `Answer ${index}`,
+    }));
+    const previousSessionIds = new Set(pool.slice(0, 5).map(({ id }) => id));
+    const selected = selectQuestionOrder(
+        pool,
+        5,
+        previousSessionIds,
+        () => 0
+    );
+
+    assert.equal(selected.length, 5);
+    assert.equal(new Set(selected.map(({ id }) => id)).size, 5);
+    assert.ok(selected.some(({ id }) => !previousSessionIds.has(id)));
+    assert.throws(
+        () => selectQuestionOrder(pool.slice(0, 4), 5, new Set(), () => 0),
+        { code: "QUESTION_POOL_EXHAUSTED" }
+    );
+    assert.throws(
+        () => selectQuestionOrder([], 5, new Set(), () => 0),
+        /at least 5 valid, unique playable prompts; found 0/
+    );
 });

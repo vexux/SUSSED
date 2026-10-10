@@ -1,0 +1,145 @@
+{
+  "contentPackId": "wildlife",
+  "questions": [
+    {
+      "id": "wombat-cubes",
+      "text": "A wombat's droppings are famously shaped like...",
+      "correctCompletion": "small cubes",
+      "sourceName": "Nature",
+      "sourceUrl": "https://www.nature.com/articles/s41586-018-0751-9",
+      "category": "wildlife",
+      "tags": ["mammals", "biology"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "octopus-hearts",
+      "text": "An octopus has three hearts, and its blood is...",
+      "correctCompletion": "blue",
+      "sourceName": "Encyclopaedia Britannica",
+      "sourceUrl": "https://www.britannica.com/animal/octopus-mollusk",
+      "category": "wildlife",
+      "tags": ["marine-life", "biology"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "butterfly-taste",
+      "text": "A butterfly senses the taste of a plant with...",
+      "correctCompletion": "sensors on its feet",
+      "sourceName": "Encyclopaedia Britannica",
+      "sourceUrl": "https://www.britannica.com/animal/butterfly",
+      "category": "wildlife",
+      "tags": ["insects", "biology"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "mantis-shrimp-punch",
+      "text": "A mantis shrimp's punch can create...",
+      "correctCompletion": "tiny collapsing bubbles hot enough to emit light",
+      "sourceName": "Smithsonian Ocean",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/mantis-shrimp",
+      "category": "wildlife",
+      "tags": ["marine-life", "physics"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "turtle-breathing",
+      "text": "Some freshwater turtles can absorb oxygen through...",
+      "correctCompletion": "specialized tissues in their cloaca",
+      "sourceName": "Australian Museum",
+      "sourceUrl": "https://australian.museum/learn/animals/reptiles/short-necked-turtle/",
+      "category": "wildlife",
+      "tags": ["reptiles", "biology"],
+      "difficulty": "hard"
+    },
+    {
+      "id": "dolphin-whistle",
+      "text": "A dolphin's individual signature whistle works a little like...",
+      "correctCompletion": "a name that identifies it to other dolphins",
+      "sourceName": "NOAA Fisheries",
+      "sourceUrl": "https://www.fisheries.noaa.gov/feature-story/dolphin-communication",
+      "category": "wildlife",
+      "tags": ["marine-life", "communication"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "sharks-before-trees",
+      "text": "Sharks were swimming in the oceans before...",
+      "correctCompletion": "the first trees appeared on land",
+      "sourceName": "Smithsonian Ocean",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/sharks-rays/sharks",
+      "category": "wildlife",
+      "tags": ["marine-life", "history"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "koala-fingerprints",
+      "text": "Koala fingerprints are so similar to human fingerprints that...",
+      "correctCompletion": "they can be difficult to tell apart",
+      "sourceName": "Australian Museum",
+      "sourceUrl": "https://australian.museum/learn/animals/mammals/koala/",
+      "category": "wildlife",
+      "tags": ["mammals", "biology"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "swift-flight",
+      "text": "Common swifts have been recorded staying airborne for...",
+      "correctCompletion": "more than ten months",
+      "sourceName": "Nature Communications",
+      "sourceUrl": "https://www.nature.com/articles/ncomms3554",
+      "category": "wildlife",
+      "tags": ["birds", "biology"],
+      "difficulty": "hard"
+    },
+    {
+      "id": "seahorse-pregnancy",
+      "text": "A male seahorse carries developing young in...",
+      "correctCompletion": "a brood pouch",
+      "sourceName": "National Ocean Service",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/seahorse.html",
+      "category": "wildlife",
+      "tags": ["marine-life", "reproduction"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "axolotl-regrowth",
+      "text": "An axolotl can regrow a lost...",
+      "correctCompletion": "limb",
+      "sourceName": "Smithsonian's National Zoo",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/axolotl",
+      "category": "wildlife",
+      "tags": ["amphibians", "biology"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "beaver-teeth",
+      "text": "A beaver's front teeth are orange because their enamel contains...",
+      "correctCompletion": "iron",
+      "sourceName": "National Geographic",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/beavers",
+      "category": "wildlife",
+      "tags": ["mammals", "biology"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "flamingo-color",
+      "text": "Flamingos get their pink color from...",
+      "correctCompletion": "pigments in the algae and crustaceans they eat",
+      "sourceName": "Smithsonian's National Zoo",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/flamingo",
+      "category": "wildlife",
+      "tags": ["birds", "biology"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "honeybee-dance",
+      "text": "A honeybee's waggle dance tells other bees...",
+      "correctCompletion": "where food is and how far away it is",
+      "sourceName": "Encyclopaedia Britannica",
+      "sourceUrl": "https://www.britannica.com/animal/honeybee",
+      "category": "wildlife",
+      "tags": ["insects", "communication"],
+      "difficulty": "medium"
+    }
+  ]
+}

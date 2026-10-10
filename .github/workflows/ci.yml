@@ -43,10 +43,12 @@ jobs:
           node --check server/gameManager.js
           node --check server/gameRegistry.js
           node --check server/games/fake-answer/game.js
+          node --check server/games/fake-answer/questionLibrary.js
           node --check server/games/fake-answer/socketHandlers.js
           node --check server/games/fake-answer/questionBank.js
+          node --check server/games/fake-answer/scripts/validate-question-pack.js
           node --check server/test/config.test.js
+          node --check server/test/questionLibrary.test.js
           node --check server/test/roomManager.test.js
           node --check server/test/gameManager.test.js
           node --check server/test/server.test.js
-

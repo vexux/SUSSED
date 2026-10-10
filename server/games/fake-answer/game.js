@@ -1,5 +1,5 @@
 const { randomInt, randomUUID } = require("node:crypto");
-const { questions } = require("./questionBank");
+const { selectQuestions } = require("./questionBank");
 
 const TOTAL_ROUNDS = 5;
 const MAX_COMPLETION_LENGTH = 160;
@@ -10,21 +10,6 @@ class FakeAnswerError extends Error {
         this.name = "FakeAnswerError";
         this.code = code;
     }
-}
-
-function shuffledQuestions() {
-    if (questions.length < TOTAL_ROUNDS) {
-        throw new FakeAnswerError(
-            "QUESTION_POOL_EXHAUSTED",
-            `The question bank needs at least ${TOTAL_ROUNDS} unique prompts.`
-        );
-    }
-    const shuffled = [...questions];
-    for (let index = shuffled.length - 1; index > 0; index -= 1) {
-        const swapIndex = randomInt(index + 1);
-        [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
-    }
-    return shuffled.slice(0, TOTAL_ROUNDS);
 }
 
 function createInitialState(players) {
@@ -48,7 +33,15 @@ function createInitialState(players) {
 }
 
 function start(state) {
-    const questionOrder = shuffledQuestions();
+    let questionOrder;
+    try {
+        questionOrder = selectQuestions(TOTAL_ROUNDS);
+    } catch (error) {
+        if (error.code === "QUESTION_POOL_EXHAUSTED") {
+            throw new FakeAnswerError(error.code, error.message);
+        }
+        throw error;
+    }
     return {
         ...state,
         phase: "question",

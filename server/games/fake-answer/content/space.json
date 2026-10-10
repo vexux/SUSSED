@@ -1,0 +1,35 @@
+{
+  "contentPackId": "space",
+  "questions": [
+    {
+      "id": "venus-day",
+      "text": "On Venus, one full rotation takes longer than...",
+      "correctCompletion": "one orbit around the Sun",
+      "sourceName": "NASA Solar System Exploration",
+      "sourceUrl": "https://science.nasa.gov/venus/facts/",
+      "category": "space",
+      "tags": ["planets", "astronomy"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "jupiter-day",
+      "text": "One day on Jupiter lasts for about...",
+      "correctCompletion": "ten hours",
+      "sourceName": "NASA Solar System Exploration",
+      "sourceUrl": "https://science.nasa.gov/jupiter/facts/",
+      "category": "space",
+      "tags": ["planets", "astronomy"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "moon-mirror",
+      "text": "Apollo astronauts left a special mirror on the Moon so scientists could...",
+      "correctCompletion": "measure the Earth-Moon distance with laser light",
+      "sourceName": "NASA",
+      "sourceUrl": "https://science.nasa.gov/solar-system/moon/",
+      "category": "space",
+      "tags": ["moon", "space-exploration"],
+      "difficulty": "medium"
+    }
+  ]
+}

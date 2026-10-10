@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "validate:questions": "node games/fake-answer/scripts/validate-question-pack.js"
   },
   "keywords": [],
   "author": "",
