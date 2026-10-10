@@ -466,7 +466,7 @@ const actions: AppActions = {
           fakeAnswerCompletionDraft = "";
           fakeAnswerErrorMessage = null;
         } else {
-          fakeAnswerErrorMessage = "Your completion could not be submitted.";
+          fakeAnswerErrorMessage = "Your answer could not be submitted.";
         }
         render();
       },

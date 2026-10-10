@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  formatRoundPoints,
   getPersonalRoundFeedback,
   getRevealAnswerGroups,
 } from "../src/games/fakeAnswer.ts";
@@ -78,6 +79,12 @@ test("groups reveal answers by authoritative correctness rather than answer text
       voterNames: ["Player One"],
     }],
   );
+});
+
+test("round-point labels include an explicit sign for positive, zero, and negative deltas", () => {
+  assert.equal(formatRoundPoints(3), "+3");
+  assert.equal(formatRoundPoints(0), "+0");
+  assert.equal(formatRoundPoints(-2), "-2");
 });
 
 test("personalized feedback follows the player's selected option ID", () => {

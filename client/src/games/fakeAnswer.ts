@@ -64,6 +64,10 @@ export function getRevealAnswerGroups(options: FakeAnswerResultOption[]): {
   };
 }
 
+export function formatRoundPoints(points: number): string {
+  return `${points >= 0 ? "+" : ""}${points}`;
+}
+
 export function getPersonalRoundFeedback(
   results: FakeAnswerResults,
   currentPlayerId: string | null,
@@ -715,20 +719,17 @@ export function renderFakeAnswerGame(
     );
     const realHeading = document.createElement("h2");
     realHeading.className = "results-section-heading";
-    realHeading.textContent = "The real completion";
+    realHeading.textContent = "Correct Answer";
     const realAnswerCard = document.createElement("article");
     realAnswerCard.className = "result-card result-card-correct real-answer-card";
     const realCardHeading = document.createElement("div");
-    realCardHeading.className = "result-card-heading";
-    const realBadge = document.createElement("span");
-    realBadge.className = "answer-badge answer-badge-correct";
-    realBadge.textContent = "Real answer";
+    realCardHeading.className = "real-answer-heading";
     const realVoteCount = document.createElement("span");
     realVoteCount.className = "answer-vote-count";
     const realVoters = realOption?.voters ?? [];
     realVoteCount.textContent =
       `${realVoters.length} vote${realVoters.length === 1 ? "" : "s"}`;
-    realCardHeading.append(realBadge, realVoteCount);
+    realCardHeading.append(realVoteCount);
     const realAnswer = document.createElement("p");
     realAnswer.className = "result-answer-text";
     realAnswer.textContent = formatAnswerForDisplay(
@@ -752,17 +753,18 @@ export function renderFakeAnswerGame(
       item.className = "result-card";
       const answerHeading = document.createElement("div");
       answerHeading.className = "result-card-heading";
-      const answerType = document.createElement("span");
-      answerType.className = "answer-badge answer-badge-fake";
-      answerType.textContent = `Bluff by ${option.authorName ?? "Unknown player"}`;
+      const author = document.createElement("span");
+      author.className = "bluff-author";
+      author.textContent = option.authorName ?? "Unknown player";
       const voteCount = document.createElement("span");
       voteCount.className = "answer-vote-count";
       voteCount.textContent =
         `${option.voters.length} vote${option.voters.length === 1 ? "" : "s"}`;
-      answerHeading.append(answerType, voteCount);
+      answerHeading.classList.add("bluff-card-heading");
+      answerHeading.append(author, voteCount);
 
       const answer = document.createElement("p");
-      answer.className = "result-answer-text";
+      answer.className = "result-answer-text bluff-answer-text";
       answer.textContent = formatAnswerForDisplay(option.completion);
       const voters = document.createElement("p");
       voters.className = "result-detail";
@@ -770,14 +772,6 @@ export function renderFakeAnswerGame(
         ? `Chosen by: ${option.voters.map(({ name }) => name).join(", ")}`
         : "No one chose this answer.";
       item.append(answerHeading, answer, voters);
-      const bluffReward = publicState.results.players.find(
-        ({ playerId }) => playerId === option.authorId,
-      )?.bluffPoints ?? 0;
-      const bluffAward = document.createElement("p");
-      bluffAward.className = "result-award";
-      bluffAward.textContent =
-        `Bluff reward: ${bluffReward} point${bluffReward === 1 ? "" : "s"} to ${option.authorName ?? "Unknown player"}`;
-      item.append(bluffAward);
       options.append(item);
     }
     screen.append(optionsHeading, options);
@@ -809,13 +803,12 @@ export function renderFakeAnswerGame(
         : roundPoints < 0
           ? "standing-round-score standing-round-score-negative"
           : "standing-round-score";
-      roundScore.textContent =
-        `${roundPoints > 0 ? "+" : ""}${roundPoints} this round`;
+      roundScore.textContent = formatRoundPoints(roundPoints);
       roundScore.setAttribute(
         "aria-label",
-        `${roundPoints > 0 ? "Gained" : roundPoints < 0 ? "Lost" : "Earned"} ${Math.abs(roundPoints)} points this round`,
+        `Round points: ${formatRoundPoints(roundPoints)} points`,
       );
-      item.append(rank, standingName, score, roundScore);
+      item.append(rank, standingName, roundScore, score);
       standings.append(item);
     }
     screen.append(standingsHeading, standings);
@@ -919,7 +912,7 @@ export function renderFakeAnswerGame(
 
     const waiting = document.createElement("p");
     waiting.className = "status-message";
-    waiting.textContent = "Submit your completion when you’re ready.";
+    waiting.textContent = "Submit your answer when you’re ready.";
     screen.append(waiting);
     const form = document.createElement("form");
     form.className = "submission-form";
@@ -933,7 +926,7 @@ export function renderFakeAnswerGame(
     const label = document.createElement("label");
     label.className = "field-label";
     label.htmlFor = "fake-completion";
-    label.textContent = "Your completion";
+    label.textContent = "Your answer";
     const input = document.createElement("input");
     input.className = "text-input";
     input.id = "fake-completion";
@@ -948,7 +941,7 @@ export function renderFakeAnswerGame(
     submit.className = "primary-button";
     submit.type = "submit";
     submit.disabled = submission.isSubmitting;
-    submit.textContent = submission.isSubmitting ? "Submitting…" : "Submit completion";
+    submit.textContent = submission.isSubmitting ? "Submitting…" : "Submit";
     form.append(label, input, submit);
     form.addEventListener("submit", (event) => {
       event.preventDefault();

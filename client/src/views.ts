@@ -72,7 +72,7 @@ function renderHome(
   const introduction = createElement(
     "p",
     "screen-description",
-    "Create a room or join your friends in a social deduction game.",
+    "Create a room or join your friends with a memorable four-letter room code.",
   );
   screen.append(title, introduction);
 
@@ -111,7 +111,7 @@ function renderHome(
   roomCodeInput.type = "text";
   roomCodeInput.autocomplete = "off";
   roomCodeInput.maxLength = 4;
-  roomCodeInput.placeholder = "ABCD";
+  roomCodeInput.placeholder = "WORD";
   roomCodeInput.setAttribute("aria-label", "Room code");
 
   const joinButton = createElement("button", "secondary-button", "Join room");
@@ -130,6 +130,9 @@ function renderHome(
   const actionsPanel = createElement("div", "room-actions");
   actionsPanel.append(createPanel, joinPanel);
   screen.append(actionsPanel);
+  screen.append(
+    createElement("p", "room-code-hint", "Room codes are memorable four-letter words."),
+  );
 
   if (state.isBusy) {
     screen.append(createElement("p", "status-message", "Connecting to room…"));
@@ -239,8 +242,9 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   });
 
   screen.append(heading, roomCode, playerCount, gameSelection, playerName, playerList);
+  const lobbyActions = createElement("div", "button-group lobby-actions");
   if (lobby.status === "lobby") {
-    screen.append(readyButton);
+    lobbyActions.append(readyButton);
   }
 
   if (isHost) {
@@ -266,13 +270,14 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     startButton.type = "button";
     startButton.disabled = state.isBusy || startReason !== null;
     startButton.addEventListener("click", actions.onStartGame);
-    screen.append(startButton);
+    lobbyActions.append(startButton);
     if (startReason) {
       screen.append(createElement("p", "status-message start-reason", startReason));
     }
   }
 
-  screen.append(leaveButton);
+  lobbyActions.append(leaveButton);
+  screen.append(lobbyActions);
   if (state.isBusy) {
     screen.append(createElement("p", "status-message", "Updating room…"));
   }

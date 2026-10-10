@@ -44,6 +44,15 @@ Render's free tier may suspend an idle service, causing cold-start delays on its
 next request. Rooms and game sessions are held only in server memory; they are
 lost whenever the server restarts or is redeployed.
 
+## Room codes
+
+New rooms receive an uppercase, four-letter code selected from a curated list
+of memorable words. Players may enter the code in lowercase; lookup normalizes
+it to uppercase. Codes identify rooms and are not authentication credentials.
+The word list is finite, so room creation fails explicitly if every available
+code is in use. Room state remains in memory and is lost when the server
+restarts.
+
 ## Git and deployment workflow
 
 - `main` is the production branch.

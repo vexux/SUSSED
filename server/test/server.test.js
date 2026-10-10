@@ -288,7 +288,7 @@ test("starts the server and keeps the legacy create-room acknowledgement", async
         });
     });
 
-    assert.match(response.roomCode, /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/);
+    assert.match(response.roomCode, /^[A-Z]{4}$/);
     assert.deepEqual(Object.keys(response), ["roomCode"]);
     harness.trackRoom(response.roomCode);
     const lobby = await lobbyEvent;
@@ -323,7 +323,7 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
     const createResponse = await emitWithAck(host, "create-room", {
         playerName: "  Host Name ",
     });
-    assert.match(createResponse.roomCode, /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/);
+    assert.match(createResponse.roomCode, /^[A-Z]{4}$/);
     harness.trackRoom(createResponse.roomCode);
     await hostLobbyEvent;
 
@@ -727,7 +727,7 @@ test("malformed Socket.IO payloads return errors without crashing the server", a
     const validResponse = await emitWithAck(client, "create-room", {
         playerName: "Still connected",
     });
-    assert.match(validResponse.roomCode, /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/);
+    assert.match(validResponse.roomCode, /^[A-Z]{4}$/);
     harness.trackRoom(validResponse.roomCode);
 });
 

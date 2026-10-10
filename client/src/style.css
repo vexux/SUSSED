@@ -137,6 +137,19 @@ button:focus-visible {
   margin-top: 24px;
 }
 
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.lobby-actions {
+  width: min(100%, 640px);
+  margin-top: 8px;
+}
+
 .action-panel,
 .join-panel {
   display: flex;
@@ -175,6 +188,12 @@ button:focus-visible {
 
 .room-code-input {
   text-transform: uppercase;
+}
+
+.room-code-hint {
+  margin: 8px 0 0;
+  color: #c5b9ce;
+  font-size: 0.9rem;
 }
 
 .error-message,
@@ -290,6 +309,13 @@ button:focus-visible {
   width: min(100%, 520px);
 }
 
+.submission-form > .primary-button,
+.vote-form > .primary-button {
+  justify-self: center;
+  min-width: min(100%, 180px);
+  margin-top: 4px;
+}
+
 .revealed-options,
 .vote-form {
   display: grid;
@@ -388,6 +414,11 @@ button:focus-visible {
   gap: 12px;
 }
 
+.answer-vote-count {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .answer-badge-correct {
   color: #c1f2cd;
   background: #2d5137;
@@ -433,6 +464,11 @@ button:focus-visible {
   gap: 12px;
 }
 
+.standing-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .standing-rank {
   color: #d4a8ff;
   font-weight: 800;
@@ -440,6 +476,7 @@ button:focus-visible {
 
 .standing-score {
   text-align: right;
+  white-space: nowrap;
 }
 
 .continue-progress {
@@ -448,8 +485,6 @@ button:focus-visible {
 }
 
 .vote-form .primary-button {
-  justify-self: center;
-  margin-top: 8px;
   text-align: left;
 }
 
@@ -501,6 +536,26 @@ button:focus-visible {
 .real-answer-card {
   border-color: #557c61;
   background: #202c24;
+}
+
+.real-answer-heading {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bluff-card-heading {
+  align-items: baseline;
+}
+
+.bluff-author {
+  min-width: 0;
+  color: #ead7ff;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.bluff-answer-text {
+  margin-top: 6px;
 }
 
 .reveal-content {
@@ -653,19 +708,13 @@ button:focus-visible {
   }
 
   .standing-card {
-    grid-template-columns: 36px minmax(0, 1fr);
-    gap: 8px;
+    grid-template-columns: 32px minmax(0, 1fr) auto auto;
+    gap: 6px;
     padding: 12px;
   }
 
   .standing-score {
-    grid-column: 2;
-    text-align: left;
-    font-size: 0.9rem;
-  }
-
-  .standing-round-score {
-    grid-column: 2;
+    font-size: 0.82rem;
   }
 
   .final-statistics li {
@@ -676,14 +725,18 @@ button:focus-visible {
   .final-statistics li span {
     text-align: left;
   }
+
+  .button-group > button {
+    flex: 1 1 140px;
+  }
 }
 
 .standing-round-score {
-  justify-self: end;
+  justify-self: start;
   color: #d4cbdc;
   font-size: 0.9rem;
   font-weight: 700;
-  text-align: right;
+  white-space: nowrap;
 }
 
 .standing-round-score-positive {
@@ -692,11 +745,4 @@ button:focus-visible {
 
 .standing-round-score-negative {
   color: #ffb8b8;
-}
-
-@media (max-width: 560px) {
-  .standing-round-score {
-    justify-self: start;
-    text-align: left;
-  }
 }

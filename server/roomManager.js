@@ -1,9 +1,19 @@
 const { randomInt } = require("node:crypto");
 const gameRegistry = require("./gameRegistry");
 
-const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const ROOM_CODE_LENGTH = 4;
-const ROOM_CODE_COUNT = ROOM_CODE_ALPHABET.length ** ROOM_CODE_LENGTH;
+const ROOM_CODE_WORDS = [
+    "ATOM", "BARD", "BARK", "BEAM", "BIRD", "BOLD", "BOLT", "CAMP",
+    "CAVE", "CLAP", "COVE", "DASH", "DECK", "DICE", "DOME", "DUCK",
+    "ECHO", "FAIR", "FAST", "FIZZ", "FLIP", "FROG", "GLOW", "GOON",
+    "GRIN", "HIVE", "JAZZ", "JOLT", "JUMP", "KITE", "LAVA", "LEAF",
+    "LIME", "LOOT", "LUCK", "LUNA", "MINT", "MOON", "MOSS", "NEST",
+    "NOVA", "ORCA", "PACK", "PEAK", "POGO", "POND", "QUIZ", "RAIN",
+    "RAMP", "RING", "ROAR", "ROCK", "RUSH", "SAGE", "SAND", "SEED",
+    "SHIP", "SODA", "SOUP", "STAR", "TACO", "TENT", "TIDE", "TUNE",
+    "VAST", "VIBE", "WAVE", "WILD", "WING", "WISE", "WOLF", "ZANY",
+    "ZEST", "ZING"
+];
+const ROOM_CODE_COUNT = ROOM_CODE_WORDS.length;
 const MAX_PLAYERS = 8;
 const MAX_PLAYER_NAME_LENGTH = 20;
 
@@ -52,16 +62,14 @@ function normalizeRoomCode(roomCode) {
 }
 
 function generateRoomCode() {
-    let code;
-
-    do {
-        code = "";
-        for (let index = 0; index < ROOM_CODE_LENGTH; index += 1) {
-            code += ROOM_CODE_ALPHABET[randomInt(ROOM_CODE_ALPHABET.length)];
+    const startIndex = randomInt(ROOM_CODE_WORDS.length);
+    for (let offset = 0; offset < ROOM_CODE_WORDS.length; offset += 1) {
+        const code = ROOM_CODE_WORDS[(startIndex + offset) % ROOM_CODE_WORDS.length];
+        if (!rooms.has(code)) {
+            return code;
         }
-    } while (rooms.has(code));
-
-    return code;
+    }
+    throw new RoomError("NO_ROOM_CODES", "No room codes are available.");
 }
 
 function createRoom(playerId, playerName) {
@@ -83,6 +91,12 @@ function createRoom(playerId, playerName) {
         players: [host]
     };
 
+    if (rooms.has(room.code)) {
+        throw new RoomError(
+            "ROOM_CODE_COLLISION",
+            "A room with that code already exists. Please try again."
+        );
+    }
     rooms.set(room.code, room);
     playerRooms.set(playerId, room.code);
     return room;
@@ -316,6 +330,7 @@ function removeRoom(roomCode) {
 
 module.exports = {
     MAX_PLAYERS,
+    ROOM_CODE_COUNT,
     RoomError,
     createLobbyState,
     createRoom,
