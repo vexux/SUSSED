@@ -93,7 +93,7 @@ test("generic game sessions start registered games and expose only public state"
         fakeAnswer.createInitialState(room.players)
     );
     const publicQuestion = questions.find(
-        (question) => question.id === publicState.state.prompt.id
+        (question) => question.text === publicState.state.prompt.text
     );
     const moduleState = fakeAnswer.createPublicState(privateState);
 
@@ -106,7 +106,8 @@ test("generic game sessions start registered games and expose only public state"
         assert.equal(publicState.state.currentRound, 1);
         assert.equal(publicState.state.totalRounds, 5);
         assert.ok(publicQuestion);
-        assert.equal(moduleState.prompt.id, privateState.currentQuestion.id);
+        assert.equal(moduleState.prompt.id, privateState.roundId);
+        assert.notEqual(moduleState.prompt.id, privateState.currentQuestion.id);
         assert.equal(
             JSON.stringify(publicState).includes(publicQuestion.correctCompletion),
             false
@@ -131,14 +132,17 @@ test("Anime sessions initialize from their own sourced pool and keep source meta
     const room = createStartingRoom(2);
     const publicState = gameManager.startGame(room, "fact-or-cap-anime");
     const selectedQuestion = animeQuestions.find(
-        ({ id }) => id === publicState.state.prompt.id
+        ({ text }) => text === publicState.state.prompt.text
     );
     try {
         assert.equal(publicState.gameId, "fact-or-cap-anime");
         assert.equal(publicState.displayName, "Fact or Cap (Anime)");
         assert.ok(selectedQuestion);
         assert.equal(questions.some(({ id }) => id === selectedQuestion.id), false);
-        assert.equal(JSON.stringify(publicState).includes(selectedQuestion.correctCompletion), false);
+        assert.equal(
+            JSON.stringify(publicState).includes(selectedQuestion.correctCompletion),
+            false
+        );
         assert.equal(JSON.stringify(publicState).includes(selectedQuestion.sourceUrl), false);
     } finally {
         gameManager.removeGame(room.code);
@@ -228,12 +232,13 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     assert.equal(finalState.gameState.state.phase, "reveal");
     assert.equal(finalState.gameState.state.options.length, room.players.length + 1);
     const selectedQuestion = questions.find(
-        ({ id }) => id === finalState.gameState.state.prompt.id
+        ({ text }) => text === finalState.gameState.state.prompt.text
     );
     assert.ok(selectedQuestion);
     assert.ok(
         finalState.gameState.state.options.some(
-            ({ completion }) => completion === selectedQuestion.correctCompletion
+            ({ completion }) =>
+                completion === selectedQuestion.correctCompletion
         )
     );
     assert.ok(
@@ -268,7 +273,9 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     );
     const selectedOptions = gameManager.getPublicGameState(room.code, "player-1").state.options;
     assert.equal(
-        selectedOptions.some(({ completion }) => completion === selectedQuestion.correctCompletion),
+        selectedOptions.some(({ completion }) =>
+            completion === selectedQuestion.correctCompletion
+        ),
         true
     );
     const playerOneOptions = gameManager.getPublicGameState(room.code, "player-1").state.options;
@@ -346,7 +353,9 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     assert.equal(Object.hasOwn(resultsState.gameState.state, "options"), false);
     assert.equal(Object.hasOwn(resultsState.gameState.state, "votes"), false);
     assert.equal(
-        JSON.stringify(resultsState.gameState).includes(selectedQuestion.correctCompletion),
+        JSON.stringify(resultsState.gameState).includes(
+            selectedQuestion.correctCompletion
+        ),
         false
     );
     gameManager.removeGame(room.code);
@@ -422,7 +431,9 @@ test("two-player fake-answer game reaches reveal after both players submit once"
     try {
         assert.equal(initialState.state.phase, "question");
         assert.equal(initialState.state.playerCount, 2);
-        const question = questions.find(({ id }) => id === initialState.state.prompt.id);
+        const question = questions.find(
+            ({ text }) => text === initialState.state.prompt.text
+        );
         assert.ok(question);
         assert.equal(JSON.stringify(initialState).includes(question.correctCompletion), false);
 
@@ -443,7 +454,9 @@ test("two-player fake-answer game reaches reveal after both players submit once"
         assert.equal(firstSubmission.gameState.state.playerCount, 2);
         assert.equal(firstSubmission.gameState.state.phase, "answer-submission");
         assert.equal(
-            JSON.stringify(firstSubmission.gameState).includes(question.correctCompletion),
+            JSON.stringify(firstSubmission.gameState).includes(
+                question.correctCompletion
+            ),
             false
         );
         assert.throws(
@@ -467,19 +480,77 @@ test("two-player fake-answer game reaches reveal after both players submit once"
         assert.equal(finalSubmission.gameState.state.phase, "reveal");
         assert.equal(finalSubmission.gameState.state.submissionCount, 2);
         assert.deepEqual(finalSubmission.gameState.state.prompt, {
-            id: question.id,
+            id: finalSubmission.gameState.state.roundId,
             text: question.text
         });
         assert.equal(finalSubmission.gameState.state.options.length, 3);
         assert.equal(
             finalSubmission.gameState.state.options.some(
-                ({ completion }) => completion === question.correctCompletion
+                ({ completion }) =>
+                    completion === question.correctCompletion
             ),
             true
         );
     } finally {
         gameManager.removeGame(room.code);
     }
+});
+
+test("duplicate submissions share a private error and do not change submission progress", () => {
+    const players = [
+        { id: "duplicate-player-1", name: "First" },
+        { id: "duplicate-player-2", name: "Second" }
+    ];
+    const state = fakeAnswer.start(fakeAnswer.createInitialState(players));
+    fakeAnswer.handleAction(state, "open-submissions");
+
+    function captureError(completion, playerId) {
+        let capturedError;
+        try {
+            fakeAnswer.handleAction(state, "submit-completion", playerId, completion);
+        } catch (error) {
+            capturedError = error;
+        }
+        assert.ok(capturedError, "Expected duplicate completion to be rejected.");
+        return { code: capturedError.code, message: capturedError.message };
+    }
+
+    const correctAnswer = state.currentQuestion.correctCompletion;
+    const correctDuplicate = captureError(
+        `  ${correctAnswer.normalize("NFKC").toUpperCase().replace(/\s+/gu, "   ")} `,
+        players[0].id
+    );
+    assert.deepEqual(correctDuplicate, {
+        code: "DUPLICATE_ANSWER",
+        message: "Duplicate answer. Please submit a different completion."
+    });
+    assert.equal(correctDuplicate.message.includes(correctAnswer), false);
+
+    fakeAnswer.handleAction(
+        state,
+        "submit-completion",
+        players[0].id,
+        "A  separate   completion!"
+    );
+    const anotherPlayerDuplicate = captureError(
+        "  a separate completion!  ",
+        players[1].id
+    );
+    assert.deepEqual(anotherPlayerDuplicate, correctDuplicate);
+    assert.equal(state.submissions.size, 1);
+    assert.equal(state.submissionStatus.get(players[1].id), false);
+    assert.equal(state.phase, "answer-submission");
+
+    assert.deepEqual(
+        fakeAnswer.handleAction(
+            state,
+            "submit-completion",
+            players[1].id,
+            "A separate completion?"
+        ),
+        { submitted: true, submissionCount: 2, playerCount: 2 }
+    );
+    assert.equal(state.phase, "reveal");
 });
 
 test("fake-answer voting supports every player count from two through eight", () => {
@@ -515,7 +586,8 @@ test("fake-answer voting supports every player count from two through eight", ()
                 assert.equal(publicState.state.options.length, playerCount + 1);
                 assert.equal(
                     publicState.state.options.find(
-                        ({ completion }) => completion === `Invented answer for ${player.id}`
+                        ({ completion }) =>
+                            completion === `Invented answer for ${player.id}`
                     ).isOwnAnswer,
                     true
                 );
@@ -568,10 +640,10 @@ test("fake-answer scoring awards correct-vote and fake-answer points independent
     fakeAnswer.handleAction(state, "publish-results");
     assert.equal(state.phase, "results");
     assert.equal(state.results.players[0].voteOptionId, realOption.id);
-    assert.equal(state.results.players[0].roundPoints, 3);
-    assert.equal(state.results.players[0].correctVotePoints, 1);
+    assert.equal(state.results.players[0].roundPoints, 4);
+    assert.equal(state.results.players[0].correctVotePoints, 2);
     assert.equal(state.results.players[0].bluffPoints, 2);
-    assert.equal(state.results.players[0].totalScore, 3);
+    assert.equal(state.results.players[0].totalScore, 4);
     assert.equal(state.results.options.find(({ id }) => id === playerOneFake.id).authorId, players[0].id);
     assert.deepEqual(
         state.results.options.find(({ id }) => id === playerOneFake.id).voters.map(
@@ -604,10 +676,10 @@ test("fake-answer scoring handles 2, 3, 4, and 8 players with tied standings", (
         fakeAnswer.handleAction(state, "publish-results");
         assert.equal(state.results.players.length, playerCount);
         assert.ok(state.results.players.every(({ roundPoints, totalScore }) =>
-            roundPoints === 1 && totalScore === 1
+            roundPoints === 2 && totalScore === 2
         ));
         assert.ok(state.results.standings.every(({ totalScore, rank }) =>
-            totalScore === 1 && rank === 1
+            totalScore === 2 && rank === 1
         ));
         assert.equal(
             state.results.options.filter(({ isCorrect, authorId }) =>
@@ -615,6 +687,62 @@ test("fake-answer scoring handles 2, 3, 4, and 8 players with tied standings", (
             ).length,
             1
         );
+    }
+});
+
+test("both game variants award two points for a correct vote through the shared mechanics", () => {
+    for (const [index, gameId] of ["fact-or-cap", "fact-or-cap-anime"].entries()) {
+        const room = createStartingRoom(2);
+        room.code = `SCORE${index}`;
+        gameManager.startGame(room, gameId);
+        try {
+            gameManager.performGameAction(room.code, gameId, null, "open-submissions");
+            for (const player of room.players) {
+                gameManager.performGameAction(
+                    room.code,
+                    gameId,
+                    player.id,
+                    "submit-completion",
+                    `A unique bluff ${gameId} by ${player.id}`
+                );
+            }
+            gameManager.performGameAction(room.code, gameId, null, "begin-voting");
+            for (const player of room.players) {
+                const options = gameManager.getPublicGameState(room.code, player.id).state.options;
+                const sourceQuestions = gameId === "fact-or-cap-anime"
+                    ? animeQuestions
+                    : questions;
+                const prompt = gameManager.getPublicGameState(room.code, player.id).state.prompt;
+                const sourceQuestion = sourceQuestions.find(
+                    ({ text }) => text === prompt.text
+                );
+                assert.ok(sourceQuestion);
+                const correctOption = options.find(
+                    ({ completion }) =>
+                        completion === sourceQuestion.correctCompletion
+                );
+                assert.ok(correctOption);
+                gameManager.performGameAction(
+                    room.code,
+                    gameId,
+                    player.id,
+                    "vote",
+                    correctOption.id
+                );
+            }
+            const finalVote = gameManager.performGameAction(
+                room.code,
+                gameId,
+                null,
+                "publish-results"
+            ).gameState;
+            assert.ok(finalVote.state.results.players.every(
+                ({ correctVotePoints, bluffPoints, roundPoints }) =>
+                    correctVotePoints === 2 && bluffPoints === 0 && roundPoints === 2
+            ));
+        } finally {
+            gameManager.removeGame(room.code);
+        }
     }
 });
 
@@ -664,7 +792,10 @@ test("fake-answer results and scores stay private until a single scoring publica
     assert.deepEqual(publicResults, { published: true, currentRound: 1 });
     const resultsState = fakeAnswer.createPublicState(state, players[0].id);
     assert.equal(resultsState.phase, "results");
-    assert.equal(resultsState.results.correctCompletion, state.currentQuestion.correctCompletion);
+    assert.equal(
+        resultsState.results.correctCompletion,
+        state.currentQuestion.correctCompletion
+    );
     assert.equal(resultsState.results.players.length, players.length);
     const scoresAfterPublication = [...state.scores.entries()];
 
@@ -697,7 +828,7 @@ test("fake-answer continuation waits for everyone and resets round data without 
         }
         gameManager.performGameAction(room.code, "fact-or-cap", null, "begin-voting");
         const correctCompletion = questions.find(
-            ({ id }) => id === questionState.prompt.id
+            ({ text }) => text === questionState.prompt.text
         ).correctCompletion;
         for (const player of room.players) {
             const options = gameManager.getPublicGameState(room.code, player.id).state.options;
@@ -725,7 +856,7 @@ test("fake-answer continuation waits for everyone and resets round data without 
         const firstRoundId = firstResults.state.roundId;
         const firstPromptId = firstResults.state.prompt.id;
         assert.equal(firstResults.status, "active");
-        assert.equal(firstResults.state.results.players[0].totalScore, 1);
+        assert.equal(firstResults.state.results.players[0].totalScore, 2);
 
         const hostReady = gameManager.performGameAction(
             room.code,
@@ -769,9 +900,9 @@ test("fake-answer continuation waits for everyone and resets round data without 
 
         const secondResults = finishRound().gameState;
         assert.equal(secondResults.state.currentRound, 2);
-        assert.equal(secondResults.state.results.players[0].roundPoints, 1);
-        assert.equal(secondResults.state.results.players[0].totalScore, 2);
-        assert.equal(secondResults.state.results.players[1].totalScore, 2);
+        assert.equal(secondResults.state.results.players[0].roundPoints, 2);
+        assert.equal(secondResults.state.results.players[0].totalScore, 4);
+        assert.equal(secondResults.state.results.players[1].totalScore, 4);
         assert.deepEqual(
             secondResults.state.results.standings.map(({ rank }) => rank),
             [1, 1]

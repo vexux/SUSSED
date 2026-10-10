@@ -49,6 +49,7 @@ state.connectionStatus = socket.connected ? "connected" : "connecting";
 let fakeAnswerHasSubmitted = false;
 let fakeAnswerIsSubmitting = false;
 let fakeAnswerErrorMessage: string | null = null;
+let fakeAnswerCompletionDraft = "";
 let fakeAnswerHasVoted = false;
 let fakeAnswerIsVoting = false;
 let fakeAnswerSelectedOptionId: string | null = null;
@@ -64,6 +65,7 @@ function resetFakeAnswerViewState(): void {
   fakeAnswerHasSubmitted = false;
   fakeAnswerIsSubmitting = false;
   fakeAnswerErrorMessage = null;
+  fakeAnswerCompletionDraft = "";
   fakeAnswerHasVoted = false;
   fakeAnswerIsVoting = false;
   fakeAnswerSelectedOptionId = null;
@@ -77,6 +79,7 @@ function resetFakeAnswerViewState(): void {
 function render(): void {
   renderApp(appRoot, state, actions, {
     hasSubmitted: fakeAnswerHasSubmitted,
+    completionDraft: fakeAnswerCompletionDraft,
     currentPlayerId: state.localPlayerId,
     isSubmitting: fakeAnswerIsSubmitting,
     submissionError: fakeAnswerErrorMessage,
@@ -243,6 +246,7 @@ function applyGameState(game: GameSessionState): void {
     previousState.playerCount === nextState.playerCount &&
     previousState.prompt?.id === nextState.prompt?.id &&
     previousState.prompt?.text === nextState.prompt?.text &&
+    previousState.submissionCount !== nextState.submissionCount &&
     JSON.stringify(previousState.submissionProgress) !==
       JSON.stringify(nextState.submissionProgress);
   const isVoteProgressOnly =
@@ -252,11 +256,14 @@ function applyGameState(game: GameSessionState): void {
     FACT_OR_CAP_GAME_IDS.has(game.gameId) &&
     isFakeAnswerPublicState(previousState) &&
     isFakeAnswerPublicState(nextState) &&
-    previousState.phase === "voting" &&
-    nextState.phase === "voting" &&
+    (previousState.phase === "voting" ||
+      previousState.phase === "waiting-for-results") &&
+    previousState.phase === nextState.phase &&
     previousState.currentRound === nextState.currentRound &&
     previousState.voteCount !== nextState.voteCount &&
-    JSON.stringify(previousState.options) === JSON.stringify(nextState.options);
+    JSON.stringify(previousState.options) === JSON.stringify(nextState.options) &&
+    JSON.stringify(previousState.voteProgress) !==
+      JSON.stringify(nextState.voteProgress);
   const isNewGame =
     state.game?.roomCode !== game.roomCode ||
     state.game?.gameId !== game.gameId ||
@@ -284,7 +291,7 @@ function applyGameState(game: GameSessionState): void {
   }
   if (
     isVoteProgressOnly &&
-    updateFakeAnswerVoteProgress(appRoot, game.state)
+    updateFakeAnswerVoteProgress(appRoot, game.state, state.localPlayerId)
   ) {
     return;
   }
@@ -377,11 +384,16 @@ const actions: AppActions = {
     render();
     emitRoomOperation("select-game", { gameId }, (response) => {
       if (response.error) {
+        state.isBusy = false;
         showOperationError(response);
         return;
       }
-      state.isBusy = false;
-      render();
+      if (response.lobby) {
+        applyLobbyState(response.lobby);
+      } else {
+        state.isBusy = false;
+        render();
+      }
     });
   },
   onStartGame() {
@@ -408,6 +420,7 @@ const actions: AppActions = {
     }
 
     fakeAnswerErrorMessage = null;
+    fakeAnswerCompletionDraft = completion;
     fakeAnswerIsSubmitting = true;
     render();
     socket.timeout(5000).emit(
@@ -431,6 +444,7 @@ const actions: AppActions = {
           }
         } else if (response.submitted) {
           fakeAnswerHasSubmitted = true;
+          fakeAnswerCompletionDraft = "";
           fakeAnswerErrorMessage = null;
         } else {
           fakeAnswerErrorMessage = "Your completion could not be submitted.";

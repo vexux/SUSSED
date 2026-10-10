@@ -55,18 +55,31 @@ questions while still preventing repeats within the session.
 After every player has voted, the server publishes round results and updates the
 scores exactly once for that round:
 
-- A correct vote for the real completion earns the voter 1 point.
+- A correct vote for the real completion earns the voter 2 points.
 - Each vote for a fake completion earns its author 1 point.
+- Every eligible vote for a fake answer grants its author one point; multiple
+  votes on the same fake answer each award one point.
 - The result separates a player's correct-vote points from points earned for
   votes on their bluff; their round delta is the sum of those two rewards.
 - Players cannot vote for their own fake completion.
 - The real completion has no player author.
-- A player can earn both the correct-vote point and points from votes for their
+- A player can earn both correct-vote points and points from votes for their
   fake completion in the same round.
-- An incorrect vote earns no correct-vote point; the player can still earn
+- An incorrect vote earns no correct-vote reward; the player can still earn
   points if other players selected their fake completion.
 - Each accepted vote is keyed to one opaque option ID. Results resolve that ID
   back to one answer, author, and voter list before awarding points.
+
+## Answer integrity and presentation
+
+An answer is rejected with the same generic duplicate message if its Unicode
+NFKC-normalized, case-folded text (with leading/trailing and repeated
+whitespace normalized) exactly matches the real completion or another
+submitted answer. Punctuation and wording are otherwise significant; this is
+deliberately exact matching, not fuzzy matching. The rejected response does
+not include the matching text or reveal which answer it matched. Canonical
+answers remain unchanged in game state; public answer projections are rendered
+in lowercase consistently for the real and submitted completions.
 
 ## Round and disconnect lifecycle
 

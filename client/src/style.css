@@ -332,8 +332,10 @@ button:focus-visible {
 }
 
 .vote-progress {
-  margin: 16px 0 0;
+  margin: 12px 0 0;
   color: #c5b9ce;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .vote-accepted {
@@ -485,29 +487,65 @@ button:focus-visible {
   font-weight: 700;
 }
 
-.submission-progress-bar {
-  width: 100%;
-  height: 8px;
-  accent-color: #b778f5;
-}
-
 .submission-player-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
   width: 100%;
-  margin: 0;
+  margin: 8px 0 0;
   padding: 0;
   list-style: none;
-  text-align: left;
 }
 
-.submission-player-list li {
-  padding: 10px 12px;
+.progress-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.progress-chip {
+  max-width: 100%;
+  padding: 5px 9px;
+  border: 1px solid #554b5e;
+  border-radius: 999px;
+  background: #211b27;
+  overflow-wrap: anywhere;
+  color: #ded5e5;
+  font-size: 0.82rem;
+}
+
+.progress-chip-done {
+  border-color: #536b58;
+  background: #202b23;
+  color: #c1f2cd;
+}
+
+.personal-result-feedback {
+  width: 100%;
+  margin: 20px 0 0;
+  padding: 14px 18px;
   border: 1px solid #554b5e;
   border-radius: 8px;
   background: #211b27;
-  overflow-wrap: anywhere;
+  font-weight: 750;
+}
+
+.personal-result-correct {
+  border-color: #557c61;
+  background: #202c24;
+  color: #c1f2cd;
+}
+
+.personal-result-fooled {
+  border-color: #80683c;
+  background: #302819;
+  color: #f3d99e;
 }
 
 @media (max-width: 560px) {

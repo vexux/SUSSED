@@ -61,8 +61,8 @@ function start(state, selectQuestions) {
 function normalizeCompletion(completion) {
     return completion
         .normalize("NFKC")
-        .toLocaleLowerCase()
-        .replace(/[^\p{L}\p{N}]+/gu, " ")
+        .toLowerCase()
+        .replace(/\s+/gu, " ")
         .trim();
 }
 
@@ -125,13 +125,16 @@ function submitCompletion(state, playerId, payload) {
         );
     }
 
+    const normalizedCompletion = normalizeCompletion(completion);
     if (
-        normalizeCompletion(completion) ===
-        normalizeCompletion(state.currentQuestion.correctCompletion)
+        normalizedCompletion === normalizeCompletion(state.currentQuestion.correctCompletion) ||
+        [...state.submissions.values()].some(
+            (submitted) => normalizeCompletion(submitted) === normalizedCompletion
+        )
     ) {
         throw new FakeAnswerError(
-            "CORRECT_COMPLETION_NOT_ALLOWED",
-            "Submit an invented completion, not the real one."
+            "DUPLICATE_ANSWER",
+            "Duplicate answer. Please submit a different completion."
         );
     }
 
@@ -255,7 +258,7 @@ function calculateRoundResults(state) {
             name: voter.name
         });
         if (option.correct) {
-            correctVotePoints.set(voterId, correctVotePoints.get(voterId) + 1);
+            correctVotePoints.set(voterId, correctVotePoints.get(voterId) + 2);
         }
         if (option.authorId !== null) {
             if (!participantById.has(option.authorId)) {
@@ -455,7 +458,7 @@ function createPublicState(state, viewerId) {
             totalRounds: state.totalRounds,
             roundId: state.roundId,
             prompt: {
-                id: state.currentQuestion.id,
+                id: state.roundId,
                 text: state.currentQuestion.text
             },
             submissionCount: state.submissions.size,
@@ -480,7 +483,7 @@ function createPublicState(state, viewerId) {
         prompt: state.phase === "waiting-for-results"
             ? null
             : {
-                id: state.currentQuestion.id,
+                id: state.roundId,
                 text: state.currentQuestion.text
             },
         submissionCount: state.submissions.size,
@@ -491,6 +494,15 @@ function createPublicState(state, viewerId) {
                     playerId: player.id,
                     name: player.name,
                     submitted: state.submissionStatus.get(player.id) === true
+                }))
+            }
+            : {}),
+        ...(state.phase === "voting" || state.phase === "waiting-for-results"
+            ? {
+                voteProgress: state.participants.map((player) => ({
+                    playerId: player.id,
+                    name: player.name,
+                    voted: state.votes.has(player.id)
                 }))
             }
             : {}),
@@ -544,5 +556,6 @@ const factOrCap = createFakeAnswerGame({
 module.exports = {
     ...factOrCap,
     FakeAnswerError,
-    createFakeAnswerGame
+    createFakeAnswerGame,
+    normalizeCompletion
 };

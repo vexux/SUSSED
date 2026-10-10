@@ -180,9 +180,9 @@ async function startFakeAnswer(
     harness.trackRoom(created.roomCode);
     const players = await joinPlayers(harness, created.roomCode, playerCount - 1);
     if (gameId !== "fact-or-cap") {
-        assert.deepEqual(await emitWithAck(host, "select-game", { gameId }), {
-            selectedGameId: gameId
-        });
+        const selection = await emitWithAck(host, "select-game", { gameId });
+        assert.equal(selection.selectedGameId, gameId);
+        assert.equal(selection.lobby.selectedGameId, gameId);
     }
     for (const player of players) {
         await emitWithAck(player, "set-ready", { isReady: true });
@@ -226,7 +226,7 @@ async function completeSocketRound(host, players, gameState) {
         ? animeQuestions
         : questions;
     const question = questionBank.find(
-        ({ id }) => id === gameState.state.prompt.id
+        ({ text }) => text === gameState.state.prompt.text
     );
     assert.ok(question);
     const votingEvents = clients.map((client) =>
@@ -402,20 +402,28 @@ test("host selects a registered game and broadcasts authoritative metadata to al
 
     const hostUpdate = waitForLobby(
         host,
-        (lobby) => lobby.selectedGameId === "fact-or-cap" && !lobby.players[1].isReady
+        (lobby) => lobby.selectedGameId === "fact-or-cap-anime"
     );
     const guestUpdate = waitForLobby(
         guest,
-        (lobby) => lobby.selectedGameId === "fact-or-cap" && !lobby.players[1].isReady
+        (lobby) => lobby.selectedGameId === "fact-or-cap-anime"
     );
-    assert.deepEqual(
-        await emitWithAck(host, "select-game", { gameId: "fact-or-cap" }),
-        { selectedGameId: "fact-or-cap" }
-    );
+    const selectionResponse = await emitWithAck(host, "select-game", {
+        gameId: "fact-or-cap-anime"
+    });
+    assert.equal(selectionResponse.selectedGameId, "fact-or-cap-anime");
+    assert.equal(selectionResponse.lobby.selectedGameId, "fact-or-cap-anime");
     const [hostLobby, guestLobby] = await Promise.all([hostUpdate, guestUpdate]);
     assert.deepEqual(hostLobby, guestLobby);
     assert.equal(hostLobby.players[1].isReady, false);
-    assert.equal(hostLobby.selectedGame.displayName, "Fact or Cap");
+    assert.deepEqual(selectionResponse.lobby, hostLobby);
+    assert.deepEqual(hostLobby.selectedGame, {
+        id: "fact-or-cap-anime",
+        displayName: "Fact or Cap (Anime)",
+        description: "A bluffing party game about surprising and verifiable anime facts.",
+        minPlayers: 2,
+        maxPlayers: 8
+    });
     assert.deepEqual(hostLobby.availableGames.map(({ id }) => id), [
         "fact-or-cap",
         "fact-or-cap-anime"
@@ -429,7 +437,7 @@ test("host can select Anime and complete a round through the shared socket game 
         gameId: "fact-or-cap-anime"
     });
     const sourceQuestion = animeQuestions.find(
-        ({ id }) => id === game.questionState.state.prompt.id
+        ({ text }) => text === game.questionState.state.prompt.text
     );
     assert.ok(sourceQuestion);
     assert.equal(questions.some(({ id }) => id === sourceQuestion.id), false);
@@ -455,7 +463,7 @@ test("host can select Anime and complete a round through the shared socket game 
     assert.equal(results.state.phase, "results");
     assert.equal(results.state.currentRound, 1);
     assert.equal(results.state.results.players.length, 2);
-    assert.equal(votingState.state.prompt.id, sourceQuestion.id);
+    assert.equal(votingState.state.prompt.text, sourceQuestion.text);
 });
 
 test("Anime rematches retain the selected game and use only the Anime question bank", async (context) => {
@@ -469,8 +477,8 @@ test("Anime rematches retain the selected game and use only the Anime question b
 
     for (let round = 1; round <= roundState.state.totalRounds; round += 1) {
         const resultStates = await completeSocketRound(game.host, game.players, roundState);
-        assert.ok(animeQuestions.some(({ id }) => id === roundState.state.prompt.id));
-        assert.equal(questions.some(({ id }) => id === roundState.state.prompt.id), false);
+        assert.ok(animeQuestions.some(({ text }) => text === roundState.state.prompt.text));
+        assert.equal(questions.some(({ text }) => text === roundState.state.prompt.text), false);
         if (round === roundState.state.totalRounds) {
             assert.equal(resultStates[0].status, "finished");
             break;
@@ -511,8 +519,8 @@ test("Anime rematches retain the selected game and use only the Anime question b
     const replay = await emitWithAck(game.host, "start-game");
     assert.equal(replay.starting, true);
     assert.equal(replay.game.gameId, "fact-or-cap-anime");
-    assert.ok(animeQuestions.some(({ id }) => id === replay.game.state.prompt.id));
-    assert.equal(questions.some(({ id }) => id === replay.game.state.prompt.id), false);
+    assert.ok(animeQuestions.some(({ text }) => text === replay.game.state.prompt.text));
+    assert.equal(questions.some(({ text }) => text === replay.game.state.prompt.text), false);
 });
 
 test("rejects invalid and non-host game selections without mutating the lobby", async (context) => {
@@ -1124,7 +1132,7 @@ test("host starts the room-selected registered game and broadcasts its safe ques
         ]
     );
     assert.ok(questions.length >= hostState.state.totalRounds);
-    assert.ok(questions.some((question) => question.id === hostState.state.prompt.id));
+    assert.ok(questions.some((question) => question.text === hostState.state.prompt.text));
     assert.deepEqual(Object.keys(hostState).sort(), [
         "displayName",
         "gameId",
@@ -1136,10 +1144,13 @@ test("host starts the room-selected registered game and broadcasts its safe ques
     ]);
     assert.deepEqual(Object.keys(hostState.state.prompt).sort(), ["id", "text"]);
     const selectedQuestion = questions.find(
-        (question) => question.id === hostState.state.prompt.id
+        (question) => question.text === hostState.state.prompt.text
     );
     assert.ok(selectedQuestion);
-    assert.equal(JSON.stringify(hostState).includes(selectedQuestion.correctCompletion), false);
+    assert.equal(
+        JSON.stringify(hostState).includes(selectedQuestion.correctCompletion),
+        false
+    );
     assert.equal(
         JSON.stringify(startingPayload).includes(selectedQuestion.correctCompletion),
         false
@@ -1369,7 +1380,7 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
     }
 
     const selectedQuestion = questions.find(
-        (question) => question.id === gameState.state.prompt.id
+        (question) => question.text === gameState.state.prompt.text
     );
     assert.ok(selectedQuestion);
     const completedEvents = clients.map((client) =>
@@ -1396,13 +1407,15 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
         assert.equal(state.state.options.length, clients.length + 1);
         assert.equal(
             state.state.options.find(
-                ({ completion }) => completion === submittedCompletions[index]
+                ({ completion }) =>
+                    completion === submittedCompletions[index]
             ).isOwnAnswer,
             true
         );
         assert.equal(
             state.state.options.some(
-                ({ completion }) => completion === selectedQuestion.correctCompletion
+                ({ completion }) =>
+                    completion === selectedQuestion.correctCompletion
             ),
             true
         );
@@ -1439,7 +1452,9 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
     assert.equal(gameState.state.phase, "answer-submission");
     assert.equal(gameState.state.playerCount, 2);
 
-    const question = questions.find(({ id }) => id === questionState.state.prompt.id);
+    const question = questions.find(
+        ({ text }) => text === questionState.state.prompt.text
+    );
     assert.ok(question);
     assert.equal(JSON.stringify(questionState).includes(question.correctCompletion), false);
     assert.equal(JSON.stringify(gameState).includes(question.correctCompletion), false);
@@ -1491,12 +1506,15 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
         assert.equal(state.state.options.length, 3);
         assert.equal(
             state.state.options.find(
-                ({ completion }) => completion === ownCompletions[index]
+                ({ completion }) =>
+                    completion === ownCompletions[index]
             ).isOwnAnswer,
             true
         );
         assert.equal(
-            state.state.options.some(({ completion }) => completion === question.correctCompletion),
+            state.state.options.some(({ completion }) =>
+                completion === question.correctCompletion
+            ),
             true
         );
         assert.ok(
@@ -1523,7 +1541,10 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
         assert.equal(state.state.phase, "voting");
         assert.equal(state.state.voteCount, 0);
         assert.deepEqual(state.state.options, revealStates[index].state.options);
-        assert.equal(JSON.stringify(state).includes(question.correctCompletion), true);
+        assert.equal(
+            JSON.stringify(state).includes(question.correctCompletion),
+            true
+        );
         assert.equal(JSON.stringify(state).includes(ownCompletions[index]), true);
     }
 
@@ -1605,6 +1626,16 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
         (state) => state.state.phase === "voting" && state.state.voteCount === 1
     );
     assert.equal(guestVoteProgress.state.voteCount, 1);
+    assert.deepEqual(
+        guestVoteProgress.state.voteProgress.map(({ playerId, voted }) => ({
+            playerId,
+            voted
+        })),
+        [
+            { playerId: host.id, voted: true },
+            { playerId: players[0].id, voted: false }
+        ]
+    );
     assert.equal(Object.hasOwn(guestVoteProgress.state, "votes"), false);
     const guestVote = await emitWithAck(players[0], "fake-answer:vote", {
         ...withRoundId(votingStates[1], {
@@ -1617,6 +1648,16 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
     for (const state of await Promise.all([hostWaiting, guestWaiting])) {
         assert.equal(state.state.phase, "waiting-for-results");
         assert.equal(state.state.voteCount, 2);
+        assert.deepEqual(
+            state.state.voteProgress.map(({ playerId, voted }) => ({
+                playerId,
+                voted
+            })),
+            [
+                { playerId: host.id, voted: true },
+                { playerId: players[0].id, voted: true }
+            ]
+        );
         assert.equal(Object.hasOwn(state.state, "options"), false);
         assert.equal(Object.hasOwn(state.state, "votes"), false);
         assert.equal(Object.hasOwn(state.state, "correctOptionId"), false);
@@ -1625,7 +1666,10 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
     }
     const resultsStates = await Promise.all([hostResults, guestResults]);
     for (const state of resultsStates) {
-        assert.equal(state.state.results.correctCompletion, question.correctCompletion);
+        assert.equal(
+            state.state.results.correctCompletion,
+            question.correctCompletion
+        );
         assert.equal(state.state.results.options.length, 3);
         assert.equal(state.state.results.players.length, 2);
         for (const resultPlayer of state.state.results.players) {
@@ -1647,7 +1691,7 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
         assert.equal(
             state.state.results.players.reduce((sum, player) => sum + player.roundPoints, 0),
             state.state.results.players.reduce(
-                (sum, player) => sum + (player.voteCorrect ? 1 : 0),
+                (sum, player) => sum + (player.voteCorrect ? 2 : 0),
                 0
             ) + state.state.results.options.reduce(
                 (sum, option) => sum + state.state.results.players.filter(
@@ -1691,8 +1735,8 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
             assert.deepEqual(state.state.results.standings.map(
                 ({ totalScore, rank }) => ({ totalScore, rank })
             ), [
-                { totalScore: round, rank: 1 },
-                { totalScore: round, rank: 1 },
+                    { totalScore: round * 2, rank: 1 },
+                    { totalScore: round * 2, rank: 1 },
             ]);
         }
 
@@ -1956,11 +2000,11 @@ test("return-to-lobby is host-only and requires a finished game", async (context
     assert.equal(gameManager.getPublicGameState(game.roomCode, game.host.id).status, "active");
 });
 
-test("fake-answer rejects empty, long, correct, duplicate, malformed, and impersonated submissions", async (context) => {
+test("fake-answer rejects empty, long, duplicate, malformed, and impersonated submissions", async (context) => {
     const harness = await createHarness(context);
     const { host, players, gameState } = await startFakeAnswer(harness);
     const question = questions.find(
-        (entry) => entry.id === gameState.state.prompt.id
+        (entry) => entry.text === gameState.state.prompt.text
     );
     assert.ok(question);
 
@@ -1974,7 +2018,17 @@ test("fake-answer rejects empty, long, correct, duplicate, malformed, and impers
     const correctResponse = await emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
         completion: `  ${question.correctCompletion.toUpperCase()}  `,
     }));
-    assert.equal(correctResponse.error.code, "CORRECT_COMPLETION_NOT_ALLOWED");
+    assert.deepEqual(correctResponse.error, {
+        code: "DUPLICATE_ANSWER",
+        message: "Duplicate answer. Please submit a different completion."
+    });
+    assert.equal(
+        correctResponse.error.message.includes(question.correctCompletion),
+        false
+    );
+    const currentGame = gameManager.getPublicGameState(gameState.roomCode, players[0].id);
+    assert.equal(currentGame.state.submissionCount, 0);
+    assert.equal(currentGame.state.phase, "answer-submission");
 
     const impersonation = await emitWithAck(players[0], "fake-answer:submit", withRoundId(gameState, {
         completion: "I am borrowing another player's identity",

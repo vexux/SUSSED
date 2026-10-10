@@ -187,7 +187,10 @@ function registerRoomHandlers(io, socket) {
         try {
             const room = roomManager.selectGame(socket.id, payload.gameId);
             broadcastLobby(io, room);
-            acknowledge({ selectedGameId: room.selectedGameId });
+            acknowledge({
+                selectedGameId: room.selectedGameId,
+                lobby: roomManager.createLobbyState(room)
+            });
         } catch (error) {
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
