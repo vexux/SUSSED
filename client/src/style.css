@@ -313,34 +313,17 @@ button:focus-visible {
   cursor: pointer;
 }
 
-.vote-option-own {
-  border-color: #806a91;
-  background: #302638;
-  cursor: not-allowed;
-  opacity: 0.82;
+.vote-option:focus-within {
+  outline: 2px solid #d4a8ff;
+  outline-offset: 2px;
 }
 
-.vote-option-own input {
-  cursor: not-allowed;
-}
-
-.own-answer-badge,
 .answer-badge {
   flex: 0 0 auto;
   border-radius: 999px;
   padding: 4px 9px;
   font-size: 0.75rem;
   font-weight: 700;
-}
-
-.own-answer-badge {
-  margin-left: auto;
-  color: #ead7ff;
-  background: #59446a;
-}
-
-.vote-answer-spacer {
-  display: none;
 }
 
 .voting-instructions {
@@ -502,6 +485,31 @@ button:focus-visible {
   font-weight: 700;
 }
 
+.submission-progress-bar {
+  width: 100%;
+  height: 8px;
+  accent-color: #b778f5;
+}
+
+.submission-player-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.submission-player-list li {
+  padding: 10px 12px;
+  border: 1px solid #554b5e;
+  border-radius: 8px;
+  background: #211b27;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 560px) {
   .app-screen {
     padding: 40px 0;
@@ -523,11 +531,6 @@ button:focus-visible {
   .vote-option {
     align-items: flex-start;
     padding: 12px;
-  }
-
-  .own-answer-badge {
-    align-self: center;
-    font-size: 0.7rem;
   }
 
   .standing-card {

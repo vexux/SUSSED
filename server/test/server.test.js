@@ -3,6 +3,7 @@ const test = require("node:test");
 const { io: createClient } = require("socket.io-client");
 const { port: defaultPort } = require("../config");
 const gameManager = require("../gameManager");
+const fakeAnswerGame = require("../games/fake-answer/game");
 const { questions } = require("../games/fake-answer/questionBank");
 const fakeAnswerSocketHandlers = require("../games/fake-answer/socketHandlers");
 const roomManager = require("../roomManager");
@@ -28,7 +29,6 @@ async function createHarness(context) {
         }
         await new Promise((resolve) => io.close(resolve));
         for (const roomCode of roomCodes) {
-            fakeAnswerSocketHandlers.clearActionPhaseTimeout(roomCode);
             roomManager.removeRoom(roomCode);
             gameManager.removeGame(roomCode);
         }
@@ -183,8 +183,12 @@ async function startFakeAnswer(
     }
 
     const initialState = waitForGameState(host, (game) => game.state.phase === "question");
-    assert.deepEqual(await emitWithAck(host, "start-game"), { starting: true });
+    const startResponse = await emitWithAck(host, "start-game");
+    assert.equal(startResponse.starting, true);
+    assert.equal(startResponse.game.state.phase, "question");
+    assert.ok(startResponse.game.state.prompt.text);
     const questionState = await initialState;
+    assert.deepEqual(startResponse.game, questionState);
     if (!waitForSubmission) {
         return {
             host,
@@ -857,7 +861,8 @@ test("host cannot start until all non-host players are ready", async (context) =
     await emitWithAck(guests[1], "set-ready", { isReady: true });
     await emitWithAck(guests[2], "set-ready", { isReady: true });
     const response = await emitWithAck(host, "start-game");
-    assert.deepEqual(response, { starting: true });
+    assert.equal(response.starting, true);
+    assert.equal(response.game.state.phase, "question");
 });
 
 test("host cannot start a game with only one player", async (context) => {
@@ -871,6 +876,41 @@ test("host cannot start a game with only one player", async (context) => {
     const response = await emitWithAck(host, "start-game");
     assert.equal(response.error.code, "NOT_ENOUGH_PLAYERS");
     assert.equal(roomManager.getRoom(created.roomCode).status, "lobby");
+});
+
+test("failed game initialization rolls the room back and allows a clean retry", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Host",
+    });
+    harness.trackRoom(created.roomCode);
+    const [guest] = await joinPlayers(harness, created.roomCode, 1);
+    await emitWithAck(guest, "set-ready", { isReady: true });
+
+    const originalStart = fakeAnswerGame.start;
+    fakeAnswerGame.start = () => {
+        throw new Error("simulated question initialization failure");
+    };
+    try {
+        const response = await emitWithAck(host, "start-game");
+        assert.deepEqual(response.error, {
+            code: "INTERNAL_ERROR",
+            message: "The room operation could not be completed.",
+        });
+        assert.equal(roomManager.getRoom(created.roomCode).status, "lobby");
+        assert.throws(
+            () => gameManager.getPublicGameState(created.roomCode, host.id),
+            { code: "GAME_NOT_ACTIVE" }
+        );
+    } finally {
+        fakeAnswerGame.start = originalStart;
+    }
+
+    const retry = await emitWithAck(host, "start-game");
+    assert.equal(retry.starting, true);
+    assert.equal(retry.game.state.phase, "question");
+    assert.ok(retry.game.state.prompt.text);
 });
 
 test("host can start when requirements are met and a second start is rejected", async (context) => {
@@ -943,17 +983,22 @@ test("host starts the room-selected registered game and broadcasts its safe ques
     }
 
     const startFlows = [host, ...guests].map(waitForGameStart);
-    assert.deepEqual(await emitWithAck(host, "start-game"), { starting: true });
+    const startResponse = await emitWithAck(host, "start-game");
+    assert.equal(startResponse.starting, true);
     const receivedFlows = await Promise.all(startFlows);
     const { startingPayload, gameState: hostState } = receivedFlows[0];
     assert.equal(startingPayload.roomCode, created.roomCode);
     assert.equal(startingPayload.lobby.status, "starting");
     assert.equal(startingPayload.lobby.playerCount, 4);
+    assert.equal(startingPayload.game.state.phase, "question");
+    assert.equal(startingPayload.game.state.currentRound, 1);
+    assert.ok(startingPayload.game.state.prompt.text);
     for (const flow of receivedFlows) {
         assert.deepEqual(flow.events, ["game-starting", "game-state"]);
         assert.deepEqual(flow.startingPayload, startingPayload);
         assert.deepEqual(flow.gameState, hostState);
     }
+    assert.deepEqual(startResponse.game, hostState);
     assert.equal(hostState.roomCode, created.roomCode);
     assert.equal(hostState.gameId, "fake-answer");
     assert.equal(hostState.displayName, "Fake Answer");
@@ -986,6 +1031,14 @@ test("host starts the room-selected registered game and broadcasts its safe ques
     );
     assert.ok(selectedQuestion);
     assert.equal(JSON.stringify(hostState).includes(selectedQuestion.correctCompletion), false);
+    assert.equal(
+        JSON.stringify(startingPayload).includes(selectedQuestion.correctCompletion),
+        false
+    );
+    assert.equal(
+        JSON.stringify(startResponse.game).includes(selectedQuestion.correctCompletion),
+        false
+    );
     assert.equal((await emitWithAck(guests[0], "start-game")).error.code, "NOT_HOST");
 });
 
@@ -1025,7 +1078,8 @@ test("game selection is rejected after the room leaves the lobby", async (contex
     const guests = await joinPlayers(harness, created.roomCode, 1);
     await emitWithAck(guests[0], "set-ready", { isReady: true });
 
-    assert.deepEqual(await emitWithAck(host, "start-game"), { starting: true });
+    const startResponse = await emitWithAck(host, "start-game");
+    assert.equal(startResponse.starting, true);
     assert.equal(
         (await emitWithAck(host, "select-game", { gameId: "fake-answer" })).error.code,
         "ROOM_NOT_IN_LOBBY"
@@ -1059,64 +1113,72 @@ test("fake-answer opens submissions after the question state and rejects early s
     );
 });
 
-test("an incomplete action phase expires safely to the same unready lobby without scoring", async (context) => {
+test("submission, voting, and continuation waits remain active without inactivity timeouts", async (context) => {
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, { playerCount: 2 });
     const room = roomManager.getRoom(game.roomCode);
     assert.ok(room);
-    const playerIds = room.players.map(({ id }) => id);
-
-    assert.equal(
-        fakeAnswerSocketHandlers.expireActionPhase(
-            harness.io,
-            game.roomCode,
-            `${game.gameState.sessionId}-stale`,
-            game.gameState.state.roundId,
-            "answer-submission"
-        ),
-        false
-    );
+    const originalPlayers = room.players.map(({ id, isReady }) => ({ id, isReady }));
+    assert.equal(typeof fakeAnswerSocketHandlers.expireActionPhase, "undefined");
     assert.equal(room.status, "starting");
-
-    const hostLobby = waitForLobby(
-        game.host,
-        (lobby) => lobby.status === "lobby"
-    );
-    const guestLobby = waitForLobby(
-        game.players[0],
-        (lobby) => lobby.status === "lobby"
-    );
-    const aborted = new Promise((resolve) => {
-        game.host.once("game-aborted", resolve);
-    });
     assert.equal(
-        fakeAnswerSocketHandlers.expireActionPhase(
-            harness.io,
-            game.roomCode,
-            game.gameState.sessionId,
-            game.gameState.state.roundId,
-            "answer-submission"
-        ),
-        true
+        gameManager.getPublicGameState(game.roomCode, game.host.id).state.phase,
+        "answer-submission"
+    );
+    await emitWithAck(game.host, "fake-answer:submit", {
+        ...withRoundId(game.gameState, {
+            completion: "An answer that can wait.",
+        }),
+    });
+    const voting = waitForGameState(
+        game.host,
+        (state) => state.state.phase === "voting"
+    );
+    const guestSubmissionState = gameManager.getPublicGameState(
+        game.roomCode,
+        game.players[0].id
+    );
+    await emitWithAck(game.players[0], "fake-answer:submit", {
+        ...withRoundId(guestSubmissionState, {
+            completion: "A second answer that can wait.",
+        }),
+    });
+    const votingState = await voting;
+    const hostOption = votingState.state.options.find(({ isOwnAnswer }) => !isOwnAnswer);
+    assert.ok(hostOption);
+    await emitWithAck(game.host, "fake-answer:vote", withRoundId(votingState, {
+        optionId: hostOption.id,
+    }));
+    assert.equal(
+        gameManager.getPublicGameState(game.roomCode, game.host.id).state.phase,
+        "voting"
     );
 
-    const [hostState, guestState, abortNotice] = await Promise.all([
-        hostLobby,
-        guestLobby,
-        aborted,
-    ]);
-    assert.deepEqual(hostState, guestState);
-    assert.equal(hostState.roomCode, game.roomCode);
-    assert.deepEqual(hostState.players.map(({ id }) => id), playerIds);
-    assert.equal(hostState.players.every(({ isReady }) => !isReady), true);
-    assert.match(abortNotice.message, /not completed in time/);
-    assert.throws(
-        () => gameManager.getPublicGameState(game.roomCode, game.host.id),
-        { code: "GAME_NOT_ACTIVE" }
+    const results = waitForGameState(
+        game.host,
+        (state) => state.state.phase === "results"
     );
-    fakeAnswerSocketHandlers.clearActionPhaseTimeout(
+    const guestVotingState = gameManager.getPublicGameState(
         game.roomCode,
-        game.gameState.sessionId
+        game.players[0].id
+    );
+    await emitWithAck(game.players[0], "fake-answer:vote", withRoundId(guestVotingState, {
+        optionId: guestVotingState.state.options.find(
+            ({ isOwnAnswer }) => !isOwnAnswer
+        ).id,
+    }));
+    const resultsState = await results;
+    await emitWithAck(game.host, "fake-answer:continue", {
+        sessionId: resultsState.sessionId,
+        roundId: resultsState.state.roundId,
+    });
+    const waitingState = gameManager.getPublicGameState(game.roomCode, game.host.id);
+    assert.equal(waitingState.state.phase, "results");
+    assert.equal(waitingState.state.continueReadyCount, 1);
+    assert.equal(room.status, "starting");
+    assert.deepEqual(
+        room.players.map(({ id, isReady }) => ({ id, isReady })),
+        originalPlayers
     );
 });
 
@@ -1138,8 +1200,25 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
         "prompt",
         "roundId",
         "submissionCount",
+        "submissionProgress",
         "totalRounds",
     ]);
+    assert.deepEqual(
+        gameState.state.submissionProgress.map(
+            ({ playerId, name, submitted }) => ({ playerId, name, submitted })
+        ),
+        gameState.players.map(({ id, name }) => ({
+            playerId: id,
+            name,
+            submitted: false,
+        }))
+    );
+    assert.ok(
+        gameState.state.submissionProgress.every(
+            (player) =>
+                Object.keys(player).sort().join(",") === "name,playerId,submitted"
+        )
+    );
 
     const progressEvents = clients.map((client) =>
         waitForGameState(client, (state) => state.state.submissionCount === 1)
@@ -1158,6 +1237,16 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
     for (const state of firstProgress) {
         assert.deepEqual(state, firstProgress[0]);
         assert.equal(state.state.phase, "answer-submission");
+        assert.equal(
+            state.state.submissionProgress.filter(({ submitted }) => submitted).length,
+            1
+        );
+        assert.equal(
+            state.state.submissionProgress.find(
+                ({ playerId }) => playerId === players[0].id
+            ).submitted,
+            true
+        );
         assert.equal(JSON.stringify(state).includes(submittedCompletions[1]), false);
     }
 
@@ -1679,7 +1768,9 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
         game.players[0],
         (state) => state.state.phase === "question"
     );
-    assert.deepEqual(await emitWithAck(game.host, "start-game"), { starting: true });
+    const startResponse = await emitWithAck(game.host, "start-game");
+    assert.equal(startResponse.starting, true);
+    assert.equal(startResponse.game.state.phase, "question");
     const [replayHost, replayGuest] = await Promise.all([
         replayHostState,
         replayGuestState,

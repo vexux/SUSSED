@@ -25,6 +25,8 @@ interface FakeAnswerSubmissionResponse {
 }
 
 interface RoomOperationResponse {
+  starting?: boolean;
+  game?: GameSessionState;
   roomCode?: string;
   lobby?: LobbyState;
   left?: boolean;
@@ -74,6 +76,7 @@ function resetFakeAnswerViewState(): void {
 function render(): void {
   renderApp(appRoot, state, actions, {
     hasSubmitted: fakeAnswerHasSubmitted,
+    currentPlayerId: state.localPlayerId,
     isSubmitting: fakeAnswerIsSubmitting,
     submissionError: fakeAnswerErrorMessage,
     hasVoted: fakeAnswerHasVoted,
@@ -207,6 +210,85 @@ function recoverFromUnavailableGame(): void {
   render();
 }
 
+function applyGameState(game: GameSessionState): void {
+  if (
+    game.roomCode !== state.roomCode ||
+    typeof game.sessionId !== "string" ||
+    (game.status !== "active" && game.status !== "finished")
+  ) {
+    return;
+  }
+  if (
+    retiredGameSessionIds.has(game.sessionId) ||
+    (state.currentView === "lobby" && state.lobby?.status === "lobby")
+  ) {
+    return;
+  }
+  const previousGame = state.game;
+  const previousState = previousGame?.state;
+  const nextState = game.state;
+  const isSubmissionProgressOnly =
+    state.currentView === "game" &&
+    previousGame?.roomCode === game.roomCode &&
+    previousGame.gameId === game.gameId &&
+    game.gameId === "fake-answer" &&
+    isFakeAnswerPublicState(previousState) &&
+    isFakeAnswerPublicState(nextState) &&
+    previousState.phase === "answer-submission" &&
+    nextState.phase === "answer-submission" &&
+    previousState.currentRound === nextState.currentRound &&
+    previousState.totalRounds === nextState.totalRounds &&
+    previousState.playerCount === nextState.playerCount &&
+    previousState.prompt?.id === nextState.prompt?.id &&
+    previousState.prompt?.text === nextState.prompt?.text &&
+    JSON.stringify(previousState.submissionProgress) !==
+      JSON.stringify(nextState.submissionProgress);
+  const isVoteProgressOnly =
+    state.currentView === "game" &&
+    previousGame?.roomCode === game.roomCode &&
+    previousGame.gameId === game.gameId &&
+    game.gameId === "fake-answer" &&
+    isFakeAnswerPublicState(previousState) &&
+    isFakeAnswerPublicState(nextState) &&
+    previousState.phase === "voting" &&
+    nextState.phase === "voting" &&
+    previousState.currentRound === nextState.currentRound &&
+    previousState.voteCount !== nextState.voteCount &&
+    JSON.stringify(previousState.options) === JSON.stringify(nextState.options);
+  const isNewGame =
+    state.game?.roomCode !== game.roomCode ||
+    state.game?.gameId !== game.gameId ||
+    state.game?.sessionId !== game.sessionId;
+  if (state.game && isNewGame) {
+    retiredGameSessionIds.add(state.game.sessionId);
+  }
+  const isNewRound =
+    !isNewGame &&
+    isFakeAnswerPublicState(previousState) &&
+    isFakeAnswerPublicState(nextState) &&
+    previousState.currentRound !== nextState.currentRound;
+  if (isNewGame || isNewRound) {
+    resetFakeAnswerViewState();
+  }
+  state.game = game;
+  state.currentView = "game";
+  state.errorMessage = null;
+  state.isBusy = false;
+  if (
+    isSubmissionProgressOnly &&
+    updateFakeAnswerProgress(appRoot, game.state, state.localPlayerId)
+  ) {
+    return;
+  }
+  if (
+    isVoteProgressOnly &&
+    updateFakeAnswerVoteProgress(appRoot, game.state)
+  ) {
+    return;
+  }
+  render();
+}
+
 const actions: AppActions = {
   onPlayerNameChange(name) {
     state.playerName = name;
@@ -310,6 +392,10 @@ const actions: AppActions = {
         return;
       }
       state.isBusy = false;
+      if (response.game) {
+        applyGameState(response.game);
+        return;
+      }
       render();
     });
   },
@@ -474,106 +560,24 @@ socket.on("lobby-state", (lobby: LobbyState) => {
 });
 
 socket.on(
-  "game-aborted",
-  (payload: { reason: string; message: string }) => {
-    if (
-      !state.roomCode ||
-      state.currentView !== "lobby" ||
-      payload.reason !== "phase-timeout"
-    ) {
-      return;
-    }
-    state.errorMessage = payload.message;
-    render();
-  },
-);
-
-socket.on(
   "game-starting",
-  (payload: { roomCode: string; lobby: LobbyState }) => {
+  (payload: {
+    roomCode: string;
+    lobby: LobbyState;
+    game?: GameSessionState;
+  }) => {
     if (payload.roomCode !== state.roomCode) {
       return;
     }
     applyLobbyState(payload.lobby);
+    if (payload.game) {
+      applyGameState(payload.game);
+    }
   },
 );
 
 socket.on("game-state", (game: GameSessionState) => {
-  if (
-    game.roomCode !== state.roomCode ||
-    typeof game.sessionId !== "string" ||
-    (game.status !== "active" && game.status !== "finished")
-  ) {
-    return;
-  }
-  if (
-    retiredGameSessionIds.has(game.sessionId) ||
-    (state.currentView === "lobby" && state.lobby?.status === "lobby")
-  ) {
-    return;
-  }
-  const previousGame = state.game;
-  const previousState = previousGame?.state;
-  const nextState = game.state;
-  const isSubmissionProgressOnly =
-    state.currentView === "game" &&
-    previousGame?.roomCode === game.roomCode &&
-    previousGame.gameId === game.gameId &&
-    game.gameId === "fake-answer" &&
-    isFakeAnswerPublicState(previousState) &&
-    isFakeAnswerPublicState(nextState) &&
-    previousState.phase === "answer-submission" &&
-    nextState.phase === "answer-submission" &&
-    previousState.currentRound === nextState.currentRound &&
-    previousState.totalRounds === nextState.totalRounds &&
-    previousState.playerCount === nextState.playerCount &&
-    previousState.prompt?.id === nextState.prompt?.id &&
-    previousState.prompt?.text === nextState.prompt?.text &&
-    previousState.submissionCount !== nextState.submissionCount;
-  const isVoteProgressOnly =
-    state.currentView === "game" &&
-    previousGame?.roomCode === game.roomCode &&
-    previousGame.gameId === game.gameId &&
-    game.gameId === "fake-answer" &&
-    isFakeAnswerPublicState(previousState) &&
-    isFakeAnswerPublicState(nextState) &&
-    previousState.phase === "voting" &&
-    nextState.phase === "voting" &&
-    previousState.currentRound === nextState.currentRound &&
-    previousState.voteCount !== nextState.voteCount &&
-    JSON.stringify(previousState.options) === JSON.stringify(nextState.options);
-  const isNewGame =
-    state.game?.roomCode !== game.roomCode ||
-    state.game?.gameId !== game.gameId ||
-    state.game?.sessionId !== game.sessionId;
-  if (state.game && isNewGame) {
-    retiredGameSessionIds.add(state.game.sessionId);
-  }
-  const isNewRound =
-    !isNewGame &&
-    isFakeAnswerPublicState(previousState) &&
-    isFakeAnswerPublicState(nextState) &&
-    previousState.currentRound !== nextState.currentRound;
-  if (isNewGame || isNewRound) {
-    resetFakeAnswerViewState();
-  }
-  state.game = game;
-  state.currentView = "game";
-  state.errorMessage = null;
-  state.isBusy = false;
-  if (
-    isSubmissionProgressOnly &&
-    updateFakeAnswerProgress(appRoot, game.state)
-  ) {
-    return;
-  }
-  if (
-    isVoteProgressOnly &&
-    updateFakeAnswerVoteProgress(appRoot, game.state)
-  ) {
-    return;
-  }
-  render();
+  applyGameState(game);
 });
 
 let connectionWasLost = false;

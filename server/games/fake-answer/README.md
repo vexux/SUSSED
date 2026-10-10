@@ -71,11 +71,11 @@ accepted. A finished session remains available for results and host-driven
 return to the lobby after a membership change. If all room members leave, the
 existing room cleanup removes the game session and room.
 
-Submission, voting, and between-round continuation phases have a two-minute
-server-side deadline. If a phase does not complete, the active session is
-retired without publishing partial results and the remaining room members are
-returned to the lobby unready. The deadline is scoped to the current session,
-round, and phase so an expired timer cannot abort a replay or later round.
+Submission, voting, and between-round continuation phases have no inactivity
+deadline. Players may wait in these phases indefinitely; only an actual
+disconnect follows the existing session-abort and lobby-recovery policy.
+Submission progress exposes player IDs, names, and submitted status only; it
+never includes answer contents or authorship before reveal.
 
 After final results, the room remains in its in-game state until the host
 returns it to the lobby. The server retires the finished session, resets every

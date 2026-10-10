@@ -132,12 +132,10 @@ function registerRoomHandlers(io, socket) {
         const updatedRoom = roomManager.removePlayer(socket.id);
         if (updatedRoom) {
             if (gameManager.abortActiveGame(updatedRoom.code)) {
-                fakeAnswerSocketHandlers.clearActionPhaseTimeout(updatedRoom.code);
                 roomManager.recoverRoomToLobby(updatedRoom);
             }
             broadcastLobby(io, updatedRoom);
         } else {
-            fakeAnswerSocketHandlers.clearActionPhaseTimeout(room.code);
             gameManager.removeGame(room.code);
         }
         try {
@@ -218,7 +216,8 @@ function registerRoomHandlers(io, socket) {
             const game = gameManager.startGame(startingRoom, startingRoom.selectedGameId);
             io.to(startingRoom.code).emit("game-starting", {
                 roomCode: startingRoom.code,
-                lobby
+                lobby,
+                game
             });
             io.to(startingRoom.code).emit("game-state", game);
             if (startingRoom.selectedGameId === "fake-answer") {
@@ -229,7 +228,7 @@ function registerRoomHandlers(io, socket) {
                     game.state.roundId
                 );
             }
-            acknowledge({ starting: true });
+            acknowledge({ starting: true, game });
         } catch (error) {
             if (startingRoom) {
                 gameManager.abortActiveGame(startingRoom.code);
@@ -260,7 +259,6 @@ function registerRoomHandlers(io, socket) {
             }
             const room = roomManager.validateReturnToLobby(socket.id);
             gameManager.retireFinishedGame(room.code, payload.sessionId);
-            fakeAnswerSocketHandlers.clearActionPhaseTimeout(room.code, payload.sessionId);
             const lobbyRoom = roomManager.returnToLobby(socket.id);
             broadcastLobby(io, lobbyRoom);
             acknowledge({ returned: true });
@@ -277,12 +275,10 @@ function handleDisconnect(io, socket) {
     socket.data.roomCode = undefined;
     if (updatedRoom) {
         if (gameManager.abortActiveGame(updatedRoom.code)) {
-            fakeAnswerSocketHandlers.clearActionPhaseTimeout(updatedRoom.code);
             roomManager.recoverRoomToLobby(updatedRoom);
         }
         broadcastLobby(io, updatedRoom);
     } else if (room) {
-        fakeAnswerSocketHandlers.clearActionPhaseTimeout(room.code);
         gameManager.removeGame(room.code);
     }
 }

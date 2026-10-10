@@ -485,6 +485,15 @@ function createPublicState(state, viewerId) {
             },
         submissionCount: state.submissions.size,
         playerCount: state.participants.length,
+        ...(state.phase === "answer-submission"
+            ? {
+                submissionProgress: state.participants.map((player) => ({
+                    playerId: player.id,
+                    name: player.name,
+                    submitted: state.submissionStatus.get(player.id) === true
+                }))
+            }
+            : {}),
         ...(includesVoteOptions
             ? {
                 options: state.options
