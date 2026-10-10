@@ -43,12 +43,16 @@ scores exactly once for that round:
 
 - A correct vote for the real completion earns the voter 1 point.
 - Each vote for a fake completion earns its author 1 point.
+- The result separates a player's correct-vote points from points earned for
+  votes on their bluff; their round delta is the sum of those two rewards.
 - Players cannot vote for their own fake completion.
 - The real completion has no player author.
 - A player can earn both the correct-vote point and points from votes for their
   fake completion in the same round.
 - An incorrect vote earns no correct-vote point; the player can still earn
   points if other players selected their fake completion.
+- Each accepted vote is keyed to one opaque option ID. Results resolve that ID
+  back to one answer, author, and voter list before awarding points.
 
 ## Round and disconnect lifecycle
 
@@ -66,6 +70,12 @@ avoids changing a round's submission or vote quorum after actions have been
 accepted. A finished session remains available for results and host-driven
 return to the lobby after a membership change. If all room members leave, the
 existing room cleanup removes the game session and room.
+
+Submission, voting, and between-round continuation phases have a two-minute
+server-side deadline. If a phase does not complete, the active session is
+retired without publishing partial results and the remaining room members are
+returned to the lobby unready. The deadline is scoped to the current session,
+round, and phase so an expired timer cannot abort a replay or later round.
 
 After final results, the room remains in its in-game state until the host
 returns it to the lobby. The server retires the finished session, resets every

@@ -180,9 +180,13 @@ function retireFinishedGame(roomCode, expectedSessionId) {
     return true;
 }
 
-function abortActiveGame(roomCode) {
+function abortActiveGame(roomCode, expectedSessionId) {
     const session = sessions.get(roomCode);
-    if (!session || session.status !== "active") {
+    if (
+        !session ||
+        session.status !== "active" ||
+        (expectedSessionId !== undefined && session.sessionId !== expectedSessionId)
+    ) {
         return false;
     }
     sessions.delete(roomCode);

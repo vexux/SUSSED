@@ -1,6 +1,7 @@
 export interface FakeAnswerOption {
   id: string;
   completion: string;
+  isOwnAnswer: boolean;
 }
 
 export interface FakeAnswerResultOption {
@@ -9,6 +10,10 @@ export interface FakeAnswerResultOption {
   authorId: string | null;
   authorName: string | null;
   isCorrect: boolean;
+  voters: Array<{
+    playerId: string;
+    name: string;
+  }>;
 }
 
 export interface FakeAnswerResultPlayer {
@@ -18,6 +23,8 @@ export interface FakeAnswerResultPlayer {
   voteOptionId: string;
   voteCompletion: string;
   voteCorrect: boolean;
+  correctVotePoints: number;
+  bluffPoints: number;
   roundPoints: number;
   totalScore: number;
 }
@@ -101,7 +108,9 @@ export function isFakeAnswerPublicState(
           isRecord(option) &&
           typeof option.id === "string" &&
           typeof option.completion === "string" &&
-          Object.keys(option).sort().join(",") === "completion,id",
+          typeof option.isOwnAnswer === "boolean" &&
+          Object.keys(option).sort().join(",") ===
+            "completion,id,isOwnAnswer",
       ));
   const phaseIsValid =
     value.phase === "question" ||
@@ -125,7 +134,14 @@ export function isFakeAnswerPublicState(
           typeof option.completion === "string" &&
           (typeof option.authorId === "string" || option.authorId === null) &&
           (typeof option.authorName === "string" || option.authorName === null) &&
-          typeof option.isCorrect === "boolean",
+          typeof option.isCorrect === "boolean" &&
+          Array.isArray(option.voters) &&
+          option.voters.every(
+            (voter) =>
+              isRecord(voter) &&
+              typeof voter.playerId === "string" &&
+              typeof voter.name === "string",
+          ),
       ) &&
       Array.isArray(value.results.players) &&
       value.results.players.length === value.playerCount &&
@@ -138,6 +154,8 @@ export function isFakeAnswerPublicState(
           typeof player.voteOptionId === "string" &&
           typeof player.voteCompletion === "string" &&
           typeof player.voteCorrect === "boolean" &&
+          typeof player.correctVotePoints === "number" &&
+          typeof player.bluffPoints === "number" &&
           typeof player.roundPoints === "number" &&
           typeof player.totalScore === "number",
       ) &&
@@ -168,8 +186,10 @@ export function isFakeAnswerPublicState(
     resultsAreValid &&
     ((value.phase !== "reveal" && value.phase !== "voting") ||
       (Array.isArray(value.options) &&
-        value.options.length >= 2 &&
-        value.options.length === value.playerCount)) &&
+        value.options.length === value.playerCount + 1 &&
+        value.options.filter(
+          (option) => isRecord(option) && option.isOwnAnswer === true,
+        ).length === 1)) &&
     ((value.phase !== "voting" && value.phase !== "waiting-for-results") ||
       typeof value.voteCount === "number")
   );
@@ -261,54 +281,120 @@ export function renderFakeAnswerGame(
       screen.append(prompt);
     }
     const correctHeading = document.createElement("h2");
-    correctHeading.textContent = "Real completion";
+    correctHeading.className = "results-section-heading";
+    correctHeading.textContent = "The real completion";
     const correct = document.createElement("p");
     correct.className = "correct-completion";
     correct.textContent = publicState.results.correctCompletion;
     screen.append(correctHeading, correct);
 
     const optionsHeading = document.createElement("h2");
-    optionsHeading.textContent = "All completions";
+    optionsHeading.className = "results-section-heading";
+    optionsHeading.textContent = "Answers and votes";
     const options = document.createElement("ul");
-    options.className = "revealed-options";
+    options.className = "result-card-list";
     for (const option of publicState.results.options) {
-        const item = document.createElement("li");
-        const author = option.isCorrect
-          ? "Real answer"
-          : `Fake answer by ${option.authorName}`;
-        item.textContent = `${option.completion} — ${author}${option.isCorrect ? " (correct)" : ""}`;
-        options.append(item);
+      const item = document.createElement("li");
+      item.className = option.isCorrect
+        ? "result-card result-card-correct"
+        : "result-card";
+      const answerHeading = document.createElement("div");
+      answerHeading.className = "result-card-heading";
+      const answerType = document.createElement("span");
+      answerType.className = option.isCorrect
+        ? "answer-badge answer-badge-correct"
+        : "answer-badge answer-badge-fake";
+      answerType.textContent = option.isCorrect
+        ? "Real answer"
+        : `Bluff by ${option.authorName}`;
+      const voteCount = document.createElement("span");
+      voteCount.className = "answer-vote-count";
+      voteCount.textContent =
+        `${option.voters.length} vote${option.voters.length === 1 ? "" : "s"}`;
+      answerHeading.append(answerType, voteCount);
+
+      const answer = document.createElement("p");
+      answer.className = "result-answer-text";
+      answer.textContent = option.completion;
+      const voters = document.createElement("p");
+      voters.className = "result-detail";
+      voters.textContent = option.voters.length > 0
+        ? `Chosen by: ${option.voters.map(({ name }) => name).join(", ")}`
+        : "No one chose this answer.";
+      item.append(answerHeading, answer, voters);
+      if (!option.isCorrect) {
+        const bluffAward = document.createElement("p");
+        bluffAward.className = "result-award";
+        bluffAward.textContent =
+          `Bluff reward: ${option.voters.length} point${option.voters.length === 1 ? "" : "s"} to ${option.authorName}`;
+        item.append(bluffAward);
+      }
+      options.append(item);
     }
     screen.append(optionsHeading, options);
 
     const playerResultsHeading = document.createElement("h2");
-    playerResultsHeading.textContent = "Votes and round points";
+    playerResultsHeading.className = "results-section-heading";
+    playerResultsHeading.textContent = "Player score breakdown";
     const playerResults = document.createElement("ul");
-    playerResults.className = "revealed-options";
+    playerResults.className = "result-card-list player-score-list";
     for (const player of publicState.results.players) {
-        const item = document.createElement("li");
-        item.textContent =
-          `${player.name}: voted for “${player.voteCompletion}” ` +
-          `(${player.voteCorrect ? "correct" : "incorrect"}); submitted ` +
-          `“${player.submittedCompletion}”; +${player.roundPoints} ` +
-          `point${player.roundPoints === 1 ? "" : "s"}, ` +
-          `${player.totalScore} total`;
-        playerResults.append(item);
+      const item = document.createElement("li");
+      item.className = "result-card player-score-card";
+      const name = document.createElement("h3");
+      name.className = "player-score-name";
+      name.textContent = player.name;
+      const submitted = document.createElement("p");
+      submitted.className = "result-detail";
+      submitted.textContent = `Your submitted bluff: “${player.submittedCompletion}”`;
+      const vote = document.createElement("p");
+      vote.className = player.voteCorrect
+        ? "result-detail vote-correct"
+        : "result-detail vote-incorrect";
+      vote.textContent =
+        `Voted for “${player.voteCompletion}” — ${player.voteCorrect ? "correct" : "incorrect"}`;
+      const scoreReasons = document.createElement("ul");
+      scoreReasons.className = "score-reasons";
+      const correctReason = document.createElement("li");
+      correctReason.textContent = player.correctVotePoints > 0
+        ? `+${player.correctVotePoints} for finding the real answer`
+        : "0 for the vote (not the real answer)";
+      const bluffReason = document.createElement("li");
+      bluffReason.textContent = player.bluffPoints > 0
+        ? `+${player.bluffPoints} from votes for your bluff`
+        : "0 from votes for your bluff";
+      const scoreSummary = document.createElement("p");
+      scoreSummary.className = "score-summary";
+      scoreSummary.textContent =
+        `Round: +${player.roundPoints} · Total: ${player.totalScore}`;
+      scoreReasons.append(correctReason, bluffReason);
+      item.append(name, submitted, vote, scoreReasons, scoreSummary);
+      playerResults.append(item);
     }
     screen.append(playerResultsHeading, playerResults);
 
     const standingsHeading = document.createElement("h2");
+    standingsHeading.className = "results-section-heading";
     standingsHeading.textContent = publicState.isFinalRound
-      ? "Final standings — total scores"
-      : "Standings — total scores";
+      ? "Final leaderboard"
+      : "Current leaderboard";
     const standings = document.createElement("ol");
-    standings.className = "revealed-options";
+    standings.className = "result-card-list standings-list";
     for (const standing of publicState.results.standings) {
-        const item = document.createElement("li");
-        item.textContent =
-          `#${standing.rank} ${standing.name} — ${standing.totalScore} ` +
-          `point${standing.totalScore === 1 ? "" : "s"}`;
-        standings.append(item);
+      const item = document.createElement("li");
+      item.className = "result-card standing-card";
+      const rank = document.createElement("span");
+      rank.className = "standing-rank";
+      rank.textContent = `#${standing.rank}`;
+      const standingName = document.createElement("span");
+      standingName.className = "standing-name";
+      standingName.textContent = standing.name;
+      const score = document.createElement("strong");
+      score.className = "standing-score";
+      score.textContent =
+        `${standing.totalScore} point${standing.totalScore === 1 ? "" : "s"}`;
+      item.append(rank, standingName, score);
+      standings.append(item);
     }
     screen.append(standingsHeading, standings);
 
@@ -458,16 +544,25 @@ export function renderFakeAnswerGame(
   }
 
   if (publicState.phase === "voting") {
+    const instructions = document.createElement("p");
+    instructions.className = "screen-description voting-instructions";
+    instructions.textContent =
+      "Choose the real completion. Your own answer is visible but cannot be selected.";
     const progress = document.createElement("p");
     progress.className = "vote-progress";
     progress.textContent =
       `${publicState.voteCount} / ${publicState.playerCount} players voted`;
-    screen.append(progress);
+    screen.append(instructions, progress);
 
     if (submission.hasVoted) {
       const waiting = document.createElement("p");
-      waiting.className = "status-message";
-      waiting.textContent = "Your vote has been recorded. Waiting for other players…";
+      waiting.className = "status-message vote-accepted";
+      const selectedAnswer = publicState.options?.find(
+        ({ id }) => id === submission.selectedOptionId,
+      );
+      waiting.textContent = selectedAnswer
+        ? `Your vote was accepted for: “${selectedAnswer.completion}”. Waiting for other players…`
+        : "Your vote was accepted. Waiting for other players…";
       screen.append(waiting);
       return screen;
     }
@@ -476,17 +571,22 @@ export function renderFakeAnswerGame(
     form.className = "vote-form";
     for (const option of publicState.options ?? []) {
       const label = document.createElement("label");
-      label.className = "vote-option";
+      label.className = option.isOwnAnswer
+        ? "vote-option vote-option-own"
+        : "vote-option";
       const input = document.createElement("input");
       input.type = "radio";
       input.name = "vote-option";
       input.value = option.id;
       input.checked = submission.selectedOptionId === option.id;
-      input.disabled = submission.isVoting;
+      input.disabled = submission.isVoting || option.isOwnAnswer;
       input.addEventListener("change", () => onSelectVote(option.id));
       const answer = document.createElement("span");
       answer.textContent = option.completion;
-      label.append(input, answer);
+      const badge = document.createElement("span");
+      badge.className = option.isOwnAnswer ? "own-answer-badge" : "vote-answer-spacer";
+      badge.textContent = option.isOwnAnswer ? "Your answer" : "";
+      label.append(input, answer, badge);
       form.append(label);
     }
     const submit = document.createElement("button");

@@ -4,6 +4,7 @@ const { io: createClient } = require("socket.io-client");
 const { port: defaultPort } = require("../config");
 const gameManager = require("../gameManager");
 const { questions } = require("../games/fake-answer/questionBank");
+const fakeAnswerSocketHandlers = require("../games/fake-answer/socketHandlers");
 const roomManager = require("../roomManager");
 const { startServer } = require("../server");
 
@@ -27,6 +28,7 @@ async function createHarness(context) {
         }
         await new Promise((resolve) => io.close(resolve));
         for (const roomCode of roomCodes) {
+            fakeAnswerSocketHandlers.clearActionPhaseTimeout(roomCode);
             roomManager.removeRoom(roomCode);
             gameManager.removeGame(roomCode);
         }
@@ -1057,6 +1059,67 @@ test("fake-answer opens submissions after the question state and rejects early s
     );
 });
 
+test("an incomplete action phase expires safely to the same unready lobby without scoring", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, { playerCount: 2 });
+    const room = roomManager.getRoom(game.roomCode);
+    assert.ok(room);
+    const playerIds = room.players.map(({ id }) => id);
+
+    assert.equal(
+        fakeAnswerSocketHandlers.expireActionPhase(
+            harness.io,
+            game.roomCode,
+            `${game.gameState.sessionId}-stale`,
+            game.gameState.state.roundId,
+            "answer-submission"
+        ),
+        false
+    );
+    assert.equal(room.status, "starting");
+
+    const hostLobby = waitForLobby(
+        game.host,
+        (lobby) => lobby.status === "lobby"
+    );
+    const guestLobby = waitForLobby(
+        game.players[0],
+        (lobby) => lobby.status === "lobby"
+    );
+    const aborted = new Promise((resolve) => {
+        game.host.once("game-aborted", resolve);
+    });
+    assert.equal(
+        fakeAnswerSocketHandlers.expireActionPhase(
+            harness.io,
+            game.roomCode,
+            game.gameState.sessionId,
+            game.gameState.state.roundId,
+            "answer-submission"
+        ),
+        true
+    );
+
+    const [hostState, guestState, abortNotice] = await Promise.all([
+        hostLobby,
+        guestLobby,
+        aborted,
+    ]);
+    assert.deepEqual(hostState, guestState);
+    assert.equal(hostState.roomCode, game.roomCode);
+    assert.deepEqual(hostState.players.map(({ id }) => id), playerIds);
+    assert.equal(hostState.players.every(({ isReady }) => !isReady), true);
+    assert.match(abortNotice.message, /not completed in time/);
+    assert.throws(
+        () => gameManager.getPublicGameState(game.roomCode, game.host.id),
+        { code: "GAME_NOT_ACTIVE" }
+    );
+    fakeAnswerSocketHandlers.clearActionPhaseTimeout(
+        game.roomCode,
+        game.gameState.sessionId
+    );
+});
+
 test("fake-answer submissions broadcast safe progress and enter reveal after all players submit", async (context) => {
     const harness = await createHarness(context);
     const { host, players, gameState } = await startFakeAnswer(harness);
@@ -1132,12 +1195,12 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
         const state = revealStates[index];
         assert.equal(state.state.phase, "reveal");
         assert.equal(state.state.submissionCount, clients.length);
-        assert.equal(state.state.options.length, clients.length);
+        assert.equal(state.state.options.length, clients.length + 1);
         assert.equal(
-            state.state.options.some(
+            state.state.options.find(
                 ({ completion }) => completion === submittedCompletions[index]
-            ),
-            false
+            ).isOwnAnswer,
+            true
         );
         assert.equal(
             state.state.options.some(
@@ -1147,7 +1210,9 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
         );
         assert.ok(
             state.state.options.every(
-                (option) => Object.keys(option).sort().join(",") === "completion,id"
+                (option) =>
+                    Object.keys(option).sort().join(",") ===
+                    "completion,id,isOwnAnswer"
             )
         );
     }
@@ -1160,7 +1225,7 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
     }
 });
 
-test("two-player fake-answer reveal hides own answer and voting reaches results", async (context) => {
+test("two-player fake-answer reveal shows the own answer without revealing authors and voting reaches results", async (context) => {
     const harness = await createHarness(context);
     const { host, players, questionState, gameState } = await startFakeAnswer(
         harness,
@@ -1225,10 +1290,12 @@ test("two-player fake-answer reveal hides own answer and voting reaches results"
         const state = revealStates[index];
         assert.equal(state.state.phase, "reveal");
         assert.equal(state.state.submissionCount, 2);
-        assert.equal(state.state.options.length, 2);
+        assert.equal(state.state.options.length, 3);
         assert.equal(
-            state.state.options.some(({ completion }) => completion === ownCompletions[index]),
-            false
+            state.state.options.find(
+                ({ completion }) => completion === ownCompletions[index]
+            ).isOwnAnswer,
+            true
         );
         assert.equal(
             state.state.options.some(({ completion }) => completion === question.correctCompletion),
@@ -1237,14 +1304,19 @@ test("two-player fake-answer reveal hides own answer and voting reaches results"
         assert.ok(
             state.state.options.every(
                 (option) =>
-                    Object.keys(option).sort().join(",") === "completion,id" &&
+                    Object.keys(option).sort().join(",") === "completion,id,isOwnAnswer" &&
+                    typeof option.isOwnAnswer === "boolean" &&
                     /^[0-9a-f-]{36}$/i.test(option.id)
             )
         );
     }
-    assert.notDeepEqual(
+    assert.deepEqual(
         revealStates[0].state.options.map(({ id }) => id),
         revealStates[1].state.options.map(({ id }) => id)
+    );
+    assert.notDeepEqual(
+        revealStates[0].state.options.map(({ isOwnAnswer }) => isOwnAnswer),
+        revealStates[1].state.options.map(({ isOwnAnswer }) => isOwnAnswer)
     );
 
     const votingStates = await Promise.all(votingEvents);
@@ -1254,7 +1326,7 @@ test("two-player fake-answer reveal hides own answer and voting reaches results"
         assert.equal(state.state.voteCount, 0);
         assert.deepEqual(state.state.options, revealStates[index].state.options);
         assert.equal(JSON.stringify(state).includes(question.correctCompletion), true);
-        assert.equal(JSON.stringify(state).includes(ownCompletions[index]), false);
+        assert.equal(JSON.stringify(state).includes(ownCompletions[index]), true);
     }
 
     const hostOwnOptionId = votingStates[1].state.options.find(
@@ -1316,12 +1388,15 @@ test("two-player fake-answer reveal hides own answer and voting reaches results"
         players[0],
         (state) => state.state.phase === "results"
     );
+    const hostVotableOptions = votingStates[0].state.options.filter(
+        ({ isOwnAnswer }) => !isOwnAnswer
+    );
     const simultaneousVotes = await Promise.all([
         emitWithAck(host, "fake-answer:vote", withRoundId(votingStates[0], {
-            optionId: votingStates[0].state.options[0].id,
+            optionId: hostVotableOptions[0].id,
         })),
         emitWithAck(host, "fake-answer:vote", withRoundId(votingStates[0], {
-            optionId: votingStates[0].state.options[1].id,
+            optionId: hostVotableOptions[1].id,
         })),
     ]);
     const hostVote = simultaneousVotes[0];
@@ -1335,7 +1410,9 @@ test("two-player fake-answer reveal hides own answer and voting reaches results"
     assert.equal(Object.hasOwn(guestVoteProgress.state, "votes"), false);
     const guestVote = await emitWithAck(players[0], "fake-answer:vote", {
         ...withRoundId(votingStates[1], {
-        optionId: votingStates[1].state.options[0].id,
+        optionId: votingStates[1].state.options.find(
+            ({ isOwnAnswer }) => !isOwnAnswer
+        ).id,
         }),
     });
     assert.deepEqual(guestVote, { voted: true, voteCount: 2, playerCount: 2 });
@@ -1353,6 +1430,22 @@ test("two-player fake-answer reveal hides own answer and voting reaches results"
         assert.equal(state.state.results.correctCompletion, question.correctCompletion);
         assert.equal(state.state.results.options.length, 3);
         assert.equal(state.state.results.players.length, 2);
+        for (const resultPlayer of state.state.results.players) {
+            assert.equal(
+                resultPlayer.roundPoints,
+                resultPlayer.correctVotePoints + resultPlayer.bluffPoints
+            );
+            const votedOption = state.state.results.options.find(
+                ({ id }) => id === resultPlayer.voteOptionId
+            );
+            assert.ok(votedOption);
+            assert.equal(
+                votedOption.voters.some(({ playerId }) =>
+                    playerId === resultPlayer.playerId
+                ),
+                true
+            );
+        }
         assert.equal(
             state.state.results.players.reduce((sum, player) => sum + player.roundPoints, 0),
             state.state.results.players.reduce(

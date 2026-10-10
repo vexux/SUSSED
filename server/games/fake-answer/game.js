@@ -231,31 +231,65 @@ function vote(state, playerId, optionId) {
 }
 
 function calculateRoundResults(state) {
-    const roundPoints = new Map(state.participants.map(({ id }) => [id, 0]));
+    const participantById = new Map(
+        state.participants.map((player) => [player.id, player])
+    );
+    const optionById = new Map(state.options.map((option) => [option.id, option]));
+    const optionVoters = new Map(state.options.map(({ id }) => [id, []]));
+    const correctVotePoints = new Map(
+        state.participants.map(({ id }) => [id, 0])
+    );
+    const bluffPoints = new Map(state.participants.map(({ id }) => [id, 0]));
+
+    for (const [voterId, optionId] of state.votes) {
+        const voter = participantById.get(voterId);
+        const option = optionById.get(optionId);
+        if (!voter || !option || option.authorId === voterId) {
+            throw new FakeAnswerError(
+                "INVALID_VOTE_STATE",
+                "The current round contains an invalid vote mapping."
+            );
+        }
+        optionVoters.get(optionId).push({
+            playerId: voter.id,
+            name: voter.name
+        });
+        if (option.correct) {
+            correctVotePoints.set(voterId, correctVotePoints.get(voterId) + 1);
+        }
+        if (option.authorId !== null) {
+            if (!participantById.has(option.authorId)) {
+                throw new FakeAnswerError(
+                    "INVALID_VOTE_STATE",
+                    "A voted answer has no participating author."
+                );
+            }
+            bluffPoints.set(option.authorId, bluffPoints.get(option.authorId) + 1);
+        }
+    }
+
     const options = state.options.map((option) => ({
         id: option.id,
         completion: option.completion,
         authorId: option.authorId,
         authorName: option.authorId === null
             ? null
-            : state.participants.find(({ id }) => id === option.authorId).name,
-        isCorrect: option.correct
+            : participantById.get(option.authorId)?.name ?? null,
+        isCorrect: option.correct,
+        voters: optionVoters.get(option.id)
     }));
-
-    for (const [voterId, optionId] of state.votes) {
-        const option = state.options.find(({ id }) => id === optionId);
-        if (option.correct) {
-            roundPoints.set(voterId, roundPoints.get(voterId) + 1);
-        }
-        if (option.authorId !== null && option.authorId !== voterId) {
-            roundPoints.set(option.authorId, roundPoints.get(option.authorId) + 1);
-        }
-    }
-
     const players = state.participants.map((player) => {
         const voteOptionId = state.votes.get(player.id);
-        const voteOption = state.options.find(({ id }) => id === voteOptionId);
-        const points = roundPoints.get(player.id);
+        const voteOption = optionById.get(voteOptionId);
+        if (!voteOption) {
+            throw new FakeAnswerError(
+                "INVALID_VOTE_STATE",
+                `Player "${player.id}" has no valid vote for this round.`
+            );
+        }
+        const correctPoints = correctVotePoints.get(player.id);
+        const bluffAward = bluffPoints.get(player.id);
+        const points = correctPoints + bluffAward;
         const totalScore = state.scores.get(player.id) + points;
         return {
             playerId: player.id,
@@ -264,6 +298,8 @@ function calculateRoundResults(state) {
             voteOptionId,
             voteCompletion: voteOption.completion,
             voteCorrect: voteOption.correct,
+            correctVotePoints: correctPoints,
+            bluffPoints: bluffAward,
             roundPoints: points,
             totalScore
         };
@@ -452,8 +488,11 @@ function createPublicState(state, viewerId) {
         ...(includesVoteOptions
             ? {
                 options: state.options
-                    .filter((option) => option.authorId !== viewerId)
-                    .map(({ id, completion }) => ({ id, completion }))
+                    .map(({ id, completion, authorId }) => ({
+                            id,
+                            completion,
+                            isOwnAnswer: authorId === viewerId
+                        }))
             }
             : {}),
         ...(state.phase === "voting" || state.phase === "waiting-for-results"

@@ -474,6 +474,21 @@ socket.on("lobby-state", (lobby: LobbyState) => {
 });
 
 socket.on(
+  "game-aborted",
+  (payload: { reason: string; message: string }) => {
+    if (
+      !state.roomCode ||
+      state.currentView !== "lobby" ||
+      payload.reason !== "phase-timeout"
+    ) {
+      return;
+    }
+    state.errorMessage = payload.message;
+    render();
+  },
+);
+
+socket.on(
   "game-starting",
   (payload: { roomCode: string; lobby: LobbyState }) => {
     if (payload.roomCode !== state.roomCode) {

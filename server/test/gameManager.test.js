@@ -145,7 +145,7 @@ test("retired session IDs cannot act on or remove a replacement session", () => 
     }
 });
 
-test("fake-answer reveals options and enters voting after every participant submits", () => {
+test("fake-answer reveals anonymous options, marks own answer, and enters voting after all submit", () => {
     const room = createStartingRoom();
     gameManager.startGame(room, "fake-answer");
     assert.throws(
@@ -179,7 +179,7 @@ test("fake-answer reveals options and enters voting after every participant subm
     }
 
     assert.equal(finalState.gameState.state.phase, "reveal");
-    assert.equal(finalState.gameState.state.options.length, room.players.length);
+    assert.equal(finalState.gameState.state.options.length, room.players.length + 1);
     const selectedQuestion = questions.find(
         ({ id }) => id === finalState.gameState.state.prompt.id
     );
@@ -191,7 +191,8 @@ test("fake-answer reveals options and enters voting after every participant subm
     );
     assert.ok(
         finalState.gameState.state.options.every(
-            (option) => Object.keys(option).sort().join(",") === "completion,id"
+            (option) =>
+                Object.keys(option).sort().join(",") === "completion,id,isOwnAnswer"
         )
     );
 
@@ -225,15 +226,22 @@ test("fake-answer reveals options and enters voting after every participant subm
     );
     const playerOneOptions = gameManager.getPublicGameState(room.code, "player-1").state.options;
     const playerTwoOptions = gameManager.getPublicGameState(room.code, "player-2").state.options;
-    assert.equal(playerOneOptions.length, room.players.length);
-    assert.equal(playerOneOptions.some(({ id }) => id === ownAnswerId), false);
+    assert.equal(playerOneOptions.length, room.players.length + 1);
+    assert.equal(playerTwoOptions.length, room.players.length + 1);
     assert.equal(
-        playerOneOptions.some(
-            ({ completion }) => completion === "Invented completion by Player 1"
-        ),
-        false
+        playerOneOptions.find(({ id }) => id === ownAnswerId).isOwnAnswer,
+        true
     );
-    assert.equal(playerTwoOptions.length, room.players.length);
+    assert.equal(
+        playerOneOptions.find(
+            ({ completion }) => completion === "Invented completion by Player 1"
+        ).isOwnAnswer,
+        true
+    );
+    assert.equal(
+        playerTwoOptions.filter(({ isOwnAnswer }) => isOwnAnswer).length,
+        1
+    );
     assert.ok(
         playerOneOptions.every(
             (option) => !("authorId" in option) && !("correct" in option)
@@ -253,7 +261,7 @@ test("fake-answer reveals options and enters voting after every participant subm
         ),
         { code: "OWN_ANSWER_NOT_ALLOWED" }
     );
-    const voteOption = playerOneOptions[0];
+    const voteOption = playerOneOptions.find(({ isOwnAnswer }) => !isOwnAnswer);
     const vote = gameManager.performGameAction(
         room.code,
         "fake-answer",
@@ -283,7 +291,7 @@ test("fake-answer reveals options and enters voting after every participant subm
             "fake-answer",
             player.id,
             "vote",
-            options[0].id
+            options.find(({ isOwnAnswer }) => !isOwnAnswer).id
         );
     }
     assert.equal(resultsState.gameState.state.phase, "waiting-for-results");
@@ -415,7 +423,7 @@ test("two-player fake-answer game reaches reveal after both players submit once"
             id: question.id,
             text: question.text
         });
-        assert.equal(finalSubmission.gameState.state.options.length, 2);
+        assert.equal(finalSubmission.gameState.state.options.length, 3);
         assert.equal(
             finalSubmission.gameState.state.options.some(
                 ({ completion }) => completion === question.correctCompletion
@@ -457,18 +465,20 @@ test("fake-answer voting supports every player count from two through eight", ()
             let finalVote;
             for (const player of room.players) {
                 const publicState = gameManager.getPublicGameState(room.code, player.id);
-                assert.equal(publicState.state.options.length, playerCount);
+                assert.equal(publicState.state.options.length, playerCount + 1);
                 assert.equal(
-                    publicState.state.options.some(
+                    publicState.state.options.find(
                         ({ completion }) => completion === `Invented answer for ${player.id}`
-                    ),
-                    false
+                    ).isOwnAnswer,
+                    true
                 );
                 assert.ok(
                     publicState.state.options.every(
                         (option) =>
                             typeof option.id === "string" &&
-                            Object.keys(option).sort().join(",") === "completion,id"
+                            typeof option.isOwnAnswer === "boolean" &&
+                            Object.keys(option).sort().join(",") ===
+                                "completion,id,isOwnAnswer"
                     )
                 );
                 finalVote = gameManager.performGameAction(
@@ -476,7 +486,9 @@ test("fake-answer voting supports every player count from two through eight", ()
                     "fake-answer",
                     player.id,
                     "vote",
-                    publicState.state.options[0].id
+                    publicState.state.options.find(
+                        ({ isOwnAnswer }) => !isOwnAnswer
+                    ).id
                 );
             }
             assert.equal(finalVote.gameState.state.phase, "waiting-for-results");
@@ -510,10 +522,25 @@ test("fake-answer scoring awards correct-vote and fake-answer points independent
     assert.equal(state.phase, "results");
     assert.equal(state.results.players[0].voteOptionId, realOption.id);
     assert.equal(state.results.players[0].roundPoints, 3);
+    assert.equal(state.results.players[0].correctVotePoints, 1);
+    assert.equal(state.results.players[0].bluffPoints, 2);
     assert.equal(state.results.players[0].totalScore, 3);
     assert.equal(state.results.options.find(({ id }) => id === playerOneFake.id).authorId, players[0].id);
+    assert.deepEqual(
+        state.results.options.find(({ id }) => id === playerOneFake.id).voters.map(
+            ({ playerId }) => playerId
+        ),
+        [players[1].id, players[2].id]
+    );
+    assert.deepEqual(
+        state.results.options.find(({ id }) => id === realOption.id).voters.map(
+            ({ playerId }) => playerId
+        ),
+        [players[0].id]
+    );
     for (const player of state.results.players.slice(1)) {
         assert.equal(player.voteCorrect, false);
+        assert.equal(player.correctVotePoints, 0);
         assert.equal(player.roundPoints, 0);
     }
 });
@@ -556,6 +583,9 @@ test("fake-answer incorrect votes only score when another player selects that fa
     const expectedResults = fakeAnswer.calculateRoundResults(state);
     assert.ok(expectedResults.players.every(({ voteCorrect, roundPoints }) =>
         !voteCorrect && roundPoints === 1
+    ));
+    assert.ok(expectedResults.players.every(({ correctVotePoints }) =>
+        correctVotePoints === 0
     ));
     fakeAnswer.handleAction(state, "publish-results");
     assert.deepEqual(
