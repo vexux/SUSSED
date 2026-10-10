@@ -68,6 +68,13 @@ export function formatRoundPoints(points: number): string {
   return `${points >= 0 ? "+" : ""}${points}`;
 }
 
+export const VOTING_ROUND_HEADING = "Voting Round";
+export const FINAL_STATISTIC_LABELS = [
+  ["mostPlayersFooled", "Most players siked"],
+  ["gotFooledMost", "Got siked the most"],
+  ["mostCorrectAnswers", "Most correct answers"],
+] as const;
+
 export function getPersonalRoundFeedback(
   results: FakeAnswerResults,
   currentPlayerId: string | null,
@@ -93,10 +100,55 @@ export function getPersonalRoundFeedback(
     return {
       outcome: "fooled",
       title: "Sike!",
-      detail: `${selectedOption.authorName} fooled you!`,
+      detail: `${selectedOption.authorName} got you!`,
     };
   }
   return { outcome: "neutral", title: "No vote submitted", detail: "" };
+}
+
+function createRevealAnswerCard(
+  completion: string,
+  voters: FakeAnswerResultOption["voters"],
+  authorName: string | null,
+  isCorrect: boolean,
+): HTMLLIElement {
+  const item = document.createElement("li");
+  item.className = isCorrect
+    ? "result-card result-card-correct real-answer-card"
+    : "result-card";
+
+  const answerHeading = document.createElement("div");
+  answerHeading.className = "result-card-heading answer-card-main-row";
+  const answerContent = document.createElement("div");
+  answerContent.className = "answer-card-content";
+  if (!isCorrect) {
+    const author = document.createElement("span");
+    author.className = "bluff-author";
+    author.textContent = authorName ?? "Unknown player";
+    const separator = document.createElement("span");
+    separator.className = "bluff-author-separator";
+    separator.setAttribute("aria-hidden", "true");
+    separator.textContent = "|";
+    answerContent.append(author, separator);
+  }
+  const answer = document.createElement("span");
+  answer.className = "result-answer-text answer-card-answer";
+  answer.textContent = formatAnswerForDisplay(completion);
+  answerContent.append(answer);
+
+  const voteCount = document.createElement("span");
+  voteCount.className = "answer-vote-count";
+  voteCount.textContent = `${voters.length} vote${voters.length === 1 ? "" : "s"}`;
+  answerHeading.append(answerContent, voteCount);
+
+  const voterNames = document.createElement("p");
+  voterNames.className = "result-detail";
+  voterNames.textContent = voters.length > 0
+    ? `Chosen by: ${voters.map(({ name }) => name).join(", ")}`
+    : "No one chose this answer.";
+
+  item.append(answerHeading, voterNames);
+  return item;
 }
 
 export interface FakeAnswerPublicState {
@@ -594,12 +646,7 @@ function createFinalResultsScreen(
   statisticsHeading.textContent = "Fun statistics";
   const statistics = document.createElement("ul");
   statistics.className = "final-statistics";
-  const statisticLabels = [
-    ["mostPlayersFooled", "Most players fooled"],
-    ["gotFooledMost", "Got fooled the most"],
-    ["mostCorrectAnswers", "Most correct answers"],
-  ] as const;
-  for (const [key, label] of statisticLabels) {
+  for (const [key, label] of FINAL_STATISTIC_LABELS) {
     const statistic = publicState.finalStatistics[key];
     const row = document.createElement("li");
     const name = document.createElement("strong");
@@ -691,7 +738,7 @@ export function renderFakeAnswerGame(
   title.textContent = publicState.phase === "reveal"
     ? "Answers revealed"
     : publicState.phase === "voting"
-      ? "Vote for the real completion"
+      ? VOTING_ROUND_HEADING
       : publicState.phase === "waiting-for-results"
         ? "All votes are in"
         : publicState.phase === "results"
@@ -720,28 +767,18 @@ export function renderFakeAnswerGame(
     const realHeading = document.createElement("h2");
     realHeading.className = "results-section-heading";
     realHeading.textContent = "Correct Answer";
-    const realAnswerCard = document.createElement("article");
-    realAnswerCard.className = "result-card result-card-correct real-answer-card";
-    const realCardHeading = document.createElement("div");
-    realCardHeading.className = "real-answer-heading";
-    const realVoteCount = document.createElement("span");
-    realVoteCount.className = "answer-vote-count";
     const realVoters = realOption?.voters ?? [];
-    realVoteCount.textContent =
-      `${realVoters.length} vote${realVoters.length === 1 ? "" : "s"}`;
-    realCardHeading.append(realVoteCount);
-    const realAnswer = document.createElement("p");
-    realAnswer.className = "result-answer-text";
-    realAnswer.textContent = formatAnswerForDisplay(
-      realOption?.completion ?? publicState.results.correctCompletion,
+    const realOptions = document.createElement("ul");
+    realOptions.className = "result-card-list";
+    realOptions.append(
+      createRevealAnswerCard(
+        realOption?.completion ?? publicState.results.correctCompletion,
+        realVoters,
+        null,
+        true,
+      ),
     );
-    const realVoterNames = document.createElement("p");
-    realVoterNames.className = "result-detail";
-    realVoterNames.textContent = realVoters.length > 0
-      ? `Chosen by: ${realVoters.map(({ name }) => name).join(", ")}`
-      : "No one chose this answer.";
-    realAnswerCard.append(realCardHeading, realAnswer, realVoterNames);
-    screen.append(realHeading, realAnswerCard);
+    screen.append(realHeading, realOptions);
 
     const optionsHeading = document.createElement("h2");
     optionsHeading.className = "results-section-heading";
@@ -749,30 +786,14 @@ export function renderFakeAnswerGame(
     const options = document.createElement("ul");
     options.className = "result-card-list";
     for (const option of fakeOptions) {
-      const item = document.createElement("li");
-      item.className = "result-card";
-      const answerHeading = document.createElement("div");
-      answerHeading.className = "result-card-heading";
-      const author = document.createElement("span");
-      author.className = "bluff-author";
-      author.textContent = option.authorName ?? "Unknown player";
-      const voteCount = document.createElement("span");
-      voteCount.className = "answer-vote-count";
-      voteCount.textContent =
-        `${option.voters.length} vote${option.voters.length === 1 ? "" : "s"}`;
-      answerHeading.classList.add("bluff-card-heading");
-      answerHeading.append(author, voteCount);
-
-      const answer = document.createElement("p");
-      answer.className = "result-answer-text bluff-answer-text";
-      answer.textContent = formatAnswerForDisplay(option.completion);
-      const voters = document.createElement("p");
-      voters.className = "result-detail";
-      voters.textContent = option.voters.length > 0
-        ? `Chosen by: ${option.voters.map(({ name }) => name).join(", ")}`
-        : "No one chose this answer.";
-      item.append(answerHeading, answer, voters);
-      options.append(item);
+      options.append(
+        createRevealAnswerCard(
+          option.completion,
+          option.voters,
+          option.authorName,
+          false,
+        ),
+      );
     }
     screen.append(optionsHeading, options);
 

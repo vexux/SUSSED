@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  FINAL_STATISTIC_LABELS,
+  VOTING_ROUND_HEADING,
   formatRoundPoints,
   getPersonalRoundFeedback,
   getRevealAnswerGroups,
@@ -68,17 +70,30 @@ test("groups reveal answers by authoritative correctness rather than answer text
     ["Player Two"],
   );
   assert.deepEqual(
-    groups.fakeOptions.map(({ id, authorId, voters }) => ({
+    groups.fakeOptions.map(({ id, completion, authorId, voters }) => ({
       id,
+      completion,
       authorId,
       voterNames: voters.map(({ name }) => name),
     })),
     [{
       id: "fake-option",
+      completion: "the real completion",
       authorId: "player-2",
       voterNames: ["Player One"],
     }],
   );
+  assert.equal(groups.realOption.completion, "the real completion");
+  assert.deepEqual(groups.realOption.voters.map(({ name }) => name), ["Player Two"]);
+});
+
+test("shared game display labels use current voting and final-statistic terminology", () => {
+  assert.equal(VOTING_ROUND_HEADING, "Voting Round");
+  assert.deepEqual(FINAL_STATISTIC_LABELS, [
+    ["mostPlayersFooled", "Most players siked"],
+    ["gotFooledMost", "Got siked the most"],
+    ["mostCorrectAnswers", "Most correct answers"],
+  ]);
 });
 
 test("round-point labels include an explicit sign for positive, zero, and negative deltas", () => {
@@ -98,7 +113,7 @@ test("personalized feedback follows the player's selected option ID", () => {
   assert.deepEqual(getPersonalRoundFeedback(results, "player-1"), {
     outcome: "fooled",
     title: "Sike!",
-    detail: "Player Two fooled you!",
+    detail: "Player Two got you!",
   });
 });
 
