@@ -1,0 +1,1126 @@
+{
+  "contentPackId": "general-facts-batch-2026-10",
+  "questions": [
+    {
+      "id": "mercury-nearest-sun",
+      "text": "The planet closest to the Sun is ____.",
+      "correctCompletion": "Mercury",
+      "sourceName": "NASA — Planets",
+      "sourceUrl": "https://science.nasa.gov/solar-system/planets/",
+      "category": "space",
+      "difficulty": "easy",
+      "tags": [
+        "solar-system",
+        "planets",
+        "Mercury"
+      ]
+    },
+    {
+      "id": "jupiter-largest-planet",
+      "text": "The largest planet in our solar system is ____.",
+      "correctCompletion": "Jupiter",
+      "sourceName": "NASA — Planets",
+      "sourceUrl": "https://science.nasa.gov/solar-system/planets/",
+      "category": "space",
+      "difficulty": "easy",
+      "tags": [
+        "solar-system",
+        "planets",
+        "Jupiter"
+      ]
+    },
+    {
+      "id": "venus-hottest-planet",
+      "text": "The hottest planet in our solar system is ____.",
+      "correctCompletion": "Venus",
+      "sourceName": "NASA — Venus Facts",
+      "sourceUrl": "https://science.nasa.gov/venus/venus-facts/",
+      "category": "space",
+      "difficulty": "easy",
+      "tags": [
+        "solar-system",
+        "planets",
+        "Venus"
+      ]
+    },
+    {
+      "id": "jupiter-shortest-day",
+      "text": "The planet with the shortest day in the solar system is ____.",
+      "correctCompletion": "Jupiter",
+      "sourceName": "NASA — Jupiter Facts",
+      "sourceUrl": "https://science.nasa.gov/jupiter/jupiter-facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "solar-system",
+        "rotation",
+        "Jupiter"
+      ]
+    },
+    {
+      "id": "mercury-shortest-year",
+      "text": "A year on Mercury lasts about ____ Earth days.",
+      "correctCompletion": "88",
+      "sourceName": "NASA — Mercury Facts",
+      "sourceUrl": "https://science.nasa.gov/mercury/facts/",
+      "category": "space",
+      "difficulty": "easy",
+      "tags": [
+        "solar-system",
+        "orbit",
+        "Mercury"
+      ]
+    },
+    {
+      "id": "earth-one-natural-moon",
+      "text": "Earth has ____ natural moon.",
+      "correctCompletion": "one",
+      "sourceName": "NASA — Earth Facts",
+      "sourceUrl": "https://science.nasa.gov/earth/facts/",
+      "category": "space",
+      "difficulty": "easy",
+      "tags": [
+        "Earth",
+        "moons",
+        "solar-system"
+      ]
+    },
+    {
+      "id": "mars-two-moons",
+      "text": "Mars has two moons, Phobos and ____.",
+      "correctCompletion": "Deimos",
+      "sourceName": "NASA — Mars Facts",
+      "sourceUrl": "https://science.nasa.gov/mars/facts/",
+      "category": "space",
+      "difficulty": "easy",
+      "tags": [
+        "Mars",
+        "moons",
+        "solar-system"
+      ]
+    },
+    {
+      "id": "moon-synchronous-rotation",
+      "text": "Because the Moon rotates at the same rate it orbits Earth, the same lunar hemisphere always faces ____.",
+      "correctCompletion": "Earth",
+      "sourceName": "NASA — Moon Facts",
+      "sourceUrl": "https://science.nasa.gov/moon/facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "Moon",
+        "rotation",
+        "orbit"
+      ]
+    },
+    {
+      "id": "moon-receding-rate",
+      "text": "The Moon moves away from Earth by about ____ each year.",
+      "correctCompletion": "one inch",
+      "sourceName": "NASA — Moon Facts",
+      "sourceUrl": "https://science.nasa.gov/moon/facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "Moon",
+        "Earth",
+        "distance"
+      ]
+    },
+    {
+      "id": "earth-orbit-days",
+      "text": "Earth takes about ____ days to complete one orbit around the Sun.",
+      "correctCompletion": "365.25",
+      "sourceName": "NASA — Earth Facts",
+      "sourceUrl": "https://science.nasa.gov/earth/facts/",
+      "category": "space",
+      "difficulty": "easy",
+      "tags": [
+        "Earth",
+        "orbit",
+        "calendar"
+      ]
+    },
+    {
+      "id": "earth-seasons-tilt",
+      "text": "Earth's yearly cycle of seasons is caused by the tilt of its ____.",
+      "correctCompletion": "axis",
+      "sourceName": "NASA — Earth Facts",
+      "sourceUrl": "https://science.nasa.gov/earth/facts/",
+      "category": "space",
+      "difficulty": "easy",
+      "tags": [
+        "Earth",
+        "seasons",
+        "axis"
+      ]
+    },
+    {
+      "id": "uranus-sideways-spin",
+      "text": "The planet that rotates at a nearly right angle to its orbital plane, appearing to spin on its side, is ____.",
+      "correctCompletion": "Uranus",
+      "sourceName": "NASA — Uranus Facts",
+      "sourceUrl": "https://science.nasa.gov/uranus/facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "Uranus",
+        "rotation",
+        "planets"
+      ]
+    },
+    {
+      "id": "uranus-telescope-discovery",
+      "text": "The first planet discovered with the aid of a telescope was ____.",
+      "correctCompletion": "Uranus",
+      "sourceName": "NASA — Uranus Facts",
+      "sourceUrl": "https://science.nasa.gov/uranus/facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "Uranus",
+        "astronomy",
+        "history"
+      ]
+    },
+    {
+      "id": "neptune-discovery-year",
+      "text": "Neptune was discovered in ____.",
+      "correctCompletion": "1846",
+      "sourceName": "NASA — Neptune Facts",
+      "sourceUrl": "https://science.nasa.gov/neptune/neptune-facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "Neptune",
+        "astronomy",
+        "history"
+      ]
+    },
+    {
+      "id": "neptune-orbital-period",
+      "text": "One orbit of Neptune around the Sun takes about ____ Earth years.",
+      "correctCompletion": "165",
+      "sourceName": "NASA — Neptune Facts",
+      "sourceUrl": "https://science.nasa.gov/neptune/neptune-facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "Neptune",
+        "orbit",
+        "solar-system"
+      ]
+    },
+    {
+      "id": "saturn-density",
+      "text": "Saturn is the only planet in our solar system with an average density lower than ____.",
+      "correctCompletion": "water",
+      "sourceName": "NASA — Saturn Facts",
+      "sourceUrl": "https://science.nasa.gov/saturn/facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "Saturn",
+        "density",
+        "planets"
+      ]
+    },
+    {
+      "id": "saturn-ring-material",
+      "text": "Saturn's rings are made mostly of chunks of ____ and rock.",
+      "correctCompletion": "ice",
+      "sourceName": "NASA — Saturn Facts",
+      "sourceUrl": "https://science.nasa.gov/saturn/facts/",
+      "category": "space",
+      "difficulty": "easy",
+      "tags": [
+        "Saturn",
+        "rings",
+        "solar-system"
+      ]
+    },
+    {
+      "id": "mars-red-color",
+      "text": "Iron minerals in Martian rocks and dust appear red because they have ____.",
+      "correctCompletion": "rusted",
+      "sourceName": "NASA — Mars Facts",
+      "sourceUrl": "https://science.nasa.gov/mars/facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "Mars",
+        "iron",
+        "surface"
+      ]
+    },
+    {
+      "id": "olympus-mons-volcano",
+      "text": "The largest volcano in the solar system, Olympus Mons, is on ____.",
+      "correctCompletion": "Mars",
+      "sourceName": "NASA — Mars Facts",
+      "sourceUrl": "https://science.nasa.gov/mars/facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "Mars",
+        "volcanoes",
+        "solar-system"
+      ]
+    },
+    {
+      "id": "venus-retrograde-spin",
+      "text": "The planet that spins in the opposite direction from most planets is ____.",
+      "correctCompletion": "Venus",
+      "sourceName": "NASA — Venus Facts",
+      "sourceUrl": "https://science.nasa.gov/venus/venus-facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "Venus",
+        "rotation",
+        "planets"
+      ]
+    },
+    {
+      "id": "giraffe-tallest-mammal",
+      "text": "The world's tallest mammals are ____.",
+      "correctCompletion": "giraffes",
+      "sourceName": "National Geographic — Giraffe Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/giraffe",
+      "category": "wildlife/biology",
+      "difficulty": "easy",
+      "tags": [
+        "mammals",
+        "giraffe",
+        "size"
+      ]
+    },
+    {
+      "id": "giraffe-tongue-length",
+      "text": "A giraffe's tongue can be about ____ inches long.",
+      "correctCompletion": "21",
+      "sourceName": "National Geographic — Giraffe Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/giraffe",
+      "category": "wildlife/biology",
+      "difficulty": "medium",
+      "tags": [
+        "mammals",
+        "giraffe",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "cheetah-fastest-land-mammal",
+      "text": "The fastest land mammal is the ____.",
+      "correctCompletion": "cheetah",
+      "sourceName": "National Geographic — Cheetah Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/cheetah",
+      "category": "wildlife/biology",
+      "difficulty": "easy",
+      "tags": [
+        "mammals",
+        "cheetah",
+        "speed"
+      ]
+    },
+    {
+      "id": "bats-only-flying-mammals",
+      "text": "The only mammals capable of true flight are ____.",
+      "correctCompletion": "bats",
+      "sourceName": "National Geographic — Bat Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/bats",
+      "category": "wildlife/biology",
+      "difficulty": "easy",
+      "tags": [
+        "mammals",
+        "bats",
+        "flight"
+      ]
+    },
+    {
+      "id": "bat-echolocation",
+      "text": "Many bats use ____ to locate objects in the dark.",
+      "correctCompletion": "echolocation",
+      "sourceName": "National Geographic — Bat Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/bats",
+      "category": "wildlife/biology",
+      "difficulty": "easy",
+      "tags": [
+        "bats",
+        "senses",
+        "echolocation"
+      ]
+    },
+    {
+      "id": "emperor-largest-penguin",
+      "text": "The largest penguin species is the ____ penguin.",
+      "correctCompletion": "emperor",
+      "sourceName": "National Geographic — Emperor Penguin Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/birds/facts/emperor-penguin",
+      "category": "wildlife/biology",
+      "difficulty": "easy",
+      "tags": [
+        "birds",
+        "penguins",
+        "Antarctica"
+      ]
+    },
+    {
+      "id": "emperor-penguin-egg-care",
+      "text": "During incubation, a male emperor penguin keeps its egg warm on its ____.",
+      "correctCompletion": "feet",
+      "sourceName": "National Geographic — Emperor Penguin Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/birds/facts/emperor-penguin",
+      "category": "wildlife/biology",
+      "difficulty": "medium",
+      "tags": [
+        "birds",
+        "penguins",
+        "parenting"
+      ]
+    },
+    {
+      "id": "octopus-arms",
+      "text": "A common octopus has ____ arms.",
+      "correctCompletion": "eight",
+      "sourceName": "National Geographic — Common Octopus Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/invertebrates/facts/common-octopus",
+      "category": "wildlife/biology",
+      "difficulty": "easy",
+      "tags": [
+        "invertebrates",
+        "octopus",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "octopus-hard-body-part",
+      "text": "The beak is the only hard part of an octopus's ____.",
+      "correctCompletion": "body",
+      "sourceName": "National Geographic — Common Octopus Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/invertebrates/facts/common-octopus",
+      "category": "wildlife/biology",
+      "difficulty": "medium",
+      "tags": [
+        "invertebrates",
+        "octopus",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "octopus-ink-defense",
+      "text": "When threatened, an octopus can release a cloud of ____ to help it escape.",
+      "correctCompletion": "ink",
+      "sourceName": "National Geographic — Common Octopus Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/invertebrates/facts/common-octopus",
+      "category": "wildlife/biology",
+      "difficulty": "easy",
+      "tags": [
+        "invertebrates",
+        "octopus",
+        "defense"
+      ]
+    },
+    {
+      "id": "platypus-egg-laying",
+      "text": "Along with echidnas, platypuses belong to the small group of mammals that ____.",
+      "correctCompletion": "lay eggs",
+      "sourceName": "National Geographic — Platypus Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/platypus",
+      "category": "wildlife/biology",
+      "difficulty": "medium",
+      "tags": [
+        "mammals",
+        "platypus",
+        "reproduction"
+      ]
+    },
+    {
+      "id": "male-platypus-spur",
+      "text": "A male platypus can deliver venom with a sharp spur on a hind ____.",
+      "correctCompletion": "foot",
+      "sourceName": "National Geographic — Platypus Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/platypus",
+      "category": "wildlife/biology",
+      "difficulty": "medium",
+      "tags": [
+        "mammals",
+        "platypus",
+        "venom"
+      ]
+    },
+    {
+      "id": "koala-marsupial",
+      "text": "Although sometimes nicknamed a bear, the koala is a ____.",
+      "correctCompletion": "marsupial",
+      "sourceName": "National Geographic — Koala Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/koala",
+      "category": "wildlife/biology",
+      "difficulty": "easy",
+      "tags": [
+        "mammals",
+        "koala",
+        "Australia"
+      ]
+    },
+    {
+      "id": "koala-eucalyptus-diet",
+      "text": "Koalas rely on ____ trees for both food and habitat.",
+      "correctCompletion": "eucalyptus",
+      "sourceName": "National Geographic — Koala Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/koala",
+      "category": "wildlife/biology",
+      "difficulty": "easy",
+      "tags": [
+        "mammals",
+        "koala",
+        "diet"
+      ]
+    },
+    {
+      "id": "african-elephant-land-animal",
+      "text": "The largest land animals on Earth are ____ elephants.",
+      "correctCompletion": "African",
+      "sourceName": "National Geographic — African Elephant Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/african-elephant",
+      "category": "wildlife/biology",
+      "difficulty": "easy",
+      "tags": [
+        "mammals",
+        "elephants",
+        "Africa"
+      ]
+    },
+    {
+      "id": "elephant-trunk-muscles",
+      "text": "An elephant's trunk contains about ____ muscles.",
+      "correctCompletion": "40,000",
+      "sourceName": "National Geographic — African Elephant Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/african-elephant",
+      "category": "wildlife/biology",
+      "difficulty": "medium",
+      "tags": [
+        "mammals",
+        "elephants",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "blue-whale-largest-animal",
+      "text": "The largest animals known to have lived on Earth are ____ whales.",
+      "correctCompletion": "blue",
+      "sourceName": "National Geographic — Blue Whale Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/blue-whale",
+      "category": "wildlife/biology",
+      "difficulty": "easy",
+      "tags": [
+        "mammals",
+        "whales",
+        "size"
+      ]
+    },
+    {
+      "id": "blue-whale-krill-diet",
+      "text": "Blue whales feed nearly exclusively on tiny shrimp-like animals called ____.",
+      "correctCompletion": "krill",
+      "sourceName": "National Geographic — Blue Whale Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/blue-whale",
+      "category": "wildlife/biology",
+      "difficulty": "medium",
+      "tags": [
+        "mammals",
+        "whales",
+        "diet"
+      ]
+    },
+    {
+      "id": "polar-bear-skin-color",
+      "text": "Beneath its fur, a polar bear has ____ skin.",
+      "correctCompletion": "black",
+      "sourceName": "National Geographic — Polar Bear Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/polar-bear",
+      "category": "wildlife/biology",
+      "difficulty": "medium",
+      "tags": [
+        "mammals",
+        "polar-bear",
+        "Arctic"
+      ]
+    },
+    {
+      "id": "leatherback-turtle-shell",
+      "text": "The sea turtle species that lacks a hard, bony shell is the ____.",
+      "correctCompletion": "leatherback",
+      "sourceName": "National Geographic — Sea Turtle Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/reptiles/facts/sea-turtles",
+      "category": "wildlife/biology",
+      "difficulty": "medium",
+      "tags": [
+        "reptiles",
+        "sea-turtles",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "seahorse-male-pregnancy",
+      "text": "In seahorses, it is the ____ that carries the developing young in a brood pouch.",
+      "correctCompletion": "male",
+      "sourceName": "National Geographic — Seahorse Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/fish/facts/seahorses",
+      "category": "wildlife/biology",
+      "difficulty": "medium",
+      "tags": [
+        "fish",
+        "seahorses",
+        "reproduction"
+      ]
+    },
+    {
+      "id": "seahorse-independent-eyes",
+      "text": "A seahorse can move its two ____ independently of each other.",
+      "correctCompletion": "eyes",
+      "sourceName": "National Geographic — Seahorse Facts",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/fish/facts/seahorses",
+      "category": "wildlife/biology",
+      "difficulty": "medium",
+      "tags": [
+        "fish",
+        "seahorses",
+        "senses"
+      ]
+    },
+    {
+      "id": "ocean-earth-surface",
+      "text": "The ocean covers more than ____ percent of Earth's surface.",
+      "correctCompletion": "70",
+      "sourceName": "NOAA Ocean Service — How Much Water Is in the Ocean?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/oceanwater.html",
+      "category": "science/nature",
+      "difficulty": "easy",
+      "tags": [
+        "ocean",
+        "Earth",
+        "water"
+      ]
+    },
+    {
+      "id": "earth-water-in-ocean",
+      "text": "About ____ percent of Earth's water is found in the ocean.",
+      "correctCompletion": "97",
+      "sourceName": "NOAA Ocean Service — How Much Water Is in the Ocean?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/oceanwater.html",
+      "category": "science/nature",
+      "difficulty": "easy",
+      "tags": [
+        "ocean",
+        "Earth",
+        "water"
+      ]
+    },
+    {
+      "id": "ocean-average-salinity",
+      "text": "Average ocean salinity is about ____ parts per thousand.",
+      "correctCompletion": "35",
+      "sourceName": "NOAA Ocean Service — Why Is the Ocean Salty?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/whysalty.html",
+      "category": "science/nature",
+      "difficulty": "medium",
+      "tags": [
+        "ocean",
+        "salinity",
+        "chemistry"
+      ]
+    },
+    {
+      "id": "ocean-main-dissolved-ions",
+      "text": "Sodium and chloride together make up about ____ percent of the dissolved ions in the ocean.",
+      "correctCompletion": "85",
+      "sourceName": "NOAA Ocean Service — Why Is the Ocean Salty?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/whysalty.html",
+      "category": "science/nature",
+      "difficulty": "medium",
+      "tags": [
+        "ocean",
+        "salinity",
+        "chemistry"
+      ]
+    },
+    {
+      "id": "ocean-salt-land-source",
+      "text": "The major source of dissolved salts in seawater is the weathering of ____ on land.",
+      "correctCompletion": "rocks",
+      "sourceName": "NOAA Ocean Service — Why Is the Ocean Salty?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/whysalty.html",
+      "category": "science/nature",
+      "difficulty": "medium",
+      "tags": [
+        "ocean",
+        "geology",
+        "salinity"
+      ]
+    },
+    {
+      "id": "ocean-hydrothermal-salt-source",
+      "text": "Hot fluids released from seafloor ____ also contribute salts to the ocean.",
+      "correctCompletion": "vents",
+      "sourceName": "NOAA Ocean Service — Why Is the Ocean Salty?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/whysalty.html",
+      "category": "science/nature",
+      "difficulty": "medium",
+      "tags": [
+        "ocean",
+        "geology",
+        "hydrothermal-vents"
+      ]
+    },
+    {
+      "id": "atmosphere-nitrogen",
+      "text": "About ____ percent of Earth's atmosphere is nitrogen.",
+      "correctCompletion": "78",
+      "sourceName": "NASA — Earth Facts",
+      "sourceUrl": "https://science.nasa.gov/earth/facts/",
+      "category": "science/nature",
+      "difficulty": "easy",
+      "tags": [
+        "Earth",
+        "atmosphere",
+        "nitrogen"
+      ]
+    },
+    {
+      "id": "atmosphere-oxygen",
+      "text": "About ____ percent of Earth's atmosphere is oxygen.",
+      "correctCompletion": "21",
+      "sourceName": "NASA — Earth Facts",
+      "sourceUrl": "https://science.nasa.gov/earth/facts/",
+      "category": "science/nature",
+      "difficulty": "easy",
+      "tags": [
+        "Earth",
+        "atmosphere",
+        "oxygen"
+      ]
+    },
+    {
+      "id": "earth-four-main-layers",
+      "text": "Earth's four main layers, from the center outward, are inner core, outer core, mantle, and ____.",
+      "correctCompletion": "crust",
+      "sourceName": "NASA — Earth Facts",
+      "sourceUrl": "https://science.nasa.gov/earth/facts/",
+      "category": "science/nature",
+      "difficulty": "medium",
+      "tags": [
+        "Earth",
+        "geology",
+        "structure"
+      ]
+    },
+    {
+      "id": "earth-tectonic-plates",
+      "text": "Earth's lithosphere is divided into huge moving ____.",
+      "correctCompletion": "plates",
+      "sourceName": "NASA — Earth Facts",
+      "sourceUrl": "https://science.nasa.gov/earth/facts/",
+      "category": "science/nature",
+      "difficulty": "medium",
+      "tags": [
+        "Earth",
+        "geology",
+        "tectonics"
+      ]
+    },
+    {
+      "id": "freshwater-share-earth-water",
+      "text": "Less than ____ percent of all Earth's water is fresh water.",
+      "correctCompletion": "one",
+      "sourceName": "NOAA Ocean Service — How Much Water Is in the Ocean?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/oceanwater.html",
+      "category": "science/nature",
+      "difficulty": "medium",
+      "tags": [
+        "water",
+        "Earth",
+        "freshwater"
+      ]
+    },
+    {
+      "id": "equator-zero-latitude",
+      "text": "The Equator lies at ____ degrees latitude.",
+      "correctCompletion": "0",
+      "sourceName": "National Geographic Education — Equator",
+      "sourceUrl": "https://education.nationalgeographic.org/resource/equator/",
+      "category": "geography",
+      "difficulty": "easy",
+      "tags": [
+        "Earth",
+        "latitude",
+        "Equator"
+      ]
+    },
+    {
+      "id": "equator-hemispheres",
+      "text": "The Equator divides Earth into the Northern and ____ Hemispheres.",
+      "correctCompletion": "Southern",
+      "sourceName": "National Geographic Education — Equator",
+      "sourceUrl": "https://education.nationalgeographic.org/resource/equator/",
+      "category": "geography",
+      "difficulty": "easy",
+      "tags": [
+        "Earth",
+        "hemispheres",
+        "Equator"
+      ]
+    },
+    {
+      "id": "equatorial-circumference",
+      "text": "Earth's circumference at the Equator is about ____ kilometers.",
+      "correctCompletion": "40,075",
+      "sourceName": "National Geographic Education — Equator",
+      "sourceUrl": "https://education.nationalgeographic.org/resource/equator/",
+      "category": "geography",
+      "difficulty": "medium",
+      "tags": [
+        "Earth",
+        "measurement",
+        "Equator"
+      ]
+    },
+    {
+      "id": "earth-equatorial-bulge-cause",
+      "text": "Earth's equatorial bulge is caused by the planet's ____.",
+      "correctCompletion": "rotation",
+      "sourceName": "National Geographic Education — Equator",
+      "sourceUrl": "https://education.nationalgeographic.org/resource/equator/",
+      "category": "science/nature",
+      "difficulty": "medium",
+      "tags": [
+        "Earth",
+        "rotation",
+        "geophysics"
+      ]
+    },
+    {
+      "id": "equator-rotational-speed",
+      "text": "At the Equator, Earth's surface spins at about ____ kilometers per hour.",
+      "correctCompletion": "1,670",
+      "sourceName": "National Geographic Education — Equator",
+      "sourceUrl": "https://education.nationalgeographic.org/resource/equator/",
+      "category": "science/nature",
+      "difficulty": "medium",
+      "tags": [
+        "Earth",
+        "rotation",
+        "Equator"
+      ]
+    },
+    {
+      "id": "apollo-11-launch-date",
+      "text": "Apollo 11 launched on July 16, ____.",
+      "correctCompletion": "1969",
+      "sourceName": "NASA — Apollo 11 Mission Overview",
+      "sourceUrl": "https://www.nasa.gov/history/apollo-11-mission-overview/",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Apollo-11",
+        "spaceflight",
+        "history"
+      ]
+    },
+    {
+      "id": "apollo-11-lunar-landing-site",
+      "text": "Apollo 11's lunar module landed in the Moon's ____ of Tranquility.",
+      "correctCompletion": "Sea",
+      "sourceName": "NASA — Apollo 11 Mission Overview",
+      "sourceUrl": "https://www.nasa.gov/history/apollo-11-mission-overview/",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Apollo-11",
+        "Moon",
+        "history"
+      ]
+    },
+    {
+      "id": "apollo-11-moonwalkers",
+      "text": "The two Apollo 11 astronauts who descended to the lunar surface were Neil Armstrong and ____.",
+      "correctCompletion": "Edwin “Buzz” Aldrin",
+      "sourceName": "NASA — Apollo 11 Mission Overview",
+      "sourceUrl": "https://www.nasa.gov/history/apollo-11-mission-overview/",
+      "category": "history/culture",
+      "difficulty": "easy",
+      "tags": [
+        "Apollo-11",
+        "astronauts",
+        "history"
+      ]
+    },
+    {
+      "id": "apollo-11-command-module-pilot",
+      "text": "The Apollo 11 astronaut who piloted the command module while Armstrong and Aldrin were on the Moon was ____.",
+      "correctCompletion": "Michael Collins",
+      "sourceName": "NASA — Apollo 11 Mission Overview",
+      "sourceUrl": "https://www.nasa.gov/history/apollo-11-mission-overview/",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Apollo-11",
+        "astronauts",
+        "history"
+      ]
+    },
+    {
+      "id": "apollo-11-tv-audience",
+      "text": "NASA estimated that about ____ million people watched Armstrong's televised Apollo 11 image.",
+      "correctCompletion": "650",
+      "sourceName": "NASA — Apollo 11 Mission Overview",
+      "sourceUrl": "https://www.nasa.gov/history/apollo-11-mission-overview/",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Apollo-11",
+        "television",
+        "history"
+      ]
+    },
+    {
+      "id": "egypt-unification-date",
+      "text": "Around 3100 B.C., a king united Upper and Lower ____.",
+      "correctCompletion": "Egypt",
+      "sourceName": "National Geographic Kids — Ancient Egypt",
+      "sourceUrl": "https://kids.nationalgeographic.com/history/article/ancient-egypt",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Egypt",
+        "ancient-history",
+        "civilization"
+      ]
+    },
+    {
+      "id": "egypt-hieroglyph-records",
+      "text": "Ancient Egyptians used hieroglyphic writing for records such as royal decrees and ____.",
+      "correctCompletion": "taxes",
+      "sourceName": "National Geographic Kids — Ancient Egypt",
+      "sourceUrl": "https://kids.nationalgeographic.com/history/article/ancient-egypt",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Egypt",
+        "writing",
+        "ancient-history"
+      ]
+    },
+    {
+      "id": "nile-flow-direction",
+      "text": "The Nile River flows from ____ to north.",
+      "correctCompletion": "south",
+      "sourceName": "National Geographic Kids — Ancient Egypt",
+      "sourceUrl": "https://kids.nationalgeographic.com/history/article/ancient-egypt",
+      "category": "geography",
+      "difficulty": "easy",
+      "tags": [
+        "Egypt",
+        "Nile",
+        "rivers"
+      ]
+    },
+    {
+      "id": "egypt-pyramid-era",
+      "text": "The Old Kingdom of Egypt is sometimes called the “Age of the ____.”",
+      "correctCompletion": "Pyramids",
+      "sourceName": "National Geographic Kids — Ancient Egypt",
+      "sourceUrl": "https://kids.nationalgeographic.com/history/article/ancient-egypt",
+      "category": "history/culture",
+      "difficulty": "easy",
+      "tags": [
+        "Egypt",
+        "pyramids",
+        "ancient-history"
+      ]
+    },
+    {
+      "id": "yayoi-rice-cultivation",
+      "text": "The Yayoi people in Japan began growing rice in flooded ____ fields.",
+      "correctCompletion": "paddy",
+      "sourceName": "National Geographic Kids — Japan",
+      "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/japan",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Japan",
+        "rice",
+        "history"
+      ]
+    },
+    {
+      "id": "japan-shogun-rule",
+      "text": "In the 12th century, military rulers called ____ took control of Japan.",
+      "correctCompletion": "shoguns",
+      "sourceName": "National Geographic Kids — Japan",
+      "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/japan",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Japan",
+        "shoguns",
+        "history"
+      ]
+    },
+    {
+      "id": "japan-isolation-period",
+      "text": "Japan's 17th-century isolation from foreigners lasted more than ____ years.",
+      "correctCompletion": "200",
+      "sourceName": "National Geographic Kids — Japan",
+      "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/japan",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Japan",
+        "history",
+        "isolation"
+      ]
+    },
+    {
+      "id": "japan-meiji-restoration-year",
+      "text": "In ____ the shoguns were overthrown and emperors returned to power in Japan.",
+      "correctCompletion": "1868",
+      "sourceName": "National Geographic Kids — Japan",
+      "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/japan",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Japan",
+        "history",
+        "modernization"
+      ]
+    },
+    {
+      "id": "ancient-greek-city-states",
+      "text": "In ancient Greece, Athens, Sparta, Thebes, and Corinth were examples of ____-states.",
+      "correctCompletion": "city",
+      "sourceName": "National Geographic Kids — Greece",
+      "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/greece",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Greece",
+        "city-states",
+        "ancient-history"
+      ]
+    },
+    {
+      "id": "athenian-democracy-date",
+      "text": "According to National Geographic Kids, Athens instituted a system of democracy in ____ B.C.",
+      "correctCompletion": "508",
+      "sourceName": "National Geographic Kids — Greece",
+      "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/greece",
+      "category": "history/culture",
+      "difficulty": "hard",
+      "tags": [
+        "Greece",
+        "democracy",
+        "history"
+      ]
+    },
+    {
+      "id": "ancient-olympics-location",
+      "text": "The ancient Olympic Games were held in the Greek city of ____.",
+      "correctCompletion": "Olympia",
+      "sourceName": "National Geographic Kids — Greece",
+      "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/greece",
+      "category": "history/culture",
+      "difficulty": "easy",
+      "tags": [
+        "Greece",
+        "Olympics",
+        "ancient-history"
+      ]
+    },
+    {
+      "id": "modern-olympics-return",
+      "text": "The Olympic Games began again in ____ in 1896.",
+      "correctCompletion": "Athens",
+      "sourceName": "National Geographic Kids — Greece",
+      "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/greece",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "Greece",
+        "Olympics",
+        "history"
+      ]
+    },
+    {
+      "id": "qin-first-chinese-empire",
+      "text": "The first Chinese empire began under the ____ dynasty in 221 B.C.",
+      "correctCompletion": "Qin",
+      "sourceName": "National Geographic Kids — China",
+      "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/china",
+      "category": "history/culture",
+      "difficulty": "medium",
+      "tags": [
+        "China",
+        "Qin",
+        "ancient-history"
+      ]
+    },
+    {
+      "id": "ancient-chinese-inventions",
+      "text": "Among the inventions credited to ancient China are paper, printing, silk, gunpowder, and the magnetic ____.",
+      "correctCompletion": "compass",
+      "sourceName": "National Geographic Kids — China",
+      "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/china",
+      "category": "history/culture",
+      "difficulty": "easy",
+      "tags": [
+        "China",
+        "inventions",
+        "culture"
+      ]
+    },
+    {
+      "id": "suez-canal-seas",
+      "text": "The Suez Canal links the Mediterranean Sea with the ____ Sea.",
+      "correctCompletion": "Red",
+      "sourceName": "National Geographic Kids — Egypt",
+      "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/egypt",
+      "category": "geography",
+      "difficulty": "easy",
+      "tags": [
+        "Egypt",
+        "canals",
+        "seas"
+      ]
+    },
+    {
+      "id": "tides-moon-sun-forces",
+      "text": "Ocean tides respond to forces exerted by the Moon and the ____.",
+      "correctCompletion": "Sun",
+      "sourceName": "NOAA Ocean Service — Introduction to Tides",
+      "sourceUrl": "https://oceanservice.noaa.gov/education/tutorial_tides/tides01_intro.html",
+      "category": "science/nature",
+      "difficulty": "easy",
+      "tags": [
+        "ocean",
+        "tides",
+        "Moon",
+        "Sun"
+      ]
+    },
+    {
+      "id": "geyser-plumbing-constrictions",
+      "text": "A geyser differs from an ordinary hot spring because its plumbing contains one or more ____ that restrict water flow.",
+      "correctCompletion": "constrictions",
+      "sourceName": "National Park Service — Hydrothermal Features",
+      "sourceUrl": "https://www.nps.gov/yell/learn/nature/hydrothermal-features.htm",
+      "category": "science/nature",
+      "difficulty": "medium",
+      "tags": [
+        "geology",
+        "geysers",
+        "Yellowstone"
+      ]
+    }
+  ]
+}

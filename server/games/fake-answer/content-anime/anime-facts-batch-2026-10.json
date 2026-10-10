@@ -1,0 +1,1269 @@
+{
+  "contentPackId": "anime-facts-batch-2026-10",
+  "questions": [
+    {
+      "id": "kiki-original-author",
+      "text": "The Studio Ghibli film Kiki’s Delivery Service is based on a novel by Eiko ____.",
+      "correctCompletion": "Kadono",
+      "sourceName": "Kiki's Delivery Service — Studio Ghibli Works",
+      "sourceUrl": "https://www.ghibli.jp/works/majo/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "studio-ghibli",
+        "adaptation",
+        "author"
+      ]
+    },
+    {
+      "id": "kiki-director",
+      "text": "The director of Kiki’s Delivery Service is Hayao ____.",
+      "correctCompletion": "Miyazaki",
+      "sourceName": "Kiki's Delivery Service — Studio Ghibli Works",
+      "sourceUrl": "https://www.ghibli.jp/works/majo/",
+      "category": "anime-production",
+      "difficulty": "easy",
+      "tags": [
+        "studio-ghibli",
+        "director"
+      ]
+    },
+    {
+      "id": "kiki-composer",
+      "text": "The composer credited for Kiki’s Delivery Service is Joe ____.",
+      "correctCompletion": "Hisaishi",
+      "sourceName": "Kiki's Delivery Service — Studio Ghibli Works",
+      "sourceUrl": "https://www.ghibli.jp/works/majo/",
+      "category": "anime-music",
+      "difficulty": "medium",
+      "tags": [
+        "studio-ghibli",
+        "music"
+      ]
+    },
+    {
+      "id": "kiki-theme-performer",
+      "text": "The theme song performer credited for Kiki’s Delivery Service is Yumi ____.",
+      "correctCompletion": "Arai",
+      "sourceName": "Kiki's Delivery Service — Studio Ghibli Works",
+      "sourceUrl": "https://www.ghibli.jp/works/majo/",
+      "category": "anime-music",
+      "difficulty": "hard",
+      "tags": [
+        "studio-ghibli",
+        "theme-song"
+      ]
+    },
+    {
+      "id": "poppy-hill-director",
+      "text": "From Up on Poppy Hill was directed by Goro ____.",
+      "correctCompletion": "Miyazaki",
+      "sourceName": "From Up on Poppy Hill — Studio Ghibli Works",
+      "sourceUrl": "https://www.ghibli.jp/works/kokurikozaka/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "studio-ghibli",
+        "director"
+      ]
+    },
+    {
+      "id": "poppy-hill-composer",
+      "text": "The music for From Up on Poppy Hill was composed by Satoshi ____.",
+      "correctCompletion": "Takebe",
+      "sourceName": "From Up on Poppy Hill — Studio Ghibli Works",
+      "sourceUrl": "https://www.ghibli.jp/works/kokurikozaka/",
+      "category": "anime-music",
+      "difficulty": "hard",
+      "tags": [
+        "studio-ghibli",
+        "music"
+      ]
+    },
+    {
+      "id": "ponyo-director",
+      "text": "Ponyo on the Cliff by the Sea was written and directed by Hayao ____.",
+      "correctCompletion": "Miyazaki",
+      "sourceName": "Ponyo on the Cliff by the Sea — Studio Ghibli Works",
+      "sourceUrl": "https://www.ghibli.jp/works/ponyo/",
+      "category": "anime-production",
+      "difficulty": "easy",
+      "tags": [
+        "studio-ghibli",
+        "director"
+      ]
+    },
+    {
+      "id": "ponyo-composer",
+      "text": "The composer credited for Ponyo on the Cliff by the Sea is Joe ____.",
+      "correctCompletion": "Hisaishi",
+      "sourceName": "Ponyo on the Cliff by the Sea — Studio Ghibli Works",
+      "sourceUrl": "https://www.ghibli.jp/works/ponyo/",
+      "category": "anime-music",
+      "difficulty": "medium",
+      "tags": [
+        "studio-ghibli",
+        "music"
+      ]
+    },
+    {
+      "id": "kaguya-director",
+      "text": "The Tale of the Princess Kaguya was directed by Isao ____.",
+      "correctCompletion": "Takahata",
+      "sourceName": "The Tale of The Princess Kaguya — Studio Ghibli Works",
+      "sourceUrl": "https://www.ghibli.jp/works/kaguyahime/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "studio-ghibli",
+        "director"
+      ]
+    },
+    {
+      "id": "kaguya-theme-singer",
+      "text": "The theme song performer credited for The Tale of the Princess Kaguya is Kazumi ____.",
+      "correctCompletion": "Nikaido",
+      "sourceName": "The Tale of The Princess Kaguya — Studio Ghibli Works",
+      "sourceUrl": "https://www.ghibli.jp/works/kaguyahime/",
+      "category": "anime-music",
+      "difficulty": "hard",
+      "tags": [
+        "studio-ghibli",
+        "theme-song"
+      ]
+    },
+    {
+      "id": "spy-family-loid-role",
+      "text": "In SPY×FAMILY, the spy known by the codename Twilight assumes the identity of psychiatrist Loid ____.",
+      "correctCompletion": "Forger",
+      "sourceName": "SPY×FAMILY — TV Series",
+      "sourceUrl": "https://spy-family.net/tvseries/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "spy-x-family",
+        "Loid-Forger",
+        "spy"
+      ]
+    },
+    {
+      "id": "spy-family-anya-ability",
+      "text": "In SPY×FAMILY, adopted daughter Anya can read other people’s ____.",
+      "correctCompletion": "minds",
+      "sourceName": "SPY×FAMILY — TV Series",
+      "sourceUrl": "https://spy-family.net/tvseries/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "spy-x-family",
+        "Anya-Forger",
+        "ability"
+      ]
+    },
+    {
+      "id": "spy-family-yor-profession",
+      "text": "In SPY×FAMILY, Loid’s wife Yor secretly works as an ____.",
+      "correctCompletion": "assassin",
+      "sourceName": "SPY×FAMILY — TV Series",
+      "sourceUrl": "https://spy-family.net/tvseries/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "spy-x-family",
+        "Yor-Forger",
+        "occupation"
+      ]
+    },
+    {
+      "id": "spy-family-operation-name",
+      "text": "Loid’s secret mission in SPY×FAMILY is called Operation ____.",
+      "correctCompletion": "Strix",
+      "sourceName": "SPY×FAMILY — TV Series",
+      "sourceUrl": "https://spy-family.net/tvseries/",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "spy-x-family",
+        "mission"
+      ]
+    },
+    {
+      "id": "spy-family-target",
+      "text": "Operation Strix in SPY×FAMILY aims to get close to politician Donovan ____.",
+      "correctCompletion": "Desmond",
+      "sourceName": "SPY×FAMILY — TV Series",
+      "sourceUrl": "https://spy-family.net/tvseries/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "spy-x-family",
+        "mission"
+      ]
+    },
+    {
+      "id": "dandadan-momo-family",
+      "text": "In Dandadan, Momo Ayase comes from a family of ____.",
+      "correctCompletion": "spirit mediums",
+      "sourceName": "DAN DA DAN — Characters",
+      "sourceUrl": "https://anime-dandadan.com/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "dandadan",
+        "Momo-Ayase"
+      ]
+    },
+    {
+      "id": "dandadan-momo-belief",
+      "text": "At the start of Dandadan, Momo believes in ghosts but not ____.",
+      "correctCompletion": "aliens",
+      "sourceName": "DAN DA DAN — Characters",
+      "sourceUrl": "https://anime-dandadan.com/character/",
+      "category": "story-world",
+      "difficulty": "easy",
+      "tags": [
+        "dandadan",
+        "Momo-Ayase"
+      ]
+    },
+    {
+      "id": "dandadan-momo-power",
+      "text": "After an encounter with the Serpo aliens, Momo awakens hidden ____ powers.",
+      "correctCompletion": "psychic",
+      "sourceName": "DAN DA DAN — Characters",
+      "sourceUrl": "https://anime-dandadan.com/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "dandadan",
+        "Momo-Ayase",
+        "abilities"
+      ]
+    },
+    {
+      "id": "dandadan-momo-type",
+      "text": "The official Dandadan profile describes Momo as a high-school ____.",
+      "correctCompletion": "student",
+      "sourceName": "DAN DA DAN — Characters",
+      "sourceUrl": "https://anime-dandadan.com/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "dandadan",
+        "Momo-Ayase"
+      ]
+    },
+    {
+      "id": "frieren-elf-mage",
+      "text": "The elf mage at the center of Frieren: Beyond Journey’s End is named ____.",
+      "correctCompletion": "Frieren",
+      "sourceName": "Frieren: Beyond Journey’s End — Characters",
+      "sourceUrl": "https://frieren-anime.jp/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "frieren",
+        "main-character",
+        "elf"
+      ]
+    },
+    {
+      "id": "frieren-apprentice",
+      "text": "In Frieren: Beyond Journey’s End, young mage Fern travels as ____’s apprentice.",
+      "correctCompletion": "Frieren",
+      "sourceName": "Frieren: Beyond Journey’s End — Characters",
+      "sourceUrl": "https://frieren-anime.jp/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "frieren",
+        "Fern",
+        "mage"
+      ]
+    },
+    {
+      "id": "frieren-warrior",
+      "text": "The young warrior who joins Frieren and Fern on their journey is ____.",
+      "correctCompletion": "Stark",
+      "sourceName": "Frieren: Beyond Journey’s End — Characters",
+      "sourceUrl": "https://frieren-anime.jp/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "frieren",
+        "Stark",
+        "warrior"
+      ]
+    },
+    {
+      "id": "frieren-hero",
+      "text": "The hero who once traveled with Frieren’s party was named ____.",
+      "correctCompletion": "Himmel",
+      "sourceName": "Frieren: Beyond Journey’s End — Characters",
+      "sourceUrl": "https://frieren-anime.jp/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "frieren",
+        "Himmel"
+      ]
+    },
+    {
+      "id": "frieren-priest",
+      "text": "The priest who was part of Frieren’s original traveling party is ____.",
+      "correctCompletion": "Heiter",
+      "sourceName": "Frieren: Beyond Journey’s End — Characters",
+      "sourceUrl": "https://frieren-anime.jp/character/",
+      "category": "characters",
+      "difficulty": "hard",
+      "tags": [
+        "frieren",
+        "Heiter",
+        "priest"
+      ]
+    },
+    {
+      "id": "demon-slayer-tanjiro",
+      "text": "The kind-hearted demon slayer who is Nezuko’s older brother is ____ Kamado.",
+      "correctCompletion": "Tanjiro",
+      "sourceName": "Demon Slayer: Kimetsu no Yaiba — Character Introduction",
+      "sourceUrl": "https://kimetsu.com/anime/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "demon-slayer",
+        "Tanjiro-Kamado"
+      ]
+    },
+    {
+      "id": "demon-slayer-nezuko",
+      "text": "In Demon Slayer, the demon who travels with Tanjiro is his sister ____.",
+      "correctCompletion": "Nezuko",
+      "sourceName": "Demon Slayer: Kimetsu no Yaiba — Character Introduction",
+      "sourceUrl": "https://kimetsu.com/anime/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "demon-slayer",
+        "Nezuko-Kamado"
+      ]
+    },
+    {
+      "id": "demon-slayer-zenitsu",
+      "text": "The Demon Slayer Corps member who often expresses fear but fights with Thunder Breathing is ____ Agatsuma.",
+      "correctCompletion": "Zenitsu",
+      "sourceName": "Demon Slayer: Kimetsu no Yaiba — Character Introduction",
+      "sourceUrl": "https://kimetsu.com/anime/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "demon-slayer",
+        "Zenitsu-Agatsuma"
+      ]
+    },
+    {
+      "id": "demon-slayer-inosuke",
+      "text": "The Demon Slayer who wears a boar’s head mask is ____ Hashibira.",
+      "correctCompletion": "Inosuke",
+      "sourceName": "Demon Slayer: Kimetsu no Yaiba — Character Introduction",
+      "sourceUrl": "https://kimetsu.com/anime/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "demon-slayer",
+        "Inosuke-Hashibira"
+      ]
+    },
+    {
+      "id": "demon-slayer-water-hashira",
+      "text": "The Water Hashira introduced early in Demon Slayer is ____ Tomioka.",
+      "correctCompletion": "Giyu",
+      "sourceName": "Demon Slayer: Kimetsu no Yaiba — Character Introduction",
+      "sourceUrl": "https://kimetsu.com/anime/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "demon-slayer",
+        "Hashira"
+      ]
+    },
+    {
+      "id": "jujutsu-kaisen-yuji",
+      "text": "The first-year Jujutsu High student who becomes host to Sukuna is ____ Itadori.",
+      "correctCompletion": "Yuji",
+      "sourceName": "Jujutsu Kaisen — Characters",
+      "sourceUrl": "https://jujutsukaisen.jp/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "jujutsu-kaisen",
+        "Yuji-Itadori"
+      ]
+    },
+    {
+      "id": "jujutsu-kaisen-gojo",
+      "text": "The blindfold-wearing teacher at Tokyo Jujutsu High is Satoru ____.",
+      "correctCompletion": "Gojo",
+      "sourceName": "Jujutsu Kaisen — Characters",
+      "sourceUrl": "https://jujutsukaisen.jp/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "jujutsu-kaisen",
+        "Satoru-Gojo"
+      ]
+    },
+    {
+      "id": "jujutsu-kaisen-megumi",
+      "text": "The first-year student who uses the Ten Shadows Technique is Megumi ____.",
+      "correctCompletion": "Fushiguro",
+      "sourceName": "Jujutsu Kaisen — Characters",
+      "sourceUrl": "https://jujutsukaisen.jp/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "jujutsu-kaisen",
+        "Megumi-Fushiguro"
+      ]
+    },
+    {
+      "id": "jujutsu-kaisen-nobara",
+      "text": "The Tokyo Jujutsu High first-year who fights with a hammer and nails is Nobara ____.",
+      "correctCompletion": "Kugisaki",
+      "sourceName": "Jujutsu Kaisen — Characters",
+      "sourceUrl": "https://jujutsukaisen.jp/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "jujutsu-kaisen",
+        "Nobara-Kugisaki"
+      ]
+    },
+    {
+      "id": "jujutsu-kaisen-school",
+      "text": "The school attended by Yuji, Megumi, and Nobara is Tokyo ____ High.",
+      "correctCompletion": "Jujutsu",
+      "sourceName": "Jujutsu Kaisen — Characters",
+      "sourceUrl": "https://jujutsukaisen.jp/character/",
+      "category": "story-world",
+      "difficulty": "easy",
+      "tags": [
+        "jujutsu-kaisen",
+        "school"
+      ]
+    },
+    {
+      "id": "my-hero-academia-izuku",
+      "text": "The aspiring hero at the center of My Hero Academia is Izuku ____.",
+      "correctCompletion": "Midoriya",
+      "sourceName": "My Hero Academia — Character",
+      "sourceUrl": "https://heroaca.com/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "my-hero-academia",
+        "Izuku-Midoriya"
+      ]
+    },
+    {
+      "id": "my-hero-academia-all-might",
+      "text": "The hero known as the Symbol of Peace is ____ Might.",
+      "correctCompletion": "All",
+      "sourceName": "My Hero Academia — Character",
+      "sourceUrl": "https://heroaca.com/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "my-hero-academia",
+        "All-Might"
+      ]
+    },
+    {
+      "id": "my-hero-academia-bakugo",
+      "text": "Izuku’s explosive-tempered childhood friend is Katsuki ____.",
+      "correctCompletion": "Bakugo",
+      "sourceName": "My Hero Academia — Character",
+      "sourceUrl": "https://heroaca.com/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "my-hero-academia",
+        "Katsuki-Bakugo"
+      ]
+    },
+    {
+      "id": "my-hero-academia-uraraka",
+      "text": "The aspiring hero whose Quirk is Zero Gravity is Ochaco ____.",
+      "correctCompletion": "Uraraka",
+      "sourceName": "My Hero Academia — Character",
+      "sourceUrl": "https://heroaca.com/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "my-hero-academia",
+        "Ochaco-Uraraka"
+      ]
+    },
+    {
+      "id": "my-hero-academia-school",
+      "text": "Izuku Midoriya attends the hero course at ____ High School.",
+      "correctCompletion": "U.A.",
+      "sourceName": "My Hero Academia — Character",
+      "sourceUrl": "https://heroaca.com/character/",
+      "category": "story-world",
+      "difficulty": "easy",
+      "tags": [
+        "my-hero-academia",
+        "school"
+      ]
+    },
+    {
+      "id": "dr-stone-senku",
+      "text": "The science-minded protagonist of Dr. STONE is Senku ____.",
+      "correctCompletion": "Ishigami",
+      "sourceName": "Dr.STONE — Characters",
+      "sourceUrl": "https://dr-stone.jp/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "dr-stone",
+        "Senku-Ishigami"
+      ]
+    },
+    {
+      "id": "dr-stone-taiju",
+      "text": "Senku’s strong, earnest childhood friend is ____ Oki.",
+      "correctCompletion": "Taiju",
+      "sourceName": "Dr.STONE — Characters",
+      "sourceUrl": "https://dr-stone.jp/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "dr-stone",
+        "Taiju-Oki"
+      ]
+    },
+    {
+      "id": "dr-stone-yuzuriha",
+      "text": "The crafty textile artist and Taiju’s close friend is ____ Ogawa.",
+      "correctCompletion": "Yuzuriha",
+      "sourceName": "Dr.STONE — Characters",
+      "sourceUrl": "https://dr-stone.jp/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "dr-stone",
+        "Yuzuriha-Ogawa"
+      ]
+    },
+    {
+      "id": "dr-stone-chrome",
+      "text": "The village sorcerer who becomes interested in science is named ____.",
+      "correctCompletion": "Chrome",
+      "sourceName": "Dr.STONE — Characters",
+      "sourceUrl": "https://dr-stone.jp/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "dr-stone",
+        "Chrome"
+      ]
+    },
+    {
+      "id": "one-punch-man-saitama",
+      "text": "The hero who defeats opponents with a single punch is ____.",
+      "correctCompletion": "Saitama",
+      "sourceName": "One-Punch Man — Characters",
+      "sourceUrl": "https://onepunchman-anime.net/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "one-punch-man",
+        "Saitama"
+      ]
+    },
+    {
+      "id": "one-punch-man-genos",
+      "text": "The cyborg who becomes Saitama’s disciple is ____.",
+      "correctCompletion": "Genos",
+      "sourceName": "One-Punch Man — Characters",
+      "sourceUrl": "https://onepunchman-anime.net/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "one-punch-man",
+        "Genos"
+      ]
+    },
+    {
+      "id": "one-punch-man-hero-organization",
+      "text": "In One-Punch Man, professional heroes are registered with the Hero ____.",
+      "correctCompletion": "Association",
+      "sourceName": "One-Punch Man — Characters",
+      "sourceUrl": "https://onepunchman-anime.net/character/",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "one-punch-man",
+        "heroes"
+      ]
+    },
+    {
+      "id": "one-punch-man-fubuki",
+      "text": "The B-Class hero known as Blizzard of Hell is ____.",
+      "correctCompletion": "Fubuki",
+      "sourceName": "One-Punch Man — Characters",
+      "sourceUrl": "https://onepunchman-anime.net/character/",
+      "category": "characters",
+      "difficulty": "hard",
+      "tags": [
+        "one-punch-man",
+        "Fubuki"
+      ]
+    },
+    {
+      "id": "bleach-ichigo",
+      "text": "The teenager who gains the powers of a Soul Reaper in Bleach is ____ Kurosaki.",
+      "correctCompletion": "Ichigo",
+      "sourceName": "BLEACH — Characters",
+      "sourceUrl": "https://bleach-anime.com/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "bleach",
+        "Ichigo-Kurosaki"
+      ]
+    },
+    {
+      "id": "bleach-rukia",
+      "text": "The Soul Reaper who first meets Ichigo Kurosaki is ____ Kuchiki.",
+      "correctCompletion": "Rukia",
+      "sourceName": "BLEACH — Characters",
+      "sourceUrl": "https://bleach-anime.com/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "bleach",
+        "Rukia-Kuchiki"
+      ]
+    },
+    {
+      "id": "bleach-urahara",
+      "text": "The shopkeeper who helps Ichigo and his friends is Kisuke ____.",
+      "correctCompletion": "Urahara",
+      "sourceName": "BLEACH — Characters",
+      "sourceUrl": "https://bleach-anime.com/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "bleach",
+        "Kisuke-Urahara"
+      ]
+    },
+    {
+      "id": "bleach-soul-reapers",
+      "text": "In Bleach, the armed spiritual guardians of Soul Society are called Soul ____.",
+      "correctCompletion": "Reapers",
+      "sourceName": "BLEACH — Characters",
+      "sourceUrl": "https://bleach-anime.com/character/",
+      "category": "story-world",
+      "difficulty": "easy",
+      "tags": [
+        "bleach",
+        "Soul-Society"
+      ]
+    },
+    {
+      "id": "one-piece-luffy",
+      "text": "The rubber-bodied captain at the center of One Piece is Monkey D. ____.",
+      "correctCompletion": "Luffy",
+      "sourceName": "ONE PIECE — TV Anime",
+      "sourceUrl": "https://one-piece.com/anime/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "one-piece",
+        "Monkey-D-Luffy"
+      ]
+    },
+    {
+      "id": "one-piece-zoro",
+      "text": "The swordsman who joins Luffy as the first member of his crew is Roronoa ____.",
+      "correctCompletion": "Zoro",
+      "sourceName": "ONE PIECE — TV Anime",
+      "sourceUrl": "https://one-piece.com/anime/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "one-piece",
+        "Roronoa-Zoro"
+      ]
+    },
+    {
+      "id": "one-piece-nami",
+      "text": "The navigator of the Straw Hat crew is ____.",
+      "correctCompletion": "Nami",
+      "sourceName": "ONE PIECE — TV Anime",
+      "sourceUrl": "https://one-piece.com/anime/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "one-piece",
+        "Nami"
+      ]
+    },
+    {
+      "id": "one-piece-chopper",
+      "text": "The doctor of the Straw Hat crew is the reindeer ____.",
+      "correctCompletion": "Tony Tony Chopper",
+      "sourceName": "ONE PIECE — TV Anime",
+      "sourceUrl": "https://one-piece.com/anime/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "one-piece",
+        "Tony-Tony-Chopper"
+      ]
+    },
+    {
+      "id": "one-piece-crew-name",
+      "text": "Luffy’s pirate crew is known as the ____ Hat Pirates.",
+      "correctCompletion": "Straw",
+      "sourceName": "ONE PIECE — TV Anime",
+      "sourceUrl": "https://one-piece.com/anime/",
+      "category": "story-world",
+      "difficulty": "easy",
+      "tags": [
+        "one-piece",
+        "pirates"
+      ]
+    },
+    {
+      "id": "blue-lock-isagi",
+      "text": "The soccer player at the center of Blue Lock is Yoichi ____.",
+      "correctCompletion": "Isagi",
+      "sourceName": "BLUE LOCK — Anime Portal",
+      "sourceUrl": "https://bluelock-pr.com/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "blue-lock",
+        "Yoichi-Isagi",
+        "soccer"
+      ]
+    },
+    {
+      "id": "blue-lock-bachira",
+      "text": "The Blue Lock player who likes to dribble with unpredictable flair is Meguru ____.",
+      "correctCompletion": "Bachira",
+      "sourceName": "BLUE LOCK — Anime Portal",
+      "sourceUrl": "https://bluelock-pr.com/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "blue-lock",
+        "Meguru-Bachira"
+      ]
+    },
+    {
+      "id": "blue-lock-nagi",
+      "text": "The naturally gifted Blue Lock striker who initially finds soccer troublesome is Seishiro ____.",
+      "correctCompletion": "Nagi",
+      "sourceName": "BLUE LOCK — Anime Portal",
+      "sourceUrl": "https://bluelock-pr.com/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "blue-lock",
+        "Seishiro-Nagi"
+      ]
+    },
+    {
+      "id": "blue-lock-coach",
+      "text": "The architect of the Blue Lock striker-development program is ____ Jinpachi.",
+      "correctCompletion": "Ego",
+      "sourceName": "BLUE LOCK — Anime Portal",
+      "sourceUrl": "https://bluelock-pr.com/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "blue-lock",
+        "Jinpachi-Ego"
+      ]
+    },
+    {
+      "id": "mob-psycho-main-character",
+      "text": "The quiet psychic protagonist of Mob Psycho 100 is Shigeo ____.",
+      "correctCompletion": "Kageyama",
+      "sourceName": "Mob Psycho 100 — Character",
+      "sourceUrl": "https://mobpsycho100.com/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "mob-psycho-100",
+        "Shigeo-Kageyama"
+      ]
+    },
+    {
+      "id": "mob-psycho-reigen",
+      "text": "In Mob Psycho 100, Mob’s self-proclaimed spirit consultant is Arataka ____.",
+      "correctCompletion": "Reigen",
+      "sourceName": "Mob Psycho 100 — Character",
+      "sourceUrl": "https://mobpsycho100.com/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "mob-psycho-100",
+        "Arataka-Reigen"
+      ]
+    },
+    {
+      "id": "mob-psycho-powers",
+      "text": "Mob Psycho 100 follows a schoolboy with powerful ____ abilities.",
+      "correctCompletion": "psychic",
+      "sourceName": "Mob Psycho 100 — Character",
+      "sourceUrl": "https://mobpsycho100.com/character/",
+      "category": "themes",
+      "difficulty": "easy",
+      "tags": [
+        "mob-psycho-100",
+        "psychic"
+      ]
+    },
+    {
+      "id": "mob-psycho-body-club",
+      "text": "Mob’s brother Ritsu joins the school’s ____ Improvement Club.",
+      "correctCompletion": "Body",
+      "sourceName": "Mob Psycho 100 — Character",
+      "sourceUrl": "https://mobpsycho100.com/character/",
+      "category": "story-world",
+      "difficulty": "hard",
+      "tags": [
+        "mob-psycho-100",
+        "school"
+      ]
+    },
+    {
+      "id": "attack-on-titan-titans",
+      "text": "The giant humanoid creatures threatening humanity in Attack on Titan are called ____.",
+      "correctCompletion": "Titans",
+      "sourceName": "Attack on Titan — Kodansha series page",
+      "sourceUrl": "https://kodansha.us/series/attack-on-titan/",
+      "category": "story-world",
+      "difficulty": "easy",
+      "tags": [
+        "attack-on-titan",
+        "Titans"
+      ]
+    },
+    {
+      "id": "attack-on-titan-wall-maria",
+      "text": "In Attack on Titan, the survivors shelter behind enormous walls, including Wall ____.",
+      "correctCompletion": "Maria",
+      "sourceName": "Attack on Titan — Kodansha series page",
+      "sourceUrl": "https://kodansha.us/series/attack-on-titan/",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "attack-on-titan",
+        "walls"
+      ]
+    },
+    {
+      "id": "attack-on-titan-eren",
+      "text": "The boy who longs to explore the world beyond Wall Maria is Eren ____.",
+      "correctCompletion": "Yeager",
+      "sourceName": "Attack on Titan — Kodansha series page",
+      "sourceUrl": "https://kodansha.us/series/attack-on-titan/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "attack-on-titan",
+        "Eren-Yeager"
+      ]
+    },
+    {
+      "id": "evangelion-shinji",
+      "text": "The young pilot at the center of Neon Genesis Evangelion is Shinji ____.",
+      "correctCompletion": "Ikari",
+      "sourceName": "Evangelion Official Site",
+      "sourceUrl": "https://www.evangelion.jp/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "evangelion",
+        "Shinji-Ikari"
+      ]
+    },
+    {
+      "id": "evangelion-unit-one",
+      "text": "Shinji pilots the Evangelion unit designated ____-01.",
+      "correctCompletion": "Eva",
+      "sourceName": "Evangelion Official Site",
+      "sourceUrl": "https://www.evangelion.jp/",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "evangelion",
+        "mecha"
+      ]
+    },
+    {
+      "id": "evangelion-organization",
+      "text": "The organization that deploys Evangelion units is called ____.",
+      "correctCompletion": "NERV",
+      "sourceName": "Evangelion Official Site",
+      "sourceUrl": "https://www.evangelion.jp/",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "evangelion",
+        "organization"
+      ]
+    },
+    {
+      "id": "evangelion-city",
+      "text": "Neon Genesis Evangelion is set largely in the fortified city of Tokyo-____.",
+      "correctCompletion": "3",
+      "sourceName": "Evangelion Official Site",
+      "sourceUrl": "https://www.evangelion.jp/",
+      "category": "setting",
+      "difficulty": "hard",
+      "tags": [
+        "evangelion",
+        "setting"
+      ]
+    },
+    {
+      "id": "gundam-amuro",
+      "text": "The pilot of the RX-78-2 Gundam in Mobile Suit Gundam is Amuro ____.",
+      "correctCompletion": "Ray",
+      "sourceName": "Gundam Official Site",
+      "sourceUrl": "https://gundam-official.com/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "gundam",
+        "Amuro-Ray"
+      ]
+    },
+    {
+      "id": "gundam-rx782",
+      "text": "The mobile suit piloted by Amuro Ray in the original Gundam series is designated RX-78-____.",
+      "correctCompletion": "2",
+      "sourceName": "Gundam Official Site",
+      "sourceUrl": "https://gundam-official.com/",
+      "category": "mecha",
+      "difficulty": "medium",
+      "tags": [
+        "gundam",
+        "mobile-suit"
+      ]
+    },
+    {
+      "id": "gundam-white-base",
+      "text": "In the original Mobile Suit Gundam, the Federation ship carrying Amuro’s group is the ____ Base.",
+      "correctCompletion": "White",
+      "sourceName": "Gundam Official Site",
+      "sourceUrl": "https://gundam-official.com/",
+      "category": "vehicles",
+      "difficulty": "hard",
+      "tags": [
+        "gundam",
+        "spaceship"
+      ]
+    },
+    {
+      "id": "gundam-mobile-suits",
+      "text": "The giant piloted robots central to the Gundam franchise are called mobile ____.",
+      "correctCompletion": "suits",
+      "sourceName": "Gundam Official Site",
+      "sourceUrl": "https://gundam-official.com/",
+      "category": "mecha",
+      "difficulty": "easy",
+      "tags": [
+        "gundam",
+        "mecha"
+      ]
+    },
+    {
+      "id": "one-piece-sanji",
+      "text": "The Straw Hat Pirates’ cook is the blond, kick-fighting pirate ____.",
+      "correctCompletion": "Sanji",
+      "sourceName": "ONE PIECE — TV Anime",
+      "sourceUrl": "https://one-piece.com/anime/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "one-piece",
+        "Sanji",
+        "crew-roles"
+      ]
+    },
+    {
+      "id": "one-piece-robin",
+      "text": "The Straw Hat Pirates’ archaeologist is Nico ____.",
+      "correctCompletion": "Robin",
+      "sourceName": "ONE PIECE — TV Anime",
+      "sourceUrl": "https://one-piece.com/anime/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "one-piece",
+        "Nico-Robin",
+        "crew-roles"
+      ]
+    },
+    {
+      "id": "one-piece-franky",
+      "text": "The Straw Hat Pirates’ shipwright is the cyborg ____.",
+      "correctCompletion": "Franky",
+      "sourceName": "ONE PIECE — TV Anime",
+      "sourceUrl": "https://one-piece.com/anime/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "one-piece",
+        "Franky",
+        "crew-roles"
+      ]
+    },
+    {
+      "id": "bocchi-hitori-lead-guitar",
+      "text": "Hitori Gotoh is Kessoku Band's ____ guitarist.",
+      "correctCompletion": "lead",
+      "sourceName": "BOCCHI THE ROCK! Character",
+      "sourceUrl": "https://bocchi.rocks/tv/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "bocchi-the-rock",
+        "Hitori-Gotoh",
+        "music"
+      ]
+    },
+    {
+      "id": "vinland-thorfinn-destination",
+      "text": "The New World Thorfinn dreams of reaching is called ____.",
+      "correctCompletion": "Vinland",
+      "sourceName": "VINLAND SAGA Character",
+      "sourceUrl": "https://vinlandsaga.jp/character/",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "vinland-saga",
+        "Thorfinn",
+        "setting"
+      ]
+    },
+    {
+      "id": "blue-period-yatora-major",
+      "text": "Yatora aims to study ____ at Tokyo University of the Arts.",
+      "correctCompletion": "oil painting",
+      "sourceName": "Blue Period Character",
+      "sourceUrl": "https://blue-period.jp/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "blue-period",
+        "Yatora",
+        "art"
+      ]
+    },
+    {
+      "id": "kaguya-shuchiin-role",
+      "text": "At Shuchiin Academy, Kaguya Shinomiya is the student council ____.",
+      "correctCompletion": "vice president",
+      "sourceName": "Kaguya-sama: Love Is War Official Site",
+      "sourceUrl": "https://kaguya.love/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "kaguya-sama",
+        "Kaguya-Shinomiya",
+        "school"
+      ]
+    },
+    {
+      "id": "yuru-camp-nadeshiko",
+      "text": "The high-school camper who moves from Hamamatsu is ____ Kagamihara.",
+      "correctCompletion": "Nadeshiko",
+      "sourceName": "Laid-Back Camp Season 3 Characters",
+      "sourceUrl": "https://yurucamp.jp/third/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "laid-back-camp",
+        "Nadeshiko-Kagamihara",
+        "camping"
+      ]
+    },
+    {
+      "id": "rascal-hakata-accent",
+      "text": "A first-year student at Minegahara High hides her ____ accent.",
+      "correctCompletion": "Hakata",
+      "sourceName": "Rascal Does Not Dream of Bunny Girl Senpai TV Anime Character",
+      "sourceUrl": "https://ao-buta.com/tv/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "rascal-does-not-dream",
+        "Minegahara-High",
+        "dialect"
+      ]
+    },
+    {
+      "id": "cells-at-work-red-cell-oxygen",
+      "text": "In Cells at Work!, red blood cells carry ____ throughout the body and transport carbon dioxide to the lungs.",
+      "correctCompletion": "oxygen",
+      "sourceName": "Cells at Work! — Character 01",
+      "sourceUrl": "https://hataraku-saibou.com/character/01/",
+      "category": "anime-science",
+      "difficulty": "easy",
+      "tags": [
+        "cells-at-work",
+        "red-blood-cell",
+        "circulation"
+      ]
+    },
+    {
+      "id": "cells-at-work-hemoglobin",
+      "text": "The red appearance of red blood cells is due to their high content of ____.",
+      "correctCompletion": "hemoglobin",
+      "sourceName": "Cells at Work! — Character 01",
+      "sourceUrl": "https://hataraku-saibou.com/character/01/",
+      "category": "anime-science",
+      "difficulty": "medium",
+      "tags": [
+        "cells-at-work",
+        "red-blood-cell",
+        "hemoglobin"
+      ]
+    },
+    {
+      "id": "rezero-otto-conversation",
+      "text": "In Re:Zero, Otto Suwen can converse with any living ____.",
+      "correctCompletion": "creature",
+      "sourceName": "Re:Zero - Starting Life in Another World - Character",
+      "sourceUrl": "https://re-zero-anime.jp/tv/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "re-zero",
+        "Otto-Suwen",
+        "ability"
+      ]
+    },
+    {
+      "id": "rezero-otto-occupation",
+      "text": "Otto Suwen works as a traveling ____.",
+      "correctCompletion": "merchant",
+      "sourceName": "Re:Zero - Starting Life in Another World - Character",
+      "sourceUrl": "https://re-zero-anime.jp/tv/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "re-zero",
+        "Otto-Suwen",
+        "occupation"
+      ]
+    },
+    {
+      "id": "madoka-homura-transfer",
+      "text": "The transfer student at Madoka’s middle school is ____ Akemi.",
+      "correctCompletion": "Homura",
+      "sourceName": "Puella Magi Madoka Magica - TV Character",
+      "sourceUrl": "https://www.madoka-magica.com/tv/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "madoka-magica",
+        "Homura-Akemi",
+        "school"
+      ]
+    },
+    {
+      "id": "fire-force-hero-goal",
+      "text": "The new recruit to Special Fire Force Company 8 hopes to become a ____ who saves people.",
+      "correctCompletion": "hero",
+      "sourceName": "Fire Force - Character",
+      "sourceUrl": "https://fireforce-anime.jp/character/",
+      "category": "characters",
+      "difficulty": "easy",
+      "tags": [
+        "fire-force",
+        "Company-8",
+        "goal"
+      ]
+    },
+    {
+      "id": "blue-exorcist-konekomaru-name",
+      "text": "Konekomaru’s family name in Blue Exorcist is ____.",
+      "correctCompletion": "Miwa",
+      "sourceName": "Blue Exorcist - TV Character",
+      "sourceUrl": "https://ao-ex.com/tv/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "blue-exorcist",
+        "Konekomaru-Miwa"
+      ]
+    },
+    {
+      "id": "iruma-school-babyls",
+      "text": "In Welcome to Demon School! Iruma-kun, Iruma attends the demon school ____.",
+      "correctCompletion": "Babyls",
+      "sourceName": "Welcome to Demon School! Iruma-kun - Official Anime Site",
+      "sourceUrl": "https://mairimashita-irumakun.com/",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "iruma-kun",
+        "Babyls",
+        "school"
+      ]
+    },
+    {
+      "id": "yorimoi-kindergarten-friend",
+      "text": "In A Place Further than the Universe, Kimari’s childhood friend has known her since ____.",
+      "correctCompletion": "kindergarten",
+      "sourceName": "A Place Further than the Universe - Character",
+      "sourceUrl": "https://yorimoi.com/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "a-place-further-than-the-universe",
+        "Kimari",
+        "friendship"
+      ]
+    },
+    {
+      "id": "promised-neverland-learning-ability",
+      "text": "Emma’s character profile in The Promised Neverland calls her a mood-maker with high ____ ability.",
+      "correctCompletion": "learning",
+      "sourceName": "The Promised Neverland - Character",
+      "sourceUrl": "https://neverland-anime.com/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "the-promised-neverland",
+        "character-profile",
+        "ability"
+      ]
+    },
+    {
+      "id": "cells-at-work-killer-t-cell-role",
+      "text": "In Cells at Work!!, killer T cells recognize and destroy virus-infected cells and ____ cells.",
+      "correctCompletion": "cancer",
+      "sourceName": "Cells at Work!! - Character 03",
+      "sourceUrl": "https://hataraku-saibou.com/character/03/",
+      "category": "anime-science",
+      "difficulty": "medium",
+      "tags": [
+        "cells-at-work",
+        "killer-T-cell",
+        "immune-system"
+      ]
+    }
+  ]
+}

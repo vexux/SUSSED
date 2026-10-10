@@ -35,15 +35,17 @@ if (!inputFile) {
             gameId === "fact-or-cap-anime" ? "../content-anime" : "../content"
         );
         const isCurrentLibraryPack = path.dirname(absolutePath) === currentLibraryDirectory;
-        const currentLibraryIds = new Set(libraryQuestions.map((question) => question.id));
+        const otherLibraryQuestions = gameId === "fact-or-cap-anime"
+            ? generalQuestions
+            : animeQuestions;
+        const questionsToCheck = isCurrentLibraryPack
+            ? otherLibraryQuestions
+            : allQuestions;
         const existingIds = new Map(
-            allQuestions
-                .filter((question) => !isCurrentLibraryPack || !currentLibraryIds.has(question.id))
-                .map((question) => [question.id, question])
+            questionsToCheck.map((question) => [question.id, question])
         );
         const existingContent = new Map(
-            libraryQuestions
-                .filter((question) => !isCurrentLibraryPack || !currentLibraryIds.has(question.id))
+            (isCurrentLibraryPack ? [] : libraryQuestions)
                 .map((question) => [duplicateKey(question), question])
         );
 

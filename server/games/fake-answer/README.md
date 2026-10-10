@@ -6,10 +6,9 @@ The registered game IDs are `fact-or-cap` and `fact-or-cap-anime`. Both IDs
 use the same submission, voting, scoring, reveal, round, and rematch engine.
 The general game reads packs only from `content/`; the Anime game reads packs
 only from `content-anime/`. Each bank has independent question selection history.
-Anime's initial curated pack contains five concise canon facts sourced from
-Toei Animation's official catalog. The Anime game requires five questions to
-start; adding fewer than five valid questions will produce an explicit
-`QUESTION_POOL_EXHAUSTED` error.
+Each game variant has a curated library of 100 playable, source-attributed
+questions. The game requires five questions to start; adding fewer than five
+valid questions will produce an explicit `QUESTION_POOL_EXHAUSTED` error.
 
 ## Question library
 
@@ -25,8 +24,9 @@ To add a general pack, create a JSON file in `content/`; add an Anime pack in
 `content-anime/`. Use a top-level
 `contentPackId` and a `questions` array. Each entry needs a unique stable `id`,
 non-empty `text`, and non-empty `correctCompletion`. Source title and URL are
-optional, but missing attribution is reported by the validation tool. Sources
-should be verified and have suitable reuse rights before content is added.
+optional in the base schema, but missing attribution is reported by the
+validation tool. Batch imports require both source fields. Sources should be
+verified and have suitable reuse rights before content is added.
 Optional difficulty values are `easy`, `medium`, or `hard`.
 
 Validate a candidate file before adding it:
@@ -36,6 +36,25 @@ cd server
 npm run validate:questions -- path/to/candidate-pack.json
 npm run validate:questions -- fact-or-cap-anime path/to/anime-pack.json
 ```
+
+For a multi-question batch, preview it against an explicitly selected game
+library before importing. Batches require a top-level `contentPackId`; imports
+create a new pack and never replace an existing file. Likely normalized
+prompt-and-answer duplicates need explicit approval:
+
+```sh
+cd server
+npm run questions:preview -- -- --target fact-or-cap --input path/to/batch.json
+npm run questions:import -- -- --target fact-or-cap --input path/to/batch.json
+npm run questions:import -- -- --target fact-or-cap-anime --input path/to/anime-batch.json
+```
+
+Preview is read-only and reports validation errors, missing-source warnings,
+duplicate IDs, likely duplicate content, and accepted/rejected counts. Imports
+validate again and install the pack atomically without overwriting a competing
+or existing pack. These checks enforce structure and deduplication heuristics;
+they do not replace editorial verification of each claim, source, or gameplay
+quality.
 
 The validator reports blocking schema/ID errors, missing-source warnings, and
 likely duplicate-content candidates. It never writes to or overwrites the

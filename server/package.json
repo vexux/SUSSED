@@ -6,7 +6,9 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test",
-    "validate:questions": "node games/fake-answer/scripts/validate-question-pack.js"
+    "validate:questions": "node games/fake-answer/scripts/validate-question-pack.js",
+    "questions:preview": "node games/fake-answer/scripts/manage-question-batch.js preview",
+    "questions:import": "node games/fake-answer/scripts/manage-question-batch.js import"
   },
   "keywords": [],
   "author": "",

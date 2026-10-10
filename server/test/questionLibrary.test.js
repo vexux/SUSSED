@@ -22,8 +22,8 @@ test("loads all migrated JSON content packs with existing answer and source data
     const { questions: loaded } = loadQuestionPacks(
         path.join(fakeAnswerDirectory, "content")
     );
-    assert.equal(loaded.length, 20);
-    assert.equal(questions.length, 20);
+    assert.equal(loaded.length, 100);
+    assert.equal(questions.length, 100);
     assert.equal(new Set(loaded.map(({ id }) => id)).size, loaded.length);
     assert.equal(
         loaded.find(({ id }) => id === "wombat-cubes").correctCompletion,
@@ -35,20 +35,20 @@ test("loads all migrated JSON content packs with existing answer and source data
     );
     assert.deepEqual(
         new Set(loaded.map(({ contentPackId }) => contentPackId)),
-        new Set(["wildlife", "space", "world-and-culture"])
+        new Set(["wildlife", "space", "world-and-culture", "general-facts-batch-2026-10"])
     );
 });
 
-test("loads a separate five-question anime pack with distinct sourced IDs", () => {
+test("loads a separate hundred-question anime library with distinct sourced IDs", () => {
     const { questions: loaded } = loadQuestionPacks(
         path.join(fakeAnswerDirectory, "content-anime")
     );
-    assert.equal(loaded.length, 5);
-    assert.equal(animeQuestions.length, 5);
-    assert.equal(new Set(loaded.map(({ id }) => id)).size, 5);
+    assert.equal(loaded.length, 100);
+    assert.equal(animeQuestions.length, 100);
+    assert.equal(new Set(loaded.map(({ id }) => id)).size, 100);
     assert.ok(loaded.every(({ sourceName, sourceUrl, category, tags }) =>
         sourceName && sourceUrl.startsWith("https://") &&
-        category === "anime" && tags.includes("official-anime-series")
+        category && tags.length > 0
     ));
     assert.equal(
         questions.some(({ id }) => loaded.some((animeQuestion) => animeQuestion.id === id)),
