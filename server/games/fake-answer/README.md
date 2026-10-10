@@ -90,6 +90,21 @@ round. The prompt order is shuffled without replacement; starting fails
 explicitly if the validated question library contains fewer prompts than the
 configured round count.
 
+Between rounds, the public results projection includes each roster player's
+ID, name, and ready-to-continue status; it does not include answers or votes.
+The fifth round publishes a distinct final-results projection after all votes
+are complete. Its leaderboard and winner ties use cumulative server scores,
+with player IDs as the deterministic ordering for equal scores. Final fun
+statistics are accumulated from each completed round's validated vote-to-option
+mapping: fake votes received by bluff authors, votes cast for another player's
+bluff, and correct votes for the real completion. Tied statistic leaders are
+all retained, and a statistic with no qualifying votes has no winner. These
+aggregates are session-local and start at zero for every rematch.
+
+Round results also give each viewer a dismissible, short-lived personal
+feedback message derived from their own revealed vote. It is hidden until
+results are published and does not affect the normal answer or score breakdown.
+
 The participant roster is fixed when the game starts. If a player disconnects
 or leaves before the game finishes, the server aborts and retires that active
 session and returns any remaining room members to the lobby unready. This

@@ -17,6 +17,7 @@ export interface AppActions {
   onVoteFakeAnswer(optionId: string): void;
   onContinueFakeAnswer(): void;
   onReturnToLobby(): void;
+  onDismissRoundFeedback(): void;
 }
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
@@ -165,13 +166,13 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   if (isHost && lobby.status === "lobby") {
     const gameSelect = createElement("select", "text-input");
     gameSelect.id = "selected-game";
-    gameSelect.value = lobby.selectedGameId;
     gameSelect.disabled = state.isBusy;
     for (const game of lobby.availableGames) {
       const option = createElement("option", undefined, game.displayName);
       option.value = game.id;
       gameSelect.append(option);
     }
+    gameSelect.value = lobby.selectedGameId;
     gameSelect.addEventListener("change", () => {
       actions.onSelectGame(gameSelect.value);
     });
@@ -321,6 +322,8 @@ function renderGame(
         actions.onContinueFakeAnswer,
         actions.onReturnToLobby,
         game.displayName,
+        game.status === "finished",
+        actions.onDismissRoundFeedback,
       );
     default: {
       const screen = createElement("section", "app-screen starting-screen");

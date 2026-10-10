@@ -370,6 +370,7 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
         "availableGames",
         "playerCount",
         "players",
+        "revision",
         "roomCode",
         "selectedGame",
         "selectedGameId",
@@ -399,6 +400,9 @@ test("host selects a registered game and broadcasts authoritative metadata to al
         playerName: "Guest",
     });
     await emitWithAck(guest, "set-ready", { isReady: true });
+    const revisionBeforeSelect = roomManager.createLobbyState(
+        roomManager.getRoom(created.roomCode)
+    ).revision;
 
     const hostUpdate = waitForLobby(
         host,
@@ -413,6 +417,7 @@ test("host selects a registered game and broadcasts authoritative metadata to al
     });
     assert.equal(selectionResponse.selectedGameId, "fact-or-cap-anime");
     assert.equal(selectionResponse.lobby.selectedGameId, "fact-or-cap-anime");
+    assert.equal(selectionResponse.lobby.revision, revisionBeforeSelect + 1);
     const [hostLobby, guestLobby] = await Promise.all([hostUpdate, guestUpdate]);
     assert.deepEqual(hostLobby, guestLobby);
     assert.equal(hostLobby.players[1].isReady, false);
@@ -428,6 +433,36 @@ test("host selects a registered game and broadcasts authoritative metadata to al
         "fact-or-cap",
         "fact-or-cap-anime"
     ]);
+
+    const hostGeneralUpdate = waitForLobby(
+        host,
+        (lobby) => lobby.selectedGameId === "fact-or-cap"
+    );
+    const guestGeneralUpdate = waitForLobby(
+        guest,
+        (lobby) => lobby.selectedGameId === "fact-or-cap"
+    );
+    const generalSelection = await emitWithAck(host, "select-game", {
+        gameId: "fact-or-cap"
+    });
+    const [hostGeneralLobby, guestGeneralLobby] = await Promise.all([
+        hostGeneralUpdate,
+        guestGeneralUpdate
+    ]);
+    assert.equal(generalSelection.lobby.selectedGameId, "fact-or-cap");
+    assert.equal(
+        generalSelection.lobby.revision,
+        selectionResponse.lobby.revision + 1
+    );
+    assert.deepEqual(hostGeneralLobby, guestGeneralLobby);
+    assert.deepEqual(generalSelection.lobby, hostGeneralLobby);
+    assert.deepEqual(hostGeneralLobby.selectedGame, {
+        id: "fact-or-cap",
+        displayName: "Fact or Cap",
+        description: "A bluffing party game about surprising facts.",
+        minPlayers: 2,
+        maxPlayers: 8
+    });
 });
 
 test("host can select Anime and complete a round through the shared socket game flow", async (context) => {
@@ -549,6 +584,7 @@ test("rejects invalid and non-host game selections without mutating the lobby", 
         (await emitWithAck(host, "select-game", { gameId: "fact-or-cap", displayName: "Injected" })).error.code,
         "INVALID_REQUEST"
     );
+    assert.equal(roomManager.getRoom(created.roomCode).selectedGameId, "fact-or-cap");
     assert.equal(roomManager.getRoom(created.roomCode).players[1].isReady, true);
 });
 
@@ -1738,6 +1774,18 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
                     { totalScore: round * 2, rank: 1 },
                     { totalScore: round * 2, rank: 1 },
             ]);
+            if (round < roundGameState.state.totalRounds) {
+                assert.equal(Object.hasOwn(state.state, "finalStatistics"), false);
+                assert.deepEqual(
+                    state.state.continueProgress.map(
+                        ({ playerId, ready }) => ({ playerId, ready })
+                    ),
+                    [
+                        { playerId: game.host.id, ready: false },
+                        { playerId: game.players[0].id, ready: false }
+                    ]
+                );
+            }
         }
 
         if (round < roundGameState.state.totalRounds) {
@@ -1771,7 +1819,17 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
                 duplicateContinueResponses[1].error.code,
                 "ALREADY_READY"
             );
-            assert.equal((await guestProgress).state.viewerReadyToContinue, false);
+            const guestProgressState = await guestProgress;
+            assert.equal(guestProgressState.state.viewerReadyToContinue, false);
+            assert.deepEqual(
+                guestProgressState.state.continueProgress.map(
+                    ({ playerId, ready }) => ({ playerId, ready })
+                ),
+                [
+                    { playerId: game.host.id, ready: true },
+                    { playerId: game.players[0].id, ready: false }
+                ]
+            );
 
             const nextQuestionStates = clients.map((client) =>
                 waitForGameState(
@@ -1837,6 +1895,14 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
             assert.equal(resultStates[0].status, "finished");
             assert.equal(resultStates[1].status, "finished");
             assert.equal(resultStates[0].state.isFinalRound, true);
+            assert.deepEqual(resultStates[0].state.finalStatistics, {
+                mostPlayersFooled: { playerIds: [], count: 0 },
+                gotFooledMost: { playerIds: [], count: 0 },
+                mostCorrectAnswers: {
+                    playerIds: [game.host.id, game.players[0].id].sort(),
+                    count: round
+                }
+            });
         }
     }
 

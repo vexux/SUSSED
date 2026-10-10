@@ -10,6 +10,10 @@ const MAX_PLAYER_NAME_LENGTH = 20;
 const rooms = new Map();
 const playerRooms = new Map();
 
+function advanceRevision(room) {
+    room.revision += 1;
+}
+
 class RoomError extends Error {
     constructor(code, message) {
         super(message);
@@ -72,6 +76,7 @@ function createRoom(playerId, playerName) {
     const host = { id: playerId, name: normalizePlayerName(playerName), isReady: false };
     const room = {
         code: generateRoomCode(),
+        revision: 0,
         hostId: playerId,
         status: "lobby",
         selectedGameId: gameRegistry.DEFAULT_GAME_ID,
@@ -106,6 +111,7 @@ function joinRoom(roomCode, playerId, playerName) {
     const player = { id: playerId, name, isReady: false };
     room.players.push(player);
     playerRooms.set(playerId, room.code);
+    advanceRevision(room);
     return room;
 }
 
@@ -131,6 +137,7 @@ function removePlayer(playerId) {
         room.hostId = room.players[0].id;
     }
 
+    advanceRevision(room);
     return room;
 }
 
@@ -152,6 +159,7 @@ function setPlayerReady(playerId, isReady) {
         throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
     }
     player.isReady = isReady;
+    advanceRevision(room);
     return room;
 }
 
@@ -176,6 +184,7 @@ function selectGame(playerId, gameId) {
             player.isReady = false;
         }
     }
+    advanceRevision(room);
     return room;
 }
 
@@ -203,6 +212,7 @@ function validateRoomStart(playerId) {
 function startRoom(playerId) {
     const room = validateRoomStart(playerId);
     room.status = "starting";
+    advanceRevision(room);
     return room;
 }
 
@@ -226,6 +236,7 @@ function returnToLobby(playerId) {
     for (const player of room.players) {
         player.isReady = false;
     }
+    advanceRevision(room);
     return room;
 }
 
@@ -240,6 +251,7 @@ function recoverRoomToLobby(room) {
     for (const player of room.players) {
         player.isReady = false;
     }
+    advanceRevision(room);
     return room;
 }
 
@@ -251,6 +263,7 @@ function cancelRoomStart(room) {
         );
     }
     room.status = "lobby";
+    advanceRevision(room);
     return room;
 }
 
@@ -267,6 +280,7 @@ function createLobbyState(room) {
     const selectedGame = gameRegistry.get(room.selectedGameId);
     return {
         roomCode: room.code,
+        revision: room.revision,
         status: room.status,
         playerCount: room.players.length,
         selectedGameId: room.selectedGameId,

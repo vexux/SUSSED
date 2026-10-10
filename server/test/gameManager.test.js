@@ -46,6 +46,67 @@ function submitFakeAnswerVote(state, playerId, selector) {
     return option;
 }
 
+function completeManagedRound(room, selectCompletion) {
+    const gameId = "fact-or-cap";
+    const questionState = gameManager.getPublicGameState(
+        room.code,
+        room.players[0].id
+    );
+    const round = questionState.state.currentRound;
+    gameManager.performGameAction(room.code, gameId, null, "open-submissions");
+    for (const player of room.players) {
+        gameManager.performGameAction(
+            room.code,
+            gameId,
+            player.id,
+            "submit-completion",
+            `Private bluff ${round} from ${player.id}`
+        );
+    }
+    gameManager.performGameAction(room.code, gameId, null, "begin-voting");
+    const question = questions.find(
+        ({ text }) => text === questionState.state.prompt.text
+    );
+    assert.ok(question);
+    for (const player of room.players) {
+        const options = gameManager.getPublicGameState(room.code, player.id).state.options;
+        const completion = selectCompletion(player, round, question.correctCompletion);
+        const option = options.find(({ completion: answer }) => answer === completion);
+        assert.ok(option, `expected an eligible option for ${player.id}`);
+        gameManager.performGameAction(
+            room.code,
+            gameId,
+            player.id,
+            "vote",
+            option.id
+        );
+    }
+    return gameManager.performGameAction(
+        room.code,
+        gameId,
+        null,
+        "publish-results"
+    ).gameState;
+}
+
+function completeManagedGame(room, selectCompletion) {
+    let result;
+    for (let round = 1; round <= 5; round += 1) {
+        result = completeManagedRound(room, selectCompletion);
+        if (round < 5) {
+            for (const player of room.players) {
+                gameManager.performGameAction(
+                    room.code,
+                    "fact-or-cap",
+                    player.id,
+                    "continue"
+                );
+            }
+        }
+    }
+    return result;
+}
+
 test("registry resolves the fake-answer implementation by its game ID", () => {
     assert.equal(gameRegistry.get("fact-or-cap"), fakeAnswer);
     assert.equal(fakeAnswer.id, "fact-or-cap");
@@ -873,6 +934,15 @@ test("fake-answer continuation waits for everyone and resets round data without 
         assert.equal(hostReady.gameState.state.phase, "results");
         assert.equal(hostReady.gameState.state.continueReadyCount, 1);
         assert.equal(hostReady.gameState.state.viewerReadyToContinue, true);
+        assert.deepEqual(
+            hostReady.gameState.state.continueProgress.map(
+                ({ playerId, ready }) => ({ playerId, ready })
+            ),
+            [
+                { playerId: "player-1", ready: true },
+                { playerId: "player-2", ready: false }
+            ]
+        );
         assert.throws(
             () => gameManager.performGameAction(
                 room.code,
@@ -897,6 +967,7 @@ test("fake-answer continuation waits for everyone and resets round data without 
         assert.equal(advanced.gameState.state.submissionCount, 0);
         assert.equal(Object.hasOwn(advanced.gameState.state, "options"), false);
         assert.equal(Object.hasOwn(advanced.gameState.state, "results"), false);
+        assert.equal(Object.hasOwn(advanced.gameState.state, "continueProgress"), false);
 
         const secondResults = finishRound().gameState;
         assert.equal(secondResults.state.currentRound, 2);
@@ -915,6 +986,121 @@ test("fake-answer continuation waits for everyone and resets round data without 
                 "publish-results"
             ),
             { code: "RESULTS_ALREADY_PUBLISHED" }
+        );
+    } finally {
+        gameManager.removeGame(room.code);
+    }
+});
+
+test("final statistics aggregate completed votes, preserve ties, and reset for rematches", () => {
+    const room = createStartingRoom(4);
+    gameManager.startGame(room, "fact-or-cap");
+    try {
+        let finalState;
+        for (let round = 1; round <= 5; round += 1) {
+            finalState = completeManagedRound(room, (player, currentRound, correct) => {
+                if (player.id === "player-2") {
+                    return correct;
+                }
+                if (player.id === "player-1") {
+                    return `Private bluff ${currentRound} from player-2`;
+                }
+                return `Private bluff ${currentRound} from player-1`;
+            });
+            if (round < 5) {
+                assert.equal(finalState.status, "active");
+                assert.equal(Object.hasOwn(finalState.state, "finalStatistics"), false);
+                const firstReady = gameManager.performGameAction(
+                    room.code,
+                    "fact-or-cap",
+                    "player-1",
+                    "continue"
+                );
+                assert.equal(firstReady.gameState.state.continueReadyCount, 1);
+                assert.deepEqual(
+                    firstReady.gameState.state.continueProgress.map(
+                        ({ playerId, ready }) => ({ playerId, ready })
+                    ),
+                    [
+                        { playerId: "player-1", ready: true },
+                        { playerId: "player-2", ready: false },
+                        { playerId: "player-3", ready: false },
+                        { playerId: "player-4", ready: false }
+                    ]
+                );
+                for (const player of room.players.slice(1)) {
+                    gameManager.performGameAction(
+                        room.code,
+                        "fact-or-cap",
+                        player.id,
+                        "continue"
+                    );
+                }
+            }
+        }
+
+        assert.equal(finalState.status, "finished");
+        assert.equal(finalState.state.currentRound, 5);
+        assert.equal(Object.hasOwn(finalState.state, "continueProgress"), false);
+        assert.deepEqual(finalState.state.finalStatistics, {
+            mostPlayersFooled: {
+                playerIds: ["player-1"],
+                count: 10
+            },
+            gotFooledMost: {
+                playerIds: ["player-1", "player-3", "player-4"],
+                count: 5
+            },
+            mostCorrectAnswers: {
+                playerIds: ["player-2"],
+                count: 5
+            }
+        });
+        assert.deepEqual(
+            finalState.state.results.standings.map(({ playerId, rank }) => ({
+                playerId,
+                rank
+            })),
+            [
+                { playerId: "player-2", rank: 1 },
+                { playerId: "player-1", rank: 2 },
+                { playerId: "player-3", rank: 3 },
+                { playerId: "player-4", rank: 3 }
+            ]
+        );
+
+        const previousSessionId = finalState.sessionId;
+        gameManager.removeGame(room.code, previousSessionId);
+        const rematch = gameManager.startGame(room, "fact-or-cap");
+        assert.notEqual(rematch.sessionId, previousSessionId);
+        let rematchFinal;
+        for (let round = 1; round <= 5; round += 1) {
+            rematchFinal = completeManagedRound(
+                room,
+                (_player, _currentRound, correct) => correct
+            );
+            if (round < 5) {
+                for (const player of room.players) {
+                    gameManager.performGameAction(
+                        room.code,
+                        "fact-or-cap",
+                        player.id,
+                        "continue"
+                    );
+                }
+            }
+        }
+        assert.deepEqual(rematchFinal.state.finalStatistics, {
+            mostPlayersFooled: { playerIds: [], count: 0 },
+            gotFooledMost: { playerIds: [], count: 0 },
+            mostCorrectAnswers: {
+                playerIds: ["player-1", "player-2", "player-3", "player-4"],
+                count: 5
+            }
+        });
+        assert.deepEqual(
+            rematchFinal.state.results.standings.map(({ rank }) => rank),
+            [1, 1, 1, 1]
         );
     } finally {
         gameManager.removeGame(room.code);

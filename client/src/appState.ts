@@ -11,6 +11,7 @@ export interface LobbyPlayer {
 
 export interface LobbyState {
   roomCode: string;
+  revision: number;
   playerCount: number;
   status: RoomStatus;
   selectedGameId: string;

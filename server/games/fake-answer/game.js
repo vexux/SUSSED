@@ -26,6 +26,11 @@ function createInitialState(players) {
         options: [],
         votes: new Map(),
         scores: new Map(players.map(({ id }) => [id, 0])),
+        statistics: new Map(players.map(({ id }) => [id, {
+            fakeVotesReceived: 0,
+            fakeVotesCast: 0,
+            correctVotes: 0
+        }])),
         scoredRounds: new Set(),
         continueReady: new Set(),
         results: null
@@ -309,8 +314,7 @@ function calculateRoundResults(state) {
     });
     const sortedScores = [...players].sort((first, second) =>
         second.totalScore - first.totalScore ||
-        state.participants.findIndex(({ id }) => id === first.playerId) -
-            state.participants.findIndex(({ id }) => id === second.playerId)
+        (first.playerId < second.playerId ? -1 : first.playerId > second.playerId ? 1 : 0)
     );
     let currentRank = 0;
     let previousScore = null;
@@ -335,6 +339,27 @@ function calculateRoundResults(state) {
     };
 }
 
+function createFinalStatistics(state) {
+    const statisticLeaders = (statistic) => {
+        const counts = [...state.statistics.entries()];
+        const maximum = Math.max(0, ...counts.map(([, values]) => values[statistic]));
+        return {
+            playerIds: maximum === 0
+                ? []
+                : counts
+                    .filter(([, values]) => values[statistic] === maximum)
+                    .map(([playerId]) => playerId)
+                    .sort(),
+            count: maximum
+        };
+    };
+    return {
+        mostPlayersFooled: statisticLeaders("fakeVotesReceived"),
+        gotFooledMost: statisticLeaders("fakeVotesCast"),
+        mostCorrectAnswers: statisticLeaders("correctVotes")
+    };
+}
+
 function publishResults(state) {
     if (state.phase !== "waiting-for-results") {
         throw new FakeAnswerError(
@@ -352,6 +377,40 @@ function publishResults(state) {
     }
 
     const results = calculateRoundResults(state);
+    const optionsById = new Map(results.options.map((option) => [option.id, option]));
+    for (const option of results.options) {
+        if (option.isCorrect || option.authorId === null) {
+            continue;
+        }
+        const authorStats = state.statistics.get(option.authorId);
+        if (!authorStats) {
+            throw new FakeAnswerError(
+                "INVALID_VOTE_STATE",
+                "A bluff answer has no participating author."
+            );
+        }
+        authorStats.fakeVotesReceived += option.voters.filter(
+            ({ playerId }) => playerId !== option.authorId
+        ).length;
+    }
+    for (const player of results.players) {
+        const playerStats = state.statistics.get(player.playerId);
+        const voteOption = optionsById.get(player.voteOptionId);
+        if (!playerStats || !voteOption) {
+            throw new FakeAnswerError(
+                "INVALID_VOTE_STATE",
+                "A completed vote has no valid result mapping."
+            );
+        }
+        if (player.voteCorrect) {
+            playerStats.correctVotes += 1;
+        } else if (
+            voteOption.authorId !== null &&
+            voteOption.authorId !== player.playerId
+        ) {
+            playerStats.fakeVotesCast += 1;
+        }
+    }
     for (const player of state.participants) {
         state.scores.set(player.id, results.players.find(
             ({ playerId }) => playerId === player.id
@@ -469,8 +528,16 @@ function createPublicState(state, viewerId) {
                 ? {
                     continueReadyCount: state.continueReady.size,
                     continuePlayerCount: state.participants.length,
-                    viewerReadyToContinue: state.continueReady.has(viewerId)
+                    viewerReadyToContinue: state.continueReady.has(viewerId),
+                    continueProgress: state.participants.map((player) => ({
+                        playerId: player.id,
+                        name: player.name,
+                        ready: state.continueReady.has(player.id)
+                    }))
                 }
+                : {}),
+            ...(state.currentRound === state.totalRounds
+                ? { finalStatistics: createFinalStatistics(state) }
                 : {}),
             results: state.results
         };

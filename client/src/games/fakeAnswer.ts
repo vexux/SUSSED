@@ -36,6 +36,17 @@ export interface FakeAnswerStanding {
   rank: number;
 }
 
+export interface FakeAnswerFinalStatistic {
+  playerIds: string[];
+  count: number;
+}
+
+export interface FakeAnswerFinalStatistics {
+  mostPlayersFooled: FakeAnswerFinalStatistic;
+  gotFooledMost: FakeAnswerFinalStatistic;
+  mostCorrectAnswers: FakeAnswerFinalStatistic;
+}
+
 export interface FakeAnswerResults {
   correctCompletion: string;
   options: FakeAnswerResultOption[];
@@ -76,6 +87,12 @@ export interface FakeAnswerPublicState {
   continueReadyCount?: number;
   continuePlayerCount?: number;
   viewerReadyToContinue?: boolean;
+  continueProgress?: Array<{
+    playerId: string;
+    name: string;
+    ready: boolean;
+  }>;
+  finalStatistics?: FakeAnswerFinalStatistics;
   results?: FakeAnswerResults;
 }
 
@@ -94,10 +111,48 @@ export interface FakeAnswerViewState {
   isHost: boolean;
   isReturningToLobby: boolean;
   returnToLobbyError: string | null;
+  isRoundFeedbackDismissed: boolean;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isFinalStatistic(
+  value: unknown,
+  playerIds: Set<string>,
+): value is FakeAnswerFinalStatistic {
+  return (
+    isRecord(value) &&
+    Number.isInteger(value.count) &&
+    (value.count as number) >= 0 &&
+    Array.isArray(value.playerIds) &&
+    value.playerIds.every(
+      (playerId) => typeof playerId === "string" && playerIds.has(playerId),
+    ) &&
+    new Set(value.playerIds).size === value.playerIds.length &&
+    ((value.count as number) === 0
+      ? value.playerIds.length === 0
+      : value.playerIds.length > 0)
+  );
+}
+
+function isFinalStatistics(
+  value: unknown,
+  standings: unknown,
+): value is FakeAnswerFinalStatistics {
+  if (!isRecord(value) || !Array.isArray(standings)) {
+    return false;
+  }
+  const playerIds = new Set(
+    standings
+      .filter(isRecord)
+      .map(({ playerId }) => playerId)
+      .filter((playerId): playerId is string => typeof playerId === "string"),
+  );
+  return (
+    ["mostPlayersFooled", "gotFooledMost", "mostCorrectAnswers"] as const
+  ).every((key) => isFinalStatistic(value[key], playerIds));
 }
 
 export function isFakeAnswerPublicState(
@@ -220,10 +275,28 @@ export function isFakeAnswerPublicState(
           typeof standing.totalScore === "number" &&
           typeof standing.rank === "number",
       ) &&
-      (value.isFinalRound === true ||
-        (typeof value.continueReadyCount === "number" &&
+      (value.isFinalRound === true
+        ? isFinalStatistics(value.finalStatistics, value.results.standings)
+        : typeof value.continueReadyCount === "number" &&
           typeof value.continuePlayerCount === "number" &&
-          typeof value.viewerReadyToContinue === "boolean")));
+          typeof value.viewerReadyToContinue === "boolean" &&
+          Array.isArray(value.continueProgress) &&
+          value.continueProgress.length === value.playerCount &&
+          value.continueProgress.every(
+            (player) =>
+              isRecord(player) &&
+              typeof player.playerId === "string" &&
+              typeof player.name === "string" &&
+              typeof player.ready === "boolean",
+          ) &&
+          new Set(
+            value.continueProgress
+              .filter(isRecord)
+              .map((player) => player.playerId),
+          ).size === value.playerCount &&
+          value.continueProgress.filter(
+            (player) => isRecord(player) && player.ready === true,
+          ).length === value.continueReadyCount));
 
   return (
     phaseIsValid &&
@@ -330,6 +403,173 @@ function formatAnswerForDisplay(answer: string): string {
   return answer.toLowerCase();
 }
 
+function appendRoundFeedback(
+  screen: HTMLElement,
+  publicState: FakeAnswerPublicState,
+  submission: FakeAnswerViewState,
+  onDismissFeedback: () => void,
+): void {
+  if (submission.isRoundFeedbackDismissed) {
+    return;
+  }
+  const personalResult = publicState.results?.players.find(
+    ({ playerId }) => playerId === submission.currentPlayerId,
+  );
+  let message = "No vote submitted this round.";
+  let feedbackClass = "personal-result-feedback";
+  if (personalResult) {
+    const selectedResult = publicState.results?.options.find(
+      ({ id }) => id === personalResult.voteOptionId,
+    );
+    if (selectedResult?.isCorrect) {
+      message = "Correct! +2 points";
+      feedbackClass += " personal-result-correct";
+    } else if (
+      selectedResult?.authorId !== null &&
+      selectedResult?.authorId !== undefined &&
+      selectedResult.authorId !== submission.currentPlayerId
+    ) {
+      message = `Sike! You got fooled by ${selectedResult.authorName ?? "another player"}!`;
+      feedbackClass += " personal-result-fooled";
+    }
+  }
+
+  const feedback = document.createElement("aside");
+  feedback.className = `round-feedback ${feedbackClass}`;
+  feedback.setAttribute("role", "status");
+  feedback.setAttribute("aria-live", "polite");
+  const messageElement = document.createElement("span");
+  messageElement.textContent = message;
+  const dismiss = document.createElement("button");
+  dismiss.className = "feedback-dismiss";
+  dismiss.type = "button";
+  dismiss.setAttribute("aria-label", "Dismiss round feedback");
+  dismiss.textContent = "×";
+  dismiss.addEventListener("click", onDismissFeedback);
+  feedback.append(messageElement, dismiss);
+  screen.append(feedback);
+}
+
+function createFinalResultsScreen(
+  publicState: FakeAnswerPublicState,
+  submission: FakeAnswerViewState,
+  gameDisplayName: string,
+  onReturnToLobby: () => void,
+  onDismissFeedback: () => void,
+): HTMLElement {
+  const screen = document.createElement("section");
+  screen.className = "app-screen question-screen final-results-screen";
+  const gameName = document.createElement("p");
+  gameName.className = "screen-description";
+  gameName.textContent = gameDisplayName;
+  const title = document.createElement("h1");
+  title.textContent = "Final results";
+  const round = document.createElement("p");
+  round.className = "round-counter";
+  round.textContent = `Round ${publicState.currentRound} of ${publicState.totalRounds}`;
+  screen.append(gameName, title, round);
+  appendRoundFeedback(screen, publicState, submission, onDismissFeedback);
+
+  const results = publicState.results;
+  if (!results || !publicState.finalStatistics) {
+    return screen;
+  }
+
+  const winners = results.standings.filter(({ rank }) => rank === 1);
+  const winnerHeading = document.createElement("h2");
+  winnerHeading.className = "final-winner-heading";
+  winnerHeading.textContent = winners.length > 1 ? "It's a tie!" : "Winner";
+  const winnerNames = document.createElement("p");
+  winnerNames.className = "final-winner-names";
+  winnerNames.textContent = winners.map(({ name }) => name).join(", ");
+  const winnerScores = document.createElement("p");
+  winnerScores.className = "final-winner-scores";
+  winnerScores.textContent = `${winners[0]?.totalScore ?? 0} points`;
+  screen.append(winnerHeading, winnerNames, winnerScores);
+
+  const leaderboardHeading = document.createElement("h2");
+  leaderboardHeading.className = "results-section-heading";
+  leaderboardHeading.textContent = "Final leaderboard";
+  const leaderboard = document.createElement("ol");
+  leaderboard.className = "result-card-list standings-list final-leaderboard";
+  for (const standing of results.standings) {
+    const item = document.createElement("li");
+    item.className = "result-card standing-card";
+    item.dataset.playerId = standing.playerId;
+    const rank = document.createElement("span");
+    rank.className = "standing-rank";
+    rank.textContent = `#${standing.rank}`;
+    const name = document.createElement("span");
+    name.className = "standing-name";
+    name.textContent = standing.name;
+    const score = document.createElement("strong");
+    score.className = "standing-score";
+    score.textContent = `${standing.totalScore} point${standing.totalScore === 1 ? "" : "s"}`;
+    item.append(rank, name, score);
+    leaderboard.append(item);
+  }
+  screen.append(leaderboardHeading, leaderboard);
+
+  const statisticsHeading = document.createElement("h2");
+  statisticsHeading.className = "results-section-heading";
+  statisticsHeading.textContent = "Fun statistics";
+  const statistics = document.createElement("ul");
+  statistics.className = "final-statistics";
+  const statisticLabels = [
+    ["mostPlayersFooled", "Most players fooled"],
+    ["gotFooledMost", "Got fooled the most"],
+    ["mostCorrectAnswers", "Most correct answers"],
+  ] as const;
+  for (const [key, label] of statisticLabels) {
+    const statistic = publicState.finalStatistics[key];
+    const row = document.createElement("li");
+    const name = document.createElement("strong");
+    name.textContent = label;
+    const winnersText = document.createElement("span");
+    winnersText.textContent = statistic.playerIds.length > 0
+      ? statistic.playerIds
+          .map(
+            (playerId) =>
+              results.standings.find((standing) => standing.playerId === playerId)
+                ?.name ?? "Unknown player",
+          )
+          .join(", ")
+      : "No winner";
+    row.append(name, winnersText);
+    statistics.append(row);
+  }
+  screen.append(statisticsHeading, statistics);
+
+  const finished = document.createElement("p");
+  finished.className = "status-message";
+  finished.textContent = "The game is complete.";
+  screen.append(finished);
+  if (submission.isHost) {
+    const returnButton = document.createElement("button");
+    returnButton.className = "primary-button";
+    returnButton.type = "button";
+    returnButton.disabled = submission.isReturningToLobby;
+    returnButton.textContent = submission.isReturningToLobby
+      ? "Returning to lobby…"
+      : "Return to lobby";
+    returnButton.addEventListener("click", onReturnToLobby);
+    screen.append(returnButton);
+  } else {
+    const waiting = document.createElement("p");
+    waiting.className = "status-message";
+    waiting.textContent = "Waiting for the host to return everyone to the lobby…";
+    screen.append(waiting);
+  }
+  if (submission.returnToLobbyError) {
+    const error = document.createElement("p");
+    error.className = "error-message";
+    error.setAttribute("role", "alert");
+    error.textContent = submission.returnToLobbyError;
+    screen.append(error);
+  }
+  return screen;
+}
+
 export function renderFakeAnswerGame(
   publicState: unknown,
   submission: FakeAnswerViewState,
@@ -339,6 +579,8 @@ export function renderFakeAnswerGame(
   onContinue: () => void,
   onReturnToLobby: () => void,
   gameDisplayName: string,
+  isSessionFinished: boolean,
+  onDismissFeedback: () => void,
 ): HTMLElement {
   const screen = document.createElement("section");
   screen.className = "app-screen question-screen";
@@ -348,6 +590,21 @@ export function renderFakeAnswerGame(
     title.textContent = "Game starting";
     screen.append(title);
     return screen;
+  }
+
+  if (
+    publicState.phase === "results" &&
+    publicState.isFinalRound === true &&
+    isSessionFinished &&
+    publicState.finalStatistics
+  ) {
+    return createFinalResultsScreen(
+      publicState,
+      submission,
+      gameDisplayName,
+      onReturnToLobby,
+      onDismissFeedback,
+    );
   }
 
   const title = document.createElement("h1");
@@ -430,35 +687,12 @@ export function renderFakeAnswerGame(
     }
     screen.append(optionsHeading, options);
 
-    const personalResult = publicState.results.players.find(
-      ({ playerId }) => playerId === submission.currentPlayerId,
+    appendRoundFeedback(
+      screen,
+      publicState,
+      submission,
+      onDismissFeedback,
     );
-    if (!personalResult) {
-      const feedback = document.createElement("p");
-      feedback.className = "personal-result-feedback";
-      feedback.textContent = "No vote was submitted this round.";
-      screen.append(feedback);
-    } else {
-      const selectedResult = publicState.results.options.find(
-        ({ id }) => id === personalResult.voteOptionId,
-      );
-      if (selectedResult?.isCorrect) {
-        const feedback = document.createElement("p");
-        feedback.className = "personal-result-feedback personal-result-correct";
-        feedback.textContent = "Correct! +2 points";
-        screen.append(feedback);
-      } else if (
-        selectedResult &&
-        selectedResult.authorId !== null &&
-        selectedResult.authorId !== submission.currentPlayerId
-      ) {
-        const feedback = document.createElement("p");
-        feedback.className = "personal-result-feedback personal-result-fooled";
-        feedback.textContent =
-          `Sike! You got fooled by ${selectedResult.authorName ?? "another player"}!`;
-        screen.append(feedback);
-      }
-    }
 
     const playerResultsHeading = document.createElement("h2");
     playerResultsHeading.className = "results-section-heading";
@@ -503,9 +737,7 @@ export function renderFakeAnswerGame(
 
     const standingsHeading = document.createElement("h2");
     standingsHeading.className = "results-section-heading";
-    standingsHeading.textContent = publicState.isFinalRound
-      ? "Final leaderboard"
-      : "Current leaderboard";
+    standingsHeading.textContent = "Current leaderboard";
     const standings = document.createElement("ol");
     standings.className = "result-card-list standings-list";
     for (const standing of publicState.results.standings) {
@@ -526,58 +758,40 @@ export function renderFakeAnswerGame(
     }
     screen.append(standingsHeading, standings);
 
-    if (publicState.isFinalRound) {
-      const finished = document.createElement("p");
-      finished.className = "status-message";
-      finished.textContent = "The game is complete.";
-      screen.append(finished);
-      if (submission.isHost) {
-        const returnButton = document.createElement("button");
-        returnButton.className = "primary-button";
-        returnButton.type = "button";
-        returnButton.disabled = submission.isReturningToLobby;
-        returnButton.textContent = submission.isReturningToLobby
-          ? "Returning to lobby…"
-          : "Return to lobby";
-        returnButton.addEventListener("click", onReturnToLobby);
-        screen.append(returnButton);
-      } else {
-        const waiting = document.createElement("p");
-        waiting.className = "status-message";
-        waiting.textContent =
-          "Waiting for the host to return everyone to the lobby…";
-        screen.append(waiting);
-      }
-      if (submission.returnToLobbyError) {
-        const error = document.createElement("p");
-        error.className = "error-message";
-        error.setAttribute("role", "alert");
-        error.textContent = submission.returnToLobbyError;
-        screen.append(error);
-      }
-    } else {
-      const continueProgress = document.createElement("p");
-      continueProgress.className = "continue-progress";
-      continueProgress.textContent =
-        `${publicState.continueReadyCount} / ${publicState.continuePlayerCount} players ready to continue`;
-      screen.append(continueProgress);
+    const continueProgress = document.createElement("p");
+    continueProgress.className = "continue-progress";
+    continueProgress.textContent =
+      `${publicState.continueReadyCount} / ${publicState.continuePlayerCount} players ready to continue`;
+    screen.append(continueProgress);
 
-      if (publicState.viewerReadyToContinue) {
-        const waiting = document.createElement("p");
-        waiting.className = "status-message";
-        waiting.textContent = "You’re ready. Waiting for the other players…";
-        screen.append(waiting);
-      } else {
-        const continueButton = document.createElement("button");
-        continueButton.className = "primary-button";
-        continueButton.type = "button";
-        continueButton.disabled = submission.isContinuing;
-        continueButton.textContent = submission.isContinuing
-          ? "Continuing…"
-          : "Continue";
-        continueButton.addEventListener("click", onContinue);
-        screen.append(continueButton);
-      }
+    const continuePlayerList = document.createElement("ul");
+    continuePlayerList.className = "continue-player-list progress-chip-list";
+    for (const player of publicState.continueProgress ?? []) {
+      const item = document.createElement("li");
+      item.className = player.ready
+        ? "progress-chip progress-chip-done"
+        : "progress-chip";
+      item.dataset.playerId = player.playerId;
+      item.textContent = `${player.name} · ${player.ready ? "Ready" : "Waiting"}`;
+      continuePlayerList.append(item);
+    }
+    screen.append(continuePlayerList);
+
+    if (publicState.viewerReadyToContinue) {
+      const waiting = document.createElement("p");
+      waiting.className = "status-message";
+      waiting.textContent = "You’re ready. Waiting for the other players…";
+      screen.append(waiting);
+    } else {
+      const continueButton = document.createElement("button");
+      continueButton.className = "primary-button";
+      continueButton.type = "button";
+      continueButton.disabled = submission.isContinuing;
+      continueButton.textContent = submission.isContinuing
+        ? "Continuing…"
+        : "Continue";
+      continueButton.addEventListener("click", onContinue);
+      screen.append(continueButton);
     }
     if (submission.continueError) {
       const error = document.createElement("p");
@@ -729,8 +943,21 @@ export function renderFakeAnswerGame(
       input.name = "vote-option";
       input.value = option.id;
       input.checked = submission.selectedOptionId === option.id;
-      input.disabled = submission.isVoting || option.isOwnAnswer;
-      input.addEventListener("change", () => onSelectVote(option.id));
+      input.disabled = submission.isVoting;
+      if (option.isOwnAnswer) {
+        input.setAttribute("aria-disabled", "true");
+        input.tabIndex = -1;
+        input.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
+        input.addEventListener("keydown", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
+      } else {
+        input.addEventListener("change", () => onSelectVote(option.id));
+      }
       const answer = document.createElement("span");
       answer.textContent = formatAnswerForDisplay(option.completion);
       label.append(input, answer);
@@ -740,7 +967,7 @@ export function renderFakeAnswerGame(
     submit.className = "primary-button";
     submit.type = "submit";
     submit.disabled = submission.isVoting || submission.selectedOptionId === null;
-    submit.textContent = submission.isVoting ? "Submitting vote…" : "Submit vote";
+    submit.textContent = submission.isVoting ? "Submitting…" : "Submit";
     form.append(submit);
     form.addEventListener("submit", (event) => {
       event.preventDefault();

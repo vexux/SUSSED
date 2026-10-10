@@ -58,8 +58,19 @@ let fakeAnswerIsContinuing = false;
 let fakeAnswerContinueError: string | null = null;
 let fakeAnswerIsReturningToLobby = false;
 let fakeAnswerReturnToLobbyError: string | null = null;
+let fakeAnswerFeedbackDismissedRoundId: string | null = null;
+let fakeAnswerFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
+let fakeAnswerFeedbackTimerKey: string | null = null;
 const retiredGameSessionIds = new Set<string>();
 const FACT_OR_CAP_GAME_IDS = new Set(["fact-or-cap", "fact-or-cap-anime"]);
+
+function clearRoundFeedbackTimer(): void {
+  if (fakeAnswerFeedbackTimer !== null) {
+    clearTimeout(fakeAnswerFeedbackTimer);
+    fakeAnswerFeedbackTimer = null;
+  }
+  fakeAnswerFeedbackTimerKey = null;
+}
 
 function resetFakeAnswerViewState(): void {
   fakeAnswerHasSubmitted = false;
@@ -74,6 +85,8 @@ function resetFakeAnswerViewState(): void {
   fakeAnswerContinueError = null;
   fakeAnswerIsReturningToLobby = false;
   fakeAnswerReturnToLobbyError = null;
+  fakeAnswerFeedbackDismissedRoundId = null;
+  clearRoundFeedbackTimer();
 }
 
 function render(): void {
@@ -95,6 +108,9 @@ function render(): void {
       ) ?? false,
     isReturningToLobby: fakeAnswerIsReturningToLobby,
     returnToLobbyError: fakeAnswerReturnToLobbyError,
+    isRoundFeedbackDismissed:
+      isFakeAnswerPublicState(state.game?.state) &&
+      fakeAnswerFeedbackDismissedRoundId === state.game.state.roundId,
   });
 }
 
@@ -150,6 +166,13 @@ function emitRoomOperation(
 }
 
 function applyLobbyState(lobby: LobbyState): void {
+  if (
+    (state.roomCode !== null && lobby.roomCode !== state.roomCode) ||
+    (state.lobby?.roomCode === lobby.roomCode &&
+      lobby.revision < state.lobby.revision)
+  ) {
+    return;
+  }
   const localPlayer = lobby.players.find((player) => player.id === socket.id);
   if (!localPlayer) {
     return;
@@ -284,6 +307,30 @@ function applyGameState(game: GameSessionState): void {
   state.errorMessage = null;
   state.isBusy = false;
   if (
+    isFakeAnswerPublicState(nextState) &&
+    nextState.phase === "results" &&
+    fakeAnswerFeedbackDismissedRoundId !== nextState.roundId
+  ) {
+    const feedbackTimerKey = `${game.sessionId}:${nextState.roundId}`;
+    if (fakeAnswerFeedbackTimerKey !== feedbackTimerKey) {
+      clearRoundFeedbackTimer();
+      fakeAnswerFeedbackTimerKey = feedbackTimerKey;
+      fakeAnswerFeedbackTimer = setTimeout(() => {
+        fakeAnswerFeedbackTimer = null;
+        fakeAnswerFeedbackTimerKey = null;
+        if (
+          state.game?.sessionId === game.sessionId &&
+          isFakeAnswerPublicState(state.game.state) &&
+          state.game.state.phase === "results" &&
+          state.game.state.roundId === nextState.roundId
+        ) {
+          fakeAnswerFeedbackDismissedRoundId = nextState.roundId;
+          render();
+        }
+      }, 6000);
+    }
+  }
+  if (
     isSubmissionProgressOnly &&
     updateFakeAnswerProgress(appRoot, game.state, state.localPlayerId)
   ) {
@@ -389,6 +436,7 @@ const actions: AppActions = {
         return;
       }
       if (response.lobby) {
+        state.isBusy = false;
         applyLobbyState(response.lobby);
       } else {
         state.isBusy = false;
@@ -568,6 +616,13 @@ const actions: AppActions = {
         render();
       },
     );
+  },
+  onDismissRoundFeedback() {
+    if (isFakeAnswerPublicState(state.game?.state)) {
+      clearRoundFeedbackTimer();
+      fakeAnswerFeedbackDismissedRoundId = state.game.state.roundId;
+      render();
+    }
   },
 };
 
