@@ -312,8 +312,21 @@ button:focus-visible {
 .submission-form > .primary-button,
 .vote-form > .primary-button {
   justify-self: center;
-  min-width: min(100%, 180px);
   margin-top: 4px;
+}
+
+.submission-form > .primary-button {
+  min-width: min(100%, 180px);
+}
+
+.vote-form > .primary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 0;
+  padding-inline: 24px;
+  text-align: center;
 }
 
 .revealed-options,
@@ -501,10 +514,6 @@ button:focus-visible {
 .continue-progress {
   margin: 16px 0 0;
   color: #c5b9ce;
-}
-
-.vote-form .primary-button {
-  text-align: left;
 }
 
 .submission-progress {
