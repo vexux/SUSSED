@@ -1,0 +1,1064 @@
+{
+  "ledgerVersion": 1,
+  "purpose": "Reconciled exclusion ledger derived from all JSON question packs in content-anime. Franchise identity is normalized from each question?s first franchise tag, with explicit alias normalization for existing abbreviations.",
+  "bankSnapshot": {
+    "branch": "dev",
+    "questionCount": 249,
+    "contentPackCount": 5
+  },
+  "franchises": [
+    {
+      "franchiseId": "100-girlfriends",
+      "displayName": "The 100 Girlfriends Who Really, Really, Really, Really, Really Love You",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-100-girlfriends-manga-illustrator",
+            "anime-b003-100-girlfriends-rentarou-voice",
+            "anime-b003-100-girlfriends-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "a-place-further-than-the-universe",
+      "displayName": "A Place Further than the Universe",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "yorimoi-kindergarten-friend"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "apothecary-diaries",
+      "displayName": "The Apothecary Diaries",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-apothecary-diaries-maomao-voice",
+            "anime-b003-apothecary-diaries-novel-author",
+            "anime-b003-apothecary-diaries-poison-hobby"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "attack-on-titan",
+      "displayName": "Attack on Titan",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "attack-on-titan-eren",
+            "attack-on-titan-titans",
+            "attack-on-titan-wall-maria"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "baccano",
+      "displayName": "Baccano!",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-baccano-illustrator",
+            "anime-b003-baccano-novel-author",
+            "anime-b003-baccano-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "barakamon",
+      "displayName": "Barakamon",
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-barakamon-author",
+            "anime-b003-barakamon-calligrapher"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "beastars",
+      "displayName": "BEASTARS",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-beastars-author",
+            "anime-b003-beastars-legoshi-species",
+            "anime-b003-beastars-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "bleach",
+      "displayName": "Bleach",
+      "questionCount": 4,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "bleach-ichigo",
+            "bleach-rukia",
+            "bleach-soul-reapers",
+            "bleach-urahara"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "blue-exorcist",
+      "displayName": "Blue Exorcist",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "blue-exorcist-konekomaru-name"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "blue-lock",
+      "displayName": "Blue Lock",
+      "questionCount": 4,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "blue-lock-bachira",
+            "blue-lock-coach",
+            "blue-lock-isagi",
+            "blue-lock-nagi"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "blue-period",
+      "displayName": "Blue Period",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "blue-period-yatora-major"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "bocchi-the-rock",
+      "displayName": "Bocchi the Rock!",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "bocchi-hitori-lead-guitar"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "cells-at-work",
+      "displayName": "Cells at Work!",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "cells-at-work-hemoglobin",
+            "cells-at-work-killer-t-cell-role",
+            "cells-at-work-red-cell-oxygen"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "crayon-shin-chan",
+      "displayName": "Crayon Shin-chan",
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-crayon-shin-chan-author",
+            "anime-b003-crayon-shin-chan-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "dandadan",
+      "displayName": "DANDADAN",
+      "questionCount": 26,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-001",
+          "questionIds": [
+            "bizarre-dandadan-chiquitita-blood",
+            "bizarre-dandadan-chiquitita-cow",
+            "bizarre-dandadan-dover-dis",
+            "bizarre-dandadan-dover-shrimp",
+            "bizarre-dandadan-flatwoods-gills",
+            "bizarre-dandadan-flatwoods-shape",
+            "bizarre-dandadan-manjiro-bootuber",
+            "bizarre-dandadan-seiko-pseudonym",
+            "bizarre-dandadan-serpent-skin-shrine",
+            "bizarre-dandadan-serpoian-cloning",
+            "bizarre-dandadan-serpoian-organs",
+            "bizarre-dandadan-taro-model"
+          ]
+        },
+        {
+          "contentPackId": "anime-bizarre-batch-002",
+          "questionIds": [
+            "anime-b002-dd-aira-misidentifies",
+            "anime-b002-dd-evil-eye-attire",
+            "anime-b002-dd-flatwoods-fighting",
+            "anime-b002-dd-hana-disposal",
+            "anime-b002-dd-jiji-help",
+            "anime-b002-dd-momo-type",
+            "anime-b002-dd-naki-manners",
+            "anime-b002-dd-okarun-belief",
+            "anime-b002-dd-silky-appearance",
+            "anime-b002-dd-turbo-home"
+          ]
+        },
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "dandadan-momo-belief",
+            "dandadan-momo-family",
+            "dandadan-momo-power",
+            "dandadan-momo-type"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "delicious-in-dungeon",
+      "displayName": "Delicious in Dungeon",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-delicious-in-dungeon-author",
+            "anime-b003-delicious-in-dungeon-studio",
+            "anime-b003-delicious-in-dungeon-survival-plan"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "demon-slayer",
+      "displayName": "Demon Slayer: Kimetsu no Yaiba",
+      "questionCount": 5,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "demon-slayer-inosuke",
+            "demon-slayer-nezuko",
+            "demon-slayer-tanjiro",
+            "demon-slayer-water-hashira",
+            "demon-slayer-zenitsu"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "detective-conan",
+      "displayName": "Detective Conan",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-detective-conan-author",
+            "anime-b003-detective-conan-composer",
+            "anime-b003-detective-conan-story-editor"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "doraemon",
+      "displayName": "Doraemon",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-doraemon-composer",
+            "anime-b003-doraemon-creator",
+            "anime-b003-doraemon-production-support"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "dr-stone",
+      "displayName": "Dr. STONE",
+      "questionCount": 4,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "dr-stone-chrome",
+            "dr-stone-senku",
+            "dr-stone-taiju",
+            "dr-stone-yuzuriha"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "dragon-ball",
+      "displayName": "Dragon Ball",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-foundations",
+          "questionIds": [
+            "anime-dragon-ball-wish"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "eizouken",
+      "displayName": "Keep Your Hands Off Eizouken!",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-eizouken-author",
+            "anime-b003-eizouken-director",
+            "anime-b003-eizouken-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "fire-force",
+      "displayName": "Fire Force",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "fire-force-hero-goal"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "fist-of-the-north-star",
+      "displayName": "Fist of the North Star",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-fist-of-the-north-star-composer",
+            "anime-b003-fist-of-the-north-star-opening-theme",
+            "anime-b003-fist-of-the-north-star-story-and-art"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "frieren",
+      "displayName": "Frieren: Beyond Journey's End",
+      "questionCount": 5,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "frieren-apprentice",
+            "frieren-elf-mage",
+            "frieren-hero",
+            "frieren-priest",
+            "frieren-warrior"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "gegege-no-kitaro",
+      "displayName": "GeGeGe no Kitaro",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-gegege-no-kitaro-author"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "ghost-in-the-shell",
+      "displayName": "Ghost in the Shell",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-ghost-in-the-shell-manga-author",
+            "anime-b003-ghost-in-the-shell-motoko-voice",
+            "anime-b003-ghost-in-the-shell-scriptwriter"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "gintama",
+      "displayName": "Gintama",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-gintama-aliens",
+            "anime-b003-gintama-author",
+            "anime-b003-gintama-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "golden-kamuy",
+      "displayName": "Golden Kamuy",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-golden-kamuy-ainu-language",
+            "anime-b003-golden-kamuy-animal-setting",
+            "anime-b003-golden-kamuy-author"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "hyouka",
+      "displayName": "Hyouka",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-hyouka-club",
+            "anime-b003-hyouka-novel-author",
+            "anime-b003-hyouka-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "jojos-bizarre-adventure",
+      "displayName": "JoJo's Bizarre Adventure",
+      "questionCount": 6,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-001",
+          "questionIds": [
+            "bizarre-jojo-ff-etro",
+            "bizarre-jojo-ff-plankton",
+            "bizarre-jojo-kenzo-sentence",
+            "bizarre-jojo-lang-fingers",
+            "bizarre-jojo-miu-miu-role",
+            "bizarre-jojo-miu-miu-stand"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "jujutsu-kaisen",
+      "displayName": "Jujutsu Kaisen",
+      "questionCount": 18,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-001",
+          "questionIds": [
+            "bizarre-jujutsu-inumaki-riceballs",
+            "bizarre-jujutsu-mai-construction",
+            "bizarre-jujutsu-maki-no-cursed-energy",
+            "bizarre-jujutsu-panda-cursed-corpse",
+            "bizarre-jujutsu-yaga-dolls",
+            "bizarre-jujutsu-yuji-sukuna-poison"
+          ]
+        },
+        {
+          "contentPackId": "anime-bizarre-batch-002",
+          "questionIds": [
+            "anime-b002-jjk-gojo-status",
+            "anime-b002-jjk-ijichi-strength",
+            "anime-b002-jjk-mai-construction",
+            "anime-b002-jjk-maki-sight",
+            "anime-b002-jjk-nanami-career",
+            "anime-b002-jjk-panda-grade",
+            "anime-b002-jjk-panda-maker"
+          ]
+        },
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "jujutsu-kaisen-gojo",
+            "jujutsu-kaisen-megumi",
+            "jujutsu-kaisen-nobara",
+            "jujutsu-kaisen-school",
+            "jujutsu-kaisen-yuji"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "k-on",
+      "displayName": "K-On!",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-k-on-band-name",
+            "anime-b003-k-on-director",
+            "anime-b003-k-on-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "kaguya-sama",
+      "displayName": "Kaguya-sama: Love Is War",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "kaguya-shuchiin-role"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "laid-back-camp",
+      "displayName": "Laid-Back Camp",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "yuru-camp-nadeshiko"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "lupin-iii",
+      "displayName": "Lupin the Third",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-lupin-iii-composer",
+            "anime-b003-lupin-iii-creator",
+            "anime-b003-lupin-iii-fujiko-voice"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "mob-psycho-100",
+      "displayName": "Mob Psycho 100",
+      "questionCount": 14,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-001",
+          "questionIds": [
+            "bizarre-mob-psycho-ekubo-ambition",
+            "bizarre-mob-psycho-ekubo-cult",
+            "bizarre-mob-psycho-reigen-powers",
+            "bizarre-mob-psycho-white-t-poison"
+          ]
+        },
+        {
+          "contentPackId": "anime-bizarre-batch-002",
+          "questionIds": [
+            "anime-b002-mob-broccoli",
+            "anime-b002-mob-ekubo",
+            "anime-b002-mob-mogami-media",
+            "anime-b002-mob-psycho-helmet",
+            "anime-b002-mob-school-year",
+            "anime-b002-mob-teru-posture"
+          ]
+        },
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "mob-psycho-body-club",
+            "mob-psycho-main-character",
+            "mob-psycho-powers",
+            "mob-psycho-reigen"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "mobile-suit-gundam",
+      "displayName": "Mobile Suit Gundam",
+      "questionCount": 4,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "gundam-amuro",
+            "gundam-mobile-suits",
+            "gundam-rx782",
+            "gundam-white-base"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "mononoke",
+      "displayName": "Mononoke",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-mononoke-medicine-seller-voice",
+            "anime-b003-mononoke-spirit-identification",
+            "anime-b003-mononoke-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "mushishi",
+      "displayName": "Mushishi",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-mushishi-author",
+            "anime-b003-mushishi-director",
+            "anime-b003-mushishi-investigator"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "my-hero-academia",
+      "displayName": "My Hero Academia",
+      "questionCount": 5,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "my-hero-academia-all-might",
+            "my-hero-academia-bakugo",
+            "my-hero-academia-izuku",
+            "my-hero-academia-school",
+            "my-hero-academia-uraraka"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "neon-genesis-evangelion",
+      "displayName": "Neon Genesis Evangelion",
+      "questionCount": 4,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "evangelion-city",
+            "evangelion-organization",
+            "evangelion-shinji",
+            "evangelion-unit-one"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "nichijou",
+      "displayName": "Nichijou",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-nichijou-author",
+            "anime-b003-nichijou-director",
+            "anime-b003-nichijou-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "odd-taxi",
+      "displayName": "Odd Taxi",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-odd-taxi-director",
+            "anime-b003-odd-taxi-driver",
+            "anime-b003-odd-taxi-screenwriter"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "one-piece",
+      "displayName": "One Piece",
+      "questionCount": 25,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-001",
+          "questionIds": [
+            "bizarre-one-piece-brook-alone",
+            "bizarre-one-piece-brook-music",
+            "bizarre-one-piece-brook-skeleton",
+            "bizarre-one-piece-chopper-fruit",
+            "bizarre-one-piece-chopper-poster",
+            "bizarre-one-piece-franky-centaur",
+            "bizarre-one-piece-franky-destroyer-cannon",
+            "bizarre-one-piece-sunny-fuel"
+          ]
+        },
+        {
+          "contentPackId": "anime-bizarre-batch-002",
+          "questionIds": [
+            "anime-b002-op-franky-birthday",
+            "anime-b002-op-franky-catchphrase",
+            "anime-b002-op-franky-dream",
+            "anime-b002-op-franky-food",
+            "anime-b002-op-franky-gaon",
+            "anime-b002-op-franky-height",
+            "anime-b002-op-franky-shipwright",
+            "anime-b002-op-franky-underwear"
+          ]
+        },
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "one-piece-chopper",
+            "one-piece-crew-name",
+            "one-piece-franky",
+            "one-piece-luffy",
+            "one-piece-nami",
+            "one-piece-robin",
+            "one-piece-sanji",
+            "one-piece-zoro"
+          ]
+        },
+        {
+          "contentPackId": "anime-foundations",
+          "questionIds": [
+            "anime-one-piece-roger"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "one-punch-man",
+      "displayName": "One-Punch Man",
+      "questionCount": 4,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "one-punch-man-fubuki",
+            "one-punch-man-genos",
+            "one-punch-man-hero-organization",
+            "one-punch-man-saitama"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "ping-pong",
+      "displayName": "Ping Pong",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-ping-pong-author",
+            "anime-b003-ping-pong-director",
+            "anime-b003-ping-pong-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "puella-magi-madoka-magica",
+      "displayName": "Puella Magi Madoka Magica",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "madoka-homura-transfer"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "rascal-does-not-dream",
+      "displayName": "Rascal Does Not Dream",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "rascal-hakata-accent"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "re-zero",
+      "displayName": "Re:Zero",
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "rezero-otto-conversation",
+            "rezero-otto-occupation"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "sailor-moon",
+      "displayName": "Sailor Moon",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-foundations",
+          "questionIds": [
+            "anime-sailor-moon-luna"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "saint-seiya",
+      "displayName": "Saint Seiya",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-foundations",
+          "questionIds": [
+            "anime-saint-seiya-athena"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "shirobako",
+      "displayName": "Shirobako",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-shirobako-director",
+            "anime-b003-shirobako-studio",
+            "anime-b003-shirobako-title-term"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "slam-dunk",
+      "displayName": "Slam Dunk",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-foundations",
+          "questionIds": [
+            "anime-slam-dunk-hanamichi"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "space-brothers",
+      "displayName": "Space Brothers",
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-space-brothers-author",
+            "anime-b003-space-brothers-dream"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "spy-x-family",
+      "displayName": "SPY x FAMILY",
+      "questionCount": 11,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-001",
+          "questionIds": [
+            "bizarre-spy-family-bond-bomb-dog",
+            "bizarre-spy-family-bond-experiment",
+            "bizarre-spy-family-bond-future",
+            "bizarre-spy-family-bond-knower"
+          ]
+        },
+        {
+          "contentPackId": "anime-bizarre-batch-002",
+          "questionIds": [
+            "anime-b002-spy-family-premise",
+            "anime-b002-spy-family-twilight"
+          ]
+        },
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "spy-family-anya-ability",
+            "spy-family-loid-role",
+            "spy-family-operation-name",
+            "spy-family-target",
+            "spy-family-yor-profession"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "studio-ghibli",
+      "displayName": "Studio Ghibli films",
+      "questionCount": 10,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "kaguya-director",
+            "kaguya-theme-singer",
+            "kiki-composer",
+            "kiki-director",
+            "kiki-original-author",
+            "kiki-theme-performer",
+            "ponyo-composer",
+            "ponyo-director",
+            "poppy-hill-composer",
+            "poppy-hill-director"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "tatami-galaxy",
+      "displayName": "The Tatami Galaxy",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-tatami-galaxy-director",
+            "anime-b003-tatami-galaxy-novel-author",
+            "anime-b003-tatami-galaxy-studio"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "the-promised-neverland",
+      "displayName": "The Promised Neverland",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "promised-neverland-learning-ability"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "trigun",
+      "displayName": "TRIGUN",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-003",
+          "questionIds": [
+            "anime-b003-trigun-author",
+            "anime-b003-trigun-studio",
+            "anime-b003-trigun-vash-bounty"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "vinland-saga",
+      "displayName": "Vinland Saga",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "vinland-thorfinn-destination"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "welcome-to-demon-school-iruma-kun",
+      "displayName": "Welcome to Demon School! Iruma-kun",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "iruma-school-babyls"
+          ]
+        }
+      ]
+    }
+  ],
+  "rulesForFutureBatches": [
+    "Do not reuse any franchiseId in franchises unless explicitly authorized.",
+    "Do not reuse an existing question or create a near-duplicate; compare against all question packs.",
+    "Maximum three questions per franchise in a single batch."
+  ]
+}
