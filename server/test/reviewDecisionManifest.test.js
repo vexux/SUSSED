@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 const { evaluateReadiness, validateDecisionManifest } = require("../games/fake-answer/reviewDecisionManifest");
+const { validateCanonicalContent } = require("../games/fake-answer/canonicalContent");
 
 const fixtureDir = path.join(__dirname, "fixtures", "canonical-review");
 const canonicalFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, "synthetic-content.json"), "utf8"));
@@ -36,8 +37,11 @@ test("missing review decisions are structurally valid but block readiness with a
     incomplete.items[0].rightsAssessments = [];
     incomplete.items[0].useApprovals = [];
     const result = report(incomplete);
+    assert.equal(validateCanonicalContent(canonicalFixture).valid, true);
     assert.equal(result.structuralValidity.status, "valid");
     assert.equal(result.ready, false);
+    assert.equal(result.items[0].canonicalRecordReview.transformationStatus, "unreviewed");
+    assert.equal(result.items[0].claimVerification[0].status, "missing");
     assert.match(result.items[0].reasons.join("\n"), /no verification decision/);
     assert.match(result.items[0].reasons.join("\n"), /no support decision/);
     assert.match(result.items[0].reasons.join("\n"), /no rights assessment/);
@@ -143,6 +147,12 @@ test("unknown references and unsupported decision values are structural errors",
     const malformed = evaluateReadiness({ schemaVersion: 1, items: [null] }, canonicalFixture, { intendedUse: "test-only" });
     assert.equal(malformed.structuralValidity.status, "invalid");
     assert.equal(malformed.items[0].ready, false);
+
+    const malformedArray = clone(decisionsFixture);
+    malformedArray.items[0].sourceSupport = [null];
+    const malformedArrayReport = report(malformedArray);
+    assert.equal(malformedArrayReport.structuralValidity.status, "invalid");
+    assert.equal(malformedArrayReport.items[0].ready, false);
 });
 
 test("readiness report output is deterministic", () => {

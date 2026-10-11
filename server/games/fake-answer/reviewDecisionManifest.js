@@ -38,6 +38,12 @@ function indexById(records) {
     return new Map(records.map((record) => [record.id, record]));
 }
 
+function findDecision(decisions, predicate) {
+    return Array.isArray(decisions)
+        ? decisions.find((decision) => isRecord(decision) && predicate(decision))
+        : undefined;
+}
+
 function validateDecisionManifest(manifest, canonical, fileName = "<review-manifest>") {
     const errors = [];
     const fail = (where, message) => errors.push(`${fileName}: ${where} ${message}`);
@@ -195,8 +201,9 @@ function evaluateReadiness(manifest, canonical, options = {}) {
         const reasons = [];
         if (!structure.valid) reasons.push("Review decision manifest failed structural validation.");
         if (invalidRights) reasons.push("Configured allowedRightsStatuses must contain only reviewed rights outcomes.");
-        const claimResults = (transformation?.claimIds ?? []).map((claimId) => {
-            const decision = reviewItem.claimVerifications?.find((entry) => entry.claimId === claimId);
+        const linkedClaimIds = Array.isArray(transformation?.claimIds) ? transformation.claimIds : [];
+        const claimResults = linkedClaimIds.map((claimId) => {
+            const decision = findDecision(reviewItem.claimVerifications, (entry) => entry.claimId === claimId);
             const status = decision?.status ?? "missing";
             if (status !== "verified") reasons.push(status === "missing"
                 ? `Claim ${claimId} has no verification decision.`
@@ -204,9 +211,10 @@ function evaluateReadiness(manifest, canonical, options = {}) {
             return { claimId, status, reviewerId: decision?.reviewerId ?? null, decidedAt: decision?.decidedAt ?? null };
         });
         const supportResults = [];
-        for (const claimId of transformation?.claimIds ?? []) {
-            for (const sourceId of claimsById.get(claimId)?.sourceIds ?? []) {
-                const decision = reviewItem.sourceSupport?.find((entry) => entry.claimId === claimId && entry.sourceId === sourceId);
+        for (const claimId of linkedClaimIds) {
+            const claimSourceIds = Array.isArray(claimsById.get(claimId)?.sourceIds) ? claimsById.get(claimId).sourceIds : [];
+            for (const sourceId of claimSourceIds) {
+                const decision = findDecision(reviewItem.sourceSupport, (entry) => entry.claimId === claimId && entry.sourceId === sourceId);
                 const status = decision?.status ?? "missing";
                 if (status !== "supports") reasons.push(status === "missing"
                     ? `Source ${sourceId} has no support decision for claim ${claimId}.`
@@ -216,7 +224,7 @@ function evaluateReadiness(manifest, canonical, options = {}) {
         }
         const sourceIds = [...new Set(supportResults.map(({ sourceId }) => sourceId))].sort();
         const rightsResults = sourceIds.map((sourceId) => {
-            const decision = reviewItem.rightsAssessments?.find((entry) => entry.sourceId === sourceId);
+            const decision = findDecision(reviewItem.rightsAssessments, (entry) => entry.sourceId === sourceId);
             const status = decision?.status ?? "missing";
             if (status === "unknown" || status === "missing") reasons.push(status === "unknown"
                 ? `Rights for source ${sourceId} are unknown.`
@@ -224,7 +232,7 @@ function evaluateReadiness(manifest, canonical, options = {}) {
             else if (!allowedRights.includes(status)) reasons.push(`Rights status ${status} for source ${sourceId} is not allowed by the configured criteria.`);
             return { sourceId, status, reviewerId: decision?.reviewerId ?? null, decidedAt: decision?.decidedAt ?? null, rightsBasis: decision?.rightsBasis ?? null };
         });
-        const approval = reviewItem.useApprovals?.find((entry) => entry.intendedUse === intendedUse);
+        const approval = findDecision(reviewItem.useApprovals, (entry) => entry.intendedUse === intendedUse);
         if (!intendedUse) reasons.push("No intended use was specified for this readiness report.");
         if (!approval) reasons.push(`No approval is recorded for intended use ${JSON.stringify(intendedUse ?? "<unspecified>")}.`);
         else if (approval.status !== "approved") reasons.push(`Approval for intended use ${JSON.stringify(intendedUse)} is ${approval.status}; approved is required.`);
@@ -232,7 +240,7 @@ function evaluateReadiness(manifest, canonical, options = {}) {
         if (disposition === "rejected" || disposition === "withdrawn") reasons.push(`Transformation is ${disposition}: ${reviewItem.disposition.reason}.`);
         const canonicalRecordReview = {
             transformationStatus: transformation?.reviewStatus ?? "missing",
-            claimStatuses: (transformation?.claimIds ?? []).map((claimId) => ({
+            claimStatuses: linkedClaimIds.map((claimId) => ({
                 claimId,
                 status: claimsById.get(claimId)?.reviewStatus ?? "missing"
             })),
