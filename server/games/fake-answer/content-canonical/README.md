@@ -118,3 +118,44 @@ playable packs and their prompt/answer duplicate heuristic. The canonical
 validator is separate and does not feed, convert, or modify those packs. A
 future adapter can materialize game-specific playable records from approved
 canonical claims and transformations after a migration design is reviewed.
+
+## Migration manifest (version 1)
+
+`migration-pilot.json` demonstrates the standalone migration manifest. Each
+entry has exactly one legacy source reference (`gameId`, the pack's top-level
+`contentPackId`, and `questionId`) and one `transformationId`:
+
+```json
+{
+  "schemaVersion": 1,
+  "entries": [{
+    "gameId": "fact-or-cap-anime",
+    "contentPackId": "anime-foundations",
+    "questionId": "anime-sailor-moon-luna",
+    "transformationId": "transform:sailor-moon-bluff-completion"
+  }]
+}
+```
+
+Validate a manifest against the existing banks and one canonical document with:
+
+```sh
+cd server
+npm run validate:migration -- games/fake-answer/content-canonical/migration-pilot.json games/fake-answer/content-canonical/pilot.json
+```
+
+The validator resolves each source reference within its stated game and
+top-level pack ID, rejects ambiguous or duplicate mappings, and calls the
+Fact-or-Cap adapter for each transformation. It reports field-by-field
+differences from the original legacy question; it never edits either source.
+Structural validity, exact legacy matching, claim verification/review, source
+review, and rights-review statuses are reported separately. In particular,
+`unknown` rights status is unresolved and is never treated as permission.
+Successful validation is not a factual or legal approval.
+
+Manifest entries use existing game IDs, lowercase pack/question IDs, and one
+kind-prefixed canonical transformation ID. One legacy question may appear only
+once in a manifest, and each transformation may map to only one legacy
+question. The manifest is a migration-time traceability record; it does not
+change question-bank loading or live gameplay. The validator currently maps
+the two Fact-or-Cap IDs to their existing directories explicitly.
