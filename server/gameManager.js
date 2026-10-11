@@ -15,7 +15,8 @@ function isPlayerCountSupported(game, playerCount) {
     return (
         Number.isInteger(playerCount) &&
         playerCount >= game.supportedPlayers.min &&
-        playerCount <= game.supportedPlayers.max
+        (game.supportedPlayers.max === undefined ||
+            playerCount <= game.supportedPlayers.max)
     );
 }
 
@@ -29,9 +30,11 @@ function getGameDefinition(gameId) {
 
 function validatePlayerCount(game, playerCount) {
     if (!isPlayerCountSupported(game, playerCount)) {
-        const supportedCount = game.supportedPlayers.min === game.supportedPlayers.max
-            ? `exactly ${game.supportedPlayers.min}`
-            : `${game.supportedPlayers.min} to ${game.supportedPlayers.max}`;
+        const supportedCount = game.supportedPlayers.max === undefined
+            ? `at least ${game.supportedPlayers.min}`
+            : game.supportedPlayers.min === game.supportedPlayers.max
+              ? `exactly ${game.supportedPlayers.min}`
+              : `${game.supportedPlayers.min} to ${game.supportedPlayers.max}`;
         throw new GameSessionError(
             "UNSUPPORTED_PLAYER_COUNT",
             `${game.displayName} supports ${supportedCount} players.`
@@ -62,7 +65,8 @@ function startGame(room, gameId) {
     validatePlayerCount(game, room.players.length);
 
     const initialState = game.createInitialState(
-        room.players.map(({ id, name }) => ({ id, name }))
+        room.players.map(({ id, name }) => ({ id, name })),
+        { roundCount: room.selectedRoundCount }
     );
     const privateState = game.start(initialState);
     const session = {

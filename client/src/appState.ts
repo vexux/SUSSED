@@ -13,8 +13,10 @@ export interface LobbyState {
   roomCode: string;
   revision: number;
   playerCount: number;
+  readinessStatus: "insufficient-players" | "waiting-for-ready" | "ready" | "starting";
   status: RoomStatus;
   selectedGameId: string;
+  selectedRoundCount: 5 | 7 | 10;
   selectedGame: LobbyGame;
   availableGames: LobbyGame[];
   players: LobbyPlayer[];
@@ -25,7 +27,7 @@ export interface LobbyGame {
   displayName: string;
   description: string;
   minPlayers: number;
-  maxPlayers: number;
+  maxPlayers?: number;
 }
 
 export interface GameParticipant {

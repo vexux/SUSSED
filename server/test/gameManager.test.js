@@ -107,9 +107,13 @@ function completeManagedRound(room, selectCompletion) {
 
 function completeManagedGame(room, selectCompletion) {
     let result;
-    for (let round = 1; round <= 5; round += 1) {
+    const totalRounds = gameManager.getPublicGameState(
+        room.code,
+        room.players[0].id
+    ).state.totalRounds;
+    for (let round = 1; round <= totalRounds; round += 1) {
         result = completeManagedRound(room, selectCompletion);
-        if (round < 5) {
+        if (round < totalRounds) {
             for (const player of room.players) {
                 gameManager.performGameAction(
                     room.code,
@@ -138,7 +142,7 @@ test("both registered identities share the same engine and use isolated question
     assert.equal(factOrCapAnime.handleAction, fakeAnswer.handleAction);
     assert.equal(factOrCapAnime.calculateRoundResults, fakeAnswer.calculateRoundResults);
     assert.equal(factOrCapAnime.supportedPlayers.min, 2);
-    assert.equal(factOrCapAnime.supportedPlayers.max, 8);
+    assert.equal(Object.hasOwn(factOrCapAnime.supportedPlayers, "max"), false);
     assert.equal(animeQuestions.length, 348);
     assert.equal(questions.length, 100);
     assert.equal(
@@ -448,9 +452,9 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     gameManager.removeGame(room.code);
 });
 
-test("fake-answer supports every player count within the room capacity", () => {
-    assert.deepEqual(fakeAnswer.supportedPlayers, { min: 2, max: 8 });
-    for (const playerCount of [2, 3, 4, 5, 6, 7, 8]) {
+test("fake-answer supports every player count at or above its minimum", () => {
+    assert.deepEqual(fakeAnswer.supportedPlayers, { min: 2 });
+    for (const playerCount of [2, 3, 4, 5, 6, 7, 8, 9, 12]) {
         assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, playerCount), true);
         const room = createStartingRoom(playerCount);
         const publicState = gameManager.startGame(room, "fact-or-cap");
@@ -462,9 +466,9 @@ test("fake-answer supports every player count within the room capacity", () => {
         }
     }
     assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, 1), false);
-    assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, 9), false);
+    assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, 0), false);
 
-    for (const playerCount of [1, 9]) {
+    for (const playerCount of [0, 1]) {
         const lobbyRoom = {
             ...createStartingRoom(playerCount),
             status: "lobby"
@@ -640,8 +644,8 @@ test("duplicate submissions share a private error and do not change submission p
     assert.equal(state.phase, "reveal");
 });
 
-test("fake-answer voting supports every player count from two through eight", () => {
-    for (const playerCount of [2, 3, 4, 5, 6, 7, 8]) {
+test("fake-answer submissions and voting support more than eight players", () => {
+    for (const playerCount of [2, 3, 4, 5, 6, 7, 8, 9, 12]) {
         const room = createStartingRoom(playerCount);
         gameManager.startGame(room, "fact-or-cap");
         try {
@@ -699,6 +703,46 @@ test("fake-answer voting supports every player count from two through eight", ()
             }
             assert.equal(finalVote.gameState.state.phase, "waiting-for-results");
             assert.equal(finalVote.gameState.state.voteCount, playerCount);
+            const results = gameManager.performGameAction(
+                room.code,
+                "fact-or-cap",
+                null,
+                "publish-results"
+            );
+            assert.equal(results.gameState.state.phase, "results");
+            assert.equal(results.gameState.state.results.players.length, playerCount);
+            assert.equal(results.gameState.state.results.standings.length, playerCount);
+        } finally {
+            gameManager.removeGame(room.code);
+        }
+    }
+});
+
+test("host-selected round counts run exactly 5, 7, or 10 complete rounds", () => {
+    for (const roundCount of [5, 7, 10]) {
+        const room = { ...createStartingRoom(2), selectedRoundCount: roundCount };
+        const initial = gameManager.startGame(room, "fact-or-cap");
+        try {
+            assert.equal(initial.state.currentRound, 1);
+            assert.equal(initial.state.totalRounds, roundCount);
+            let result;
+            for (let round = 1; round <= roundCount; round += 1) {
+                result = completeManagedRound(room, (_player, _currentRound, correct) => correct);
+                assert.equal(result.state.currentRound, round);
+                assert.equal(result.state.totalRounds, roundCount);
+                assert.equal(result.state.isFinalRound, round === roundCount);
+                assert.equal(gameManager.getPublicGameState(room.code, room.players[0].id).status,
+                    round === roundCount ? "finished" : "active");
+                if (round < roundCount) {
+                    for (const player of room.players) {
+                        gameManager.performGameAction(room.code, "fact-or-cap", player.id, "continue");
+                    }
+                    assert.equal(
+                        gameManager.getPublicGameState(room.code, room.players[0].id).state.currentRound,
+                        round + 1
+                    );
+                }
+            }
         } finally {
             gameManager.removeGame(room.code);
         }

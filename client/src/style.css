@@ -223,6 +223,13 @@ button:focus-visible {
   color: #c5b9ce;
 }
 
+.lobby-readiness-status {
+  min-height: 1.6em;
+  margin: 12px 0;
+  color: #d4a8ff;
+  font-weight: 700;
+}
+
 .lobby-screen .local-player-name {
   margin: 4px 0 20px;
 }
@@ -234,6 +241,50 @@ button:focus-visible {
   margin: 0 0 28px;
   padding: 0;
   list-style: none;
+}
+
+.round-selector {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(100%, 320px);
+  margin: -12px 0 4px;
+  padding: 0;
+  border: 0;
+}
+
+.round-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(64px, 1fr));
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #6d5c79;
+  border-radius: 9px;
+  background: #211b27;
+}
+
+.round-option {
+  min-height: 42px;
+  border: 0;
+  border-right: 1px solid #554b5e;
+  color: #f5f3f7;
+  background: transparent;
+  font-weight: 700;
+}
+
+.round-option:last-child {
+  border-right: 0;
+}
+
+.round-option.selected {
+  color: #17131c;
+  background: #c084fc;
+}
+
+.round-option:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline-offset: -3px;
 }
 
 .player-card {

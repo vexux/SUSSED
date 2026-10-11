@@ -11,6 +11,7 @@ export interface AppActions {
   onLeaveRoom(): void;
   onSetReady(isReady: boolean): void;
   onSelectGame(gameId: string): void;
+  onSelectRoundCount(roundCount: 5 | 7 | 10, revision: number): void;
   onStartGame(): void;
   onSubmitFakeAnswer(completion: string): void;
   onSelectVote(optionId: string): void;
@@ -157,7 +158,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   const playerCount = createElement(
     "p",
     "player-count",
-    `${lobby.playerCount} / 8 players`,
+    `${lobby.playerCount} ${lobby.playerCount === 1 ? "player" : "players"}`,
   );
   const localPlayer = lobby.players.find(
     (player) => player.id === state.localPlayerId,
@@ -195,14 +196,25 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     createElement(
       "p",
       "screen-description",
-      `Supports ${lobby.selectedGame.minPlayers}–${lobby.selectedGame.maxPlayers} players`,
+      lobby.selectedGame.maxPlayers === undefined
+        ? `Supports ${lobby.selectedGame.minPlayers}+ players`
+        : `Supports ${lobby.selectedGame.minPlayers}–${lobby.selectedGame.maxPlayers} players`,
     ),
   );
-  const playerName = createElement(
+  const readinessText =
+    lobby.readinessStatus === "insufficient-players"
+      ? `At least ${lobby.selectedGame.minPlayers} players are required to start.`
+      : lobby.readinessStatus === "waiting-for-ready"
+        ? "Waiting for everyone to be ready..."
+        : lobby.readinessStatus === "ready"
+          ? "Everyone's ready! Start!"
+          : "The game is starting...";
+  const readinessMessage = createElement(
     "p",
-    "local-player-name",
-    localPlayer ? `You are ${localPlayer.name}` : "",
+    "lobby-readiness-status",
+    readinessText,
   );
+  readinessMessage.setAttribute("role", "status");
   const playerList = createElement("ul", "player-list");
 
   for (const player of lobby.players) {
@@ -241,39 +253,40 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     actions.onSetReady(!localPlayer?.isReady);
   });
 
-  screen.append(heading, roomCode, playerCount, gameSelection, playerName, playerList);
+  screen.append(heading, roomCode, playerCount, gameSelection, readinessMessage, playerList);
+
+  const roundsField = createElement("fieldset", "round-selector");
+  roundsField.append(createElement("legend", "field-label", "Rounds"));
+  const roundOptions = createElement("div", "round-options");
+  for (const roundCount of [5, 7, 10] as const) {
+    const option = createElement(
+      "button",
+      `round-option${lobby.selectedRoundCount === roundCount ? " selected" : ""}`,
+      String(roundCount),
+    );
+    option.type = "button";
+    option.setAttribute("aria-label", `${roundCount} rounds`);
+    option.setAttribute("aria-pressed", String(lobby.selectedRoundCount === roundCount));
+    option.disabled = !isHost || lobby.status !== "lobby" || state.isBusy;
+    option.addEventListener("click", () => {
+      actions.onSelectRoundCount(roundCount, lobby.revision);
+    });
+    roundOptions.append(option);
+  }
+  roundsField.append(roundOptions);
+  screen.append(roundsField);
+
   const lobbyActions = createElement("div", "button-group lobby-actions");
   if (lobby.status === "lobby") {
     lobbyActions.append(readyButton);
   }
 
   if (isHost) {
-    const unreadyPlayers = lobby.players.filter(
-      (player) => !player.isHost && !player.isReady,
-    );
-    let startReason: string | null = null;
-    if (lobby.status !== "lobby") {
-      startReason = "The game is already starting.";
-    } else if (lobby.playerCount < 2) {
-      startReason = "At least 2 players are needed to start.";
-    } else if (
-      lobby.playerCount < lobby.selectedGame.minPlayers ||
-      lobby.playerCount > lobby.selectedGame.maxPlayers
-    ) {
-      startReason =
-        `${lobby.selectedGame.displayName} supports ${lobby.selectedGame.minPlayers} to ${lobby.selectedGame.maxPlayers} players.`;
-    } else if (unreadyPlayers.length > 0) {
-      startReason = "Waiting for all other players to be ready.";
-    }
-
     const startButton = createElement("button", "primary-button", "Start game");
     startButton.type = "button";
-    startButton.disabled = state.isBusy || startReason !== null;
+    startButton.disabled = state.isBusy || lobby.readinessStatus !== "ready";
     startButton.addEventListener("click", actions.onStartGame);
     lobbyActions.append(startButton);
-    if (startReason) {
-      screen.append(createElement("p", "status-message start-reason", startReason));
-    }
   }
 
   lobbyActions.append(leaveButton);

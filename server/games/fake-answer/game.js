@@ -1,7 +1,10 @@
 const { randomInt, randomUUID } = require("node:crypto");
 const questionBank = require("./questionBank");
 
-const TOTAL_ROUNDS = 5;
+const {
+    DEFAULT_ROUND_COUNT,
+    isSupportedRoundCount
+} = require("../../roundConfiguration");
 const MAX_COMPLETION_LENGTH = 160;
 
 class FakeAnswerError extends Error {
@@ -12,11 +15,14 @@ class FakeAnswerError extends Error {
     }
 }
 
-function createInitialState(players) {
+function createInitialState(players, { roundCount = DEFAULT_ROUND_COUNT } = {}) {
+    if (!isSupportedRoundCount(roundCount)) {
+        throw new FakeAnswerError("INVALID_ROUND_COUNT", "Choose 5, 7, or 10 rounds.");
+    }
     return {
         phase: "unstarted",
         currentRound: 0,
-        totalRounds: TOTAL_ROUNDS,
+        totalRounds: roundCount,
         roundId: null,
         participants: players.map(({ id, name }) => ({ id, name })),
         questionOrder: [],
@@ -40,7 +46,7 @@ function createInitialState(players) {
 function start(state, selectQuestions) {
     let questionOrder;
     try {
-        questionOrder = selectQuestions(TOTAL_ROUNDS);
+        questionOrder = selectQuestions(state.totalRounds);
     } catch (error) {
         if (error.code === "QUESTION_POOL_EXHAUSTED") {
             throw new FakeAnswerError(error.code, error.message);
@@ -598,7 +604,7 @@ function createFakeAnswerGame({ id, displayName, description, questionBank: bank
         displayName,
         description,
         socketProtocol: "fake-answer",
-        supportedPlayers: Object.freeze({ min: 2, max: 8 }),
+        supportedPlayers: Object.freeze({ min: 2 }),
         createInitialState,
         start(state) {
             return start(state, bank.selectQuestions);
