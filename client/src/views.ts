@@ -13,6 +13,7 @@ export interface AppActions {
   onSelectGame(gameId: string): void;
   onStartGame(): void;
   onSubmitFakeAnswer(completion: string): void;
+  onFakeAnswerDraftChange(completion: string): void;
   onSelectVote(optionId: string): void;
   onVoteFakeAnswer(optionId: string): void;
   onContinueFakeAnswer(): void;
@@ -322,6 +323,7 @@ function renderGame(
         game.state,
         submission,
         actions.onSubmitFakeAnswer,
+        actions.onFakeAnswerDraftChange,
         actions.onSelectVote,
         actions.onVoteFakeAnswer,
         actions.onContinueFakeAnswer,

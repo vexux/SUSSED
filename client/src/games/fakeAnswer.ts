@@ -701,6 +701,7 @@ export function renderFakeAnswerGame(
   publicState: unknown,
   submission: FakeAnswerViewState,
   onSubmit: (completion: string) => void,
+  onDraftChange: (completion: string) => void,
   onSelectVote: (optionId: string) => void,
   onVote: (optionId: string) => void,
   onContinue: () => void,
@@ -958,6 +959,7 @@ export function renderFakeAnswerGame(
     input.autocomplete = "off";
     input.disabled = submission.isSubmitting;
     input.value = submission.completionDraft;
+    input.addEventListener("input", () => onDraftChange(input.value));
     const submit = document.createElement("button");
     submit.className = "primary-button";
     submit.type = "submit";

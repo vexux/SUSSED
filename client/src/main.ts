@@ -472,6 +472,11 @@ const actions: AppActions = {
       },
     );
   },
+  onFakeAnswerDraftChange(completion) {
+    if (!fakeAnswerHasSubmitted) {
+      fakeAnswerCompletionDraft = completion;
+    }
+  },
   onSelectVote(optionId) {
     fakeAnswerSelectedOptionId = optionId;
     fakeAnswerVoteError = null;
