@@ -246,8 +246,8 @@ button:focus-visible {
 .round-selector {
   display: grid;
   justify-items: center;
-  gap: 10px;
-  width: min(100%, 260px);
+  gap: 14px;
+  width: min(100%, 146px);
   margin: -12px 0 4px;
   padding: 0;
   border: 0;
@@ -255,22 +255,24 @@ button:focus-visible {
 
 .round-options {
   display: grid;
-  grid-template-columns: repeat(3, minmax(64px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   width: 100%;
   overflow: hidden;
+  padding: 1px;
   border: 1px solid #6d5c79;
   border-radius: 9px;
   background: #211b27;
 }
 
 .round-option {
-  min-height: 36px;
+  min-height: 29px;
   border: 0;
   border-right: 1px solid #554b5e;
   color: #f5f3f7;
   background: transparent;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  padding: 0 2px;
 }
 
 .round-option:last-child {
