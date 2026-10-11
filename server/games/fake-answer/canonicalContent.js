@@ -72,8 +72,8 @@ function validateCanonicalContent(data, fileName = "<input>") {
         } else {
             ids.set(entry.id, path);
         }
-        if (entry.recordVersion !== 1) {
-            fail(`${path}.recordVersion`, "must be the supported version 1.");
+        if (Object.hasOwn(entry, "recordVersion")) {
+            fail(`${path}.recordVersion`, "is not used in schema version 1; version the document instead.");
         }
     };
     const checkString = (entry, field, path) => {
@@ -89,6 +89,10 @@ function validateCanonicalContent(data, fileName = "<input>") {
     const checkIdList = (value, field, path) => {
         if (!Array.isArray(value) || value.length === 0 || value.some((id) => !isNonEmptyString(id))) {
             fail(`${path}.${field}`, "must be a non-empty array of IDs.");
+            return;
+        }
+        if (new Set(value).size !== value.length) {
+            fail(`${path}.${field}`, "must not contain duplicate IDs.");
         }
     };
 
@@ -160,6 +164,7 @@ function validateCanonicalContent(data, fileName = "<input>") {
             } else if (entry.rightsReview.reviewerId !== null && !isNonEmptyString(entry.rightsReview.reviewerId)) {
                 fail(`${path}.rightsReview.reviewerId`, "must be a non-empty string or null.");
             }
+            checkString(entry.rightsReview, "notes", `${path}.rightsReview`);
             if (["permitted", "public-domain"].includes(entry.rightsReview.status)) {
                 if (!isNonEmptyString(entry.rightsReview.license)) {
                     fail(`${path}.rightsReview.license`, "must record the applicable license or basis for this rights status.");
@@ -167,6 +172,12 @@ function validateCanonicalContent(data, fileName = "<input>") {
                 if (!isCalendarDate(entry.rightsReview.reviewedAt) || !isNonEmptyString(entry.rightsReview.reviewerId)) {
                     fail(`${path}.rightsReview`, "permitted or public-domain status requires a review date and reviewer ID.");
                 }
+            } else if (entry.rightsReview.status === "unknown" &&
+                Object.hasOwn(entry.rightsReview, "license") && entry.rightsReview.license !== null) {
+                fail(`${path}.rightsReview.license`, "must be null when rights status is unknown.");
+            } else if (entry.rightsReview.status !== "unknown" &&
+                (!isCalendarDate(entry.rightsReview.reviewedAt) || !isNonEmptyString(entry.rightsReview.reviewerId))) {
+                fail(`${path}.rightsReview`, "a determined rights status requires a review date and reviewer ID.");
             }
         }
         if (isNonEmptyString(entry.id)) sources.set(entry.id, entry);
@@ -203,11 +214,30 @@ function validateCanonicalContent(data, fileName = "<input>") {
     for (const [id, entity] of entities) {
         if (entity.franchiseEntityId) {
             const franchise = entities.get(entity.franchiseEntityId);
-            if (!franchise) {
+            if (entity.franchiseEntityId === id) {
+                fail(`entities.${id}.franchiseEntityId`, "cannot reference the entity itself.");
+            } else if (!franchise) {
                 fail(`entities.${id}.franchiseEntityId`, `references unknown entity ID ${entity.franchiseEntityId}.`);
             } else if (!["franchise", "series"].includes(franchise.kind)) {
                 fail(`entities.${id}.franchiseEntityId`, "must reference a franchise or series entity.");
             }
+        }
+    }
+    const reportedCycles = new Set();
+    for (const id of entities.keys()) {
+        const chain = new Set();
+        let currentId = id;
+        while (entities.get(currentId)?.franchiseEntityId) {
+            if (chain.has(currentId)) {
+                const cycleId = [...chain].sort()[0];
+                if (!reportedCycles.has(cycleId)) {
+                    fail(`entities.${cycleId}.franchiseEntityId`, "creates a circular franchise relationship.");
+                    reportedCycles.add(cycleId);
+                }
+                break;
+            }
+            chain.add(currentId);
+            currentId = entities.get(currentId).franchiseEntityId;
         }
     }
 

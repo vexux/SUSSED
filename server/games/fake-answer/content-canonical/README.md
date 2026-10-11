@@ -15,10 +15,11 @@ npm run validate:canonical -- games/fake-answer/content-canonical/pilot.json
 ## Document and records
 
 A document has `schemaVersion: 1` and four arrays: `entities`, `claims`,
-`sources`, and `transformations`. Each record has `recordVersion: 1`; a future
-incompatible record shape can use a new record version, while incompatible
-document-level changes use a new schema version. The current validator accepts
-only version 1 for both.
+`sources`, and `transformations`. Schema versioning is document-level: all four
+record shapes evolve together. Independent record versions would duplicate
+version metadata without a separate storage or migration contract, so they are
+not used. The current validator accepts only document schema version 1 and
+rejects a `recordVersion` field to avoid implying independent compatibility.
 
 - **Entity:** a reusable subject with an ID, kind, display name, review status,
   and optionally a `franchiseEntityId` relationship. Supported kinds include
@@ -36,6 +37,15 @@ only version 1 for both.
   transformations can refer to the same canonical records without duplicating
   their underlying claim or entity.
 
+Claims record evidence associations through `sourceIds`; many claims may reuse
+the same source, and one claim may list multiple sources. A transformation links
+to claims, and those claims link to their sources, so source attribution is
+transitive (`transformation → claim → source`). Its `entityIds` records the
+entities used by that transformation and must be present on at least one linked
+claim. No source text, quotation, or evidence locator is copied into a
+transformation. The validator checks that these references exist and are
+consistent, not that a listed source actually supports a claim.
+
 Every ID is globally unique across all four record arrays and follows the
 kind-prefixed lowercase convention, for example `entity:sailor-moon`,
 `claim:sailor-moon-talking-cat`, `source:toei-sailor-moon`, and
@@ -50,6 +60,10 @@ and a flashcard) linked to the same series, character, claim, and source. The
 fixture is illustrative; these format IDs do not register or enable additional
 games.
 
+The relationship test adds a synthetic second source reference to exercise the
+multi-source graph shape. It is explicitly unverified and does not claim that
+the synthetic source supports the pilot fact.
+
 ## Status fields and validation boundary
 
 Supported review statuses are `unreviewed`, `flagged`, `reviewed`, and
@@ -57,11 +71,13 @@ Supported review statuses are `unreviewed`, `flagged`, `reviewed`, and
 `disputed`. Rights review statuses are `unknown`, `permitted`, `restricted`,
 `public-domain`, and `permission-required`. These are recorded assertions by a
 future review process, not conclusions produced by the validator. A permitted
-status should be accompanied by a specific license or documented basis; the
-pilot keeps rights status explicitly unknown and license null.
+status should be accompanied by a specific license or documented basis, review
+date, and reviewer ID. Every determined rights status requires reviewer/date
+metadata; `unknown` requires a null license. The pilot keeps rights status
+explicitly unknown and license null.
 
 `validateCanonicalContent()` checks required record structure, supported schema
-and record versions, ID shape and uniqueness, status values, URL shape,
+version, ID shape and uniqueness, status values, URL shape,
 references, franchise relationship kind, and that transformation entities are
 also connected through its linked claims. It does not determine whether a
 claim is true, whether a source supports it, whether text is original, whether
