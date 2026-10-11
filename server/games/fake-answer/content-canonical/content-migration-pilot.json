@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    {
+      "id": "entity:mercury",
+      "kind": "other",
+      "name": "Mercury",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "entity:sun",
+      "kind": "other",
+      "name": "Sun",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "entity:earth",
+      "kind": "other",
+      "name": "Earth",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "entity:ocean",
+      "kind": "concept",
+      "name": "ocean",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "entity:common-octopus",
+      "kind": "other",
+      "name": "common octopus",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "entity:ink",
+      "kind": "concept",
+      "name": "ink",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "entity:one-piece",
+      "kind": "series",
+      "name": "One Piece",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "entity:nami",
+      "kind": "character",
+      "name": "Nami",
+      "franchiseEntityId": "entity:one-piece",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "entity:straw-hat-crew",
+      "kind": "organization",
+      "name": "Straw Hat crew",
+      "franchiseEntityId": "entity:one-piece",
+      "reviewStatus": "unreviewed"
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim:mercury-nearest-sun",
+      "statement": "Mercury is the planet closest to the Sun.",
+      "entityIds": ["entity:mercury", "entity:sun"],
+      "sourceIds": ["source:nasa-planets"],
+      "verificationStatus": "unverified",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "claim:mercury-orbital-period-88-earth-days",
+      "statement": "A year on Mercury lasts about 88 Earth days.",
+      "entityIds": ["entity:mercury", "entity:earth"],
+      "sourceIds": ["source:nasa-mercury-facts"],
+      "verificationStatus": "unverified",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "claim:ocean-covers-more-than-70-percent-earth-surface",
+      "statement": "The ocean covers more than 70 percent of Earth's surface.",
+      "entityIds": ["entity:ocean", "entity:earth"],
+      "sourceIds": ["source:noaa-ocean-water-facts"],
+      "verificationStatus": "unverified",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "claim:octopus-releases-ink-when-threatened",
+      "statement": "When threatened, an octopus can release a cloud of ink to help it escape.",
+      "entityIds": ["entity:common-octopus", "entity:ink"],
+      "sourceIds": ["source:national-geographic-common-octopus"],
+      "verificationStatus": "unverified",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "claim:one-piece-nami-navigator",
+      "statement": "Nami is the navigator of the Straw Hat crew in One Piece.",
+      "entityIds": ["entity:one-piece", "entity:nami", "entity:straw-hat-crew"],
+      "sourceIds": ["source:one-piece-tv-anime"],
+      "verificationStatus": "unverified",
+      "reviewStatus": "unreviewed"
+    }
+  ],
+  "sources": [
+    {
+      "id": "source:nasa-planets",
+      "title": "NASA — Planets",
+      "url": "https://science.nasa.gov/solar-system/planets/",
+      "publisher": null,
+      "creator": null,
+      "accessedAt": null,
+      "reviewStatus": "unreviewed",
+      "rightsReview": {
+        "status": "unknown",
+        "license": null,
+        "reviewedAt": null,
+        "reviewerId": null,
+        "notes": "Attribution copied from the legacy question; claim support, access date, and reuse terms have not been reviewed."
+      }
+    },
+    {
+      "id": "source:nasa-mercury-facts",
+      "title": "NASA — Mercury Facts",
+      "url": "https://science.nasa.gov/mercury/facts/",
+      "publisher": null,
+      "creator": null,
+      "accessedAt": null,
+      "reviewStatus": "unreviewed",
+      "rightsReview": {
+        "status": "unknown",
+        "license": null,
+        "reviewedAt": null,
+        "reviewerId": null,
+        "notes": "Attribution copied from the legacy question; claim support, access date, and reuse terms have not been reviewed."
+      }
+    },
+    {
+      "id": "source:noaa-ocean-water-facts",
+      "title": "NOAA Ocean Service — How Much Water Is in the Ocean?",
+      "url": "https://oceanservice.noaa.gov/facts/oceanwater.html",
+      "publisher": null,
+      "creator": null,
+      "accessedAt": null,
+      "reviewStatus": "unreviewed",
+      "rightsReview": {
+        "status": "unknown",
+        "license": null,
+        "reviewedAt": null,
+        "reviewerId": null,
+        "notes": "Attribution copied from the legacy question; claim support, access date, and reuse terms have not been reviewed."
+      }
+    },
+    {
+      "id": "source:national-geographic-common-octopus",
+      "title": "National Geographic — Common Octopus Facts",
+      "url": "https://www.nationalgeographic.com/animals/invertebrates/facts/common-octopus",
+      "publisher": null,
+      "creator": null,
+      "accessedAt": null,
+      "reviewStatus": "unreviewed",
+      "rightsReview": {
+        "status": "unknown",
+        "license": null,
+        "reviewedAt": null,
+        "reviewerId": null,
+        "notes": "Attribution copied from the legacy question; claim support, access date, and reuse terms have not been reviewed."
+      }
+    },
+    {
+      "id": "source:one-piece-tv-anime",
+      "title": "ONE PIECE — TV Anime",
+      "url": "https://one-piece.com/anime/",
+      "publisher": null,
+      "creator": null,
+      "accessedAt": null,
+      "reviewStatus": "unreviewed",
+      "rightsReview": {
+        "status": "unknown",
+        "license": null,
+        "reviewedAt": null,
+        "reviewerId": null,
+        "notes": "Attribution copied from the legacy question; claim support, access date, and reuse terms have not been reviewed."
+      }
+    }
+  ],
+  "transformations": [
+    {
+      "id": "transform:legacy-mercury-nearest-sun",
+      "gameFormatId": "fact-or-cap.completion.v1",
+      "entityIds": ["entity:mercury", "entity:sun"],
+      "claimIds": ["claim:mercury-nearest-sun"],
+      "reviewStatus": "unreviewed",
+      "payload": {
+        "text": "The planet closest to the Sun is ____.",
+        "answerEntityId": "entity:mercury",
+        "sourceId": "source:nasa-planets",
+        "category": "space",
+        "tags": ["solar-system", "planets", "Mercury"],
+        "difficulty": "easy"
+      }
+    },
+    {
+      "id": "transform:legacy-mercury-shortest-year",
+      "gameFormatId": "fact-or-cap.completion.v1",
+      "entityIds": ["entity:mercury", "entity:earth"],
+      "claimIds": ["claim:mercury-orbital-period-88-earth-days"],
+      "reviewStatus": "unreviewed",
+      "payload": {
+        "text": "A year on Mercury lasts about ____ Earth days.",
+        "correctCompletion": "88",
+        "sourceId": "source:nasa-mercury-facts",
+        "category": "space",
+        "tags": ["solar-system", "orbit", "Mercury"],
+        "difficulty": "easy"
+      }
+    },
+    {
+      "id": "transform:legacy-ocean-earth-surface",
+      "gameFormatId": "fact-or-cap.completion.v1",
+      "entityIds": ["entity:ocean", "entity:earth"],
+      "claimIds": ["claim:ocean-covers-more-than-70-percent-earth-surface"],
+      "reviewStatus": "unreviewed",
+      "payload": {
+        "text": "The ocean covers more than ____ percent of Earth's surface.",
+        "correctCompletion": "70",
+        "sourceId": "source:noaa-ocean-water-facts",
+        "category": "science/nature",
+        "tags": ["ocean", "Earth", "water"],
+        "difficulty": "easy"
+      }
+    },
+    {
+      "id": "transform:legacy-octopus-ink-defense",
+      "gameFormatId": "fact-or-cap.completion.v1",
+      "entityIds": ["entity:common-octopus", "entity:ink"],
+      "claimIds": ["claim:octopus-releases-ink-when-threatened"],
+      "reviewStatus": "unreviewed",
+      "payload": {
+        "text": "When threatened, an octopus can release a cloud of ____ to help it escape.",
+        "answerEntityId": "entity:ink",
+        "sourceId": "source:national-geographic-common-octopus",
+        "category": "wildlife/biology",
+        "tags": ["invertebrates", "octopus", "defense"],
+        "difficulty": "easy"
+      }
+    },
+    {
+      "id": "transform:legacy-one-piece-nami",
+      "gameFormatId": "fact-or-cap.completion.v1",
+      "entityIds": ["entity:one-piece", "entity:nami", "entity:straw-hat-crew"],
+      "claimIds": ["claim:one-piece-nami-navigator"],
+      "reviewStatus": "unreviewed",
+      "payload": {
+        "text": "The navigator of the Straw Hat crew is ____.",
+        "answerEntityId": "entity:nami",
+        "sourceId": "source:one-piece-tv-anime",
+        "category": "characters",
+        "tags": ["one-piece", "Nami"],
+        "difficulty": "easy"
+      }
+    }
+  ]
+}
