@@ -1,7 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const DIFFICULTIES = new Set(["easy", "medium", "hard"]);
+const DIFFICULTIES = new Set(["easy", "medium", "hard", "extremely-hard"]);
 const QUESTION_FIELDS = new Set([
     "id",
     "text",
@@ -117,7 +117,7 @@ function validateQuestionPack(data, fileName = "<input>") {
             entry.difficulty !== undefined &&
             (typeof entry.difficulty !== "string" || !DIFFICULTIES.has(entry.difficulty))
         ) {
-            errors.push(`${prefix} difficulty must be "easy", "medium", or "hard".`);
+            errors.push(`${prefix} difficulty must be "easy", "medium", "hard", or "extremely-hard".`);
         }
         for (const field of Object.keys(entry)) {
             if (!QUESTION_FIELDS.has(field)) {

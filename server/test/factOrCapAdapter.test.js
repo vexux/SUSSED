@@ -173,6 +173,6 @@ test("rejects malformed canonical references and missing prompt or answer values
     malformedMetadata.transformations[0].payload.difficulty = "expert";
     assert.throws(
         () => adaptFactOrCap(malformedMetadata, factOrCapTransformationId),
-        /difficulty must be "easy", "medium", or "hard"/
+        /difficulty must be "easy", "medium", "hard", or "extremely-hard"/
     );
 });

@@ -27,7 +27,7 @@ non-empty `text`, and non-empty `correctCompletion`. Source title and URL are
 optional in the base schema, but missing attribution is reported by the
 validation tool. Batch imports require both source fields. Sources should be
 verified and have suitable reuse rights before content is added.
-Optional difficulty values are `easy`, `medium`, or `hard`.
+Optional difficulty values are `easy`, `medium`, `hard`, and `extremely-hard`.
 
 Validate a candidate file before adding it:
 

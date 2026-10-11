@@ -86,6 +86,49 @@ test("question pack validation reports malformed required fields and source URLs
     assert.match(result.errors.join("\n"), /difficulty must be/);
 });
 
+test("question difficulty is optional and accepts the four supported values", () => {
+    for (const difficulty of ["easy", "medium", "hard", "extremely-hard"]) {
+        const result = validateQuestionPack({
+            questions: [{
+                id: `question-${difficulty}`,
+                text: "A valid prompt",
+                correctCompletion: "a valid completion",
+                difficulty,
+            }],
+        }, "candidate.json");
+
+        assert.deepEqual(result.errors, [], `${difficulty} should be accepted`);
+        assert.equal(result.questions[0].difficulty, difficulty);
+    }
+
+    const withoutDifficulty = validateQuestionPack({
+        questions: [{
+            id: "question-without-difficulty",
+            text: "A valid prompt",
+            correctCompletion: "a valid completion",
+        }],
+    }, "candidate.json");
+    assert.deepEqual(withoutDifficulty.errors, []);
+    assert.equal(withoutDifficulty.questions[0].difficulty, undefined);
+});
+
+test("question difficulty rejects unsupported values and lists supported values", () => {
+    const result = validateQuestionPack({
+        questions: [{
+            id: "question-invalid-difficulty",
+            text: "A valid prompt",
+            correctCompletion: "a valid completion",
+            difficulty: "expert",
+        }],
+    }, "candidate.json");
+
+    assert.equal(result.questions.length, 0);
+    assert.match(
+        result.errors.join("\n"),
+        /difficulty must be "easy", "medium", "hard", or "extremely-hard"/
+    );
+});
+
 test("library validation blocks cross-pack ID conflicts and warns without deleting likely duplicates", () => {
     const duplicatePrompt = "A FACT, stated here...";
     const result = validateQuestionLibrary([

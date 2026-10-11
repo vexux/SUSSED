@@ -96,6 +96,8 @@ from the referenced entity's display name. Optional `category`, `tags`, and
 `difficulty` values are copied from that transformation's payload. The caller
 may pass `contentPackId` as adapter options because pack identity is a packaging
 concern, not an entity or claim identity.
+Difficulty is optional and accepts `easy`, `medium`, `hard`, or
+`extremely-hard` under the playable-question validator.
 
 The adapter returns legacy-shaped `questions` plus a separate
 `provenanceByQuestionId` map. The question ID is the transformation ID. Each
