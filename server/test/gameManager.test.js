@@ -139,7 +139,7 @@ test("both registered identities share the same engine and use isolated question
     assert.equal(factOrCapAnime.calculateRoundResults, fakeAnswer.calculateRoundResults);
     assert.equal(factOrCapAnime.supportedPlayers.min, 2);
     assert.equal(factOrCapAnime.supportedPlayers.max, 8);
-    assert.equal(animeQuestions.length, 140);
+    assert.equal(animeQuestions.length, 173);
     assert.equal(questions.length, 100);
     assert.equal(
         questions.some(({ id }) => animeQuestions.some((animeQuestion) => animeQuestion.id === id)),
@@ -224,11 +224,13 @@ test("Anime sessions initialize from their own sourced pool and keep source meta
         assert.equal(publicState.displayName, "Fact or Cap (Anime)");
         assert.ok(selectedQuestion);
         assert.equal(questions.some(({ id }) => id === selectedQuestion.id), false);
-        assert.equal(
-            JSON.stringify(publicState).includes(selectedQuestion.correctCompletion),
-            false
-        );
-        assert.equal(JSON.stringify(publicState).includes(selectedQuestion.sourceUrl), false);
+        const { keys: publicKeys, stringValues: publicStringValues } =
+            collectPublicKeysAndStringValues(publicState);
+        for (const privateField of ["correctCompletion", "sourceName", "sourceUrl"]) {
+            assert.equal(publicKeys.includes(privateField), false);
+        }
+        assert.equal(publicStringValues.includes(selectedQuestion.correctCompletion), false);
+        assert.equal(publicStringValues.includes(selectedQuestion.sourceUrl), false);
     } finally {
         gameManager.removeGame(room.code);
     }

@@ -43,12 +43,16 @@ test("loads the expanded anime library and its new sourced pack with distinct ID
     const { questions: loaded } = loadQuestionPacks(
         path.join(fakeAnswerDirectory, "content-anime")
     );
-    assert.equal(loaded.length, 140);
-    assert.equal(animeQuestions.length, 140);
-    assert.equal(new Set(loaded.map(({ id }) => id)).size, 140);
+    assert.equal(loaded.length, 173);
+    assert.equal(animeQuestions.length, 173);
+    assert.equal(new Set(loaded.map(({ id }) => id)).size, 173);
     assert.equal(
         loaded.filter(({ contentPackId }) => contentPackId === "anime-bizarre-batch-001").length,
         40
+    );
+    assert.equal(
+        loaded.filter(({ contentPackId }) => contentPackId === "anime-bizarre-batch-002").length,
+        33
     );
     assert.ok(loaded.some(({ difficulty }) => difficulty === "extremely-hard"));
     assert.ok(loaded.every(({ sourceName, sourceUrl, category, tags }) =>
