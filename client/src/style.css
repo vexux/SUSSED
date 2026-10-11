@@ -247,7 +247,7 @@ button:focus-visible {
   display: grid;
   justify-items: center;
   gap: 10px;
-  width: min(100%, 320px);
+  width: min(100%, 260px);
   margin: -12px 0 4px;
   padding: 0;
   border: 0;
@@ -264,12 +264,13 @@ button:focus-visible {
 }
 
 .round-option {
-  min-height: 42px;
+  min-height: 36px;
   border: 0;
   border-right: 1px solid #554b5e;
   color: #f5f3f7;
   background: transparent;
   font-weight: 700;
+  font-size: 0.9rem;
 }
 
 .round-option:last-child {

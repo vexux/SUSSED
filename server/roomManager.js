@@ -193,11 +193,6 @@ function selectGame(playerId, gameId) {
     }
 
     room.selectedGameId = gameId;
-    for (const player of room.players) {
-        if (player.id !== room.hostId) {
-            player.isReady = false;
-        }
-    }
     advanceRevision(room);
     return room;
 }
@@ -230,11 +225,6 @@ function selectRoundCount(playerId, roundCount, expectedRevision) {
     }
 
     room.selectedRoundCount = roundCount;
-    for (const player of room.players) {
-        if (player.id !== room.hostId) {
-            player.isReady = false;
-        }
-    }
     advanceRevision(room);
     return room;
 }

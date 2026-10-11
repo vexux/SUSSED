@@ -158,7 +158,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   const playerCount = createElement(
     "p",
     "player-count",
-    `${lobby.playerCount} ${lobby.playerCount === 1 ? "player" : "players"}`,
+    `${lobby.playerCount} ${lobby.playerCount === 1 ? "player" : "players"} in lobby`,
   );
   const localPlayer = lobby.players.find(
     (player) => player.id === state.localPlayerId,

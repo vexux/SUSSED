@@ -42,6 +42,28 @@ function assertQuestionPrivateDataAbsent(publicState, question) {
     }
 }
 
+test("private-answer checks allow answer text already present in the public prompt", () => {
+    const question = questions.find(({ id }) => id === "moon-synchronous-rotation");
+    assert.ok(question);
+    assert.equal(question.correctCompletion, "Earth");
+    assert.ok(question.text.includes(question.correctCompletion));
+
+    const publicState = {
+        state: {
+            phase: "question",
+            prompt: { text: question.text }
+        }
+    };
+    assertQuestionPrivateDataAbsent(publicState, question);
+    assert.throws(
+        () => assertQuestionPrivateDataAbsent({
+            ...publicState,
+            state: { ...publicState.state, answer: question.correctCompletion }
+        }, question),
+        assert.AssertionError
+    );
+});
+
 async function createHarness(context) {
     const io = startServer(0);
     const clients = [];
@@ -470,7 +492,7 @@ test("host selects a registered game and broadcasts authoritative metadata to al
     assert.equal(selectionResponse.lobby.revision, revisionBeforeSelect + 1);
     const [hostLobby, guestLobby] = await Promise.all([hostUpdate, guestUpdate]);
     assert.deepEqual(hostLobby, guestLobby);
-    assert.equal(hostLobby.players[1].isReady, false);
+    assert.equal(hostLobby.players[1].isReady, true);
     assert.deepEqual(selectionResponse.lobby, hostLobby);
     assert.deepEqual(hostLobby.selectedGame, {
         id: "fact-or-cap-anime",
@@ -505,6 +527,7 @@ test("host selects a registered game and broadcasts authoritative metadata to al
     );
     assert.deepEqual(hostGeneralLobby, guestGeneralLobby);
     assert.deepEqual(generalSelection.lobby, hostGeneralLobby);
+    assert.equal(hostGeneralLobby.players[1].isReady, true);
     assert.deepEqual(hostGeneralLobby.selectedGame, {
         id: "fact-or-cap",
         displayName: "Fact or Cap",
@@ -546,22 +569,21 @@ test("host round selections are validated, broadcast, and passed into the game",
         roundCount: 7
     })).error.code, "INVALID_REQUEST");
 
+    const readyLobby = waitForLobby(guest, (lobby) => lobby.readinessStatus === "ready");
+    await emitWithAck(guest, "set-ready", { isReady: true });
+    const guestReady = await readyLobby;
     const hostUpdate = waitForLobby(host, (lobby) => lobby.selectedRoundCount === 7);
     const guestUpdate = waitForLobby(guest, (lobby) => lobby.selectedRoundCount === 7);
     const selected = await emitWithAck(host, "select-round-count", {
         roundCount: 7,
-        revision: joined.lobby.revision
+        revision: guestReady.revision
     });
     assert.equal(selected.selectedRoundCount, 7);
     const [hostLobby, guestLobby] = await Promise.all([hostUpdate, guestUpdate]);
     assert.deepEqual(hostLobby, guestLobby);
-    assert.equal(hostLobby.readinessStatus, "waiting-for-ready");
-    assert.equal(hostLobby.players[1].isReady, false);
+    assert.equal(hostLobby.readinessStatus, "ready");
+    assert.equal(hostLobby.players[1].isReady, true);
 
-    const readyLobby = waitForLobby(host, (lobby) => lobby.readinessStatus === "ready");
-    await emitWithAck(guest, "set-ready", { isReady: true });
-    const readyState = await readyLobby;
-    assert.equal(readyState.players[1].isReady, true);
     const gameState = waitForGameState(host, (game) => game.state.phase === "question");
     const started = await emitWithAck(host, "start-game");
     assert.equal(started.game.state.totalRounds, 7);
@@ -1517,7 +1539,8 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
             ).submitted,
             true
         );
-        assert.equal(JSON.stringify(state).includes(submittedCompletions[1]), false);
+        const { stringValues } = collectPublicKeysAndStringValues(state);
+        assert.equal(stringValues.includes(submittedCompletions[1]), false);
     }
 
     for (let index = 1; index < players.length; index += 1) {
@@ -1606,8 +1629,8 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
         ({ text }) => text === questionState.state.prompt.text
     );
     assert.ok(question);
-    assert.equal(JSON.stringify(questionState).includes(question.correctCompletion), false);
-    assert.equal(JSON.stringify(gameState).includes(question.correctCompletion), false);
+    assertQuestionPrivateDataAbsent(questionState, question);
+    assertQuestionPrivateDataAbsent(gameState, question);
 
     const firstResponse = await emitWithAck(host, "fake-answer:submit", {
         ...withRoundId(gameState, {
@@ -1691,11 +1714,12 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
         assert.equal(state.state.phase, "voting");
         assert.equal(state.state.voteCount, 0);
         assert.deepEqual(state.state.options, revealStates[index].state.options);
-        assert.equal(
-            JSON.stringify(state).includes(question.correctCompletion),
-            true
-        );
-        assert.equal(JSON.stringify(state).includes(ownCompletions[index]), true);
+        assert.ok(state.state.options.some(
+            ({ completion }) => completion === question.correctCompletion
+        ));
+        assert.ok(state.state.options.some(
+            ({ completion }) => completion === ownCompletions[index]
+        ));
     }
 
     const hostOwnOptionId = votingStates[1].state.options.find(
@@ -1812,7 +1836,7 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
         assert.equal(Object.hasOwn(state.state, "votes"), false);
         assert.equal(Object.hasOwn(state.state, "correctOptionId"), false);
         assert.equal(state.state.prompt, null);
-        assert.equal(JSON.stringify(state).includes(question.correctCompletion), false);
+        assertQuestionPrivateDataAbsent(state, question);
     }
     const resultsStates = await Promise.all([hostResults, guestResults]);
     for (const state of resultsStates) {

@@ -37,6 +37,28 @@ function collectPublicKeysAndStringValues(value, keys = [], stringValues = []) {
     return { keys, stringValues };
 }
 
+function assertPrivateQuestionDataAbsent(publicState, question) {
+    const { keys, stringValues } = collectPublicKeysAndStringValues(publicState);
+    for (const privateField of ["correctCompletion", "sourceName", "sourceUrl"]) {
+        assert.equal(
+            keys.includes(privateField),
+            false,
+            `public state must not expose the ${privateField} field`
+        );
+    }
+    for (const privateValue of [
+        question.correctCompletion,
+        question.sourceName,
+        question.sourceUrl
+    ]) {
+        assert.equal(
+            stringValues.includes(privateValue),
+            false,
+            `public state must not expose the exact private value ${privateValue}`
+        );
+    }
+}
+
 function createFakeAnswerVotingState(playerCount) {
     const players = Array.from({ length: playerCount }, (_, index) => ({
         id: `scorer-${index + 1}`,
@@ -190,26 +212,7 @@ test("generic game sessions start registered games and expose only public state"
         assert.equal(moduleState.prompt.id, privateState.roundId);
         assert.notEqual(moduleState.prompt.id, privateState.currentQuestion.id);
         assert.equal(publicState.state.prompt.text, publicQuestion.text);
-        const { keys: publicKeys, stringValues: publicStringValues } =
-            collectPublicKeysAndStringValues(publicState);
-        for (const privateField of ["correctCompletion", "sourceName", "sourceUrl"]) {
-            assert.equal(
-                publicKeys.includes(privateField),
-                false,
-                `public state must not expose the ${privateField} field`
-            );
-        }
-        for (const privateValue of [
-            publicQuestion.correctCompletion,
-            publicQuestion.sourceName,
-            publicQuestion.sourceUrl
-        ]) {
-            assert.equal(
-                publicStringValues.includes(privateValue),
-                false,
-                `public state must not expose the exact private value ${privateValue}`
-            );
-        }
+        assertPrivateQuestionDataAbsent(publicState, publicQuestion);
         assert.equal(Object.hasOwn(publicState, "implementation"), false);
         assert.equal(typeof privateState.currentQuestion.correctCompletion, "string");
     } finally {
@@ -228,13 +231,7 @@ test("Anime sessions initialize from their own sourced pool and keep source meta
         assert.equal(publicState.displayName, "Fact or Cap (Anime)");
         assert.ok(selectedQuestion);
         assert.equal(questions.some(({ id }) => id === selectedQuestion.id), false);
-        const { keys: publicKeys, stringValues: publicStringValues } =
-            collectPublicKeysAndStringValues(publicState);
-        for (const privateField of ["correctCompletion", "sourceName", "sourceUrl"]) {
-            assert.equal(publicKeys.includes(privateField), false);
-        }
-        assert.equal(publicStringValues.includes(selectedQuestion.correctCompletion), false);
-        assert.equal(publicStringValues.includes(selectedQuestion.sourceUrl), false);
+        assertPrivateQuestionDataAbsent(publicState, selectedQuestion);
     } finally {
         gameManager.removeGame(room.code);
     }
@@ -443,12 +440,7 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     assert.equal(resultsState.gameState.state.voteCount, room.players.length);
     assert.equal(Object.hasOwn(resultsState.gameState.state, "options"), false);
     assert.equal(Object.hasOwn(resultsState.gameState.state, "votes"), false);
-    assert.equal(
-        JSON.stringify(resultsState.gameState).includes(
-            selectedQuestion.correctCompletion
-        ),
-        false
-    );
+    assertPrivateQuestionDataAbsent(resultsState.gameState, selectedQuestion);
     gameManager.removeGame(room.code);
 });
 
@@ -526,7 +518,7 @@ test("two-player fake-answer game reaches reveal after both players submit once"
             ({ text }) => text === initialState.state.prompt.text
         );
         assert.ok(question);
-        assert.equal(JSON.stringify(initialState).includes(question.correctCompletion), false);
+        assertPrivateQuestionDataAbsent(initialState, question);
 
         gameManager.performGameAction(
             room.code,
@@ -544,12 +536,7 @@ test("two-player fake-answer game reaches reveal after both players submit once"
         assert.equal(firstSubmission.gameState.state.submissionCount, 1);
         assert.equal(firstSubmission.gameState.state.playerCount, 2);
         assert.equal(firstSubmission.gameState.state.phase, "answer-submission");
-        assert.equal(
-            JSON.stringify(firstSubmission.gameState).includes(
-                question.correctCompletion
-            ),
-            false
-        );
+        assertPrivateQuestionDataAbsent(firstSubmission.gameState, question);
         assert.throws(
             () => gameManager.performGameAction(
                 room.code,
@@ -916,7 +903,7 @@ test("fake-answer results and scores stay private until a single scoring publica
     const waitingState = fakeAnswer.createPublicState(state, players[0].id);
     assert.equal(waitingState.phase, "waiting-for-results");
     assert.equal(Object.hasOwn(waitingState, "results"), false);
-    assert.equal(JSON.stringify(waitingState).includes(state.currentQuestion.correctCompletion), false);
+    assertPrivateQuestionDataAbsent(waitingState, state.currentQuestion);
     assert.deepEqual([...state.scores.values()], [0, 0]);
 
     const publicResults = fakeAnswer.handleAction(state, "publish-results");
