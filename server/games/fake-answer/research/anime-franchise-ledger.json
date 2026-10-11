@@ -1,6 +1,6 @@
 {
   "ledgerVersion": 1,
-  "purpose": "Reconciled exclusion ledger derived from all JSON question packs in content-anime. Franchise identity is normalized from each question?s first franchise tag, with explicit alias normalization for existing abbreviations.",
+  "purpose": "Authoritative inventory of franchises represented by accepted playable Anime questions. Derived by reconciling all JSON question packs under content-anime.",
   "bankSnapshot": {
     "branch": "dev",
     "questionCount": 249,
@@ -20,7 +20,8 @@
             "anime-b003-100-girlfriends-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "a-place-further-than-the-universe",
@@ -33,7 +34,8 @@
             "yorimoi-kindergarten-friend"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "apothecary-diaries",
@@ -48,7 +50,8 @@
             "anime-b003-apothecary-diaries-poison-hobby"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "attack-on-titan",
@@ -63,7 +66,8 @@
             "attack-on-titan-wall-maria"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "baccano",
@@ -78,7 +82,8 @@
             "anime-b003-baccano-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "barakamon",
@@ -92,7 +97,8 @@
             "anime-b003-barakamon-calligrapher"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "beastars",
@@ -107,7 +113,8 @@
             "anime-b003-beastars-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "bleach",
@@ -123,7 +130,8 @@
             "bleach-urahara"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "blue-exorcist",
@@ -136,7 +144,8 @@
             "blue-exorcist-konekomaru-name"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "blue-lock",
@@ -152,7 +161,8 @@
             "blue-lock-nagi"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "blue-period",
@@ -165,7 +175,8 @@
             "blue-period-yatora-major"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "bocchi-the-rock",
@@ -178,7 +189,8 @@
             "bocchi-hitori-lead-guitar"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "cells-at-work",
@@ -193,7 +205,8 @@
             "cells-at-work-red-cell-oxygen"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "crayon-shin-chan",
@@ -207,7 +220,8 @@
             "anime-b003-crayon-shin-chan-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "dandadan",
@@ -255,6 +269,9 @@
             "dandadan-momo-type"
           ]
         }
+      ],
+      "aliases": [
+        "dd"
       ]
     },
     {
@@ -270,7 +287,8 @@
             "anime-b003-delicious-in-dungeon-survival-plan"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "demon-slayer",
@@ -287,7 +305,8 @@
             "demon-slayer-zenitsu"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "detective-conan",
@@ -302,7 +321,8 @@
             "anime-b003-detective-conan-story-editor"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "doraemon",
@@ -317,7 +337,8 @@
             "anime-b003-doraemon-production-support"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "dr-stone",
@@ -333,7 +354,8 @@
             "dr-stone-yuzuriha"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "dragon-ball",
@@ -346,7 +368,8 @@
             "anime-dragon-ball-wish"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "eizouken",
@@ -361,7 +384,8 @@
             "anime-b003-eizouken-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "fire-force",
@@ -374,7 +398,8 @@
             "fire-force-hero-goal"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "fist-of-the-north-star",
@@ -389,7 +414,8 @@
             "anime-b003-fist-of-the-north-star-story-and-art"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "frieren",
@@ -406,7 +432,8 @@
             "frieren-warrior"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "gegege-no-kitaro",
@@ -419,7 +446,8 @@
             "anime-b003-gegege-no-kitaro-author"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "ghost-in-the-shell",
@@ -434,7 +462,8 @@
             "anime-b003-ghost-in-the-shell-scriptwriter"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "gintama",
@@ -449,7 +478,8 @@
             "anime-b003-gintama-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "golden-kamuy",
@@ -464,7 +494,8 @@
             "anime-b003-golden-kamuy-author"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "hyouka",
@@ -479,7 +510,8 @@
             "anime-b003-hyouka-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "jojos-bizarre-adventure",
@@ -497,7 +529,8 @@
             "bizarre-jojo-miu-miu-stand"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "jujutsu-kaisen",
@@ -537,6 +570,9 @@
             "jujutsu-kaisen-yuji"
           ]
         }
+      ],
+      "aliases": [
+        "jjk"
       ]
     },
     {
@@ -552,7 +588,8 @@
             "anime-b003-k-on-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "kaguya-sama",
@@ -565,7 +602,8 @@
             "kaguya-shuchiin-role"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "laid-back-camp",
@@ -578,7 +616,8 @@
             "yuru-camp-nadeshiko"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "lupin-iii",
@@ -593,7 +632,8 @@
             "anime-b003-lupin-iii-fujiko-voice"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "mob-psycho-100",
@@ -629,6 +669,9 @@
             "mob-psycho-reigen"
           ]
         }
+      ],
+      "aliases": [
+        "mob"
       ]
     },
     {
@@ -645,6 +688,9 @@
             "gundam-white-base"
           ]
         }
+      ],
+      "aliases": [
+        "gundam"
       ]
     },
     {
@@ -660,7 +706,8 @@
             "anime-b003-mononoke-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "mushishi",
@@ -675,7 +722,8 @@
             "anime-b003-mushishi-investigator"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "my-hero-academia",
@@ -692,7 +740,8 @@
             "my-hero-academia-uraraka"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "neon-genesis-evangelion",
@@ -708,6 +757,9 @@
             "evangelion-unit-one"
           ]
         }
+      ],
+      "aliases": [
+        "evangelion"
       ]
     },
     {
@@ -723,7 +775,8 @@
             "anime-b003-nichijou-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "odd-taxi",
@@ -738,7 +791,8 @@
             "anime-b003-odd-taxi-screenwriter"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "one-piece",
@@ -790,6 +844,9 @@
             "anime-one-piece-roger"
           ]
         }
+      ],
+      "aliases": [
+        "op"
       ]
     },
     {
@@ -806,7 +863,8 @@
             "one-punch-man-saitama"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "ping-pong",
@@ -821,7 +879,8 @@
             "anime-b003-ping-pong-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "puella-magi-madoka-magica",
@@ -834,6 +893,9 @@
             "madoka-homura-transfer"
           ]
         }
+      ],
+      "aliases": [
+        "madoka-magica"
       ]
     },
     {
@@ -847,7 +909,8 @@
             "rascal-hakata-accent"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "re-zero",
@@ -861,7 +924,8 @@
             "rezero-otto-occupation"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "sailor-moon",
@@ -874,7 +938,8 @@
             "anime-sailor-moon-luna"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "saint-seiya",
@@ -887,7 +952,8 @@
             "anime-saint-seiya-athena"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "shirobako",
@@ -902,7 +968,8 @@
             "anime-b003-shirobako-title-term"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "slam-dunk",
@@ -915,7 +982,8 @@
             "anime-slam-dunk-hanamichi"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "space-brothers",
@@ -929,7 +997,8 @@
             "anime-b003-space-brothers-dream"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "spy-x-family",
@@ -962,6 +1031,9 @@
             "spy-family-yor-profession"
           ]
         }
+      ],
+      "aliases": [
+        "spy"
       ]
     },
     {
@@ -984,7 +1056,8 @@
             "poppy-hill-director"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "tatami-galaxy",
@@ -999,7 +1072,8 @@
             "anime-b003-tatami-galaxy-studio"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "the-promised-neverland",
@@ -1012,7 +1086,8 @@
             "promised-neverland-learning-ability"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "trigun",
@@ -1027,7 +1102,8 @@
             "anime-b003-trigun-vash-bounty"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "vinland-saga",
@@ -1040,7 +1116,8 @@
             "vinland-thorfinn-destination"
           ]
         }
-      ]
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "welcome-to-demon-school-iruma-kun",
@@ -1053,12 +1130,65 @@
             "iruma-school-babyls"
           ]
         }
+      ],
+      "aliases": [
+        "iruma-kun"
       ]
     }
   ],
   "rulesForFutureBatches": [
-    "Do not reuse any franchiseId in franchises unless explicitly authorized.",
-    "Do not reuse an existing question or create a near-duplicate; compare against all question packs.",
-    "Maximum three questions per franchise in a single batch."
-  ]
+    "Prefer franchises absent from franchises; use franchiseId and aliases to recognize previously represented franchises.",
+    "Selective franchise reuse is permitted for meaningfully different, valuable information; superficial prompt or answer changes do not justify reuse.",
+    "Do not reuse an existing question or repeat an underlying fact; compare exact and near-duplicate meaning against every playable pack.",
+    "The current three-question-per-franchise batch guideline is temporary and may be raised by the owner as franchise coverage broadens."
+  ],
+  "generationGuide": "anime-question-generation-guide.md",
+  "aliasMappings": [
+    {
+      "alias": "dd",
+      "franchiseId": "dandadan"
+    },
+    {
+      "alias": "mob",
+      "franchiseId": "mob-psycho-100"
+    },
+    {
+      "alias": "jjk",
+      "franchiseId": "jujutsu-kaisen"
+    },
+    {
+      "alias": "op",
+      "franchiseId": "one-piece"
+    },
+    {
+      "alias": "spy",
+      "franchiseId": "spy-x-family"
+    },
+    {
+      "alias": "evangelion",
+      "franchiseId": "neon-genesis-evangelion"
+    },
+    {
+      "alias": "gundam",
+      "franchiseId": "mobile-suit-gundam"
+    },
+    {
+      "alias": "madoka-magica",
+      "franchiseId": "puella-magi-madoka-magica"
+    },
+    {
+      "alias": "iruma-kun",
+      "franchiseId": "welcome-to-demon-school-iruma-kun"
+    }
+  ],
+  "batchGuidelines": {
+    "priority": "Prefer franchises not yet represented in this ledger while broadening bank coverage.",
+    "reuse": "Selective reuse is permitted for genuinely different, valuable questions; wording, character, credited staff member, or answer changes alone are not sufficient.",
+    "perFranchise": {
+      "currentGuideline": 3,
+      "status": "temporary-diversity-measure",
+      "permanentLimit": false,
+      "review": "The owner may gradually increase this guideline after broad franchise coverage has been established."
+    }
+  }
 }
