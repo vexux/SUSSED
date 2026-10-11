@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    { "gameId": "fact-or-cap", "contentPackId": "general-facts-batch-2026-10", "questionId": "saturn-ring-material", "reviewFocus": "Short entity/attribute completion; source is a specific NASA facts page." },
+    { "gameId": "fact-or-cap", "contentPackId": "general-facts-batch-2026-10", "questionId": "ocean-average-salinity", "reviewFocus": "Numeric quantity and unit; preserve the claim's metric and context." },
+    { "gameId": "fact-or-cap", "contentPackId": "general-facts-batch-2026-10", "questionId": "apollo-11-moonwalkers", "reviewFocus": "Partial personal name and punctuation; decide literal versus entity answer." },
+    { "gameId": "fact-or-cap", "contentPackId": "wildlife", "questionId": "wombat-cubes", "reviewFocus": "Descriptive phrase and research-publication attribution." },
+    { "gameId": "fact-or-cap", "contentPackId": "wildlife", "questionId": "octopus-hearts", "reviewFocus": "Compound prompt with two answer clauses; decide decomposition or exclusion." },
+    { "gameId": "fact-or-cap-anime", "contentPackId": "anime-facts-batch-2026-10", "questionId": "spy-family-anya-ability", "reviewFocus": "Fictional character ability; locate source evidence precisely." },
+    { "gameId": "fact-or-cap-anime", "contentPackId": "anime-facts-batch-2026-10", "questionId": "attack-on-titan-wall-maria", "reviewFocus": "Franchise setting relation and partial entity completion." },
+    { "gameId": "fact-or-cap-anime", "contentPackId": "anime-facts-batch-2026-10", "questionId": "cells-at-work-red-cell-oxygen", "reviewFocus": "Separate real-world biological claims from story framing." },
+    { "gameId": "fact-or-cap-anime", "contentPackId": "anime-foundations", "questionId": "anime-sailor-moon-luna", "reviewFocus": "Official catalog attribution; locate the exact supporting passage." },
+    { "gameId": "fact-or-cap-anime", "contentPackId": "anime-foundations", "questionId": "anime-one-piece-roger", "reviewFocus": "Multi-part named answer and broad source attribution." }
+  ]
+}

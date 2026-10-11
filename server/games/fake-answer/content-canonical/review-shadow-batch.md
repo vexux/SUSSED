@@ -42,6 +42,19 @@ exceptions so the workflow can show how flagged items are handled.
 5. Record any false-clear or unclear state. Do not publish the batch; use the
    findings to refine review policy before considering a larger batch.
 
+The exact machine-readable candidate identities used by the packet generator
+are maintained in `review-shadow-batch.json`. Generate a read-only editor
+packet from `server` with:
+
+```sh
+npm run report:review-packet
+npm run report:review-packet -- --canonical <canonical.json> --migration <migration-manifest.json> --reviews <review-decisions.json> --intended-use <use-id>
+```
+
+Optional inputs enrich the packet; missing inputs leave explicit unresolved
+mapping and review blockers. The packet does not create canonical records or
+decisions and does not imply approval.
+
 ## Review manifest format and command
 
 The sidecar format is version 1 and is defined by

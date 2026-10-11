@@ -185,6 +185,33 @@ real verification or rights clearance. `review-shadow-batch.md` lists ten
 additional legacy candidates for a future manual shadow exercise; no canonical
 records or approval decisions have been created for them.
 
+## Offline editor review packet
+
+`reviewPacket.js` and `scripts/generate-review-packet.js` assemble the ten
+shadow-batch candidates with the original legacy question, explicit canonical
+mapping context when present, source metadata, review decisions, and blockers.
+The machine-readable candidate identities are in
+`review-shadow-batch.json`; the Markdown plan explains why each candidate was
+selected. Mapping is resolved only by exact game/pack/question IDs in a
+migration manifest. The packet never guesses from names, tags, or wording.
+
+Run from `server`:
+
+```sh
+npm run report:review-packet
+npm run report:review-packet -- --canonical <canonical.json> --migration <migration-manifest.json> --reviews <review-decisions.json> --intended-use <use-id>
+```
+
+Every input other than the bundled candidate plan is optional. Without
+canonical or review inputs, the packet still lists all ten legacy questions
+and reports the absent mapping and review steps. Output is JSON on stdout; it
+does not write files. It labels legacy attribution as repository metadata,
+canonical source records separately, and reviewer-entered decisions
+separately. It includes evidence locators when recorded, and reports missing
+or ambiguous mappings, adapter incompatibility, parity, and readiness
+blockers by dimension. A review packet is an editor aid, not an approval
+decision; it does not inspect source pages or certify facts or rights.
+
 Manifest entries use existing game IDs, lowercase pack/question IDs, and one
 kind-prefixed canonical transformation ID. One legacy question may appear only
 once in a manifest, and each transformation may map to only one legacy

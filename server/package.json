@@ -10,6 +10,8 @@
     "validate:canonical": "node games/fake-answer/scripts/validate-canonical-content.js",
     "validate:migration": "node games/fake-answer/scripts/validate-migration-manifest.js",
     "report:content-readiness": "node games/fake-answer/scripts/report-content-readiness.js",
+    "report:review-packet": "node games/fake-answer/scripts/generate-review-packet.js",
+    "report:review-packet": "node games/fake-answer/scripts/generate-review-packet.js",
     "questions:preview": "node games/fake-answer/scripts/manage-question-batch.js preview",
     "questions:import": "node games/fake-answer/scripts/manage-question-batch.js import"
   },
