@@ -21,6 +21,22 @@ function createStartingRoom(playerCount = 4) {
     };
 }
 
+// Inspect field names and complete string values; substrings can legitimately
+// occur in public prompt text and opaque IDs without exposing private fields.
+function collectPublicKeysAndStringValues(value, keys = [], stringValues = []) {
+    if (Array.isArray(value)) {
+        value.forEach((item) => collectPublicKeysAndStringValues(item, keys, stringValues));
+    } else if (value && typeof value === "object") {
+        for (const [key, child] of Object.entries(value)) {
+            keys.push(key);
+            collectPublicKeysAndStringValues(child, keys, stringValues);
+        }
+    } else if (typeof value === "string") {
+        stringValues.push(value);
+    }
+    return { keys, stringValues };
+}
+
 function createFakeAnswerVotingState(playerCount) {
     const players = Array.from({ length: playerCount }, (_, index) => ({
         id: `scorer-${index + 1}`,
@@ -169,19 +185,27 @@ test("generic game sessions start registered games and expose only public state"
         assert.ok(publicQuestion);
         assert.equal(moduleState.prompt.id, privateState.roundId);
         assert.notEqual(moduleState.prompt.id, privateState.currentQuestion.id);
-        assert.equal(
-            JSON.stringify(publicState).includes(publicQuestion.correctCompletion),
-            false
-        );
-        assert.equal(
-            JSON.stringify(publicState).includes(publicQuestion.sourceName),
-            false
-        );
-        assert.equal(
-            JSON.stringify(publicState).includes(publicQuestion.sourceUrl),
-            false
-        );
-        assert.equal(Object.hasOwn(publicState.state.prompt, "correctCompletion"), false);
+        assert.equal(publicState.state.prompt.text, publicQuestion.text);
+        const { keys: publicKeys, stringValues: publicStringValues } =
+            collectPublicKeysAndStringValues(publicState);
+        for (const privateField of ["correctCompletion", "sourceName", "sourceUrl"]) {
+            assert.equal(
+                publicKeys.includes(privateField),
+                false,
+                `public state must not expose the ${privateField} field`
+            );
+        }
+        for (const privateValue of [
+            publicQuestion.correctCompletion,
+            publicQuestion.sourceName,
+            publicQuestion.sourceUrl
+        ]) {
+            assert.equal(
+                publicStringValues.includes(privateValue),
+                false,
+                `public state must not expose the exact private value ${privateValue}`
+            );
+        }
         assert.equal(Object.hasOwn(publicState, "implementation"), false);
         assert.equal(typeof privateState.currentQuestion.correctCompletion, "string");
     } finally {
