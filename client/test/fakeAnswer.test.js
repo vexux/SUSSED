@@ -6,6 +6,7 @@ import {
   formatRoundPoints,
   getPersonalRoundFeedback,
   getRevealAnswerGroups,
+  updateFakeAnswerProgress,
 } from "../src/games/fakeAnswer.ts";
 
 function createResults(overrides = {}) {
@@ -59,6 +60,76 @@ function createResults(overrides = {}) {
   };
   return { ...results, ...overrides };
 }
+
+test("remote submission progress updates without changing the active answer input", () => {
+  const progress = { textContent: "", setAttribute() {} };
+  const children = [];
+  const playerList = {
+    replaceChildren() {
+      children.length = 0;
+    },
+    append(child) {
+      children.push(child);
+    },
+  };
+  const input = {
+    value: "partial answer",
+    selectionStart: 7,
+    selectionEnd: 7,
+    focused: true,
+  };
+  const root = {
+    querySelector(selector) {
+      return selector === ".submission-progress"
+        ? progress
+        : selector === ".submission-player-list"
+          ? playerList
+          : selector === "#fake-completion"
+            ? input
+            : null;
+    },
+  };
+  const originalDocument = globalThis.document;
+  globalThis.document = {
+    createElement() {
+      return {
+        dataset: {},
+        append() {},
+      };
+    },
+  };
+
+  try {
+    const updated = updateFakeAnswerProgress(root, {
+      phase: "answer-submission",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: { id: "prompt-1", text: "Complete this sentence." },
+      submissionCount: 1,
+      playerCount: 2,
+      submissionProgress: [
+        { playerId: "local", name: "Local", submitted: false },
+        { playerId: "remote", name: "Remote", submitted: true },
+      ],
+    }, "local");
+
+    assert.equal(updated, true);
+    assert.equal(progress.textContent, "1 of 2 answers submitted");
+    assert.equal(children.length, 2);
+    assert.equal(root.querySelector("#fake-completion"), input);
+    assert.equal(input.value, "partial answer");
+    assert.equal(input.selectionStart, 7);
+    assert.equal(input.selectionEnd, 7);
+    assert.equal(input.focused, true);
+  } finally {
+    if (originalDocument === undefined) {
+      delete globalThis.document;
+    } else {
+      globalThis.document = originalDocument;
+    }
+  }
+});
 
 test("groups reveal answers by authoritative correctness rather than answer text", () => {
   const results = createResults();
