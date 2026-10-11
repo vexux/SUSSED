@@ -197,6 +197,39 @@ function registerRoomHandlers(io, socket) {
         }
     });
 
+    socket.on("select-round-count", (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) {
+            return;
+        }
+        if (
+            !isRecord(payload) ||
+            Object.keys(payload).length !== 2 ||
+            !Object.hasOwn(payload, "roundCount") ||
+            !Object.hasOwn(payload, "revision")
+        ) {
+            acknowledgeError(
+                acknowledge,
+                "INVALID_REQUEST",
+                "A roundCount and current lobby revision are required."
+            );
+            return;
+        }
+
+        try {
+            const room = roomManager.selectRoundCount(
+                socket.id,
+                payload.roundCount,
+                payload.revision
+            );
+            const lobby = roomManager.createLobbyState(room);
+            broadcastLobby(io, room);
+            acknowledge({ selectedRoundCount: room.selectedRoundCount, lobby });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
+    });
+
     socket.on("start-game", (payload, acknowledge) => {
         const hasPayload = typeof payload !== "function";
         if (!hasPayload) {

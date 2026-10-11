@@ -1,0 +1,1292 @@
+{
+  "contentPackId": "anime-bizarre-batch-004",
+  "questions": [
+    {
+      "id": "anime-b004-serial-experiments-lain-01",
+      "text": "In Serial Experiments Lain, the networked realm that begins to blur with everyday reality is called the ____.",
+      "correctCompletion": "Wired",
+      "sourceName": "Official Serial Experiments Lain website",
+      "sourceUrl": "https://www.serial-experiments-lain.com/",
+      "category": "story-world",
+      "difficulty": "hard",
+      "tags": [
+        "serial-experiments-lain",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-serial-experiments-lain-02",
+      "text": "Lain Iwakura is introduced as a ____-year-old middle-school student.",
+      "correctCompletion": "14",
+      "sourceName": "Official Serial Experiments Lain website",
+      "sourceUrl": "https://www.serial-experiments-lain.com/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "serial-experiments-lain",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-serial-experiments-lain-03",
+      "text": "The official episode titles include Layer 09, titled ____.",
+      "correctCompletion": "PROTOCOL",
+      "sourceName": "Official Serial Experiments Lain website",
+      "sourceUrl": "https://www.serial-experiments-lain.com/",
+      "category": "terminology",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "serial-experiments-lain",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-ranma-1-2-01",
+      "text": "Ranma's transformation curse comes from the Jusenkyo springs in ____.",
+      "correctCompletion": "China",
+      "sourceName": "Official Ranma 1/2 introduction",
+      "sourceUrl": "https://ranma-pr.com/en/intro/",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "ranma-1-2",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-ranma-1-2-02",
+      "text": "Cold water transforms Ranma into a girl, while ____ water restores his male form.",
+      "correctCompletion": "hot",
+      "sourceName": "Official Ranma 1/2 introduction",
+      "sourceUrl": "https://ranma-pr.com/en/intro/",
+      "category": "story-rule",
+      "difficulty": "medium",
+      "tags": [
+        "ranma-1-2",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-ranma-1-2-03",
+      "text": "Ranma and Akane's engagement was arranged by their ____.",
+      "correctCompletion": "parents",
+      "sourceName": "Official Ranma 1/2 introduction",
+      "sourceUrl": "https://ranma-pr.com/en/intro/",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "ranma-1-2",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-inuyasha-01",
+      "text": "Kagome is transported from modern Japan to the country's ____ period.",
+      "correctCompletion": "feudal",
+      "sourceName": "VIZ official Inuyasha page",
+      "sourceUrl": "https://www.viz.com/inuyasha",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "inuyasha",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-inuyasha-02",
+      "text": "The jewel whose scattered fragments drive much of the quest is the ____ Jewel.",
+      "correctCompletion": "Shikon",
+      "sourceName": "VIZ official Inuyasha page",
+      "sourceUrl": "https://www.viz.com/inuyasha",
+      "category": "story-world",
+      "difficulty": "hard",
+      "tags": [
+        "inuyasha",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-inuyasha-03",
+      "text": "Inuyasha is described as a dog-eared ____ demon.",
+      "correctCompletion": "half",
+      "sourceName": "VIZ official Inuyasha page",
+      "sourceUrl": "https://www.viz.com/inuyasha",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "inuyasha",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-rurouni-kenshin-03",
+      "text": "The story's main historical backdrop is Japan's ____ era.",
+      "correctCompletion": "Meiji",
+      "sourceName": "VIZ official Rurouni Kenshin page",
+      "sourceUrl": "https://www.viz.com/rurouni-kenshin",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "rurouni-kenshin",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-fruits-basket-01",
+      "text": "The Sohma family's curse is connected to the animals of the ____ zodiac.",
+      "correctCompletion": "Chinese",
+      "sourceName": "Yen Press Fruits Basket series overview",
+      "sourceUrl": "https://yenpress.com/news/the-return-of-fruits-basket-and-the-publication-of-two-new-series-from-natsuki-takaya",
+      "category": "worldbuilding",
+      "difficulty": "hard",
+      "tags": [
+        "fruits-basket",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-fruits-basket-02",
+      "text": "Tohru Honda ends up living with members of the ____ family.",
+      "correctCompletion": "Sohma",
+      "sourceName": "Yen Press Fruits Basket series overview",
+      "sourceUrl": "https://yenpress.com/news/the-return-of-fruits-basket-and-the-publication-of-two-new-series-from-natsuki-takaya",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "fruits-basket",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-fruits-basket-03",
+      "text": "Certain Sohmas transform when embraced by a person of the ____ sex.",
+      "correctCompletion": "opposite",
+      "sourceName": "Yen Press Fruits Basket series overview",
+      "sourceUrl": "https://yenpress.com/news/the-return-of-fruits-basket-and-the-publication-of-two-new-series-from-natsuki-takaya",
+      "category": "story-rule",
+      "difficulty": "hard",
+      "tags": [
+        "fruits-basket",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-ouran-high-school-host-club-01",
+      "text": "Haruhi breaks a vase belonging to the Host Club, leaving a debt of ____ dollars in the VIZ synopsis.",
+      "correctCompletion": "80,000",
+      "sourceName": "VIZ official Ouran page",
+      "sourceUrl": "https://www.viz.com/ouran-high-school-host-club",
+      "category": "plot",
+      "difficulty": "hard",
+      "tags": [
+        "ouran-high-school-host-club",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-ouran-high-school-host-club-02",
+      "text": "Haruhi attends Ouran Academy as a scholarship ____.",
+      "correctCompletion": "student",
+      "sourceName": "VIZ official Ouran page",
+      "sourceUrl": "https://www.viz.com/ouran-high-school-host-club",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "ouran-high-school-host-club",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-ouran-high-school-host-club-03",
+      "text": "To repay the debt, Haruhi is recruited to work in the club while presenting as a ____.",
+      "correctCompletion": "boy",
+      "sourceName": "VIZ official Ouran page",
+      "sourceUrl": "https://www.viz.com/ouran-high-school-host-club",
+      "category": "bizarre-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "ouran-high-school-host-club",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-naruto-01",
+      "text": "Masashi Kishimoto's first one-shot version of Naruto, drawn in 1997, centered on a boy connected to ____ spirits.",
+      "correctCompletion": "fox",
+      "sourceName": "VIZ official Naruto page",
+      "sourceUrl": "https://www.viz.com/naruto",
+      "category": "creator-inspiration",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "naruto",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-naruto-02",
+      "text": "Naruto's stated ambition is to become the world's greatest ____.",
+      "correctCompletion": "ninja",
+      "sourceName": "VIZ official Naruto page",
+      "sourceUrl": "https://www.viz.com/naruto",
+      "category": "character-goal",
+      "difficulty": "medium",
+      "tags": [
+        "naruto",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-naruto-03",
+      "text": "Naruto's manga began serialization in Weekly Shonen Jump in ____.",
+      "correctCompletion": "1999",
+      "sourceName": "VIZ official Naruto page",
+      "sourceUrl": "https://www.viz.com/naruto",
+      "category": "publication-history",
+      "difficulty": "hard",
+      "tags": [
+        "naruto",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-yu-yu-hakusho-01",
+      "text": "Yusuke Urameshi dies while saving a child from a speeding ____.",
+      "correctCompletion": "car",
+      "sourceName": "VIZ official YuYu Hakusho page",
+      "sourceUrl": "https://www.viz.com/yuyu-hakusho",
+      "category": "plot",
+      "difficulty": "medium",
+      "tags": [
+        "yu-yu-hakusho",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-yu-yu-hakusho-02",
+      "text": "The ferrywoman who guides Yusuke through his afterlife assignment is ____.",
+      "correctCompletion": "Botan",
+      "sourceName": "VIZ official YuYu Hakusho page",
+      "sourceUrl": "https://www.viz.com/yuyu-hakusho",
+      "category": "characters",
+      "difficulty": "hard",
+      "tags": [
+        "yu-yu-hakusho",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-yu-yu-hakusho-03",
+      "text": "Koenma, the judge of the dead, is comically associated with sucking on a ____.",
+      "correctCompletion": "pacifier",
+      "sourceName": "VIZ official YuYu Hakusho page",
+      "sourceUrl": "https://www.viz.com/yuyu-hakusho",
+      "category": "bizarre-trivia",
+      "difficulty": "hard",
+      "tags": [
+        "yu-yu-hakusho",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-chainsaw-man-01",
+      "text": "Denji is revived after making a deal with his devil-dog companion ____.",
+      "correctCompletion": "Pochita",
+      "sourceName": "VIZ official Chainsaw Man page",
+      "sourceUrl": "https://www.viz.com/chainsaw-man",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "chainsaw-man",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-chainsaw-man-02",
+      "text": "Denji's transformation makes him the owner of the Chainsaw Devil's ____.",
+      "correctCompletion": "heart",
+      "sourceName": "VIZ official Chainsaw Man page",
+      "sourceUrl": "https://www.viz.com/chainsaw-man",
+      "category": "story-rule",
+      "difficulty": "hard",
+      "tags": [
+        "chainsaw-man",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-chainsaw-man-03",
+      "text": "Before transforming, Denji works as a low-level ____ hunter to pay off inherited debt.",
+      "correctCompletion": "devil",
+      "sourceName": "VIZ official Chainsaw Man page",
+      "sourceUrl": "https://www.viz.com/chainsaw-man",
+      "category": "occupation",
+      "difficulty": "medium",
+      "tags": [
+        "chainsaw-man",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-haikyu-01",
+      "text": "Hinata Shoyo is inspired by a player nicknamed the Little ____.",
+      "correctCompletion": "Giant",
+      "sourceName": "VIZ official Haikyu page",
+      "sourceUrl": "https://www.viz.com/haikyu",
+      "category": "inspiration",
+      "difficulty": "medium",
+      "tags": [
+        "haikyu",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-haikyu-02",
+      "text": "Hinata's first and last middle-school volleyball match is against Tobio ____.",
+      "correctCompletion": "Kageyama",
+      "sourceName": "VIZ official Haikyu page",
+      "sourceUrl": "https://www.viz.com/haikyu",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "haikyu",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-kurokos-basketball-01",
+      "text": "VIZ calls Kuroko's former undefeated team the ____.",
+      "correctCompletion": "Miracle Generation",
+      "sourceName": "VIZ official Kuroko's Basketball page",
+      "sourceUrl": "https://www.viz.com/kurokos-basketball",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "kurokos-basketball",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-kurokos-basketball-02",
+      "text": "Taiga Kagami joins the basketball team at ____ High.",
+      "correctCompletion": "Seirin",
+      "sourceName": "VIZ official Kuroko's Basketball page",
+      "sourceUrl": "https://www.viz.com/kurokos-basketball",
+      "category": "setting",
+      "difficulty": "hard",
+      "tags": [
+        "kurokos-basketball",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-kurokos-basketball-03",
+      "text": "Kuroko's unusual court strength comes from being so inconspicuous that opponents often fail to ____ him.",
+      "correctCompletion": "notice",
+      "sourceName": "VIZ official Kuroko's Basketball page",
+      "sourceUrl": "https://www.viz.com/kurokos-basketball",
+      "category": "ability",
+      "difficulty": "hard",
+      "tags": [
+        "kurokos-basketball",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-tokyo-revengers-01",
+      "text": "Takemichi is pushed onto the ____ at a station before traveling twelve years into his past.",
+      "correctCompletion": "tracks",
+      "sourceName": "VIZ official Tokyo Revengers page",
+      "sourceUrl": "https://www.viz.com/tokyo-revengers",
+      "category": "plot",
+      "difficulty": "hard",
+      "tags": [
+        "tokyo-revengers",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-tokyo-revengers-02",
+      "text": "The gang linked to the death of Takemichi's former girlfriend is the Tokyo ____ Gang.",
+      "correctCompletion": "Manji",
+      "sourceName": "VIZ official Tokyo Revengers page",
+      "sourceUrl": "https://www.viz.com/tokyo-revengers",
+      "category": "story-world",
+      "difficulty": "hard",
+      "tags": [
+        "tokyo-revengers",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-tokyo-revengers-03",
+      "text": "Takemichi's original motivation is to save Hinata ____.",
+      "correctCompletion": "Tachibana",
+      "sourceName": "VIZ official Tokyo Revengers page",
+      "sourceUrl": "https://www.viz.com/tokyo-revengers",
+      "category": "character-goal",
+      "difficulty": "medium",
+      "tags": [
+        "tokyo-revengers",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-natsume-yuujinchou-01",
+      "text": "Takashi Natsume inherits a book that binds yokai whose names his grandmother collected; it is called the ____.",
+      "correctCompletion": "Book of Friends",
+      "sourceName": "Official Natsume anime introduction",
+      "sourceUrl": "https://www.natsume-anime.jp/introduction",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "natsume-yuujinchou",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-natsume-yuujinchou-02",
+      "text": "Natsume's self-appointed bodyguard is called ____-sensei.",
+      "correctCompletion": "Nyanko",
+      "sourceName": "Official Natsume anime introduction",
+      "sourceUrl": "https://www.natsume-anime.jp/introduction",
+      "category": "characters",
+      "difficulty": "hard",
+      "tags": [
+        "natsume-yuujinchou",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-natsume-yuujinchou-03",
+      "text": "Natsume spends much of the series returning the names written in the book to the ____ they bind.",
+      "correctCompletion": "yokai",
+      "sourceName": "Official Natsume anime introduction",
+      "sourceUrl": "https://www.natsume-anime.jp/introduction",
+      "category": "story-rule",
+      "difficulty": "hard",
+      "tags": [
+        "natsume-yuujinchou",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-chihayafuru-01",
+      "text": "The competitive card game at the heart of Chihayafuru is a traditional Japanese game called ____.",
+      "correctCompletion": "karuta",
+      "sourceName": "Nippon TV official English series page",
+      "sourceUrl": "https://www.ntv.co.jp/english/pc/2011/08/chihayafuru.html",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "chihayafuru",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-chihayafuru-03",
+      "text": "Chihaya initially dreams of helping her older sister become Japan's top ____.",
+      "correctCompletion": "model",
+      "sourceName": "Nippon TV official English series page",
+      "sourceUrl": "https://www.ntv.co.jp/english/pc/2011/08/chihayafuru.html",
+      "category": "character-history",
+      "difficulty": "hard",
+      "tags": [
+        "chihayafuru",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-march-comes-in-like-a-lion-01",
+      "text": "Rei Kiriyama is a teenage professional player of the Japanese strategy board game ____.",
+      "correctCompletion": "shogi",
+      "sourceName": "Japan Media Arts Festival creator feature",
+      "sourceUrl": "https://www.bunka.go.jp/j-mediaarts/manga2021/en/umino/index.html",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "march-comes-in-like-a-lion",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-march-comes-in-like-a-lion-02",
+      "text": "After losing his family, Rei lives alone in an apartment in ____.",
+      "correctCompletion": "Tokyo",
+      "sourceName": "Japan Media Arts Festival creator feature",
+      "sourceUrl": "https://www.bunka.go.jp/j-mediaarts/manga2021/en/umino/index.html",
+      "category": "setting",
+      "difficulty": "hard",
+      "tags": [
+        "march-comes-in-like-a-lion",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-march-comes-in-like-a-lion-03",
+      "text": "The Kawamoto household that gradually becomes a source of warmth for Rei consists of three sisters and their ____.",
+      "correctCompletion": "grandfather",
+      "sourceName": "Japan Media Arts Festival creator feature",
+      "sourceUrl": "https://www.bunka.go.jp/j-mediaarts/manga2021/en/umino/index.html",
+      "category": "characters",
+      "difficulty": "hard",
+      "tags": [
+        "march-comes-in-like-a-lion",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-planetes-01",
+      "text": "In Planetes, a specialized job emerges in 2075 to collect dangerous debris left in ____.",
+      "correctCompletion": "space",
+      "sourceName": "Sunrise official Planetes page",
+      "sourceUrl": "https://www.sunrise-inc.co.jp/international/work/detail.php?cid=154",
+      "category": "science",
+      "difficulty": "medium",
+      "tags": [
+        "planetes",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-planetes-02",
+      "text": "Hachimaki has worked in the Debris Division for four years but dreams of owning his own ____.",
+      "correctCompletion": "spaceship",
+      "sourceName": "Sunrise official Planetes page",
+      "sourceUrl": "https://www.sunrise-inc.co.jp/international/work/detail.php?cid=154",
+      "category": "character-goal",
+      "difficulty": "hard",
+      "tags": [
+        "planetes",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-planetes-03",
+      "text": "The new rookie whose enthusiasm makes Hachimaki reconsider his plans is ____.",
+      "correctCompletion": "Tanabe",
+      "sourceName": "Sunrise official Planetes page",
+      "sourceUrl": "https://www.sunrise-inc.co.jp/international/work/detail.php?cid=154",
+      "category": "characters",
+      "difficulty": "hard",
+      "tags": [
+        "planetes",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-eccentric-family-01",
+      "text": "The Shimogamo family in The Eccentric Family are ____ living in Kyoto.",
+      "correctCompletion": "tanuki",
+      "sourceName": "P.A.WORKS official works page",
+      "sourceUrl": "https://www.pa-works.jp/works_en/uchoten-kazoku/",
+      "category": "species",
+      "difficulty": "hard",
+      "tags": [
+        "eccentric-family",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-eccentric-family-02",
+      "text": "Yasaburo's older brother Yajiro has transformed himself into a ____ and stays in a well.",
+      "correctCompletion": "frog",
+      "sourceName": "P.A.WORKS official works page",
+      "sourceUrl": "https://www.pa-works.jp/works_en/uchoten-kazoku/",
+      "category": "bizarre-trivia",
+      "difficulty": "hard",
+      "tags": [
+        "eccentric-family",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-eccentric-family-03",
+      "text": "According to the official synopsis, Soichiro was served as a ____.",
+      "correctCompletion": "tanuki dish",
+      "sourceName": "P.A.WORKS official works page",
+      "sourceUrl": "https://www.pa-works.jp/works_en/uchoten-kazoku/",
+      "category": "plot",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "eccentric-family",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-patlabor-01",
+      "text": "Patlabor's police unit is formed to counter crimes committed using industrial robots called ____.",
+      "correctCompletion": "Labors",
+      "sourceName": "Official Patlabor introduction",
+      "sourceUrl": "https://patlabor.tokyo/about/",
+      "category": "technology",
+      "difficulty": "hard",
+      "tags": [
+        "patlabor",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-patlabor-02",
+      "text": "The unit created within the Tokyo police is Special Vehicles Section ____.",
+      "correctCompletion": "2",
+      "sourceName": "Official Patlabor introduction",
+      "sourceUrl": "https://patlabor.tokyo/about/",
+      "category": "organization",
+      "difficulty": "hard",
+      "tags": [
+        "patlabor",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-patlabor-03",
+      "text": "The official synopsis calls the unit a patrol ____ corps.",
+      "correctCompletion": "Labor",
+      "sourceName": "Official Patlabor introduction",
+      "sourceUrl": "https://patlabor.tokyo/about/",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "patlabor",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-zom-100-01",
+      "text": "Akira Tendo is ____ years old when the zombie apocalypse frees him from his soul-crushing job.",
+      "correctCompletion": "24",
+      "sourceName": "Official Zom 100 English website",
+      "sourceUrl": "https://zom100.com/en/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "zom-100",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-zom-100-03",
+      "text": "Shizuka Mikazuki creates her own list of 100 things to do to avoid becoming a ____.",
+      "correctCompletion": "zombie",
+      "sourceName": "Official Zom 100 English website",
+      "sourceUrl": "https://zom100.com/en/",
+      "category": "character-quirk",
+      "difficulty": "hard",
+      "tags": [
+        "zom-100",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-86-eighty-six-01",
+      "text": "The Republic of San Magnolia's supposedly unmanned combat machines are called ____.",
+      "correctCompletion": "Juggernauts",
+      "sourceName": "VIZ official Eighty-Six page",
+      "sourceUrl": "https://www.viz.com/eighty-six",
+      "category": "technology",
+      "difficulty": "hard",
+      "tags": [
+        "86-eighty-six",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-86-eighty-six-02",
+      "text": "The machines' enemies are autonomous drones known as the ____.",
+      "correctCompletion": "Legion",
+      "sourceName": "VIZ official Eighty-Six page",
+      "sourceUrl": "https://www.viz.com/eighty-six",
+      "category": "story-world",
+      "difficulty": "hard",
+      "tags": [
+        "86-eighty-six",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-86-eighty-six-03",
+      "text": "The people forced to pilot the Juggernauts despite official claims that they are unmanned are the ____.",
+      "correctCompletion": "Eighty-Sixers",
+      "sourceName": "VIZ official Eighty-Six page",
+      "sourceUrl": "https://www.viz.com/eighty-six",
+      "category": "worldbuilding",
+      "difficulty": "hard",
+      "tags": [
+        "86-eighty-six",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-lycoris-recoil-01",
+      "text": "The secret organization that prevents crimes in Lycoris Recoil is abbreviated ____.",
+      "correctCompletion": "DA",
+      "sourceName": "Official Lycoris Recoil story page",
+      "sourceUrl": "https://lycorisrecoil.com/story/intro.html",
+      "category": "organization",
+      "difficulty": "hard",
+      "tags": [
+        "lycoris-recoil",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-lycoris-recoil-02",
+      "text": "The all-girl agents working for DA are called ____.",
+      "correctCompletion": "Lycoris",
+      "sourceName": "Official Lycoris Recoil story page",
+      "sourceUrl": "https://lycorisrecoil.com/story/intro.html",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "lycoris-recoil",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-lycoris-recoil-03",
+      "text": "Chisato and Takina are assigned to a branch that operates as a café called ____.",
+      "correctCompletion": "Café LycoReco",
+      "sourceName": "Official Lycoris Recoil story page",
+      "sourceUrl": "https://lycorisrecoil.com/story/intro.html",
+      "category": "setting",
+      "difficulty": "hard",
+      "tags": [
+        "lycoris-recoil",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-black-lagoon-02",
+      "text": "The Japanese salaryman captured in episode 1 is named ____.",
+      "correctCompletion": "Okajima",
+      "sourceName": "Official Black Lagoon first-season story page",
+      "sourceUrl": "https://www.blacklagoon.jp/story.html",
+      "category": "characters",
+      "difficulty": "hard",
+      "tags": [
+        "black-lagoon",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-dorohedoro-01",
+      "text": "Caiman's face has been magically transformed into that of a ____.",
+      "correctCompletion": "lizard",
+      "sourceName": "Official Dorohedoro English website",
+      "sourceUrl": "https://dorohedoro.net/en/",
+      "category": "bizarre-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "dorohedoro",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-aggretsuko-01",
+      "text": "Aggretsuko is a red ____ whose anger contrasts with her cute appearance.",
+      "correctCompletion": "panda",
+      "sourceName": "Sanrio official Aggretsuko page",
+      "sourceUrl": "https://www.sanrio.com/collections/aggretsuko",
+      "category": "species",
+      "difficulty": "medium",
+      "tags": [
+        "aggretsuko",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-aggretsuko-02",
+      "text": "Aggretsuko works in the field of ____ at a company in Tokyo.",
+      "correctCompletion": "accounting",
+      "sourceName": "Sanrio official Aggretsuko page",
+      "sourceUrl": "https://www.sanrio.com/collections/aggretsuko",
+      "category": "occupation",
+      "difficulty": "hard",
+      "tags": [
+        "aggretsuko",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-aggretsuko-03",
+      "text": "Despite her cute appearance, Aggretsuko is filled with ____.",
+      "correctCompletion": "rage",
+      "sourceName": "Sanrio official Aggretsuko page",
+      "sourceUrl": "https://www.sanrio.com/collections/aggretsuko",
+      "category": "character-quirk",
+      "difficulty": "hard",
+      "tags": [
+        "aggretsuko",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-yowamushi-pedal-01",
+      "text": "Sakamichi Onoda initially wants to join his school's ____ club because he loves anime.",
+      "correctCompletion": "anime",
+      "sourceName": "TMS official Yowamushi Pedal page",
+      "sourceUrl": "https://tmsanime.com/project/yowamushi-pedal",
+      "category": "character-goal",
+      "difficulty": "medium",
+      "tags": [
+        "yowamushi-pedal",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-yowamushi-pedal-02",
+      "text": "Onoda's school is ____ High.",
+      "correctCompletion": "Sohoku",
+      "sourceName": "TMS official Yowamushi Pedal page",
+      "sourceUrl": "https://tmsanime.com/project/yowamushi-pedal",
+      "category": "setting",
+      "difficulty": "hard",
+      "tags": [
+        "yowamushi-pedal",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-yowamushi-pedal-03",
+      "text": "Imaizumi and Naruko help steer Onoda toward competitive ____.",
+      "correctCompletion": "cycling",
+      "sourceName": "TMS official Yowamushi Pedal page",
+      "sourceUrl": "https://tmsanime.com/project/yowamushi-pedal",
+      "category": "sport",
+      "difficulty": "hard",
+      "tags": [
+        "yowamushi-pedal",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-land-of-the-lustrous-01",
+      "text": "The world is inhabited by crystalline lifeforms called the ____.",
+      "correctCompletion": "Lustrous",
+      "sourceName": "Kodansha official Land of the Lustrous page",
+      "sourceUrl": "https://kodansha.us/book/land-of-the-lustrous/",
+      "category": "species",
+      "difficulty": "medium",
+      "tags": [
+        "land-of-the-lustrous",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-land-of-the-lustrous-02",
+      "text": "The Gems fight against beings from the Moon known as the ____.",
+      "correctCompletion": "Lunarians",
+      "sourceName": "Kodansha official Land of the Lustrous page",
+      "sourceUrl": "https://kodansha.us/book/land-of-the-lustrous/",
+      "category": "story-world",
+      "difficulty": "hard",
+      "tags": [
+        "land-of-the-lustrous",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-land-of-the-lustrous-03",
+      "text": "Phosphophyllite is initially assigned to compile a natural ____ of their world.",
+      "correctCompletion": "history",
+      "sourceName": "Kodansha official Land of the Lustrous page",
+      "sourceUrl": "https://kodansha.us/book/land-of-the-lustrous/",
+      "category": "occupation",
+      "difficulty": "hard",
+      "tags": [
+        "land-of-the-lustrous",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-to-your-eternity-01",
+      "text": "The immortal being at the center of To Your Eternity is initially sent to Earth as an ____.",
+      "correctCompletion": "orb",
+      "sourceName": "VIZ official To Your Eternity page",
+      "sourceUrl": "https://www.viz.com/to-your-eternity",
+      "category": "story-world",
+      "difficulty": "hard",
+      "tags": [
+        "to-your-eternity",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-ranking-of-kings-01",
+      "text": "Bojji is the first prince of the kingdom ruled by King ____.",
+      "correctCompletion": "Bossu",
+      "sourceName": "Fuji TV official Ranking of Kings introduction",
+      "sourceUrl": "https://www.fujitv.com/animation/ranking_of_kings/",
+      "category": "setting",
+      "difficulty": "hard",
+      "tags": [
+        "ranking-of-kings",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-ranking-of-kings-03",
+      "text": "Bojji's first friend is named ____.",
+      "correctCompletion": "Kage",
+      "sourceName": "Fuji TV official Ranking of Kings introduction",
+      "sourceUrl": "https://www.fujitv.com/animation/ranking_of_kings/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "ranking-of-kings",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-the-ancient-magus-bride-02",
+      "text": "In The Ancient Magus? Bride, the magus who buys Chise at auction has the head of a ____.",
+      "correctCompletion": "beast",
+      "sourceName": "Seven Seas official series page",
+      "sourceUrl": "https://sevenseasentertainment.com/series/the-ancient-magus-bride/",
+      "category": "character-trivia",
+      "difficulty": "hard",
+      "tags": [
+        "the-ancient-magus-bride",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-the-case-study-of-vanitas-01",
+      "text": "The vampire Noé Archiviste travels to Paris in search of a book called the ____ of Vanitas.",
+      "correctCompletion": "Book",
+      "sourceName": "Apple TV official series synopsis",
+      "sourceUrl": "https://tv.apple.com/in/show/the-case-study-of-vanitas/umc.cmc.6mgkn4mcxglzcekbqjrd13pqb",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "the-case-study-of-vanitas",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-the-case-study-of-vanitas-03",
+      "text": "Apple TV's episode 3 description says No? investigates the cause of Amelia's name ____.",
+      "correctCompletion": "corruption",
+      "sourceName": "Apple TV official series synopsis",
+      "sourceUrl": "https://tv.apple.com/in/show/the-case-study-of-vanitas/umc.cmc.6mgkn4mcxglzcekbqjrd13pqb",
+      "category": "story-rule",
+      "difficulty": "hard",
+      "tags": [
+        "the-case-study-of-vanitas",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-welcome-to-the-ballroom-01",
+      "text": "Tatara Fujita discovers competitive ____ dancing after being drawn into a dance studio.",
+      "correctCompletion": "ballroom",
+      "sourceName": "Kodansha official series page",
+      "sourceUrl": "https://kodansha.us/series/welcome-to-the-ballroom/",
+      "category": "occupation",
+      "difficulty": "medium",
+      "tags": [
+        "welcome-to-the-ballroom",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-welcome-to-the-ballroom-02",
+      "text": "Tatara's first dance instructor is ____ Sengoku.",
+      "correctCompletion": "Kaname",
+      "sourceName": "Kodansha official series page",
+      "sourceUrl": "https://kodansha.us/series/welcome-to-the-ballroom/",
+      "category": "characters",
+      "difficulty": "hard",
+      "tags": [
+        "welcome-to-the-ballroom",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-blue-giant-01",
+      "text": "Blue Giant follows Dai Miyamoto, who becomes obsessed with mastering the ____ saxophone.",
+      "correctCompletion": "tenor",
+      "sourceName": "Official BLUE GIANT film story page",
+      "sourceUrl": "https://bluegiant-movie.jp/story.html",
+      "category": "music",
+      "difficulty": "hard",
+      "tags": [
+        "blue-giant",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-blue-giant-02",
+      "text": "Dai first becomes captivated by jazz after hearing it live in ____.",
+      "correctCompletion": "Sendai",
+      "sourceName": "Official BLUE GIANT film story page",
+      "sourceUrl": "https://bluegiant-movie.jp/story.html",
+      "category": "setting",
+      "difficulty": "hard",
+      "tags": [
+        "blue-giant",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-blue-giant-03",
+      "text": "Dai's goal is to become the world's greatest ____ player.",
+      "correctCompletion": "jazz",
+      "sourceName": "Official BLUE GIANT film story page",
+      "sourceUrl": "https://bluegiant-movie.jp/story.html",
+      "category": "character-goal",
+      "difficulty": "medium",
+      "tags": [
+        "blue-giant",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-black-butler-01",
+      "text": "Ciel Phantomhive's butler is named ____.",
+      "correctCompletion": "Sebastian Michaelis",
+      "sourceName": "Official Black Butler anime character page",
+      "sourceUrl": "https://blackbutler-anime.com/season1/character/",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "black-butler",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-soul-eater-01",
+      "text": "Maka works to make her scythe a Death Weapon wielded by Shinigami-sama, the spirit of ____.",
+      "correctCompletion": "Death",
+      "sourceName": "Yen Press official Soul Eater Volume 1 synopsis",
+      "sourceUrl": "https://yenpress.com/titles/9780759530010-soul-eater-vol-1",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "soul-eater",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-soul-eater-02",
+      "text": "Maka Albarn?s scythe partner is named ____.",
+      "correctCompletion": "Soul Eater",
+      "sourceName": "Yen Press official Soul Eater Volume 1 synopsis",
+      "sourceUrl": "https://yenpress.com/titles/9780759530010-soul-eater-vol-1",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "soul-eater",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-soul-eater-03",
+      "text": "A weapon becomes a Death Scythe after collecting 99 evil human souls and one ____ soul.",
+      "correctCompletion": "witch",
+      "sourceName": "Yen Press official Soul Eater Volume 1 synopsis",
+      "sourceUrl": "https://yenpress.com/titles/9780759530010-soul-eater-vol-1",
+      "category": "story-rule",
+      "difficulty": "hard",
+      "tags": [
+        "soul-eater",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-nana-01",
+      "text": "The two young women who meet on a train to Tokyo are both named ____.",
+      "correctCompletion": "Nana",
+      "sourceName": "VIZ official NANA page",
+      "sourceUrl": "https://www.viz.com/nana",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "nana",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-nana-02",
+      "text": "Nana Osaki arrives in Tokyo hoping to succeed in the world of rock 'n' ____.",
+      "correctCompletion": "roll",
+      "sourceName": "VIZ official NANA page",
+      "sourceUrl": "https://www.viz.com/nana",
+      "category": "fictional-band",
+      "difficulty": "hard",
+      "tags": [
+        "nana",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-megalo-box-01",
+      "text": "MEGALOBOX reimagines boxing as a sport in which fighters wear powered mechanical ____.",
+      "correctCompletion": "gear",
+      "sourceName": "Official MEGALOBOX introduction",
+      "sourceUrl": "https://megalobox.com/megalobox/introduction.html",
+      "category": "sport",
+      "difficulty": "hard",
+      "tags": [
+        "megalo-box",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-megalo-box-02",
+      "text": "The underground fighter who enters Megalonia under the name 'Junk Dog' is later known as ____.",
+      "correctCompletion": "Joe",
+      "sourceName": "Official MEGALOBOX story page",
+      "sourceUrl": "https://megalobox.com/megalobox/story.html",
+      "category": "characters",
+      "difficulty": "medium",
+      "tags": [
+        "megalo-box",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-megalo-box-03",
+      "text": "The championship tournament that drives the first season is called ____.",
+      "correctCompletion": "Megalonia",
+      "sourceName": "Official MEGALOBOX story page",
+      "sourceUrl": "https://megalobox.com/megalobox/story.html",
+      "category": "competition",
+      "difficulty": "hard",
+      "tags": [
+        "megalo-box",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-yona-of-the-dawn-01",
+      "text": "Yona lives an ideal life as the only ____ of her kingdom.",
+      "correctCompletion": "princess",
+      "sourceName": "VIZ official Yona of the Dawn page",
+      "sourceUrl": "https://www.viz.com/yona-of-the-dawn",
+      "category": "setting",
+      "difficulty": "hard",
+      "tags": [
+        "yona-of-the-dawn",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-yona-of-the-dawn-02",
+      "text": "Yona is protected by her faithful guard named ____.",
+      "correctCompletion": "Hak",
+      "sourceName": "VIZ official Yona of the Dawn page",
+      "sourceUrl": "https://www.viz.com/yona-of-the-dawn",
+      "category": "characters",
+      "difficulty": "hard",
+      "tags": [
+        "yona-of-the-dawn",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-yona-of-the-dawn-03",
+      "text": "Yona and her friends search for the Four ____ Dragon Warriors.",
+      "correctCompletion": "Legendary",
+      "sourceName": "VIZ official Yona of the Dawn, Volume 4 synopsis",
+      "sourceUrl": "https://www.viz.com/manga-books/manga/yona-of-the-dawn-volume-4-0/product/5032",
+      "category": "story-world",
+      "difficulty": "hard",
+      "tags": [
+        "yona-of-the-dawn",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-kamisama-kiss-03",
+      "text": "Nanami's new home is a ____ rather than an ordinary apartment.",
+      "correctCompletion": "shrine",
+      "sourceName": "VIZ official Kamisama Kiss page",
+      "sourceUrl": "https://www.viz.com/kamisama-kiss",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "kamisama-kiss",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-yotsuba-01",
+      "text": "Yotsuba moves with Daddy from their old house to a new ____.",
+      "correctCompletion": "house",
+      "sourceName": "Yen Press official Yotsuba&! page",
+      "sourceUrl": "https://yenpress.com/titles/9780316073875-yotsuba-vol-1",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "yotsuba",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-beck-03",
+      "text": "Kodansha describes BECK as a rock 'n' roll ____.",
+      "correctCompletion": "epic",
+      "sourceName": "Kodansha official BECK page",
+      "sourceUrl": "https://kodansha.us/series/beck/",
+      "category": "themes",
+      "difficulty": "medium",
+      "tags": [
+        "beck",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-black-cat-02",
+      "text": "Train's former organization is called ____.",
+      "correctCompletion": "Chronos",
+      "sourceName": "VIZ official Black Cat page",
+      "sourceUrl": "https://www.viz.com/black-cat",
+      "category": "organization",
+      "difficulty": "hard",
+      "tags": [
+        "black-cat",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-black-cat-03",
+      "text": "Train later becomes a bounty hunter known as the ____ Cat.",
+      "correctCompletion": "Black",
+      "sourceName": "VIZ official Black Cat page",
+      "sourceUrl": "https://www.viz.com/black-cat",
+      "category": "nickname",
+      "difficulty": "medium",
+      "tags": [
+        "black-cat",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-the-idolmster-01",
+      "text": "The idol trainees in THE iDOLM@STER are managed by 765 ____.",
+      "correctCompletion": "Production",
+      "sourceName": "Official THE IDOLM@STER anime introduction",
+      "sourceUrl": "https://www.idolmaster-anime.jp/tv/intro/",
+      "category": "organization",
+      "difficulty": "hard",
+      "tags": [
+        "the-idolmster",
+        "batch-004"
+      ]
+    },
+    {
+      "id": "anime-b004-the-idolmster-03",
+      "text": "After beginning as an arcade game, THE iDOLM@STER expanded through consoles and into other ____.",
+      "correctCompletion": "media",
+      "sourceName": "Official THE IDOLM@STER anime introduction",
+      "sourceUrl": "https://www.idolmaster-anime.jp/tv/intro/",
+      "category": "franchise-history",
+      "difficulty": "hard",
+      "tags": [
+        "the-idolmster",
+        "batch-004"
+      ]
+    }
+  ]
+}

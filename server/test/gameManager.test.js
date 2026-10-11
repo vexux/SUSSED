@@ -37,6 +37,28 @@ function collectPublicKeysAndStringValues(value, keys = [], stringValues = []) {
     return { keys, stringValues };
 }
 
+function assertPrivateQuestionDataAbsent(publicState, question) {
+    const { keys, stringValues } = collectPublicKeysAndStringValues(publicState);
+    for (const privateField of ["correctCompletion", "sourceName", "sourceUrl"]) {
+        assert.equal(
+            keys.includes(privateField),
+            false,
+            `public state must not expose the ${privateField} field`
+        );
+    }
+    for (const privateValue of [
+        question.correctCompletion,
+        question.sourceName,
+        question.sourceUrl
+    ]) {
+        assert.equal(
+            stringValues.includes(privateValue),
+            false,
+            `public state must not expose the exact private value ${privateValue}`
+        );
+    }
+}
+
 function createFakeAnswerVotingState(playerCount) {
     const players = Array.from({ length: playerCount }, (_, index) => ({
         id: `scorer-${index + 1}`,
@@ -107,9 +129,13 @@ function completeManagedRound(room, selectCompletion) {
 
 function completeManagedGame(room, selectCompletion) {
     let result;
-    for (let round = 1; round <= 5; round += 1) {
+    const totalRounds = gameManager.getPublicGameState(
+        room.code,
+        room.players[0].id
+    ).state.totalRounds;
+    for (let round = 1; round <= totalRounds; round += 1) {
         result = completeManagedRound(room, selectCompletion);
-        if (round < 5) {
+        if (round < totalRounds) {
             for (const player of room.players) {
                 gameManager.performGameAction(
                     room.code,
@@ -138,8 +164,8 @@ test("both registered identities share the same engine and use isolated question
     assert.equal(factOrCapAnime.handleAction, fakeAnswer.handleAction);
     assert.equal(factOrCapAnime.calculateRoundResults, fakeAnswer.calculateRoundResults);
     assert.equal(factOrCapAnime.supportedPlayers.min, 2);
-    assert.equal(factOrCapAnime.supportedPlayers.max, 8);
-    assert.equal(animeQuestions.length, 140);
+    assert.equal(Object.hasOwn(factOrCapAnime.supportedPlayers, "max"), false);
+    assert.equal(animeQuestions.length, 348);
     assert.equal(questions.length, 100);
     assert.equal(
         questions.some(({ id }) => animeQuestions.some((animeQuestion) => animeQuestion.id === id)),
@@ -186,26 +212,7 @@ test("generic game sessions start registered games and expose only public state"
         assert.equal(moduleState.prompt.id, privateState.roundId);
         assert.notEqual(moduleState.prompt.id, privateState.currentQuestion.id);
         assert.equal(publicState.state.prompt.text, publicQuestion.text);
-        const { keys: publicKeys, stringValues: publicStringValues } =
-            collectPublicKeysAndStringValues(publicState);
-        for (const privateField of ["correctCompletion", "sourceName", "sourceUrl"]) {
-            assert.equal(
-                publicKeys.includes(privateField),
-                false,
-                `public state must not expose the ${privateField} field`
-            );
-        }
-        for (const privateValue of [
-            publicQuestion.correctCompletion,
-            publicQuestion.sourceName,
-            publicQuestion.sourceUrl
-        ]) {
-            assert.equal(
-                publicStringValues.includes(privateValue),
-                false,
-                `public state must not expose the exact private value ${privateValue}`
-            );
-        }
+        assertPrivateQuestionDataAbsent(publicState, publicQuestion);
         assert.equal(Object.hasOwn(publicState, "implementation"), false);
         assert.equal(typeof privateState.currentQuestion.correctCompletion, "string");
     } finally {
@@ -224,11 +231,7 @@ test("Anime sessions initialize from their own sourced pool and keep source meta
         assert.equal(publicState.displayName, "Fact or Cap (Anime)");
         assert.ok(selectedQuestion);
         assert.equal(questions.some(({ id }) => id === selectedQuestion.id), false);
-        assert.equal(
-            JSON.stringify(publicState).includes(selectedQuestion.correctCompletion),
-            false
-        );
-        assert.equal(JSON.stringify(publicState).includes(selectedQuestion.sourceUrl), false);
+        assertPrivateQuestionDataAbsent(publicState, selectedQuestion);
     } finally {
         gameManager.removeGame(room.code);
     }
@@ -437,18 +440,13 @@ test("fake-answer reveals anonymous options, marks own answer, and enters voting
     assert.equal(resultsState.gameState.state.voteCount, room.players.length);
     assert.equal(Object.hasOwn(resultsState.gameState.state, "options"), false);
     assert.equal(Object.hasOwn(resultsState.gameState.state, "votes"), false);
-    assert.equal(
-        JSON.stringify(resultsState.gameState).includes(
-            selectedQuestion.correctCompletion
-        ),
-        false
-    );
+    assertPrivateQuestionDataAbsent(resultsState.gameState, selectedQuestion);
     gameManager.removeGame(room.code);
 });
 
-test("fake-answer supports every player count within the room capacity", () => {
-    assert.deepEqual(fakeAnswer.supportedPlayers, { min: 2, max: 8 });
-    for (const playerCount of [2, 3, 4, 5, 6, 7, 8]) {
+test("fake-answer supports every player count at or above its minimum", () => {
+    assert.deepEqual(fakeAnswer.supportedPlayers, { min: 2 });
+    for (const playerCount of [2, 3, 4, 5, 6, 7, 8, 9, 12]) {
         assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, playerCount), true);
         const room = createStartingRoom(playerCount);
         const publicState = gameManager.startGame(room, "fact-or-cap");
@@ -460,9 +458,9 @@ test("fake-answer supports every player count within the room capacity", () => {
         }
     }
     assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, 1), false);
-    assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, 9), false);
+    assert.equal(gameManager.isPlayerCountSupported(fakeAnswer, 0), false);
 
-    for (const playerCount of [1, 9]) {
+    for (const playerCount of [0, 1]) {
         const lobbyRoom = {
             ...createStartingRoom(playerCount),
             status: "lobby"
@@ -520,7 +518,7 @@ test("two-player fake-answer game reaches reveal after both players submit once"
             ({ text }) => text === initialState.state.prompt.text
         );
         assert.ok(question);
-        assert.equal(JSON.stringify(initialState).includes(question.correctCompletion), false);
+        assertPrivateQuestionDataAbsent(initialState, question);
 
         gameManager.performGameAction(
             room.code,
@@ -538,12 +536,7 @@ test("two-player fake-answer game reaches reveal after both players submit once"
         assert.equal(firstSubmission.gameState.state.submissionCount, 1);
         assert.equal(firstSubmission.gameState.state.playerCount, 2);
         assert.equal(firstSubmission.gameState.state.phase, "answer-submission");
-        assert.equal(
-            JSON.stringify(firstSubmission.gameState).includes(
-                question.correctCompletion
-            ),
-            false
-        );
+        assertPrivateQuestionDataAbsent(firstSubmission.gameState, question);
         assert.throws(
             () => gameManager.performGameAction(
                 room.code,
@@ -638,8 +631,8 @@ test("duplicate submissions share a private error and do not change submission p
     assert.equal(state.phase, "reveal");
 });
 
-test("fake-answer voting supports every player count from two through eight", () => {
-    for (const playerCount of [2, 3, 4, 5, 6, 7, 8]) {
+test("fake-answer submissions and voting support more than eight players", () => {
+    for (const playerCount of [2, 3, 4, 5, 6, 7, 8, 9, 12]) {
         const room = createStartingRoom(playerCount);
         gameManager.startGame(room, "fact-or-cap");
         try {
@@ -697,6 +690,46 @@ test("fake-answer voting supports every player count from two through eight", ()
             }
             assert.equal(finalVote.gameState.state.phase, "waiting-for-results");
             assert.equal(finalVote.gameState.state.voteCount, playerCount);
+            const results = gameManager.performGameAction(
+                room.code,
+                "fact-or-cap",
+                null,
+                "publish-results"
+            );
+            assert.equal(results.gameState.state.phase, "results");
+            assert.equal(results.gameState.state.results.players.length, playerCount);
+            assert.equal(results.gameState.state.results.standings.length, playerCount);
+        } finally {
+            gameManager.removeGame(room.code);
+        }
+    }
+});
+
+test("host-selected round counts run exactly 5, 7, or 10 complete rounds", () => {
+    for (const roundCount of [5, 7, 10]) {
+        const room = { ...createStartingRoom(2), selectedRoundCount: roundCount };
+        const initial = gameManager.startGame(room, "fact-or-cap");
+        try {
+            assert.equal(initial.state.currentRound, 1);
+            assert.equal(initial.state.totalRounds, roundCount);
+            let result;
+            for (let round = 1; round <= roundCount; round += 1) {
+                result = completeManagedRound(room, (_player, _currentRound, correct) => correct);
+                assert.equal(result.state.currentRound, round);
+                assert.equal(result.state.totalRounds, roundCount);
+                assert.equal(result.state.isFinalRound, round === roundCount);
+                assert.equal(gameManager.getPublicGameState(room.code, room.players[0].id).status,
+                    round === roundCount ? "finished" : "active");
+                if (round < roundCount) {
+                    for (const player of room.players) {
+                        gameManager.performGameAction(room.code, "fact-or-cap", player.id, "continue");
+                    }
+                    assert.equal(
+                        gameManager.getPublicGameState(room.code, room.players[0].id).state.currentRound,
+                        round + 1
+                    );
+                }
+            }
         } finally {
             gameManager.removeGame(room.code);
         }
@@ -870,7 +903,7 @@ test("fake-answer results and scores stay private until a single scoring publica
     const waitingState = fakeAnswer.createPublicState(state, players[0].id);
     assert.equal(waitingState.phase, "waiting-for-results");
     assert.equal(Object.hasOwn(waitingState, "results"), false);
-    assert.equal(JSON.stringify(waitingState).includes(state.currentQuestion.correctCompletion), false);
+    assertPrivateQuestionDataAbsent(waitingState, state.currentQuestion);
     assert.deepEqual([...state.scores.values()], [0, 0]);
 
     const publicResults = fakeAnswer.handleAction(state, "publish-results");

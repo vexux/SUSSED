@@ -1,5 +1,9 @@
 const { randomInt } = require("node:crypto");
 const gameRegistry = require("./gameRegistry");
+const {
+    DEFAULT_ROUND_COUNT,
+    isSupportedRoundCount
+} = require("./roundConfiguration");
 
 const ROOM_CODE_WORDS = [
     "ATOM", "BARD", "BARK", "BEAM", "BIRD", "BOLD", "BOLT", "CAMP",
@@ -14,7 +18,6 @@ const ROOM_CODE_WORDS = [
     "ZEST", "ZING"
 ];
 const ROOM_CODE_COUNT = ROOM_CODE_WORDS.length;
-const MAX_PLAYERS = 8;
 const MAX_PLAYER_NAME_LENGTH = 20;
 
 const rooms = new Map();
@@ -88,6 +91,7 @@ function createRoom(playerId, playerName) {
         hostId: playerId,
         status: "lobby",
         selectedGameId: gameRegistry.DEFAULT_GAME_ID,
+        selectedRoundCount: DEFAULT_ROUND_COUNT,
         players: [host]
     };
 
@@ -118,10 +122,6 @@ function joinRoom(roomCode, playerId, playerName) {
     if (room.status !== "lobby") {
         throw new RoomError("ROOM_NOT_IN_LOBBY", "That room is no longer accepting players.");
     }
-    if (room.players.length >= MAX_PLAYERS) {
-        throw new RoomError("ROOM_FULL", "That room is full.");
-    }
-
     const player = { id: playerId, name, isReady: false };
     room.players.push(player);
     playerRooms.set(playerId, room.code);
@@ -193,11 +193,38 @@ function selectGame(playerId, gameId) {
     }
 
     room.selectedGameId = gameId;
-    for (const player of room.players) {
-        if (player.id !== room.hostId) {
-            player.isReady = false;
-        }
+    advanceRevision(room);
+    return room;
+}
+
+function selectRoundCount(playerId, roundCount, expectedRevision) {
+    const room = getPlayerRoom(playerId);
+    if (!room) {
+        throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
     }
+    if (room.hostId !== playerId) {
+        throw new RoomError("NOT_HOST", "Only the host can select the number of rounds.");
+    }
+    if (room.status !== "lobby") {
+        throw new RoomError("ROOM_NOT_IN_LOBBY", "The room is no longer in the lobby.");
+    }
+    if (!isSupportedRoundCount(roundCount)) {
+        throw new RoomError(
+            "INVALID_ROUND_COUNT",
+            "Choose 5, 7, or 10 rounds."
+        );
+    }
+    if (!Number.isInteger(expectedRevision) || expectedRevision !== room.revision) {
+        throw new RoomError(
+            "STALE_ROOM_STATE",
+            "The lobby changed. Review the current settings and try again."
+        );
+    }
+    if (room.selectedRoundCount === roundCount) {
+        return room;
+    }
+
+    room.selectedRoundCount = roundCount;
     advanceRevision(room);
     return room;
 }
@@ -292,18 +319,29 @@ function getPlayerRoom(playerId) {
 
 function createLobbyState(room) {
     const selectedGame = gameRegistry.get(room.selectedGameId);
+    const readinessStatus = room.status !== "lobby"
+        ? "starting"
+        : room.players.length < selectedGame.supportedPlayers.min
+          ? "insufficient-players"
+          : room.players.some((player) => player.id !== room.hostId && !player.isReady)
+            ? "waiting-for-ready"
+            : "ready";
     return {
         roomCode: room.code,
         revision: room.revision,
         status: room.status,
         playerCount: room.players.length,
+        readinessStatus,
         selectedGameId: room.selectedGameId,
+        selectedRoundCount: room.selectedRoundCount,
         selectedGame: {
             id: selectedGame.id,
             displayName: selectedGame.displayName,
             description: selectedGame.description,
             minPlayers: selectedGame.supportedPlayers.min,
-            maxPlayers: selectedGame.supportedPlayers.max
+            ...(selectedGame.supportedPlayers.max === undefined
+                ? {}
+                : { maxPlayers: selectedGame.supportedPlayers.max })
         },
         availableGames: gameRegistry.list(),
         players: room.players.map((player) => ({
@@ -329,7 +367,6 @@ function removeRoom(roomCode) {
 }
 
 module.exports = {
-    MAX_PLAYERS,
     ROOM_CODE_COUNT,
     RoomError,
     createLobbyState,
@@ -344,6 +381,7 @@ module.exports = {
     returnToLobby,
     recoverRoomToLobby,
     selectGame,
+    selectRoundCount,
     setPlayerReady,
     startRoom,
     validateRoomStart,

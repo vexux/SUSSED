@@ -10,6 +10,60 @@ const fakeAnswerSocketHandlers = require("../games/fake-answer/socketHandlers");
 const roomManager = require("../roomManager");
 const { startServer } = require("../server");
 
+function collectPublicKeysAndStringValues(value, keys = [], stringValues = []) {
+    if (Array.isArray(value)) {
+        value.forEach((item) => collectPublicKeysAndStringValues(item, keys, stringValues));
+    } else if (value && typeof value === "object") {
+        for (const [key, child] of Object.entries(value)) {
+            keys.push(key);
+            collectPublicKeysAndStringValues(child, keys, stringValues);
+        }
+    } else if (typeof value === "string") {
+        stringValues.push(value);
+    }
+    return { keys, stringValues };
+}
+
+function assertQuestionPrivateDataAbsent(publicState, question) {
+    const { keys, stringValues } = collectPublicKeysAndStringValues(publicState);
+    for (const field of ["correctCompletion", "sourceName", "sourceUrl"]) {
+        assert.equal(keys.includes(field), false, `public payload must not expose ${field}`);
+    }
+    for (const privateValue of [
+        question.correctCompletion,
+        question.sourceName,
+        question.sourceUrl
+    ]) {
+        assert.equal(
+            stringValues.includes(privateValue),
+            false,
+            "public payload must not expose private content as a complete value"
+        );
+    }
+}
+
+test("private-answer checks allow answer text already present in the public prompt", () => {
+    const question = questions.find(({ id }) => id === "moon-synchronous-rotation");
+    assert.ok(question);
+    assert.equal(question.correctCompletion, "Earth");
+    assert.ok(question.text.includes(question.correctCompletion));
+
+    const publicState = {
+        state: {
+            phase: "question",
+            prompt: { text: question.text }
+        }
+    };
+    assertQuestionPrivateDataAbsent(publicState, question);
+    assert.throws(
+        () => assertQuestionPrivateDataAbsent({
+            ...publicState,
+            state: { ...publicState.state, answer: question.correctCompletion }
+        }, question),
+        assert.AssertionError
+    );
+});
+
 async function createHarness(context) {
     const io = startServer(0);
     const clients = [];
@@ -171,7 +225,12 @@ async function joinPlayers(harness, roomCode, count) {
 
 async function startFakeAnswer(
     harness,
-    { playerCount = 4, waitForSubmission = true, gameId = "fact-or-cap" } = {}
+    {
+        playerCount = 4,
+        waitForSubmission = true,
+        gameId = "fact-or-cap",
+        roundCount = 5
+    } = {}
 ) {
     const host = await harness.connect();
     const created = await emitWithAck(host, "create-room", {
@@ -183,6 +242,16 @@ async function startFakeAnswer(
         const selection = await emitWithAck(host, "select-game", { gameId });
         assert.equal(selection.selectedGameId, gameId);
         assert.equal(selection.lobby.selectedGameId, gameId);
+    }
+    if (roundCount !== 5) {
+        const revision = roomManager.createLobbyState(
+            roomManager.getRoom(created.roomCode)
+        ).revision;
+        const selection = await emitWithAck(host, "select-round-count", {
+            roundCount,
+            revision
+        });
+        assert.equal(selection.selectedRoundCount, roundCount);
     }
     for (const player of players) {
         await emitWithAck(player, "set-ready", { isReady: true });
@@ -299,6 +368,8 @@ test("starts the server and keeps the legacy create-room acknowledgement", async
     assert.equal(lobby.players[0].isHost, true);
     assert.equal(lobby.players[0].isReady, false);
     assert.equal(lobby.status, "lobby");
+    assert.equal(lobby.readinessStatus, "insufficient-players");
+    assert.equal(lobby.selectedRoundCount, 5);
 
     const serverSocket = harness.io.sockets.sockets.get(client.id);
     assert.ok(serverSocket.rooms.has(response.roomCode));
@@ -343,8 +414,7 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
         id: "fact-or-cap",
         displayName: "Fact or Cap",
         description: "A bluffing party game about surprising facts.",
-        minPlayers: 2,
-        maxPlayers: 8
+        minPlayers: 2
     });
     assert.deepEqual(response.lobby.availableGames.map(({ id }) => id), [
         "fact-or-cap",
@@ -370,10 +440,12 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
         "availableGames",
         "playerCount",
         "players",
+        "readinessStatus",
         "revision",
         "roomCode",
         "selectedGame",
         "selectedGameId",
+        "selectedRoundCount",
         "status",
     ]);
     assert.deepEqual(Object.keys(response.lobby.players[0]).sort(), [
@@ -420,14 +492,13 @@ test("host selects a registered game and broadcasts authoritative metadata to al
     assert.equal(selectionResponse.lobby.revision, revisionBeforeSelect + 1);
     const [hostLobby, guestLobby] = await Promise.all([hostUpdate, guestUpdate]);
     assert.deepEqual(hostLobby, guestLobby);
-    assert.equal(hostLobby.players[1].isReady, false);
+    assert.equal(hostLobby.players[1].isReady, true);
     assert.deepEqual(selectionResponse.lobby, hostLobby);
     assert.deepEqual(hostLobby.selectedGame, {
         id: "fact-or-cap-anime",
         displayName: "Fact or Cap (Anime)",
         description: "A bluffing party game about surprising and verifiable anime facts.",
-        minPlayers: 2,
-        maxPlayers: 8
+        minPlayers: 2
     });
     assert.deepEqual(hostLobby.availableGames.map(({ id }) => id), [
         "fact-or-cap",
@@ -456,20 +527,99 @@ test("host selects a registered game and broadcasts authoritative metadata to al
     );
     assert.deepEqual(hostGeneralLobby, guestGeneralLobby);
     assert.deepEqual(generalSelection.lobby, hostGeneralLobby);
+    assert.equal(hostGeneralLobby.players[1].isReady, true);
     assert.deepEqual(hostGeneralLobby.selectedGame, {
         id: "fact-or-cap",
         displayName: "Fact or Cap",
         description: "A bluffing party game about surprising facts.",
-        minPlayers: 2,
-        maxPlayers: 8
+        minPlayers: 2
     });
+});
+
+test("host round selections are validated, broadcast, and passed into the game", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.trackRoom(created.roomCode);
+    const joined = await emitWithAck(guest, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Guest"
+    });
+    assert.equal(joined.lobby.selectedRoundCount, 5);
+    assert.equal(joined.lobby.readinessStatus, "waiting-for-ready");
+
+    assert.equal((await emitWithAck(host, "select-round-count", {
+        roundCount: 6,
+        revision: joined.lobby.revision
+    })).error.code, "INVALID_ROUND_COUNT");
+    assert.equal((await emitWithAck(guest, "select-round-count", {
+        roundCount: 7,
+        revision: joined.lobby.revision
+    })).error.code, "NOT_HOST");
+    assert.equal((await emitWithAck(host, "select-round-count", {
+        roundCount: 7,
+        revision: joined.lobby.revision - 1
+    })).error.code, "STALE_ROOM_STATE");
+    assert.equal((await emitWithAck(host, "select-round-count", {
+        roundCount: "7",
+        revision: joined.lobby.revision
+    })).error.code, "INVALID_ROUND_COUNT");
+    assert.equal((await emitWithAck(host, "select-round-count", {
+        roundCount: 7
+    })).error.code, "INVALID_REQUEST");
+
+    const readyLobby = waitForLobby(guest, (lobby) => lobby.readinessStatus === "ready");
+    await emitWithAck(guest, "set-ready", { isReady: true });
+    const guestReady = await readyLobby;
+    const hostUpdate = waitForLobby(host, (lobby) => lobby.selectedRoundCount === 7);
+    const guestUpdate = waitForLobby(guest, (lobby) => lobby.selectedRoundCount === 7);
+    const selected = await emitWithAck(host, "select-round-count", {
+        roundCount: 7,
+        revision: guestReady.revision
+    });
+    assert.equal(selected.selectedRoundCount, 7);
+    const [hostLobby, guestLobby] = await Promise.all([hostUpdate, guestUpdate]);
+    assert.deepEqual(hostLobby, guestLobby);
+    assert.equal(hostLobby.readinessStatus, "ready");
+    assert.equal(hostLobby.players[1].isReady, true);
+
+    const gameState = waitForGameState(host, (game) => game.state.phase === "question");
+    const started = await emitWithAck(host, "start-game");
+    assert.equal(started.game.state.totalRounds, 7);
+    assert.equal((await gameState).state.totalRounds, 7);
+});
+
+test("the transferred host can update the authoritative round selection", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(guest, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Guest"
+    });
+
+    const hostUpdate = waitForLobby(guest, (lobby) => lobby.playerCount === 1);
+    await emitWithAck(host, "leave-room");
+    const transferredLobby = await hostUpdate;
+    assert.equal(transferredLobby.players[0].isHost, true);
+    assert.equal(transferredLobby.selectedRoundCount, 5);
+    const changed = await emitWithAck(guest, "select-round-count", {
+        roundCount: 10,
+        revision: transferredLobby.revision
+    });
+    assert.equal(changed.selectedRoundCount, 10);
+    assert.equal(changed.lobby.selectedRoundCount, 10);
 });
 
 test("host can select Anime and complete a round through the shared socket game flow", async (context) => {
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, {
         playerCount: 2,
-        gameId: "fact-or-cap-anime"
+        gameId: "fact-or-cap-anime",
+        roundCount: 7
     });
     const sourceQuestion = animeQuestions.find(
         ({ text }) => text === game.questionState.state.prompt.text
@@ -497,6 +647,7 @@ test("host can select Anime and complete a round through the shared socket game 
     const results = gameManager.getPublicGameState(game.roomCode, game.host.id);
     assert.equal(results.state.phase, "results");
     assert.equal(results.state.currentRound, 1);
+    assert.equal(results.state.totalRounds, 7);
     assert.equal(results.state.results.players.length, 2);
     assert.equal(votingState.state.prompt.text, sourceQuestion.text);
 });
@@ -602,10 +753,10 @@ test("rejects invalid room codes", async (context) => {
     }
 });
 
-test("rejects joins when the room is full", async (context) => {
+test("allows at least ten players to join a room", async (context) => {
     const harness = await createHarness(context);
     const players = [];
-    for (let index = 0; index < roomManager.MAX_PLAYERS + 1; index += 1) {
+    for (let index = 0; index < 10; index += 1) {
         players.push(await harness.connect());
     }
 
@@ -614,20 +765,14 @@ test("rejects joins when the room is full", async (context) => {
     });
     harness.trackRoom(createResponse.roomCode);
 
-    for (let index = 1; index < roomManager.MAX_PLAYERS; index += 1) {
+    for (let index = 1; index < players.length; index += 1) {
         const response = await emitWithAck(players[index], "join-room", {
             roomCode: createResponse.roomCode,
             playerName: `Player ${index}`,
         });
         assert.equal(response.lobby.playerCount, index + 1);
     }
-
-    const response = await emitWithAck(players[roomManager.MAX_PLAYERS], "join-room", {
-        roomCode: createResponse.roomCode,
-        playerName: "One too many",
-    });
-    assert.equal(response.error.code, "ROOM_FULL");
-    assert.equal(roomManager.getRoom(createResponse.roomCode).players.length, 8);
+    assert.equal(roomManager.getRoom(createResponse.roomCode).players.length, 10);
 });
 
 test("rejects invalid or empty player names on create and join", async (context) => {
@@ -1183,18 +1328,9 @@ test("host starts the room-selected registered game and broadcasts its safe ques
         (question) => question.text === hostState.state.prompt.text
     );
     assert.ok(selectedQuestion);
-    assert.equal(
-        JSON.stringify(hostState).includes(selectedQuestion.correctCompletion),
-        false
-    );
-    assert.equal(
-        JSON.stringify(startingPayload).includes(selectedQuestion.correctCompletion),
-        false
-    );
-    assert.equal(
-        JSON.stringify(startResponse.game).includes(selectedQuestion.correctCompletion),
-        false
-    );
+    assertQuestionPrivateDataAbsent(hostState, selectedQuestion);
+    assertQuestionPrivateDataAbsent(startingPayload, selectedQuestion);
+    assertQuestionPrivateDataAbsent(startResponse.game, selectedQuestion);
     assert.equal((await emitWithAck(guests[0], "start-game")).error.code, "NOT_HOST");
 });
 
@@ -1403,7 +1539,8 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
             ).submitted,
             true
         );
-        assert.equal(JSON.stringify(state).includes(submittedCompletions[1]), false);
+        const { stringValues } = collectPublicKeysAndStringValues(state);
+        assert.equal(stringValues.includes(submittedCompletions[1]), false);
     }
 
     for (let index = 1; index < players.length; index += 1) {
@@ -1492,8 +1629,8 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
         ({ text }) => text === questionState.state.prompt.text
     );
     assert.ok(question);
-    assert.equal(JSON.stringify(questionState).includes(question.correctCompletion), false);
-    assert.equal(JSON.stringify(gameState).includes(question.correctCompletion), false);
+    assertQuestionPrivateDataAbsent(questionState, question);
+    assertQuestionPrivateDataAbsent(gameState, question);
 
     const firstResponse = await emitWithAck(host, "fake-answer:submit", {
         ...withRoundId(gameState, {
@@ -1577,11 +1714,12 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
         assert.equal(state.state.phase, "voting");
         assert.equal(state.state.voteCount, 0);
         assert.deepEqual(state.state.options, revealStates[index].state.options);
-        assert.equal(
-            JSON.stringify(state).includes(question.correctCompletion),
-            true
-        );
-        assert.equal(JSON.stringify(state).includes(ownCompletions[index]), true);
+        assert.ok(state.state.options.some(
+            ({ completion }) => completion === question.correctCompletion
+        ));
+        assert.ok(state.state.options.some(
+            ({ completion }) => completion === ownCompletions[index]
+        ));
     }
 
     const hostOwnOptionId = votingStates[1].state.options.find(
@@ -1698,7 +1836,7 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
         assert.equal(Object.hasOwn(state.state, "votes"), false);
         assert.equal(Object.hasOwn(state.state, "correctOptionId"), false);
         assert.equal(state.state.prompt, null);
-        assert.equal(JSON.stringify(state).includes(question.correctCompletion), false);
+        assertQuestionPrivateDataAbsent(state, question);
     }
     const resultsStates = await Promise.all([hostResults, guestResults]);
     for (const state of resultsStates) {
@@ -1744,9 +1882,9 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
     assert.deepEqual(resultsStates[0].state.results, resultsStates[1].state.results);
 });
 
-test("fake-answer progresses through five scored rounds, preserves a final tie, and keeps the room", async (context) => {
+test("fake-answer honors a selected round count through completion, lobby return, and replay", async (context) => {
     const harness = await createHarness(context);
-    const game = await startFakeAnswer(harness, { playerCount: 2 });
+    const game = await startFakeAnswer(harness, { playerCount: 2, roundCount: 7 });
     const clients = [game.host, ...game.players];
     const room = roomManager.getRoom(game.roomCode);
     const initialHostId = room.hostId;
@@ -1950,6 +2088,7 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
     assert.equal(hostLobbyState.roomCode, game.roomCode);
     assert.equal(hostLobbyState.status, "lobby");
     assert.equal(hostLobbyState.selectedGameId, "fact-or-cap");
+    assert.equal(hostLobbyState.selectedRoundCount, 7);
     assert.deepEqual(
         hostLobbyState.players.map(({ id, isHost, isReady }) => ({
             id,
@@ -2001,6 +2140,7 @@ test("fake-answer progresses through five scored rounds, preserves a final tie, 
     assert.notEqual(replayHost.sessionId, roundGameState.sessionId);
     assert.equal(replayHost.state.phase, "question");
     assert.equal(replayHost.state.currentRound, 1);
+    assert.equal(replayHost.state.totalRounds, 7);
     assert.equal(replayHost.state.submissionCount, 0);
     assert.equal(Object.hasOwn(replayHost.state, "options"), false);
     assert.equal(Object.hasOwn(replayHost.state, "votes"), false);

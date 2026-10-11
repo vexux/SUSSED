@@ -89,3 +89,42 @@ test("room codes normalize to uppercase for lookup and joining", (context) => {
     assert.equal(roomManager.getRoom(host.code.toLowerCase()), host);
     assert.equal(host.players.length, 2);
 });
+
+test("rooms start with five rounds and allow any additional player count", (context) => {
+    const host = roomManager.createRoom("uncapped-host", "Host");
+    context.after(() => roomManager.removeRoom(host.code));
+    assert.equal(host.selectedRoundCount, 5);
+    assert.equal(roomManager.createLobbyState(host).selectedRoundCount, 5);
+
+    for (let index = 1; index < 12; index += 1) {
+        roomManager.joinRoom(host.code, `uncapped-${index}`, `Player ${index}`);
+    }
+    assert.equal(host.players.length, 12);
+});
+
+test("round count changes require an eligible host and a current lobby revision", (context) => {
+    const host = roomManager.createRoom("round-host", "Host");
+    context.after(() => roomManager.removeRoom(host.code));
+    const guest = roomManager.joinRoom(host.code, "round-guest", "Guest");
+
+    for (const roundCount of [7, 10, 5]) {
+        roomManager.selectRoundCount(host.hostId, roundCount, host.revision);
+        assert.equal(host.selectedRoundCount, roundCount);
+    }
+    assert.throws(
+        () => roomManager.selectRoundCount(guest.players[1].id, 7, host.revision),
+        { code: "NOT_HOST" }
+    );
+    assert.throws(
+        () => roomManager.selectRoundCount(host.hostId, 6, host.revision),
+        { code: "INVALID_ROUND_COUNT" }
+    );
+    assert.throws(
+        () => roomManager.selectRoundCount(host.hostId, 7, host.revision - 1),
+        { code: "STALE_ROOM_STATE" }
+    );
+
+    roomManager.removePlayer(host.hostId);
+    roomManager.selectRoundCount(guest.players[0].id, 7, guest.revision);
+    assert.equal(guest.selectedRoundCount, 7);
+});

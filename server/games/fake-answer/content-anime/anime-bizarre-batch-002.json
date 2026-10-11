@@ -1,0 +1,459 @@
+{
+  "contentPackId": "anime-bizarre-batch-002",
+  "questions": [
+    {
+      "id": "anime-b002-dd-okarun-belief",
+      "text": "In DANDADAN, Okarun believes in aliens but initially denies the existence of…",
+      "correctCompletion": "ghosts",
+      "sourceName": "DANDADAN Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "dd",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-dd-hana-disposal",
+      "text": "In DANDADAN, Hana, the older female anatomical model, had already been?",
+      "correctCompletion": "disposed of",
+      "sourceName": "DANDADAN Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "dd",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-dd-flatwoods-fighting",
+      "text": "In DANDADAN, the Flatwoods Monster attacks from a crouch using sumo stomps and…",
+      "correctCompletion": "thrusts",
+      "sourceName": "DANDADAN Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "dd",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-dd-naki-manners",
+      "text": "In DANDADAN, Naki Kito believes bad manners among residents on her family?s property should be corrected by?",
+      "correctCompletion": "beating those manners into them",
+      "sourceName": "DANDADAN Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "dd",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-dd-evil-eye-attire",
+      "text": "In DANDADAN, the Evil Eye is described on the official profile as a man wearing only…",
+      "correctCompletion": "briefs",
+      "sourceName": "DANDADAN Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "dd",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-dd-turbo-home",
+      "text": "In DANDADAN, Turbo Granny currently resides in?",
+      "correctCompletion": "Shono City Tunnel",
+      "sourceName": "DANDADAN Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "dd",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-dd-silky-appearance",
+      "text": "In DANDADAN, Acrobatic Silky is recognizable for a red dress and?",
+      "correctCompletion": "long silky hair",
+      "sourceName": "DANDADAN Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "dd",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-dd-aira-misidentifies",
+      "text": "In DANDADAN, Aira mistakenly interprets Momo?s psychic powers as being?",
+      "correctCompletion": "demonic",
+      "sourceName": "DANDADAN Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "dd",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-dd-jiji-help",
+      "text": "In DANDADAN, after encountering a spirit in his new home, Jiji seeks help from…",
+      "correctCompletion": "Seiko",
+      "sourceName": "DANDADAN Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime",
+      "difficulty": "medium",
+      "tags": [
+        "dd",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-dd-momo-type",
+      "text": "In DANDADAN, Momo?s stated romantic type is a?",
+      "correctCompletion": "hard-boiled tough guy",
+      "sourceName": "DANDADAN Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "dd",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-mob-psycho-helmet",
+      "text": "In Mob Psycho 100, after one of his exploits, Mob was made the figurehead of the?",
+      "correctCompletion": "Psycho Helmet cult",
+      "sourceName": "Mob Psycho 100 Official Character Profile",
+      "sourceUrl": "https://mobpsycho100.com/2nd/chara/keiji.html",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "mob",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-mob-teru-posture",
+      "text": "In Mob Psycho 100, Teruki Hanazawa has an embarrassing habit of turning his knees inward when he uses his?",
+      "correctCompletion": "psychic abilities",
+      "sourceName": "Mob Psycho 100 Official Character Profile",
+      "sourceUrl": "https://mobpsycho100.com/2nd/chara/keiji.html",
+      "category": "anime",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "mob",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-mob-mogami-media",
+      "text": "In Mob Psycho 100, Keiji Mogami became famous as a supposedly benevolent psychic appearing in mass media, including?",
+      "correctCompletion": "television",
+      "sourceName": "Mob Psycho 100 Official Character Profile",
+      "sourceUrl": "https://mobpsycho100.com/2nd/chara/keiji.html",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "mob",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-mob-school-year",
+      "text": "Mob?s official Mob Psycho 100 profile identifies him as an?",
+      "correctCompletion": "8th grader",
+      "sourceName": "Mob Psycho 100 Official Character Profile",
+      "sourceUrl": "https://mobpsycho100.com/2nd/chara/keiji.html",
+      "category": "anime",
+      "difficulty": "medium",
+      "tags": [
+        "mob",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-mob-ekubo",
+      "text": "In Mob Psycho 100, after the incident at Claw?s Seventh Division, Reigen becomes able to see the high-ranking evil spirit?",
+      "correctCompletion": "Ekubo",
+      "sourceName": "Mob Psycho 100 Official Character Profile",
+      "sourceUrl": "https://mobpsycho100.com/2nd/chara/reigen.html",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "mob",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-mob-broccoli",
+      "text": "In Mob Psycho 100 III, the giant plant in the middle of the city becomes worshipped as a divine tree: a giant…",
+      "correctCompletion": "broccoli",
+      "sourceName": "Mob Psycho 100 Official Website",
+      "sourceUrl": "https://mobpsycho100.com/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "mob",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-jjk-panda-maker",
+      "text": "In Jujutsu Kaisen, Panda was created by the principal of Tokyo Jujutsu High, ?",
+      "correctCompletion": "Masamichi Yaga",
+      "sourceName": "Jujutsu Kaisen Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/index_1st.php",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "jjk",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-jjk-maki-sight",
+      "text": "In Jujutsu Kaisen, Maki Zenin has no cursed energy and cannot?",
+      "correctCompletion": "see curses",
+      "sourceName": "Jujutsu Kaisen Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/index.php",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "jjk",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-jjk-mai-construction",
+      "text": "In Jujutsu Kaisen, Mai Zenin?s technique lets her construct matter from nothing using her own?",
+      "correctCompletion": "cursed energy",
+      "sourceName": "Jujutsu Kaisen Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/index.php",
+      "category": "anime",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "jjk",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-jjk-nanami-career",
+      "text": "In Jujutsu Kaisen, after learning that sorcerer work was awful, Nanami tried working in a?",
+      "correctCompletion": "regular company",
+      "sourceName": "Jujutsu Kaisen Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/index_1st.php",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "jjk",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-jjk-ijichi-strength",
+      "text": "In Jujutsu Kaisen, Ijichi is especially skilled at?",
+      "correctCompletion": "clerical and administrative work",
+      "sourceName": "Jujutsu Kaisen Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/index_1st.php",
+      "category": "anime",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "jjk",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-jjk-gojo-status",
+      "text": "The official Jujutsu Kaisen profile describes Gojo as the strongest…",
+      "correctCompletion": "jujutsu sorcerer",
+      "sourceName": "Jujutsu Kaisen Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/index_1st.php",
+      "category": "anime",
+      "difficulty": "medium",
+      "tags": [
+        "jjk",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-op-franky-height",
+      "text": "In ONE PIECE, the official profile lists Franky?s height as?",
+      "correctCompletion": "240 cm",
+      "sourceName": "ONE PIECE Official Character Profile: Franky",
+      "sourceUrl": "https://one-piece.com/character/franky/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "op",
+        "bizarre-trivia"
+      ]
+    },
+    {
+      "id": "anime-b002-op-franky-birthday",
+      "text": "In ONE PIECE, Franky?s official character profile gives his birthday as?",
+      "correctCompletion": "March 9",
+      "sourceName": "ONE PIECE Official Character Profile: Franky",
+      "sourceUrl": "https://one-piece.com/character/franky/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "op",
+        "bizarre-trivia"
+      ]
+    },
+    {
+      "id": "anime-b002-op-franky-food",
+      "text": "In ONE PIECE, Franky?s official profile lists hamburgers, French fries, and foods that go well with?",
+      "correctCompletion": "cola",
+      "sourceName": "ONE PIECE Official Character Profile: Franky",
+      "sourceUrl": "https://one-piece.com/character/franky/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "op",
+        "bizarre-trivia"
+      ]
+    },
+    {
+      "id": "anime-b002-op-franky-shipwright",
+      "text": "In ONE PIECE, Franky built the Thousand Sunny using the legendary tree known as?",
+      "correctCompletion": "Adam",
+      "sourceName": "ONE PIECE Official Character Profile: Franky",
+      "sourceUrl": "https://one-piece.com/character/franky/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "op",
+        "bizarre-trivia"
+      ]
+    },
+    {
+      "id": "anime-b002-op-franky-catchphrase",
+      "text": "In ONE PIECE, Franky?s characteristic catchphrase is?",
+      "correctCompletion": "SUPER!!",
+      "sourceName": "ONE PIECE Official Character Profile: Franky",
+      "sourceUrl": "https://one-piece.com/character/franky/",
+      "category": "anime",
+      "difficulty": "medium",
+      "tags": [
+        "op",
+        "bizarre-trivia"
+      ]
+    },
+    {
+      "id": "anime-b002-op-franky-underwear",
+      "text": "In ONE PIECE, Franky takes pride in his signature outfit, especially his?",
+      "correctCompletion": "bikini briefs",
+      "sourceName": "ONE PIECE Official Character Profile: Franky",
+      "sourceUrl": "https://one-piece.com/character/franky/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "op",
+        "bizarre-trivia"
+      ]
+    },
+    {
+      "id": "anime-b002-op-franky-dream",
+      "text": "In ONE PIECE, Franky?s dream is to sail to the end of the sea aboard the?",
+      "correctCompletion": "dream ship he built",
+      "sourceName": "ONE PIECE Official Character Profile: Franky",
+      "sourceUrl": "https://one-piece.com/character/franky/",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "op",
+        "bizarre-trivia"
+      ]
+    },
+    {
+      "id": "anime-b002-op-franky-gaon",
+      "text": "In ONE PIECE, one of the Thousand Sunny?s powerful weapons is the?",
+      "correctCompletion": "Gaon Cannon",
+      "sourceName": "ONE PIECE Official Character Profile: Franky",
+      "sourceUrl": "https://one-piece.com/character/franky/",
+      "category": "anime",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "op",
+        "bizarre-trivia"
+      ]
+    },
+    {
+      "id": "anime-b002-spy-family-premise",
+      "text": "In SPY x FAMILY, the Forger household is built around a spy, an assassin, and a…",
+      "correctCompletion": "telepath",
+      "sourceName": "VIZ Official SPY x FAMILY Page",
+      "sourceUrl": "https://www.viz.com/spy-x-family",
+      "category": "anime",
+      "difficulty": "medium",
+      "tags": [
+        "spy",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-spy-family-twilight",
+      "text": "Twilight’s master-spy mission requires him to get married and…",
+      "correctCompletion": "have a child",
+      "sourceName": "VIZ Official SPY x FAMILY Page",
+      "sourceUrl": "https://www.viz.com/spy-x-family",
+      "category": "anime",
+      "difficulty": "hard",
+      "tags": [
+        "spy",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    },
+    {
+      "id": "anime-b002-jjk-panda-grade",
+      "text": "The official character profile lists Panda’s grade as…",
+      "correctCompletion": "semi-grade 2",
+      "sourceName": "Jujutsu Kaisen Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/index_1st.php",
+      "category": "anime",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "jjk",
+        "bizarre-trivia",
+        "source-verified"
+      ]
+    }
+  ]
+}

@@ -32,6 +32,7 @@ interface RoomOperationResponse {
   left?: boolean;
   returned?: boolean;
   selectedGameId?: string;
+  selectedRoundCount?: 5 | 7 | 10;
   error?: {
     code: string;
     message: string;
@@ -414,6 +415,27 @@ const actions: AppActions = {
         render();
       }
     });
+  },
+  onSelectRoundCount(roundCount, revision) {
+    state.errorMessage = null;
+    state.isBusy = true;
+    render();
+    emitRoomOperation(
+      "select-round-count",
+      { roundCount, revision },
+      (response) => {
+        if (response.error) {
+          showOperationError(response);
+          return;
+        }
+        if (response.lobby) {
+          applyLobbyState(response.lobby);
+        } else {
+          state.isBusy = false;
+          render();
+        }
+      },
+    );
   },
   onStartGame() {
     state.errorMessage = null;

@@ -1,0 +1,1098 @@
+{
+  "contentPackId": "anime-bizarre-batch-003",
+  "questions": [
+    {
+      "id": "anime-b003-trigun-vash-bounty",
+      "text": "In TRIGUN, the wanted man known as Vash carries a bounty of ____ double dollars.",
+      "correctCompletion": "60 billion",
+      "sourceName": "TRIGUN STAMPEDE Official Character Profiles",
+      "sourceUrl": "https://trigun-anime.com/character/",
+      "category": "anime-trivia",
+      "difficulty": "hard",
+      "tags": [
+        "trigun",
+        "bounty",
+        "worldbuilding",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-trigun-author",
+      "text": "The original TRIGUN manga was created by Yasuhiro ____.",
+      "correctCompletion": "Nightow",
+      "sourceName": "TRIGUN STAMPEDE Staff & Cast",
+      "sourceUrl": "https://trigun-anime.com/staffcast/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "trigun",
+        "author",
+        "manga",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-trigun-studio",
+      "text": "The newer TRIGUN STAMPEDE adaptation was animated by the 3D-focused studio ____.",
+      "correctCompletion": "Orange",
+      "sourceName": "TRIGUN STAMPEDE Staff & Cast",
+      "sourceUrl": "https://trigun-anime.com/staffcast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "trigun",
+        "studio",
+        "production",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-golden-kamuy-ainu-language",
+      "text": "Golden Kamuy credits a specialist to supervise the Ainu language, named Hiroshi ____.",
+      "correctCompletion": "Nakagawa",
+      "sourceName": "Golden Kamuy Staff & Cast",
+      "sourceUrl": "https://kamuy-anime.com/staffcast/",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "golden-kamuy",
+        "language",
+        "production",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-golden-kamuy-animal-setting",
+      "text": "Golden Kamuy separately credits an animal-setting specialist, Keisuke ____.",
+      "correctCompletion": "Hiroe",
+      "sourceName": "Golden Kamuy Staff & Cast",
+      "sourceUrl": "https://kamuy-anime.com/staffcast/",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "golden-kamuy",
+        "animals",
+        "credits",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-golden-kamuy-author",
+      "text": "Golden Kamuy's manga author is Satoru ____.",
+      "correctCompletion": "Noda",
+      "sourceName": "Golden Kamuy Staff & Cast",
+      "sourceUrl": "https://kamuy-anime.com/staffcast/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "golden-kamuy",
+        "author",
+        "manga",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-detective-conan-author",
+      "text": "The creator of Detective Conan is Gosho ____.",
+      "correctCompletion": "Aoyama",
+      "sourceName": "YTV Detective Conan Staff",
+      "sourceUrl": "https://www.ytv.co.jp/conan/staff/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "detective-conan",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-detective-conan-composer",
+      "text": "Detective Conan's anime credits its music to Katsuo ____.",
+      "correctCompletion": "Ohno",
+      "sourceName": "YTV Detective Conan Staff",
+      "sourceUrl": "https://www.ytv.co.jp/conan/staff/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "detective-conan",
+        "music",
+        "production",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-detective-conan-story-editor",
+      "text": "Detective Conan's staff list includes a role called story ____, beyond ordinary writing credits.",
+      "correctCompletion": "editor",
+      "sourceName": "YTV Detective Conan Staff",
+      "sourceUrl": "https://www.ytv.co.jp/conan/staff/",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "detective-conan",
+        "production",
+        "credits",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-doraemon-creator",
+      "text": "Doraemon was created under the pen name Fujiko F. ____.",
+      "correctCompletion": "Fujio",
+      "sourceName": "TV Asahi Doraemon Staff & Voice Cast",
+      "sourceUrl": "https://www.tv-asahi.co.jp/doraemon/staff/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "doraemon",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-doraemon-composer",
+      "text": "The listed composer for the Doraemon TV anime is ____ Sawada.",
+      "correctCompletion": "Kan",
+      "sourceName": "TV Asahi Doraemon Staff & Voice Cast",
+      "sourceUrl": "https://www.tv-asahi.co.jp/doraemon/staff/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "doraemon",
+        "music",
+        "production",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-doraemon-production-support",
+      "text": "Doraemon's production credits list Fujiko Pro among the organizations assisting with scripts and ____.",
+      "correctCompletion": "production",
+      "sourceName": "TV Asahi Doraemon Staff & Voice Cast",
+      "sourceUrl": "https://www.tv-asahi.co.jp/doraemon/staff/",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "doraemon",
+        "production",
+        "credits",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-lupin-iii-creator",
+      "text": "The original creator credited for Lupin the Third is Monkey ____.",
+      "correctCompletion": "Punch",
+      "sourceName": "Lupin III Part 5 Staff & Cast",
+      "sourceUrl": "https://www.lupin-3rd.net/part5/staffcast/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "lupin-iii",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-lupin-iii-composer",
+      "text": "Lupin III Part 5 credits its music to Yuji ____.",
+      "correctCompletion": "Ohno",
+      "sourceName": "Lupin III Part 5 Staff & Cast",
+      "sourceUrl": "https://www.lupin-3rd.net/part5/staffcast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "lupin-iii",
+        "music",
+        "production",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-lupin-iii-fujiko-voice",
+      "text": "In Lupin III Part 5, Fujiko Mine is voiced by Miyuki ____.",
+      "correctCompletion": "Sawashiro",
+      "sourceName": "Lupin III Part 5 Staff & Cast",
+      "sourceUrl": "https://www.lupin-3rd.net/part5/staffcast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "lupin-iii",
+        "voice-actor",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-baccano-novel-author",
+      "text": "Baccano! began as a light-novel series written by Ryohgo ____.",
+      "correctCompletion": "Narita",
+      "sourceName": "Baccano! Staff & Cast",
+      "sourceUrl": "https://www.baccano.jp/staff/index.html",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "baccano",
+        "author",
+        "light-novel",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-baccano-illustrator",
+      "text": "The Baccano! light novels' illustrations are credited to Katsumi ____.",
+      "correctCompletion": "Enami",
+      "sourceName": "Baccano! Staff & Cast",
+      "sourceUrl": "https://www.baccano.jp/staff/index.html",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "baccano",
+        "illustrator",
+        "credits",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-baccano-studio",
+      "text": "The Baccano! anime was produced by Brain's ____.",
+      "correctCompletion": "Base",
+      "sourceName": "Baccano! Staff & Cast",
+      "sourceUrl": "https://www.baccano.jp/staff/index.html",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "baccano",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-ghost-in-the-shell-manga-author",
+      "text": "The manga that launched Ghost in the Shell was created by Masamune ____.",
+      "correctCompletion": "Shirow",
+      "sourceName": "The Ghost in the Shell Staff & Cast",
+      "sourceUrl": "https://www.theghostintheshell-anime.jp/en/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "ghost-in-the-shell",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-ghost-in-the-shell-motoko-voice",
+      "text": "In the newer Ghost in the Shell anime project, Motoko Kusanagi is voiced by Maaya ____.",
+      "correctCompletion": "Sakamoto",
+      "sourceName": "The Ghost in the Shell Staff & Cast",
+      "sourceUrl": "https://www.theghostintheshell-anime.jp/en/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "ghost-in-the-shell",
+        "voice-actor",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-ghost-in-the-shell-scriptwriter",
+      "text": "The newer Ghost in the Shell anime credits series composition and script to Toh ____.",
+      "correctCompletion": "EnJoe",
+      "sourceName": "The Ghost in the Shell Staff & Cast",
+      "sourceUrl": "https://www.theghostintheshell-anime.jp/en/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "ghost-in-the-shell",
+        "writer",
+        "production",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-fist-of-the-north-star-story-and-art",
+      "text": "Fist of the North Star credits its story to Buronson and its art to Tetsuo ____.",
+      "correctCompletion": "Hara",
+      "sourceName": "Fist of the North Star Staff & Cast",
+      "sourceUrl": "https://hokuto-anime.com/staffcast/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "fist-of-the-north-star",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-fist-of-the-north-star-composer",
+      "text": "The new Fist of the North Star anime lists Yuki Hayashi as its music ____.",
+      "correctCompletion": "composer",
+      "sourceName": "Fist of the North Star Staff & Cast",
+      "sourceUrl": "https://hokuto-anime.com/staffcast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "fist-of-the-north-star",
+        "music",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-fist-of-the-north-star-opening-theme",
+      "text": "The new Fist of the North Star anime's opening theme is performed by ____.",
+      "correctCompletion": "[Alexandros]",
+      "sourceName": "Fist of the North Star Staff & Cast",
+      "sourceUrl": "https://hokuto-anime.com/staffcast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "fist-of-the-north-star",
+        "music",
+        "theme-song",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-100-girlfriends-manga-illustrator",
+      "text": "The 100 Girlfriends anime adapts a manga written by Rikito Nakamura and illustrated by Yukiko ____.",
+      "correctCompletion": "Nozawa",
+      "sourceName": "The 100 Girlfriends Staff & Cast",
+      "sourceUrl": "https://hyakkano.com/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "100-girlfriends",
+        "author",
+        "manga",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-100-girlfriends-studio",
+      "text": "The 100 Girlfriends anime's animation studio is Bibury Animation ____.",
+      "correctCompletion": "Studio",
+      "sourceName": "The 100 Girlfriends Staff & Cast",
+      "sourceUrl": "https://hyakkano.com/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "100-girlfriends",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-100-girlfriends-rentarou-voice",
+      "text": "Rentarou Aijou is voiced by Wataru ____.",
+      "correctCompletion": "Kato",
+      "sourceName": "The 100 Girlfriends Staff & Cast",
+      "sourceUrl": "https://hyakkano.com/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "100-girlfriends",
+        "voice-actor",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-k-on-director",
+      "text": "The K-On! anime's director is Naoko ____.",
+      "correctCompletion": "Yamada",
+      "sourceName": "TBS K-On! Program Information",
+      "sourceUrl": "https://www.tbs.co.jp/tbs-ch/item/a0086/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "k-on",
+        "director",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-k-on-band-name",
+      "text": "The school band formed by the main girls in K-On! is called Ho-kago Tea ____.",
+      "correctCompletion": "Time",
+      "sourceName": "TBS K-On! Program Information",
+      "sourceUrl": "https://www.tbs.co.jp/tbs-ch/item/a0086/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "k-on",
+        "music",
+        "fictional-band",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-k-on-studio",
+      "text": "The K-On! anime was made by Kyoto Animation, often abbreviated as ____.",
+      "correctCompletion": "KyoAni",
+      "sourceName": "TBS K-On! Program Information",
+      "sourceUrl": "https://www.tbs.co.jp/tbs-ch/item/a0086/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "k-on",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-nichijou-author",
+      "text": "Nichijou was created by manga artist Keiichi ____.",
+      "correctCompletion": "Arawi",
+      "sourceName": "Kyoto Animation Nichijou Works Page",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/works/nichijou/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "nichijou",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-nichijou-director",
+      "text": "The Nichijou anime was directed by Tatsuya ____.",
+      "correctCompletion": "Ishihara",
+      "sourceName": "Kyoto Animation Nichijou Works Page",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/works/nichijou/",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "nichijou",
+        "director",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-nichijou-studio",
+      "text": "Nichijou's anime adaptation was produced by Kyoto ____.",
+      "correctCompletion": "Animation",
+      "sourceName": "Kyoto Animation Nichijou Works Page",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/works/nichijou/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "nichijou",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-eizouken-author",
+      "text": "Keep Your Hands Off Eizouken! was created by manga artist Sumito ____.",
+      "correctCompletion": "Oowara",
+      "sourceName": "Science SARU Keep Your Hands Off Eizouken! Works Page",
+      "sourceUrl": "https://sciencesaru.com/en/works/KeepYourHandsOffEizouken",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "eizouken",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-eizouken-director",
+      "text": "The Eizouken anime was directed by Masaaki ____.",
+      "correctCompletion": "Yuasa",
+      "sourceName": "Science SARU Keep Your Hands Off Eizouken! Works Page",
+      "sourceUrl": "https://sciencesaru.com/en/works/KeepYourHandsOffEizouken",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "eizouken",
+        "director",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-eizouken-studio",
+      "text": "Keep Your Hands Off Eizouken! was animated by Science ____.",
+      "correctCompletion": "SARU",
+      "sourceName": "Science SARU Keep Your Hands Off Eizouken! Works Page",
+      "sourceUrl": "https://sciencesaru.com/en/works/KeepYourHandsOffEizouken",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "eizouken",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-odd-taxi-driver",
+      "text": "In Odd Taxi, the taxi driver at the center of the story is named ____.",
+      "correctCompletion": "Odokawa",
+      "sourceName": "TV Tokyo Odd Taxi Story",
+      "sourceUrl": "https://www.tv-tokyo.co.jp/anime/oddtaxi/story/",
+      "category": "anime-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "odd-taxi",
+        "character",
+        "animals",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-odd-taxi-screenwriter",
+      "text": "Odd Taxi's screenplay was written by Kazuya ____.",
+      "correctCompletion": "Konomoto",
+      "sourceName": "TV Tokyo Odd Taxi Staff & Cast",
+      "sourceUrl": "https://www.tv-tokyo.co.jp/anime/oddtaxi/staff/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "odd-taxi",
+        "writer",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-odd-taxi-director",
+      "text": "Odd Taxi was directed by Baku ____.",
+      "correctCompletion": "Kinoshita",
+      "sourceName": "TV Tokyo Odd Taxi Staff & Cast",
+      "sourceUrl": "https://www.tv-tokyo.co.jp/anime/oddtaxi/staff/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "odd-taxi",
+        "director",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-tatami-galaxy-novel-author",
+      "text": "The novel The Tatami Galaxy was written by Tomihiko ____.",
+      "correctCompletion": "Morimi",
+      "sourceName": "The Tatami Galaxy Official Noitamina Staff Page",
+      "sourceUrl": "https://yojouhan.noitamina.tv/staff.html",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "tatami-galaxy",
+        "author",
+        "novel",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-tatami-galaxy-director",
+      "text": "The anime adaptation of The Tatami Galaxy was directed by Masaaki ____.",
+      "correctCompletion": "Yuasa",
+      "sourceName": "The Tatami Galaxy Official Noitamina Staff Page",
+      "sourceUrl": "https://yojouhan.noitamina.tv/staff.html",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "tatami-galaxy",
+        "director",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-tatami-galaxy-studio",
+      "text": "The original Tatami Galaxy TV anime was produced by studio ____.",
+      "correctCompletion": "Madhouse",
+      "sourceName": "The Tatami Galaxy Official Noitamina Staff Page",
+      "sourceUrl": "https://yojouhan.noitamina.tv/staff.html",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "tatami-galaxy",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-ping-pong-author",
+      "text": "Ping Pong was originally a manga by Taiyo ____.",
+      "correctCompletion": "Matsumoto",
+      "sourceName": "Ping Pong the Animation Official Staff & Cast",
+      "sourceUrl": "https://www.pingpong-anime.tv/sp/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "ping-pong",
+        "author",
+        "manga",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-ping-pong-director",
+      "text": "Ping Pong the Animation was directed by Masaaki ____.",
+      "correctCompletion": "Yuasa",
+      "sourceName": "Ping Pong the Animation Official Staff & Cast",
+      "sourceUrl": "https://www.pingpong-anime.tv/sp/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "ping-pong",
+        "director",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-ping-pong-studio",
+      "text": "The Ping Pong the Animation TV series was animated by Tatsunoko ____.",
+      "correctCompletion": "Production",
+      "sourceName": "Ping Pong the Animation Official Staff & Cast",
+      "sourceUrl": "https://www.pingpong-anime.tv/sp/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "ping-pong",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-mononoke-spirit-identification",
+      "text": "In Mononoke, the medicine seller must identify a spirit's Form, Truth, and ____.",
+      "correctCompletion": "Reason",
+      "sourceName": "Mononoke Original TV Anime Official Site",
+      "sourceUrl": "https://www.mononoke-anime.com/",
+      "category": "anime-trivia",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "mononoke",
+        "supernatural",
+        "story-rule",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-mononoke-studio",
+      "text": "The original Mononoke TV anime was produced by Toei ____.",
+      "correctCompletion": "Animation",
+      "sourceName": "Mononoke Original TV Anime Official Site",
+      "sourceUrl": "https://www.mononoke-anime.com/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "mononoke",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-mononoke-medicine-seller-voice",
+      "text": "The medicine seller in the original Mononoke anime was voiced by Takahiro ____.",
+      "correctCompletion": "Sakurai",
+      "sourceName": "Mononoke Original TV Anime Official Site",
+      "sourceUrl": "https://www.mononoke-anime.com/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "mononoke",
+        "voice-actor",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-mushishi-author",
+      "text": "Mushishi was created by manga artist Yuki ____.",
+      "correctCompletion": "Urushibara",
+      "sourceName": "Mushishi Next Chapter Official Staff & Cast",
+      "sourceUrl": "https://www.mushishi-anime.com/sp/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "mushishi",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-mushishi-director",
+      "text": "Mushishi: The Next Chapter was directed by Hiroshi ____.",
+      "correctCompletion": "Nagahama",
+      "sourceName": "Mushishi Next Chapter Official Staff & Cast",
+      "sourceUrl": "https://www.mushishi-anime.com/sp/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "mushishi",
+        "director",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-mushishi-investigator",
+      "text": "In Mushishi, the wandering Mushi Master is named ____.",
+      "correctCompletion": "Ginko",
+      "sourceName": "Mushishi Next Chapter Official Character Profile",
+      "sourceUrl": "https://www.mushishi-anime.com/sp/character/01.html",
+      "category": "anime-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "mushishi",
+        "character",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-gintama-author",
+      "text": "Gintama's manga creator is Hideaki ____.",
+      "correctCompletion": "Sorachi",
+      "sourceName": "Gintama Official Site",
+      "sourceUrl": "https://www.bn-pictures.co.jp/gintama/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "gintama",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-gintama-aliens",
+      "text": "Gintama's version of Edo has been conquered by aliens known as the ____.",
+      "correctCompletion": "Amanto",
+      "sourceName": "Bandai Namco Pictures Gintama Production Release",
+      "sourceUrl": "https://www.bn-pictures.co.jp/news/news_detail.html?id=17896",
+      "category": "anime-trivia",
+      "difficulty": "hard",
+      "tags": [
+        "gintama",
+        "worldbuilding",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-gintama-studio",
+      "text": "The Gintama anime's later production studio is BN ____.",
+      "correctCompletion": "Pictures",
+      "sourceName": "Bandai Namco Pictures Gintama Production Release",
+      "sourceUrl": "https://www.bn-pictures.co.jp/news/news_detail.html?id=17896",
+      "category": "anime-production",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "gintama",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-beastars-author",
+      "text": "Beastars was created by manga artist Paru ____.",
+      "correctCompletion": "Itagaki",
+      "sourceName": "BEASTARS Official Anime Site",
+      "sourceUrl": "https://bst-anime.com/sp/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "beastars",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-beastars-studio",
+      "text": "The CGI animation studio behind Beastars is ____.",
+      "correctCompletion": "Orange",
+      "sourceName": "BEASTARS Official Anime Site",
+      "sourceUrl": "https://bst-anime.com/sp/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "beastars",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-beastars-legoshi-species",
+      "text": "Legoshi, the awkward protagonist of Beastars, is a gray ____.",
+      "correctCompletion": "wolf",
+      "sourceName": "BEASTARS Official Anime Site",
+      "sourceUrl": "https://bst-anime.com/sp/",
+      "category": "anime-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "beastars",
+        "character",
+        "species",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-delicious-in-dungeon-author",
+      "text": "Delicious in Dungeon was written and illustrated by Ryoko ____.",
+      "correctCompletion": "Kui",
+      "sourceName": "Delicious in Dungeon Official Site",
+      "sourceUrl": "https://delicious-in-dungeon.com/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "delicious-in-dungeon",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-delicious-in-dungeon-studio",
+      "text": "The Delicious in Dungeon anime was animated by Studio ____.",
+      "correctCompletion": "Trigger",
+      "sourceName": "Delicious in Dungeon Official Site",
+      "sourceUrl": "https://delicious-in-dungeon.com/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "delicious-in-dungeon",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-delicious-in-dungeon-survival-plan",
+      "text": "In Delicious in Dungeon, the party's survival plan is to cook and eat monsters found in the ____.",
+      "correctCompletion": "dungeon",
+      "sourceName": "Delicious in Dungeon Official Site",
+      "sourceUrl": "https://delicious-in-dungeon.com/",
+      "category": "anime-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "delicious-in-dungeon",
+        "food",
+        "premise",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-apothecary-diaries-novel-author",
+      "text": "The Apothecary Diaries light novels were written by Natsu ____.",
+      "correctCompletion": "Hyuga",
+      "sourceName": "The Apothecary Diaries Official Books Page",
+      "sourceUrl": "https://kusuriyanohitorigoto.jp/books/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "apothecary-diaries",
+        "author",
+        "light-novel",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-apothecary-diaries-maomao-voice",
+      "text": "Maomao is voiced in Japanese by Aoi ____.",
+      "correctCompletion": "Yuki",
+      "sourceName": "The Apothecary Diaries Official Maomao Character Profile",
+      "sourceUrl": "https://kusuriyanohitorigoto.jp/season2/character/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "apothecary-diaries",
+        "voice-actor",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-apothecary-diaries-poison-hobby",
+      "text": "Maomao's dangerously enthusiastic hobby is testing and learning about ____.",
+      "correctCompletion": "poisons",
+      "sourceName": "The Apothecary Diaries Official Maomao Character Profile",
+      "sourceUrl": "https://kusuriyanohitorigoto.jp/season2/character/",
+      "category": "anime-trivia",
+      "difficulty": "hard",
+      "tags": [
+        "apothecary-diaries",
+        "character",
+        "oddity",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-hyouka-novel-author",
+      "text": "Hyouka adapts a mystery novel by Honobu ____.",
+      "correctCompletion": "Yonezawa",
+      "sourceName": "Hyouka Official Staff & Cast",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/kotenbu/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "hyouka",
+        "author",
+        "novel",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-hyouka-studio",
+      "text": "Hyouka's anime was produced by Kyoto ____.",
+      "correctCompletion": "Animation",
+      "sourceName": "Hyouka Official Staff & Cast",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/kotenbu/staff-cast/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "hyouka",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-hyouka-club",
+      "text": "Oreki joins the school's Classics ____, which is at risk of being discontinued.",
+      "correctCompletion": "Club",
+      "sourceName": "Hyouka Official Story",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/kotenbu/story/",
+      "category": "anime-trivia",
+      "difficulty": "hard",
+      "tags": [
+        "hyouka",
+        "school",
+        "plot",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-shirobako-studio",
+      "text": "The anime-industry series Shirobako was produced by P.A. ____.",
+      "correctCompletion": "Works",
+      "sourceName": "P.A.WORKS SHIROBAKO Works Page",
+      "sourceUrl": "https://www.pa-works.jp/works_en/shirobako/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "shirobako",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-shirobako-director",
+      "text": "Shirobako was directed by Tsutomu ____.",
+      "correctCompletion": "Mizushima",
+      "sourceName": "P.A.WORKS SHIROBAKO Works Page",
+      "sourceUrl": "https://www.pa-works.jp/works_en/shirobako/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "shirobako",
+        "director",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-shirobako-title-term",
+      "text": "In animation-industry terminology, shirobako is a white box containing a finished animation ____.",
+      "correctCompletion": "video tape",
+      "sourceName": "P.A.WORKS SHIROBAKO Works Page",
+      "sourceUrl": "https://www.pa-works.jp/works_en/shirobako/",
+      "category": "anime-trivia",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "shirobako",
+        "industry",
+        "terminology",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-barakamon-calligrapher",
+      "text": "Barakamon's protagonist Seishu Handa is a young professional ____.",
+      "correctCompletion": "calligrapher",
+      "sourceName": "Square Enix Barakamon Manga Page",
+      "sourceUrl": "https://magazine.jp.square-enix.com/gangan/introduction/barakamon/",
+      "category": "anime-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "barakamon",
+        "character",
+        "art",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-barakamon-author",
+      "text": "Barakamon was created by manga artist Satsuki ____.",
+      "correctCompletion": "Yoshino",
+      "sourceName": "Square Enix Barakamon Manga Page",
+      "sourceUrl": "https://magazine.jp.square-enix.com/gangan/introduction/barakamon/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "barakamon",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-space-brothers-author",
+      "text": "Space Brothers was created by manga artist Chuya ____.",
+      "correctCompletion": "Koyama",
+      "sourceName": "Kodansha Comics Space Brothers Creator Interview",
+      "sourceUrl": "https://kodansha.us/2016/03/01/creator-interview-chuya-koyama-on-space-brothers/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "space-brothers",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-space-brothers-dream",
+      "text": "The two Nanba brothers wanted to become ____.",
+      "correctCompletion": "astronauts",
+      "sourceName": "Kodansha Comics Space Brothers Creator Interview",
+      "sourceUrl": "https://kodansha.us/2016/03/01/creator-interview-chuya-koyama-on-space-brothers/",
+      "category": "anime-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "space-brothers",
+        "premise",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-crayon-shin-chan-author",
+      "text": "Crayon Shin-chan was created by manga artist Yoshito ____.",
+      "correctCompletion": "Usui",
+      "sourceName": "Shin-Ei Animation Crayon Shin-chan Works Page",
+      "sourceUrl": "https://shin-ei-animation.jp/works/shinchan/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "crayon-shin-chan",
+        "author",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-crayon-shin-chan-studio",
+      "text": "The long-running Crayon Shin-chan TV anime is produced by Shin-Ei ____.",
+      "correctCompletion": "Animation",
+      "sourceName": "Shin-Ei Animation Crayon Shin-chan Works Page",
+      "sourceUrl": "https://shin-ei-animation.jp/works/shinchan/",
+      "category": "anime-production",
+      "difficulty": "hard",
+      "tags": [
+        "crayon-shin-chan",
+        "studio",
+        "batch-003"
+      ]
+    },
+    {
+      "id": "anime-b003-gegege-no-kitaro-author",
+      "text": "GeGeGe no Kitaro was created by manga artist Shigeru ____.",
+      "correctCompletion": "Mizuki",
+      "sourceName": "Toei Animation GeGeGe no Kitaro Catalog",
+      "sourceUrl": "https://www.toei-animation.com/catalog/gegege-no-kitaro/",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "gegege-no-kitaro",
+        "author",
+        "batch-003"
+      ]
+    }
+  ]
+}

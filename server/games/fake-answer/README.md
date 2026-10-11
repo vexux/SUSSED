@@ -6,9 +6,20 @@ The registered game IDs are `fact-or-cap` and `fact-or-cap-anime`. Both IDs
 use the same submission, voting, scoring, reveal, round, and rematch engine.
 The general game reads packs only from `content/`; the Anime game reads packs
 only from `content-anime/`. Each bank has independent question selection history.
-Each game variant has a curated library of 100 playable, source-attributed
-questions. The game requires five questions to start; adding fewer than five
-valid questions will produce an explicit `QUESTION_POOL_EXHAUSTED` error.
+Each game variant has a curated library of playable, source-attributed
+questions. Rooms require at least two players and have no application-level
+player maximum. The host can choose 5, 7, or 10 rounds in the lobby; new rooms
+default to five. Each selected game session requires at least that many valid
+questions and reports `QUESTION_POOL_EXHAUSTED` if its bank is too small.
+Practical capacity still depends on available server memory, process resources,
+and Socket.IO transport capacity. Room codes also come from a finite code pool,
+which limits simultaneously active rooms independently of player count.
+
+The selected round count is stored in the authoritative room state, included in
+lobby broadcasts, and passed to the shared game engine at start. Only the host
+can change it, and the server accepts only 5, 7, or 10 using the current lobby
+revision. Changing the selection clears guest readiness so players confirm the
+updated match settings.
 
 ## Question library
 
@@ -71,9 +82,9 @@ review signal, not proof of semantic equivalence; paraphrases and related facts
 may not match, and unrelated content can still normalize to the same pair. The
 tool warns and requires explicit import approval rather than deleting content.
 
-The game shuffles valid playable questions and selects five unique prompts per
-session. If a session needs more prompts than the library contains, game start
-fails with `QUESTION_POOL_EXHAUSTED`. A new session avoids questions used by
+The game shuffles valid playable questions and selects the configured number of
+unique prompts per session (5, 7, or 10). If a session needs more prompts than
+the library contains, game start fails with `QUESTION_POOL_EXHAUSTED`. A new session avoids questions used by
 the immediately preceding session when enough unused questions remain; when
 the library is too small for that, it fills the selection from previously used
 questions while still preventing repeats within the session.

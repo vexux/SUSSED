@@ -16,7 +16,9 @@ function list() {
         displayName: game.displayName,
         description: game.description,
         minPlayers: game.supportedPlayers.min,
-        maxPlayers: game.supportedPlayers.max
+        ...(game.supportedPlayers.max === undefined
+            ? {}
+            : { maxPlayers: game.supportedPlayers.max })
     }));
 }
 
