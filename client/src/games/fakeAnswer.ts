@@ -448,7 +448,7 @@ export function updateFakeAnswerProgress(
   const currentPlayer = publicState.submissionProgress?.find(
     ({ playerId }) => playerId === currentPlayerId,
   );
-  if (!currentPlayer?.submitted) {
+  if (!currentPlayer) {
     return false;
   }
 
@@ -467,7 +467,10 @@ export function updateFakeAnswerProgress(
       : `${player.name} · ${player.submitted ? "Submitted" : "Waiting"}`;
     playerList.append(item);
   }
-  return true;
+  // A local successful submission changes the form into its submitted state;
+  // let the normal render perform that transition. Remote progress updates
+  // can update these nodes without replacing an unsubmitted player's input.
+  return !currentPlayer.submitted;
 }
 
 export function updateFakeAnswerVoteProgress(
@@ -914,12 +917,12 @@ export function renderFakeAnswerGame(
       ({ playerId, submitted }) =>
         playerId === submission.currentPlayerId && submitted,
     ) === true;
+    const progress = document.createElement("p");
+    progress.className = "submission-progress";
+    progress.setAttribute("aria-live", "polite");
+    const playerList = document.createElement("ul");
+    playerList.className = "submission-player-list progress-chip-list";
     if (viewerHasSubmitted) {
-      const progress = document.createElement("p");
-      progress.className = "submission-progress";
-      progress.setAttribute("aria-live", "polite");
-      const playerList = document.createElement("ul");
-      playerList.className = "submission-player-list progress-chip-list";
       screen.append(progress, playerList);
       updateFakeAnswerProgress(screen, publicState, submission.currentPlayerId);
       const submitted = document.createElement("p");
@@ -935,7 +938,8 @@ export function renderFakeAnswerGame(
     const waiting = document.createElement("p");
     waiting.className = "status-message";
     waiting.textContent = "Submit your answer when you’re ready.";
-    screen.append(waiting);
+    screen.append(waiting, progress, playerList);
+    updateFakeAnswerProgress(screen, publicState, submission.currentPlayerId);
     const form = document.createElement("form");
     form.className = "submission-form";
     if (submission.submissionError) {
