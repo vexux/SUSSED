@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "inspectionDate": "2026-10-11",
+  "items": [
+    {
+      "candidate": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "saturn-ring-material"
+      },
+      "observations": [
+        {
+          "findingId": "saturn-ice-rock-passage",
+          "claimOrWording": "Saturn's rings contain chunks of ice and rock.",
+          "sourceTitle": "NASA — Saturn Facts",
+          "sourceUrl": "https://science.nasa.gov/saturn/facts/",
+          "evidenceLocator": "Rings section, inspected page lines 296–298",
+          "observedFinding": "The page says the rings are made of billions of small chunks of ice and rock coated with other materials such as dust.",
+          "inspectionOutcome": "observed",
+          "unresolvedFollowUp": [
+            "Record a formal claim/source-support decision only after an identified reviewer assesses this passage."
+          ]
+        },
+        {
+          "findingId": "saturn-mostly-qualifier",
+          "claimOrWording": "The rings are made mostly of chunks of ice and rock.",
+          "sourceTitle": "NASA — Saturn Facts",
+          "sourceUrl": "https://science.nasa.gov/saturn/facts/",
+          "evidenceLocator": "Rings section, inspected page lines 296–298",
+          "observedFinding": "The located passage names ice and rock and mentions dust coatings, but does not quantify that the rings are made mostly of those materials.",
+          "inspectionOutcome": "insufficient",
+          "unresolvedFollowUp": [
+            "An editor should decide whether the word mostly can be supported or should be changed in a future transformation.",
+            "Assess source support and rights separately for a named intended use."
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "octopus-hearts"
+      },
+      "observations": [
+        {
+          "findingId": "octopus-three-hearts-access",
+          "claimOrWording": "An octopus has three hearts.",
+          "sourceTitle": "Encyclopaedia Britannica",
+          "sourceUrl": "https://www.britannica.com/animal/octopus-mollusk",
+          "evidenceLocator": null,
+          "observedFinding": "The cited Britannica URL could not be opened by the available page inspector; no passage was observed for this assertion.",
+          "inspectionOutcome": "inaccessible",
+          "unresolvedFollowUp": [
+            "Access the cited article and record a precise passage locator, or record source support as insufficient after review."
+          ]
+        },
+        {
+          "findingId": "octopus-blue-blood-access",
+          "claimOrWording": "An octopus's blood is blue.",
+          "sourceTitle": "Encyclopaedia Britannica",
+          "sourceUrl": "https://www.britannica.com/animal/octopus-mollusk",
+          "evidenceLocator": null,
+          "observedFinding": "The cited Britannica URL could not be opened by the available page inspector; no passage was observed for this assertion.",
+          "inspectionOutcome": "inaccessible",
+          "unresolvedFollowUp": [
+            "Access the cited article and record a precise passage locator, or record source support as insufficient after review.",
+            "Resolve the one-claim-per-transformation constraint before any migration; do not combine these assertions into one transformation."
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "gameId": "fact-or-cap-anime",
+        "contentPackId": "anime-facts-batch-2026-10",
+        "questionId": "spy-family-anya-ability"
+      },
+      "observations": [
+        {
+          "findingId": "anya-mind-reading-ability",
+          "claimOrWording": "Anya can read other people's minds.",
+          "sourceTitle": "SPY×FAMILY — TV Series",
+          "sourceUrl": "https://spy-family.net/tvseries/",
+          "evidenceLocator": "ANYA FORGER character entry, inspected page lines 323–334",
+          "observedFinding": "The character entry describes Anya as a psychic able to read other people's minds.",
+          "inspectionOutcome": "observed",
+          "unresolvedFollowUp": [
+            "Record formal fictional-canon verification and source-support decisions with reviewer, rationale, and locator; this observation is not itself a decision."
+          ]
+        },
+        {
+          "findingId": "anya-adopted-wording",
+          "claimOrWording": "Anya is the adopted daughter.",
+          "sourceTitle": "SPY×FAMILY — TV Series",
+          "sourceUrl": "https://spy-family.net/tvseries/",
+          "evidenceLocator": "ANYA FORGER character entry, inspected page lines 333–334",
+          "observedFinding": "The entry calls Anya the Forger family's daughter and says Loid took her in from an orphanage, but the inspected passage does not explicitly use the word adopted.",
+          "inspectionOutcome": "insufficient",
+          "unresolvedFollowUp": [
+            "An editor should decide whether adopted requires a more specific source passage or wording review.",
+            "Assess attribution provenance, rights, and approval for any intended use separately."
+          ]
+        }
+      ]
+    }
+  ]
+}

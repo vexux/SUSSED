@@ -199,6 +199,7 @@ Run from `server`:
 
 ```sh
 npm run report:review-packet
+npm run report:review-packet -- --source-review-findings games/fake-answer/content-canonical/source-review-findings-task-10.json
 npm run report:review-packet -- --canonical <canonical.json> --migration <migration-manifest.json> --reviews <review-decisions.json> --intended-use <use-id>
 ```
 
@@ -211,6 +212,42 @@ separately. It includes evidence locators when recorded, and reports missing
 or ambiguous mappings, adapter incompatibility, parity, and readiness
 blockers by dimension. A review packet is an editor aid, not an approval
 decision; it does not inspect source pages or certify facts or rights.
+
+### Non-authoritative source-review observations
+
+`source-review-findings-task-10.json` is a separate, version-1 machine-readable
+record of the three pages inspected in Task 10. Its `items` link only by the
+exact `{ gameId, contentPackId, questionId }` triple. Each observation records
+a stable `findingId`, `claimOrWording`, `sourceTitle`, `sourceUrl`, an
+`evidenceLocator` (or explicit `null` when none was observed),
+`observedFinding`, an `inspectionOutcome` (`observed`, `insufficient`, or
+`inaccessible`), and `unresolvedFollowUp` items. `inspectionDate` is the date
+the pages were inspected. The offline validator rejects unsupported versions,
+unknown Task 10 identities, duplicate identities, malformed URLs/locators, and
+inaccessible sources with non-null locators. It never parses the Markdown audit
+note and never fetches a URL.
+
+`observed` means a passage was located for the stated wording; `insufficient`
+means the page was inspected but the located material did not resolve all of
+that wording; `inaccessible` means no passage was inspected. A null locator is
+required for an inaccessible source and is never replaced by a search snippet
+or inferred page location.
+
+The packet displays these under each legacy item as
+`sourceReviewObservations`, and reports artifact problems and unmatched entries
+at top level. Candidates outside the three Task 10 identities are labelled
+`not-in-scope`; absent artifacts, missing entries, ambiguous entries, and
+invalid entries remain explicit. Matching is exact; a question ID alone is
+never used to guess a link.
+
+These are observations about inspected pages, not review decisions. They do
+not populate `reviewDecisions`, canonical verification/support/rights fields,
+blockers, or readiness. The packet explicitly reports no effect on formal
+decisions or readiness. A human reviewer must enter any authoritative decision
+separately through the review-decision manifest workflow, with its required
+reviewer, rationale, and evidence metadata. An observation or a successful
+packet validation is not proof that a claim is true or permission to reuse
+content.
 
 Manifest entries use existing game IDs, lowercase pack/question IDs, and one
 kind-prefixed canonical transformation ID. One legacy question may appear only

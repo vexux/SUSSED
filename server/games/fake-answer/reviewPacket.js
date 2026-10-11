@@ -5,6 +5,7 @@ const { adaptFactOrCap } = require("./factOrCapAdapter");
 const { evaluateReadiness } = require("./reviewDecisionManifest");
 const { LEGACY_CONTENT_DIRECTORIES, validateMigrationManifest } = require("./migrationManifest");
 const { readPack, validateQuestionPack } = require("./questionLibrary");
+const { TASK_10_IDENTITIES, validateSourceReviewFindings } = require("./sourceReviewFindings");
 
 const REVIEW_PACKET_VERSION = 1;
 const CANDIDATE_ID = /^[a-z0-9][a-z0-9-]{0,127}$/u;
@@ -86,6 +87,29 @@ function resolveLegacyCandidate(candidate, libraries) {
 
 function mappingMatches(entry, candidate) {
     return entry?.gameId === candidate.gameId && entry?.contentPackId === candidate.contentPackId && entry?.questionId === candidate.questionId;
+}
+
+function sourceReviewSnapshot(candidate, validation, provided) {
+    const inScope = TASK_10_IDENTITIES.some((identity) => mappingMatches(identity, candidate));
+    if (!inScope) return { status: "not-in-scope", observations: [], errors: [] };
+    if (!provided) return { status: "not-provided", observations: [], errors: [] };
+    const key = [candidate.gameId, candidate.contentPackId, candidate.questionId].join("\0");
+    if (validation.ambiguousPlanIdentities.has(key)) {
+        return { status: "ambiguous", observations: [], errors: ["Candidate plan contains this legacy identity more than once."] };
+    }
+    const matches = validation.byIdentity.get(key) ?? [];
+    if (matches.length > 1) return { status: "ambiguous", observations: [], errors: [`${matches.length} source-review entries match this exact legacy identity.`] };
+    if (matches.length === 0) return validation.readable
+        ? { status: "missing", observations: [], errors: ["No source-review findings entry matches this exact legacy identity."] }
+        : { status: "invalid", observations: [], errors: validation.errors };
+    const match = matches[0];
+    const errors = [...match.errors];
+    if (!validation.valid) errors.push("The source-review findings artifact has validation errors; observations remain non-authoritative.");
+    return {
+        status: errors.length > 0 ? "invalid" : "present",
+        observations: match.errors.length === 0 && Array.isArray(match.item.observations) ? match.item.observations : [],
+        errors: [...new Set(errors)].sort()
+    };
 }
 
 function findCanonicalContext(transformation, canonical) {
@@ -177,6 +201,10 @@ function dimensionBlockers(readinessItem, decisions, migrationStatus, readinessC
 
 function generateReviewPacket(candidateManifest, options = {}) {
     const candidateValidation = readCandidateManifest(candidateManifest);
+    const sourceReviewProvided = Object.hasOwn(options, "sourceReviewFindings");
+    const sourceReviewValidation = sourceReviewProvided
+        ? validateSourceReviewFindings(options.sourceReviewFindings, candidateManifest)
+        : null;
     const { libraries, errors: libraryErrors } = options.libraries
         ? { libraries: options.libraries, errors: [] }
         : loadLegacyLibraries(options.contentDirectories);
@@ -280,6 +308,7 @@ function generateReviewPacket(candidateManifest, options = {}) {
                 difficulty: legacy.question.difficulty ?? null
             } : { status: legacy.status, errors: legacy.errors },
             repositorySourceMetadata: sourceMetadata,
+            sourceReviewObservations: sourceReviewSnapshot(candidate, sourceReviewValidation, sourceReviewProvided),
             mapping,
             canonical: {
                 validation: canonical ? (canonicalValidation.valid ? "valid" : "invalid") : "not-provided",
@@ -305,8 +334,21 @@ function generateReviewPacket(candidateManifest, options = {}) {
             canonical: canonical ? (canonicalValidation.valid ? "structurally-valid" : "structurally-invalid") : "not-provided",
             migrationManifest: options.migrationManifest ? (migrationValidation?.valid ? "valid" : "invalid") : "not-provided",
             reviewManifest: options.reviewManifest ? (readiness?.structuralValidity.status === "valid" ? "structurally-valid" : "structurally-invalid") : "not-provided",
-            intendedUse: options.intendedUse ?? null
+            intendedUse: options.intendedUse ?? null,
+            sourceReviewFindings: !sourceReviewProvided
+                ? "not-provided"
+                : sourceReviewValidation.valid ? "valid" : "invalid"
         },
+        sourceReviewFindings: sourceReviewProvided
+            ? {
+                schemaVersion: options.sourceReviewFindings?.schemaVersion ?? null,
+                valid: sourceReviewValidation.valid,
+                errors: sourceReviewValidation.errors,
+                unmatchedItems: sourceReviewValidation.unmatchedItems,
+                effectOnFormalDecisions: "none",
+                effectOnReadiness: "none"
+            }
+            : { status: "not-provided", effectOnFormalDecisions: "none", effectOnReadiness: "none" },
         libraryErrors,
         summary: {
             candidateCount: items.length,

@@ -3,9 +3,12 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 const { generateReviewPacket, loadLegacyLibraries } = require("../games/fake-answer/reviewPacket");
+const { validateSourceReviewFindings } = require("../games/fake-answer/sourceReviewFindings");
 
 const planPath = path.join(__dirname, "..", "games", "fake-answer", "content-canonical", "review-shadow-batch.json");
 const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
+const sourceReviewFindingsPath = path.join(__dirname, "..", "games", "fake-answer", "content-canonical", "source-review-findings-task-10.json");
+const sourceReviewFindings = JSON.parse(fs.readFileSync(sourceReviewFindingsPath, "utf8"));
 const libraries = loadLegacyLibraries().libraries;
 const saturnCandidate = plan.items[0];
 const octopusCandidate = plan.items.find(({ questionId }) => questionId === "octopus-hearts");
@@ -82,6 +85,7 @@ test("default packet keeps all ten candidates and exposes legacy-only data with 
     assert.equal(saturn.canonical.sources.length, 0);
     assert.equal(saturn.reviewDecisions.status, "missing");
     assert.equal(saturn.mapping.status, "unmapped");
+    assert.equal(saturn.sourceReviewObservations.status, "not-provided");
     assert.ok(saturn.blockersByDimension.mapping.length > 0);
     assert.ok(saturn.blockersByDimension.sourceSupport.some((message) => message.includes("No review-decision manifest")));
 });
@@ -168,5 +172,124 @@ test("packet output is deterministic for the same inputs", () => {
         canonicalContent: makeCanonical(saturnCandidate, transformationId),
         migrationManifest: migrationFor(saturnCandidate, transformationId)
     };
+    assert.deepEqual(generateReviewPacket(plan, options), generateReviewPacket(plan, options));
+});
+
+test("valid Task 10 observations attach only to exact legacy identities", () => {
+    const packet = generateReviewPacket(plan, { libraries, sourceReviewFindings });
+    assert.equal(packet.inputs.sourceReviewFindings, "valid");
+    assert.equal(packet.sourceReviewFindings.effectOnFormalDecisions, "none");
+    assert.equal(packet.sourceReviewFindings.effectOnReadiness, "none");
+    for (const questionId of ["saturn-ring-material", "octopus-hearts", "spy-family-anya-ability"]) {
+        const item = packet.items.find(({ legacyIdentity }) => legacyIdentity.questionId === questionId);
+        assert.equal(item.sourceReviewObservations.status, "present");
+        assert.ok(item.sourceReviewObservations.observations.length > 0);
+        assert.equal(item.reviewDecisions.status, "missing");
+        assert.equal(item.readiness.status, "not-assessed");
+    }
+    const outOfScope = packet.items.find(({ legacyIdentity }) => legacyIdentity.questionId === "ocean-average-salinity");
+    assert.equal(outOfScope.sourceReviewObservations.status, "not-in-scope");
+});
+
+test("missing findings and unknown candidate identities are reported without guessing", () => {
+    const incomplete = structuredClone(sourceReviewFindings);
+    incomplete.items = incomplete.items.filter(({ candidate }) => candidate.questionId !== "octopus-hearts");
+    incomplete.items.push({
+        candidate: { gameId: "fact-or-cap", contentPackId: "other-pack", questionId: "octopus-hearts" },
+        observations: [sourceReviewFindings.items[1].observations[0]]
+    });
+    const validation = validateSourceReviewFindings(incomplete, plan);
+    assert.equal(validation.valid, false);
+    assert.ok(validation.errors.some((message) => message.includes("Missing source-review findings") && message.includes("octopus-hearts")));
+    assert.equal(validation.unmatchedItems[0].status, "unknown-candidate");
+    const packet = generateReviewPacket(plan, { libraries, sourceReviewFindings: incomplete });
+    const octopus = packet.items.find(({ legacyIdentity }) => legacyIdentity.questionId === "octopus-hearts");
+    assert.equal(octopus.sourceReviewObservations.status, "missing");
+    assert.ok(packet.sourceReviewFindings.unmatchedItems.some(({ status }) => status === "unknown-candidate"));
+});
+
+test("duplicate exact source-review identities are ambiguous rather than selected", () => {
+    const ambiguous = structuredClone(sourceReviewFindings);
+    ambiguous.items.push(structuredClone(ambiguous.items[0]));
+    const packet = generateReviewPacket(plan, { libraries, sourceReviewFindings: ambiguous });
+    const saturn = packet.items.find(({ legacyIdentity }) => legacyIdentity.questionId === "saturn-ring-material");
+    assert.equal(saturn.sourceReviewObservations.status, "ambiguous");
+    assert.deepEqual(saturn.sourceReviewObservations.observations, []);
+    assert.match(packet.sourceReviewFindings.errors.join("\n"), /Ambiguous source-review identity/);
+
+    const duplicatePlan = { ...plan, items: [...plan.items, plan.items[0]] };
+    const duplicatePlanPacket = generateReviewPacket(duplicatePlan, { libraries, sourceReviewFindings });
+    const duplicateSaturnItems = duplicatePlanPacket.items.filter(({ legacyIdentity }) => legacyIdentity.questionId === "saturn-ring-material");
+    assert.equal(duplicateSaturnItems.length, 2);
+    assert.ok(duplicateSaturnItems.every(({ sourceReviewObservations }) => sourceReviewObservations.status === "ambiguous"));
+});
+
+test("invalid evidence fields are reported and not attached as observations", () => {
+    const malformed = structuredClone(sourceReviewFindings);
+    malformed.items[0].observations[0].evidenceLocator = null;
+    malformed.items[0].observations[0].sourceUrl = "javascript:alert(1)";
+    const validation = validateSourceReviewFindings(malformed, plan);
+    assert.equal(validation.valid, false);
+    assert.ok(validation.errors.some((message) => message.includes("evidenceLocator is required")));
+    assert.ok(validation.errors.some((message) => message.includes("sourceUrl must be an HTTP or HTTPS URL")));
+    const packet = generateReviewPacket(plan, { libraries, sourceReviewFindings: malformed });
+    const saturn = packet.items.find(({ legacyIdentity }) => legacyIdentity.questionId === "saturn-ring-material");
+    assert.equal(saturn.sourceReviewObservations.status, "invalid");
+    assert.deepEqual(saturn.sourceReviewObservations.observations, []);
+
+    const nullPacket = generateReviewPacket(plan, { libraries, sourceReviewFindings: null });
+    assert.equal(nullPacket.inputs.sourceReviewFindings, "invalid");
+    assert.equal(nullPacket.items.find(({ legacyIdentity }) => legacyIdentity.questionId === "saturn-ring-material").sourceReviewObservations.status, "invalid");
+
+    const unsupported = structuredClone(sourceReviewFindings);
+    unsupported.schemaVersion = 99;
+    unsupported.inspectionDate = "2026-02-31";
+    const versionValidation = validateSourceReviewFindings(unsupported, plan);
+    assert.ok(versionValidation.errors.some((message) => message.includes("schemaVersion must be 1")));
+    assert.ok(versionValidation.errors.some((message) => message.includes("inspectionDate must be an ISO calendar date")));
+});
+
+test("inaccessible sources retain explicit null locators and access limitations", () => {
+    const validation = validateSourceReviewFindings(sourceReviewFindings, plan);
+    assert.equal(validation.valid, true);
+    const packet = generateReviewPacket(plan, { libraries, sourceReviewFindings });
+    const octopus = packet.items.find(({ legacyIdentity }) => legacyIdentity.questionId === "octopus-hearts");
+    assert.ok(octopus.sourceReviewObservations.observations.every((observation) =>
+        observation.inspectionOutcome === "inaccessible" && observation.evidenceLocator === null
+    ));
+});
+
+test("observations do not populate formal decisions or alter readiness", () => {
+    const transformationId = "transform:shadow-saturn-observation-independence";
+    const canonical = makeCanonical(saturnCandidate, transformationId);
+    const reviewManifest = {
+        schemaVersion: 1,
+        items: [{
+            transformationId,
+            claimVerifications: [{ claimId: "claim:test-main", status: "verified", reviewerId: "reviewer-test", decidedAt: "2026-10-11", rationale: "Synthetic test decision.", evidenceLocator: "test:claim" }],
+            sourceSupport: [{ claimId: "claim:test-main", sourceId: "source:test-attribution", status: "supports", reviewerId: "reviewer-test", decidedAt: "2026-10-11", rationale: "Synthetic test decision.", evidenceLocator: "test:source" }],
+            rightsAssessments: [{ sourceId: "source:test-attribution", status: "permitted", reviewerId: "reviewer-test", decidedAt: "2026-10-11", rationale: "Synthetic test decision.", rightsBasis: "test-only" }],
+            useApprovals: [{ intendedUse: useId, status: "approved", reviewerId: "reviewer-test", decidedAt: "2026-10-11", rationale: "Synthetic test decision.", conditions: [] }],
+            disposition: { status: "active" }
+        }]
+    };
+    const options = {
+        libraries,
+        canonicalContent: canonical,
+        migrationManifest: migrationFor(saturnCandidate, transformationId),
+        reviewManifest,
+        intendedUse: useId
+    };
+    const withoutObservations = generateReviewPacket(plan, options);
+    const withObservations = generateReviewPacket(plan, { ...options, sourceReviewFindings });
+    const getSaturn = (packet) => packet.items.find(({ legacyIdentity }) => legacyIdentity.questionId === saturnCandidate.questionId);
+    assert.deepEqual(getSaturn(withObservations).reviewDecisions, getSaturn(withoutObservations).reviewDecisions);
+    assert.deepEqual(getSaturn(withObservations).readiness, getSaturn(withoutObservations).readiness);
+    assert.deepEqual(getSaturn(withObservations).blockersByDimension, getSaturn(withoutObservations).blockersByDimension);
+    assert.equal(getSaturn(withObservations).readiness.ready, true);
+});
+
+test("source-review packet output is deterministic", () => {
+    const options = { libraries, sourceReviewFindings };
     assert.deepEqual(generateReviewPacket(plan, options), generateReviewPacket(plan, options));
 });

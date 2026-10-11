@@ -19,17 +19,18 @@ function main(args) {
     for (let index = 0; index < args.length; index += 1) {
         const flag = args[index];
         if (flag === "--help") {
-            console.log("Usage: node games/fake-answer/scripts/generate-review-packet.js [--candidates <plan.json>] [--canonical <content.json>] [--migration <manifest.json>] [--reviews <decisions.json>] [--intended-use <id>]");
+            console.log("Usage: node games/fake-answer/scripts/generate-review-packet.js [--candidates <plan.json>] [--canonical <content.json>] [--migration <manifest.json>] [--reviews <decisions.json>] [--source-review-findings <findings.json>] [--intended-use <id>]");
             return 0;
         }
         const value = args[index + 1];
-        if (["--candidates", "--canonical", "--migration", "--reviews", "--intended-use"].includes(flag) && !value) {
+        if (["--candidates", "--canonical", "--migration", "--reviews", "--source-review-findings", "--intended-use"].includes(flag) && !value) {
             throw new Error(`Option ${flag} requires a value.`);
         }
         if (flag === "--candidates") options.candidatePath = value, index += 1;
         else if (flag === "--canonical") options.canonicalPath = value, index += 1;
         else if (flag === "--migration") options.migrationPath = value, index += 1;
         else if (flag === "--reviews") options.reviewPath = value, index += 1;
+        else if (flag === "--source-review-findings") options.sourceReviewFindingsPath = value, index += 1;
         else if (flag === "--intended-use") options.intendedUse = value, index += 1;
         else throw new Error(`Unknown option "${flag}".`);
     }
@@ -38,6 +39,7 @@ function main(args) {
         ...(options.canonicalPath ? { canonicalContent: readJson(options.canonicalPath, "canonical content") } : {}),
         ...(options.migrationPath ? { migrationManifest: readJson(options.migrationPath, "migration manifest") } : {}),
         ...(options.reviewPath ? { reviewManifest: readJson(options.reviewPath, "review decision manifest") } : {}),
+        ...(options.sourceReviewFindingsPath ? { sourceReviewFindings: readJson(options.sourceReviewFindingsPath, "source-review findings") } : {}),
         ...(options.intendedUse ? { intendedUse: options.intendedUse } : {})
     });
     process.stdout.write(`${JSON.stringify(packet, null, 2)}\n`);
