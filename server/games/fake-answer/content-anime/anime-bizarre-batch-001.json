@@ -1,0 +1,615 @@
+{
+  "contentPackId": "anime-bizarre-batch-001",
+  "questions": [
+    {
+      "id": "bizarre-dandadan-seiko-pseudonym",
+      "text": "In DANDADAN, Momo's grandmother Seiko works as a spirit medium under the pseudonym Santa ____.",
+      "correctCompletion": "Dodoria",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "dandadan",
+        "seiko",
+        "identity",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-dandadan-serpent-skin-shrine",
+      "text": "The DANDADAN shrine that supposedly worships a Tsuchinoko actually enshrines shed skin from the ____.",
+      "correctCompletion": "Great Serpent",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "dandadan",
+        "manjiro",
+        "shrine",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-dandadan-manjiro-bootuber",
+      "text": "DANDADAN's shrine priest Manjiro secretly wants to become a ____.",
+      "correctCompletion": "BooTuber",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "dandadan",
+        "manjiro",
+        "occupation",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-dandadan-serpoian-cloning",
+      "text": "The Serpoians in DANDADAN clone themselves to increase their ____.",
+      "correctCompletion": "numbers",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "dandadan",
+        "serpoians",
+        "aliens",
+        "biology"
+      ]
+    },
+    {
+      "id": "bizarre-dandadan-serpoian-organs",
+      "text": "The Serpoians target human females because they want to regain their ____.",
+      "correctCompletion": "reproductive organs",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "dandadan",
+        "serpoians",
+        "aliens",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-dandadan-flatwoods-shape",
+      "text": "The DANDADAN Flatwoods Monster is described as resembling a ____.",
+      "correctCompletion": "sumo wrestler",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "medium",
+      "tags": [
+        "dandadan",
+        "flatwoods-monster",
+        "creatures"
+      ]
+    },
+    {
+      "id": "bizarre-dandadan-flatwoods-gills",
+      "text": "The Flatwoods Monster in DANDADAN has large, diamond-shaped ____.",
+      "correctCompletion": "gills",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "dandadan",
+        "flatwoods-monster",
+        "creatures",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-dandadan-dover-dis",
+      "text": "The DANDADAN Dover Demon has a bizarre verbal tic: it puts ____ at the end of its sentences.",
+      "correctCompletion": "dis",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "dandadan",
+        "dover-demon",
+        "speech",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-dandadan-dover-shrimp",
+      "text": "The DANDADAN Dover Demon's powerful punches are compared with those of a mantis ____.",
+      "correctCompletion": "shrimp",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "dandadan",
+        "dover-demon",
+        "combat",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-dandadan-taro-model",
+      "text": "In DANDADAN, Taro begins moving even though he is a male human anatomical ____ in the school science room.",
+      "correctCompletion": "model",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "dandadan",
+        "taro",
+        "supernatural",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-dandadan-chiquitita-blood",
+      "text": "According to DANDADAN's official profile, Chiquitita needs to ingest new ____ every day.",
+      "correctCompletion": "blood",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "dandadan",
+        "chiquitita",
+        "biology",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-dandadan-chiquitita-cow",
+      "text": "Chiquitita's life in DANDADAN was saved when Seiko and the others supplied his family with a ____.",
+      "correctCompletion": "cow",
+      "sourceName": "DANDADAN — Official Character Profiles",
+      "sourceUrl": "https://anime-dandadan.com/en/character/",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "dandadan",
+        "chiquitita",
+        "creatures",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-jojo-ff-plankton",
+      "text": "In JoJo's Bizarre Adventure: Stone Ocean, Foo Fighters is a collective of intelligent ____ rather than an ordinary human being.",
+      "correctCompletion": "plankton",
+      "sourceName": "JoJo's Bizarre Adventure: Stone Ocean — Official Character Profile: F.F.",
+      "sourceUrl": "https://jojo-portal.com/anime/so/character/03/",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "jojos-bizarre-adventure",
+        "stone-ocean",
+        "foo-fighters",
+        "biology",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-jojo-ff-etro",
+      "text": "Foo Fighters initially uses the body of the Green Dolphin Street Prison inmate ____.",
+      "correctCompletion": "Etro",
+      "sourceName": "JoJo's Bizarre Adventure: Stone Ocean — Official Character Profile: F.F.",
+      "sourceUrl": "https://jojo-portal.com/anime/so/character/03/",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "jojos-bizarre-adventure",
+        "stone-ocean",
+        "foo-fighters",
+        "identity",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-jojo-lang-fingers",
+      "text": "Lang Rangler's Stand causes his fingers to deform into ____-like structures.",
+      "correctCompletion": "suction cup",
+      "sourceName": "JoJo's Bizarre Adventure: Stone Ocean — Official Character Profile: Lang Rangler",
+      "sourceUrl": "https://jojo-portal.com/en/anime/so/character/13/",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "jojos-bizarre-adventure",
+        "stone-ocean",
+        "lang-rangler",
+        "stand-ability",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-jojo-miu-miu-role",
+      "text": "In Stone Ocean, Miu Miu pretends to be a prisoner while secretly serving as the prison's chief ____.",
+      "correctCompletion": "guard",
+      "sourceName": "JoJo's Bizarre Adventure: Stone Ocean — Official Character Profile: Miu Miu",
+      "sourceUrl": "https://jojo-portal.com/en/anime/so/character/20/",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "jojos-bizarre-adventure",
+        "stone-ocean",
+        "miu-miu",
+        "identity",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-jojo-miu-miu-stand",
+      "text": "The Stand belonging to Stone Ocean's prison chief guard Miu Miu is named ____.",
+      "correctCompletion": "Jail House Lock",
+      "sourceName": "JoJo's Bizarre Adventure: Stone Ocean — Official Character Profile: Miu Miu",
+      "sourceUrl": "https://jojo-portal.com/en/anime/so/character/20/",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "jojos-bizarre-adventure",
+        "stone-ocean",
+        "miu-miu",
+        "stand-name",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-jojo-kenzo-sentence",
+      "text": "JoJo's Stone Ocean character Kenzo was sentenced to ____ years for murdering 34 people.",
+      "correctCompletion": "280",
+      "sourceName": "JoJo's Bizarre Adventure: Stone Ocean — Official Character Profile: Kenzo",
+      "sourceUrl": "https://jojo-portal.com/anime/so/character/16/",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "jojos-bizarre-adventure",
+        "stone-ocean",
+        "kenzo",
+        "criminal-record",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-one-piece-sunny-fuel",
+      "text": "The Thousand Sunny, the Straw Hats' ship, uses ____ as its energy source.",
+      "correctCompletion": "cola",
+      "sourceName": "ONE PIECE.com — Thousand Sunny Official Character Profile",
+      "sourceUrl": "https://one-piece.com/character/Thousand_Sunny/index.html",
+      "category": "anime-canon",
+      "difficulty": "medium",
+      "tags": [
+        "one-piece",
+        "thousand-sunny",
+        "engineering",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-one-piece-franky-centaur",
+      "text": "Franky's ridiculous modification in which his lower body splits and extends forward is called Franky ____.",
+      "correctCompletion": "Centaur",
+      "sourceName": "ONE PIECE.com — Franky Birthday Feature: Modified Body Gimmicks",
+      "sourceUrl": "https://one-piece.com/news/o20210309_12223/index.html",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "one-piece",
+        "franky",
+        "cyborg",
+        "gag-technique",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-one-piece-franky-destroyer-cannon",
+      "text": "Franky's shoulder-mounted weapon that turns his raised shoulders into cannons, at the cost of dislocating them, is the Franky ____.",
+      "correctCompletion": "Destroyer Cannon",
+      "sourceName": "ONE PIECE.com — Franky Birthday Feature: Modified Body Gimmicks",
+      "sourceUrl": "https://one-piece.com/news/o20210309_12223/index.html",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "one-piece",
+        "franky",
+        "cyborg",
+        "weapon",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-one-piece-chopper-fruit",
+      "text": "Tony Tony Chopper is a blue-nosed reindeer who ate the ____ Fruit to gain human abilities.",
+      "correctCompletion": "Human-Human",
+      "sourceName": "ONE PIECE.com — TV Anime Episode 84: Chopper's Secret",
+      "sourceUrl": "https://one-piece.com/anime/84/index.html",
+      "category": "anime-canon",
+      "difficulty": "medium",
+      "tags": [
+        "one-piece",
+        "chopper",
+        "devil-fruit",
+        "identity"
+      ]
+    },
+    {
+      "id": "bizarre-one-piece-chopper-poster",
+      "text": "According to Chopper's official profile, the photo used on his wanted poster was taken after he was lured by ____.",
+      "correctCompletion": "cotton candy",
+      "sourceName": "ONE PIECE.com — Tony Tony Chopper Official Character Profile",
+      "sourceUrl": "https://one-piece.com/character/chopper/index.html",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "one-piece",
+        "chopper",
+        "bounty-poster",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-one-piece-brook-skeleton",
+      "text": "Brook returned to life as a skeleton because his soul took too long to find his ____ again.",
+      "correctCompletion": "body",
+      "sourceName": "ONE PIECE.com — Brook Official Character Profile",
+      "sourceUrl": "https://one-piece.com/character/brook/index.html",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "one-piece",
+        "brook",
+        "devil-fruit",
+        "undead",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-one-piece-brook-alone",
+      "text": "After the Rumbar Pirates were wiped out, Brook spent ____ years alone at sea before meeting the Straw Hats.",
+      "correctCompletion": "50",
+      "sourceName": "ONE PIECE.com — Brook Official Character Profile",
+      "sourceUrl": "https://one-piece.com/character/brook/index.html",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "one-piece",
+        "brook",
+        "timeline",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-one-piece-brook-music",
+      "text": "Besides playing instruments, Brook can use music to make people fall asleep or experience ____.",
+      "correctCompletion": "illusions",
+      "sourceName": "ONE PIECE.com — Brook Official Character Profile",
+      "sourceUrl": "https://one-piece.com/character/brook/index.html",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "one-piece",
+        "brook",
+        "music",
+        "abilities",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-spy-family-bond-experiment",
+      "text": "Before joining the Forger household, Bond was a test subject in military ____.",
+      "correctCompletion": "experiments",
+      "sourceName": "SPY×FAMILY — Official TV Series Character Profiles",
+      "sourceUrl": "https://spy-family.net/tvseries/",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "spy-x-family",
+        "bond-forger",
+        "experiments",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-spy-family-bond-future",
+      "text": "Bond Forger's unusual ability lets him predict the ____.",
+      "correctCompletion": "future",
+      "sourceName": "SPY×FAMILY — Official TV Series Character Profiles",
+      "sourceUrl": "https://spy-family.net/tvseries/",
+      "category": "anime-canon",
+      "difficulty": "medium",
+      "tags": [
+        "spy-x-family",
+        "bond-forger",
+        "ability"
+      ]
+    },
+    {
+      "id": "bizarre-spy-family-bond-bomb-dog",
+      "text": "Before Anya rescued him, Bond was being used by terrorists as a ____ dog.",
+      "correctCompletion": "bomb",
+      "sourceName": "SPY×FAMILY — Official TV Series Character Profiles",
+      "sourceUrl": "https://spy-family.net/tvseries/",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "spy-x-family",
+        "bond-forger",
+        "terrorism",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-spy-family-bond-knower",
+      "text": "Because Bond cannot speak, the only Forger who knows he can see future events is ____.",
+      "correctCompletion": "Anya",
+      "sourceName": "SPY×FAMILY — Official TV Series Character Profiles",
+      "sourceUrl": "https://spy-family.net/tvseries/",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "spy-x-family",
+        "bond-forger",
+        "anya-forger",
+        "ability",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-mob-psycho-reigen-powers",
+      "text": "Although he runs a psychic consultation office, Arataka Reigen has no actual ____ powers.",
+      "correctCompletion": "psychic",
+      "sourceName": "Mob Psycho 100 — Official Character Profile: Arataka Reigen",
+      "sourceUrl": "https://mobpsycho100.com/2nd/chara/reigen.html",
+      "category": "anime-canon",
+      "difficulty": "medium",
+      "tags": [
+        "mob-psycho-100",
+        "reigen",
+        "irony",
+        "character"
+      ]
+    },
+    {
+      "id": "bizarre-mob-psycho-ekubo-cult",
+      "text": "The spirit Ekubo once founded a dubious religious group called ____ in the official English profile.",
+      "correctCompletion": "LOL",
+      "sourceName": "Mob Psycho 100 — Official Season 2 Character Profiles: Ekubo",
+      "sourceUrl": "https://mobpsycho100.com/2nd/chara/keiji.html",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "mob-psycho-100",
+        "ekubo",
+        "cult",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-mob-psycho-ekubo-ambition",
+      "text": "Despite being a spirit, Ekubo's grand ambition is to become ____.",
+      "correctCompletion": "God",
+      "sourceName": "Mob Psycho 100 — Official Season 2 Character Profiles: Ekubo",
+      "sourceUrl": "https://mobpsycho100.com/2nd/chara/keiji.html",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "mob-psycho-100",
+        "ekubo",
+        "ambition",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-mob-psycho-white-t-poison",
+      "text": "The local delinquents' bizarre nickname for Mob in the official profile is “White-T ____.”",
+      "correctCompletion": "Poison",
+      "sourceName": "Mob Psycho 100 — Official Season 2 Character Profiles",
+      "sourceUrl": "https://mobpsycho100.com/2nd/chara/reigen.html",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "mob-psycho-100",
+        "mob",
+        "nickname",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-jujutsu-panda-cursed-corpse",
+      "text": "Despite looking like an ordinary panda, Panda is actually a talking, mutated ____ created by Principal Yaga.",
+      "correctCompletion": "cursed corpse",
+      "sourceName": "Jujutsu Kaisen — Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/shibuyajihen.php",
+      "category": "anime-canon",
+      "difficulty": "medium",
+      "tags": [
+        "jujutsu-kaisen",
+        "panda",
+        "cursed-corpse",
+        "identity"
+      ]
+    },
+    {
+      "id": "bizarre-jujutsu-yaga-dolls",
+      "text": "Principal Yaga can create cursed corpses by putting curses into ____.",
+      "correctCompletion": "dolls",
+      "sourceName": "Jujutsu Kaisen — Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/index_1st.php",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "jujutsu-kaisen",
+        "masamichi-yaga",
+        "cursed-corpse",
+        "technique",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-jujutsu-inumaki-riceballs",
+      "text": "To avoid accidentally cursing people with his words, Toge Inumaki normally speaks only in onigiri ____.",
+      "correctCompletion": "fillings",
+      "sourceName": "Jujutsu Kaisen — Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/index_1st.php",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "jujutsu-kaisen",
+        "toge-inumaki",
+        "speech",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-jujutsu-maki-no-cursed-energy",
+      "text": "Although she comes from an elite sorcerer family, Maki Zen'in has no cursed energy and cannot see ____.",
+      "correctCompletion": "curses",
+      "sourceName": "Jujutsu Kaisen — Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/shibuyajihen.php",
+      "category": "anime-canon",
+      "difficulty": "hard",
+      "tags": [
+        "jujutsu-kaisen",
+        "maki-zenin",
+        "cursed-energy",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-jujutsu-mai-construction",
+      "text": "Mai Zen'in's Construction Technique lets her use cursed energy to create physical matter from ____.",
+      "correctCompletion": "nothing",
+      "sourceName": "Jujutsu Kaisen — Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/index_1st.php",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "jujutsu-kaisen",
+        "mai-zenin",
+        "cursed-technique",
+        "deep-cut"
+      ]
+    },
+    {
+      "id": "bizarre-jujutsu-yuji-sukuna-poison",
+      "text": "Yuji Itadori is described as an unprecedented talent because he can withstand the deadly poison of ____.",
+      "correctCompletion": "Sukuna",
+      "sourceName": "Jujutsu Kaisen — Official Character Profiles",
+      "sourceUrl": "https://jujutsukaisen.jp/character/index_1st.php",
+      "category": "anime-canon",
+      "difficulty": "extremely-hard",
+      "tags": [
+        "jujutsu-kaisen",
+        "yuji-itadori",
+        "sukuna",
+        "deep-cut"
+      ]
+    }
+  ]
+}

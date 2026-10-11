@@ -49,14 +49,15 @@ function writeBatch(inputPath, questions, contentPackId = "candidate-pack") {
     fs.writeFileSync(inputPath, JSON.stringify({ contentPackId, questions }, null, 2));
 }
 
-test("both registered question libraries contain exactly 100 valid questions", () => {
+test("registered question libraries contain the expected valid question counts", () => {
     for (const [gameId, directory] of Object.entries(LIBRARIES)) {
         const result = loadQuestionPacks(directory);
+        const expectedCount = gameId === "fact-or-cap-anime" ? 140 : 100;
         assert.equal(result.errors.length, 0, `${gameId} should have no validation errors`);
         assert.equal(result.warnings.length, 0, `${gameId} should have no duplicate-content warnings`);
         assert.equal(
             result.questions.length,
-            100,
+            expectedCount,
             `${gameId} should have the expected playable question count`
         );
         assert.equal(

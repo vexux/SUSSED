@@ -39,13 +39,18 @@ test("loads all migrated JSON content packs with existing answer and source data
     );
 });
 
-test("loads a separate hundred-question anime library with distinct sourced IDs", () => {
+test("loads the expanded anime library and its new sourced pack with distinct IDs", () => {
     const { questions: loaded } = loadQuestionPacks(
         path.join(fakeAnswerDirectory, "content-anime")
     );
-    assert.equal(loaded.length, 100);
-    assert.equal(animeQuestions.length, 100);
-    assert.equal(new Set(loaded.map(({ id }) => id)).size, 100);
+    assert.equal(loaded.length, 140);
+    assert.equal(animeQuestions.length, 140);
+    assert.equal(new Set(loaded.map(({ id }) => id)).size, 140);
+    assert.equal(
+        loaded.filter(({ contentPackId }) => contentPackId === "anime-bizarre-batch-001").length,
+        40
+    );
+    assert.ok(loaded.some(({ difficulty }) => difficulty === "extremely-hard"));
     assert.ok(loaded.every(({ sourceName, sourceUrl, category, tags }) =>
         sourceName && sourceUrl.startsWith("https://") &&
         category && tags.length > 0
