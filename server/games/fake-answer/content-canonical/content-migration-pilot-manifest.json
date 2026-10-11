@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "gameId": "fact-or-cap",
+      "contentPackId": "general-facts-batch-2026-10",
+      "questionId": "mercury-nearest-sun",
+      "transformationId": "transform:legacy-mercury-nearest-sun"
+    },
+    {
+      "gameId": "fact-or-cap",
+      "contentPackId": "general-facts-batch-2026-10",
+      "questionId": "mercury-shortest-year",
+      "transformationId": "transform:legacy-mercury-shortest-year"
+    },
+    {
+      "gameId": "fact-or-cap",
+      "contentPackId": "general-facts-batch-2026-10",
+      "questionId": "ocean-earth-surface",
+      "transformationId": "transform:legacy-ocean-earth-surface"
+    },
+    {
+      "gameId": "fact-or-cap",
+      "contentPackId": "general-facts-batch-2026-10",
+      "questionId": "octopus-ink-defense",
+      "transformationId": "transform:legacy-octopus-ink-defense"
+    },
+    {
+      "gameId": "fact-or-cap-anime",
+      "contentPackId": "anime-facts-batch-2026-10",
+      "questionId": "one-piece-nami",
+      "transformationId": "transform:legacy-one-piece-nami"
+    }
+  ]
+}

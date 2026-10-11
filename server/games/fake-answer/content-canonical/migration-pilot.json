@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "gameId": "fact-or-cap-anime",
+      "contentPackId": "anime-foundations",
+      "questionId": "anime-sailor-moon-luna",
+      "transformationId": "transform:sailor-moon-bluff-completion"
+    }
+  ]
+}

@@ -39,13 +39,18 @@ test("loads all migrated JSON content packs with existing answer and source data
     );
 });
 
-test("loads a separate hundred-question anime library with distinct sourced IDs", () => {
+test("loads the expanded anime library and its new sourced pack with distinct IDs", () => {
     const { questions: loaded } = loadQuestionPacks(
         path.join(fakeAnswerDirectory, "content-anime")
     );
-    assert.equal(loaded.length, 100);
-    assert.equal(animeQuestions.length, 100);
-    assert.equal(new Set(loaded.map(({ id }) => id)).size, 100);
+    assert.equal(loaded.length, 140);
+    assert.equal(animeQuestions.length, 140);
+    assert.equal(new Set(loaded.map(({ id }) => id)).size, 140);
+    assert.equal(
+        loaded.filter(({ contentPackId }) => contentPackId === "anime-bizarre-batch-001").length,
+        40
+    );
+    assert.ok(loaded.some(({ difficulty }) => difficulty === "extremely-hard"));
     assert.ok(loaded.every(({ sourceName, sourceUrl, category, tags }) =>
         sourceName && sourceUrl.startsWith("https://") &&
         category && tags.length > 0
@@ -84,6 +89,49 @@ test("question pack validation reports malformed required fields and source URLs
     assert.match(result.errors.join("\n"), /non-empty string "correctCompletion"/);
     assert.match(result.errors.join("\n"), /sourceUrl must use HTTP or HTTPS/);
     assert.match(result.errors.join("\n"), /difficulty must be/);
+});
+
+test("question difficulty is optional and accepts the four supported values", () => {
+    for (const difficulty of ["easy", "medium", "hard", "extremely-hard"]) {
+        const result = validateQuestionPack({
+            questions: [{
+                id: `question-${difficulty}`,
+                text: "A valid prompt",
+                correctCompletion: "a valid completion",
+                difficulty,
+            }],
+        }, "candidate.json");
+
+        assert.deepEqual(result.errors, [], `${difficulty} should be accepted`);
+        assert.equal(result.questions[0].difficulty, difficulty);
+    }
+
+    const withoutDifficulty = validateQuestionPack({
+        questions: [{
+            id: "question-without-difficulty",
+            text: "A valid prompt",
+            correctCompletion: "a valid completion",
+        }],
+    }, "candidate.json");
+    assert.deepEqual(withoutDifficulty.errors, []);
+    assert.equal(withoutDifficulty.questions[0].difficulty, undefined);
+});
+
+test("question difficulty rejects unsupported values and lists supported values", () => {
+    const result = validateQuestionPack({
+        questions: [{
+            id: "question-invalid-difficulty",
+            text: "A valid prompt",
+            correctCompletion: "a valid completion",
+            difficulty: "expert",
+        }],
+    }, "candidate.json");
+
+    assert.equal(result.questions.length, 0);
+    assert.match(
+        result.errors.join("\n"),
+        /difficulty must be "easy", "medium", "hard", or "extremely-hard"/
+    );
 });
 
 test("library validation blocks cross-pack ID conflicts and warns without deleting likely duplicates", () => {

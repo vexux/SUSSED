@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    {
+      "id": "entity:sailor-moon",
+      "kind": "series",
+      "name": "Sailor Moon",
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "entity:luna",
+      "kind": "character",
+      "name": "Luna",
+      "franchiseEntityId": "entity:sailor-moon",
+      "reviewStatus": "unreviewed"
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim:sailor-moon-talking-cat",
+      "statement": "In Toei Animation's Sailor Moon series description, the talking cat who gives Usagi a transformation brooch is Luna.",
+      "entityIds": ["entity:sailor-moon", "entity:luna"],
+      "sourceIds": ["source:toei-sailor-moon"],
+      "verificationStatus": "unverified",
+      "reviewStatus": "unreviewed"
+    }
+  ],
+  "sources": [
+    {
+      "id": "source:toei-sailor-moon",
+      "title": "Toei Animation — Sailor Moon",
+      "url": "https://www.toei-animation.com/catalog/sailor-moon/",
+      "publisher": "Toei Animation",
+      "creator": null,
+      "accessedAt": null,
+      "reviewStatus": "unreviewed",
+      "rightsReview": {
+        "status": "unknown",
+        "license": null,
+        "reviewedAt": null,
+        "reviewerId": null,
+        "notes": "Reuse terms have not been assessed. The URL does not imply permission."
+      }
+    }
+  ],
+  "transformations": [
+    {
+      "id": "transform:sailor-moon-bluff-completion",
+      "gameFormatId": "fact-or-cap.completion.v1",
+      "entityIds": ["entity:sailor-moon", "entity:luna"],
+      "claimIds": ["claim:sailor-moon-talking-cat"],
+      "reviewStatus": "unreviewed",
+      "payload": {
+        "text": "In Toei Animation's Sailor Moon series description, the talking cat who gives Usagi a transformation brooch is",
+        "answerEntityId": "entity:luna",
+        "sourceId": "source:toei-sailor-moon",
+        "category": "anime",
+        "tags": ["Sailor Moon", "official-anime-series"],
+        "difficulty": "easy"
+      }
+    },
+    {
+      "id": "transform:sailor-moon-flashcard",
+      "gameFormatId": "study.flashcard.v1",
+      "entityIds": ["entity:sailor-moon", "entity:luna"],
+      "claimIds": ["claim:sailor-moon-talking-cat"],
+      "reviewStatus": "unreviewed",
+      "payload": {
+        "front": "Which character is described as the talking cat who gives Usagi a transformation brooch?",
+        "back": "Luna"
+      }
+    }
+  ]
+}
