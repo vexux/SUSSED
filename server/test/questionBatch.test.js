@@ -141,10 +141,100 @@ test("likely duplicate content requires explicit import approval", (t) => {
     const report = inspectBatch(options);
     assert.equal(report.canImport, true);
     assert.equal(report.duplicateContent.length, 1);
+    assert.deepEqual(report.duplicateMatches, [{
+        candidateId: "new-question",
+        gameId: "fact-or-cap",
+        contentPackId: "existing",
+        existingQuestionId: "old-question",
+        scope: "target-bank"
+    }]);
     assert.match(formatReport(report), /Pending explicit duplicate-content approval: 1/);
+    assert.match(formatReport(report), /Candidate "new-question" matches game "fact-or-cap" pack "existing" question "old-question" \(target-bank\)/);
     assert.throws(() => importBatch(options), /explicit --allow-likely-duplicates approval/);
     assert.equal(fs.existsSync(report.destination), false);
     assert.equal(importBatch({ ...options, allowLikelyDuplicates: true }).imported, 1);
+});
+
+test("preview reports every normalized content match across registered banks", (t) => {
+    const workspace = makeWorkspace(t);
+    const sharedText = "A well-known prompt with ____.";
+    const sharedAnswer = "same answer";
+    fs.writeFileSync(
+        path.join(workspace.directories["fact-or-cap"], "general-one.json"),
+        JSON.stringify({
+            contentPackId: "general-pack-one",
+            questions: [makeQuestion("general-match-one", { text: sharedText, correctCompletion: sharedAnswer })]
+        })
+    );
+    fs.writeFileSync(
+        path.join(workspace.directories["fact-or-cap"], "general-two.json"),
+        JSON.stringify({
+            contentPackId: "general-pack-two",
+            questions: [makeQuestion("general-match-two", { text: sharedText.toUpperCase(), correctCompletion: sharedAnswer })]
+        })
+    );
+    fs.writeFileSync(
+        path.join(workspace.directories["fact-or-cap-anime"], "anime.json"),
+        JSON.stringify({
+            contentPackId: "anime-pack",
+            questions: [makeQuestion("anime-match", { text: "An unrelated prompt ____.", correctCompletion: "unrelated answer" })]
+        })
+    );
+    writeBatch(workspace.inputPath, [
+        makeQuestion("candidate-one", { text: sharedText, correctCompletion: sharedAnswer }),
+        makeQuestion("candidate-two", { text: "A different prompt with ____.", correctCompletion: "different answer" }),
+        makeQuestion("candidate-three", { text: sharedText, correctCompletion: sharedAnswer })
+    ], "candidate-pack");
+    const report = inspectBatch({
+        target: "fact-or-cap-anime",
+        inputPath: workspace.inputPath,
+        contentDirectories: workspace.directories
+    });
+
+    assert.deepEqual(report.duplicateMatches, [
+        { candidateId: "candidate-three", gameId: "fact-or-cap-anime", contentPackId: "candidate-pack", existingQuestionId: "candidate-one", scope: "target-bank", matchSource: "candidate-batch" },
+        { candidateId: "candidate-one", gameId: "fact-or-cap", contentPackId: "general-pack-one", existingQuestionId: "general-match-one", scope: "cross-bank" },
+        { candidateId: "candidate-one", gameId: "fact-or-cap", contentPackId: "general-pack-two", existingQuestionId: "general-match-two", scope: "cross-bank" },
+        { candidateId: "candidate-three", gameId: "fact-or-cap", contentPackId: "general-pack-one", existingQuestionId: "general-match-one", scope: "cross-bank" },
+        { candidateId: "candidate-three", gameId: "fact-or-cap", contentPackId: "general-pack-two", existingQuestionId: "general-match-two", scope: "cross-bank" }
+    ]);
+    const output = formatReport(report);
+    assert.match(output, /general-pack-one.*general-match-one.*cross-bank/);
+    assert.match(output, /general-pack-two.*general-match-two.*cross-bank/);
+    assert.match(output, /candidate-pack.*candidate-one.*target-bank, candidate-batch/);
+    assert.equal(report.canImport, true);
+});
+
+test("preview keeps ID conflicts separate from content matches and does not write files", (t) => {
+    const workspace = makeWorkspace(t);
+    fs.writeFileSync(
+        path.join(workspace.directories["fact-or-cap-anime"], "existing.json"),
+        JSON.stringify({
+            contentPackId: "anime-pack",
+            questions: [makeQuestion("reused-id", { text: "Stored prompt ____.", correctCompletion: "stored answer" })]
+        })
+    );
+    writeBatch(workspace.inputPath, [
+        makeQuestion("reused-id", { text: "A different prompt ____.", correctCompletion: "a different answer" })
+    ]);
+    const before = Object.fromEntries(Object.entries(workspace.directories).map(([gameId, directory]) => [
+        gameId,
+        fs.readdirSync(directory).map((name) => [name, fs.readFileSync(path.join(directory, name), "utf8")])
+    ]));
+    const report = inspectBatch({
+        target: "fact-or-cap",
+        inputPath: workspace.inputPath,
+        contentDirectories: workspace.directories
+    });
+
+    assert.deepEqual(report.crossLibraryConflicts, ["reused-id"]);
+    assert.deepEqual(report.duplicateContent, []);
+    assert.deepEqual(report.duplicateMatches, []);
+    assert.equal(report.canImport, false);
+    assert.deepEqual(Object.fromEntries(Object.entries(workspace.directories).map(([gameId, directory]) => [
+        gameId,
+        fs.readdirSync(directory).map((name) => [name, fs.readFileSync(path.join(directory, name), "utf8")])
+    ])), before);
 });
 
 test("imports never overwrite an existing pack and repeated imports are rejected", (t) => {

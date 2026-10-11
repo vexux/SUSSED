@@ -42,10 +42,14 @@ function getPackFileName(batch) {
     return `${packId}.json`;
 }
 
-function collectDuplicates(existingPacks, candidate) {
+function collectDuplicates(existingPacks, candidate, {
+    gameId,
+    scope = "target-bank",
+    includeCandidateDuplicates = true
+} = {}) {
     const existingIds = new Set();
-    const existingContent = new Set();
-    for (const { data } of existingPacks) {
+    const existingContent = new Map();
+    for (const { data, fileName } of existingPacks) {
         const questions = Array.isArray(data) ? data : data?.questions;
         if (!Array.isArray(questions)) {
             continue;
@@ -58,15 +62,26 @@ function collectDuplicates(existingPacks, candidate) {
                 typeof question?.text === "string" &&
                 typeof question?.correctCompletion === "string"
             ) {
-                existingContent.add(duplicateKey(question));
+                const key = duplicateKey(question);
+                const matches = existingContent.get(key) ?? [];
+                matches.push({
+                    gameId: data?.gameId ?? gameId,
+                    contentPackId: question.contentPackId ?? data?.contentPackId ??
+                        (typeof fileName === "string" ? path.basename(fileName, ".json") : null),
+                    existingQuestionId: question.id ?? null,
+                    scope
+                });
+                existingContent.set(key, matches);
             }
         }
     }
 
     const ids = new Set();
     const duplicateIds = new Set();
-    const content = new Set();
-    const duplicateContent = new Set();
+    const existingDuplicateIds = new Set();
+    const content = new Map();
+    const duplicateContent = new Map();
+    const duplicateMatches = [];
     for (const question of candidate.questions ?? []) {
         if (!question || typeof question !== "object") {
             continue;
@@ -75,6 +90,9 @@ function collectDuplicates(existingPacks, candidate) {
             if (existingIds.has(question.id) || ids.has(question.id)) {
                 duplicateIds.add(question.id);
             }
+            if (existingIds.has(question.id)) {
+                existingDuplicateIds.add(question.id);
+            }
             ids.add(question.id);
         }
         if (
@@ -82,17 +100,39 @@ function collectDuplicates(existingPacks, candidate) {
             typeof question.correctCompletion === "string"
         ) {
             const key = duplicateKey(question);
-            if (existingContent.has(key) || content.has(key)) {
-                duplicateContent.add(
-                    `${normalizeForComparison(question.text)} | ${normalizeForComparison(question.correctCompletion)}`
-                );
+            const matches = [
+                ...(existingContent.get(key) ?? []),
+                ...(includeCandidateDuplicates ? content.get(key) ?? [] : [])
+            ];
+            if (matches.length > 0) {
+                const contentLabel = `${normalizeForComparison(question.text)} | ${normalizeForComparison(question.correctCompletion)}`;
+                duplicateContent.set(contentLabel, contentLabel);
+                for (const match of matches) {
+                    duplicateMatches.push({
+                        candidateId: question.id ?? null,
+                        ...match,
+                        ...(match.existingQuestionId === null
+                            ? { existingQuestionId: question.id ?? null }
+                            : {})
+                    });
+                }
             }
-            content.add(key);
+            const batchMatches = content.get(key) ?? [];
+            batchMatches.push({
+                gameId,
+                contentPackId: candidate.contentPackId ?? null,
+                existingQuestionId: question.id ?? null,
+                scope,
+                matchSource: "candidate-batch"
+            });
+            content.set(key, batchMatches);
         }
     }
     return {
         duplicateIds: [...duplicateIds].sort(),
-        duplicateContent: [...duplicateContent].sort()
+        existingDuplicateIds: [...existingDuplicateIds].sort(),
+        duplicateContent: [...duplicateContent.keys()].sort(),
+        duplicateMatches
     };
 }
 
@@ -112,17 +152,32 @@ function inspectBatch({ target, inputPath, fileSystem = fs, contentDirectories =
     const existingPacks = readPacks(directory, fileSystem);
     const otherLibraryPacks = Object.entries(contentDirectories)
         .filter(([libraryId]) => libraryId !== target)
-        .flatMap(([, libraryDirectory]) =>
+        .flatMap(([gameId, libraryDirectory]) =>
             fileSystem.existsSync(libraryDirectory)
-                ? readPacks(libraryDirectory, fileSystem)
+                ? readPacks(libraryDirectory, fileSystem).map((pack) => ({
+                    ...pack,
+                    data: Array.isArray(pack.data)
+                        ? { questions: pack.data, gameId }
+                        : { ...pack.data, gameId }
+                }))
                 : []
         );
     const candidateValidation = validateQuestionLibrary([
         ...existingPacks,
         { fileName: absoluteInput, data: candidate }
     ]);
-    const conflicts = collectDuplicates(existingPacks, candidate);
-    const crossLibraryConflicts = collectDuplicates(otherLibraryPacks, candidate).duplicateIds;
+    const conflicts = collectDuplicates(existingPacks, candidate, { gameId: target });
+    const crossLibraryDuplicates = collectDuplicates(otherLibraryPacks, candidate, {
+        scope: "cross-bank",
+        includeCandidateDuplicates: false
+    });
+    const crossLibraryConflicts = crossLibraryDuplicates.existingDuplicateIds;
+    const crossLibraryMatches = crossLibraryDuplicates.duplicateMatches;
+    const duplicateMatches = [...conflicts.duplicateMatches, ...crossLibraryMatches];
+    const duplicateContent = [...new Set([
+        ...conflicts.duplicateContent,
+        ...crossLibraryDuplicates.duplicateContent
+    ])].sort();
     const errors = [...candidateValidation.errors];
     const missingSourceWarnings = candidateValidation.warnings.filter(
         (warning) =>
@@ -159,7 +214,8 @@ function inspectBatch({ target, inputPath, fileSystem = fs, contentDirectories =
         warnings: candidateValidation.warnings,
         duplicateIds: conflicts.duplicateIds,
         crossLibraryConflicts,
-        duplicateContent: conflicts.duplicateContent,
+        duplicateContent,
+        duplicateMatches,
         canImport: errors.length === 0
     };
 }
@@ -270,6 +326,11 @@ function formatReport(report) {
     }
     if (report.duplicateContent.length > 0) {
         lines.push(`Likely duplicate content (${report.duplicateContent.length}):`, ...report.duplicateContent.map((item) => `- ${item}`));
+        for (const match of report.duplicateMatches ?? []) {
+            lines.push(
+                `  Candidate "${match.candidateId}" matches game "${match.gameId}" pack "${match.contentPackId}" question "${match.existingQuestionId}" (${match.scope}${match.matchSource ? `, ${match.matchSource}` : ""}).`
+            );
+        }
     } else {
         lines.push("Likely duplicate content: none");
     }

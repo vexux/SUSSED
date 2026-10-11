@@ -50,7 +50,11 @@ npm run questions:import -- -- --target fact-or-cap-anime --input path/to/anime-
 ```
 
 Preview is read-only and reports validation errors, missing-source warnings,
-duplicate IDs, likely duplicate content, and accepted/rejected counts. Imports
+duplicate IDs, likely duplicate content, and accepted/rejected counts. Likely
+duplicate matches include the candidate ID and matching game, content pack,
+question ID, and whether the match is within the target bank or across banks.
+Preview compares against both registered banks and earlier candidates in the
+same batch. Imports
 validate again and install the pack atomically without overwriting a competing
 or existing pack. These checks enforce structure and deduplication heuristics;
 they do not replace editorial verification of each claim, source, or gameplay
@@ -59,8 +63,13 @@ quality.
 The validator reports blocking schema/ID errors, missing-source warnings, and
 likely duplicate-content candidates. It never writes to or overwrites the
 library. Duplicate detection compares normalized prompt-and-answer pairs
-(Unicode normalization, case folding, and punctuation/spacing normalization);
-it warns rather than deleting content.
+(Unicode normalization, case folding, and punctuation/spacing normalization)
+within the selected bank, across the two registered banks, and within the
+candidate batch. It reports each matching question separately and keeps ID
+conflicts distinct from content matches. Exact normalized matches are a useful
+review signal, not proof of semantic equivalence; paraphrases and related facts
+may not match, and unrelated content can still normalize to the same pair. The
+tool warns and requires explicit import approval rather than deleting content.
 
 The game shuffles valid playable questions and selects five unique prompts per
 session. If a session needs more prompts than the library contains, game start
