@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    { "id": "entity:fixture-card", "kind": "concept", "name": "Sample card", "reviewStatus": "unreviewed" }
+  ],
+  "claims": [
+    {
+      "id": "claim:fixture-card-text",
+      "statement": "The synthetic sample card displays HELLO.",
+      "entityIds": ["entity:fixture-card"],
+      "sourceIds": ["source:fixture-card-specimen"],
+      "verificationStatus": "unverified",
+      "reviewStatus": "unreviewed"
+    }
+  ],
+  "sources": [
+    {
+      "id": "source:fixture-card-specimen",
+      "title": "Synthetic review test specimen",
+      "url": "https://example.invalid/fixture-card",
+      "publisher": "Test fixture only",
+      "creator": null,
+      "accessedAt": null,
+      "reviewStatus": "unreviewed",
+      "rightsReview": {
+        "status": "unknown",
+        "license": null,
+        "reviewedAt": null,
+        "reviewerId": null,
+        "notes": "Synthetic fixture only; this is not a real source or rights finding."
+      }
+    }
+  ],
+  "transformations": [
+    {
+      "id": "transform:fixture-card-completion",
+      "gameFormatId": "fact-or-cap.completion.v1",
+      "entityIds": ["entity:fixture-card"],
+      "claimIds": ["claim:fixture-card-text"],
+      "reviewStatus": "unreviewed",
+      "payload": {
+        "text": "The synthetic sample card displays ____.",
+        "correctCompletion": "HELLO",
+        "sourceId": "source:fixture-card-specimen",
+        "category": "fixture",
+        "tags": ["synthetic"],
+        "difficulty": "easy"
+      }
+    }
+  ]
+}

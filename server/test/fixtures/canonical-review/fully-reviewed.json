@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "transformationId": "transform:fixture-card-completion",
+      "claimVerifications": [
+        {
+          "claimId": "claim:fixture-card-text",
+          "status": "verified",
+          "reviewerId": "fixture-reviewer",
+          "decidedAt": "2026-10-11",
+          "rationale": "Synthetic fixture decision only.",
+          "evidenceLocator": "fixture-only:specimen/line-1"
+        }
+      ],
+      "sourceSupport": [
+        {
+          "claimId": "claim:fixture-card-text",
+          "sourceId": "source:fixture-card-specimen",
+          "status": "supports",
+          "reviewerId": "fixture-reviewer",
+          "decidedAt": "2026-10-11",
+          "rationale": "Synthetic fixture decision only.",
+          "evidenceLocator": "fixture-only:specimen/line-1"
+        }
+      ],
+      "rightsAssessments": [
+        {
+          "sourceId": "source:fixture-card-specimen",
+          "status": "permitted",
+          "reviewerId": "fixture-reviewer",
+          "decidedAt": "2026-10-11",
+          "rationale": "Synthetic fixture decision only; not a real rights conclusion.",
+          "rightsBasis": "fixture-only:synthetic"
+        }
+      ],
+      "useApprovals": [
+        {
+          "intendedUse": "test-only",
+          "status": "approved",
+          "reviewerId": "fixture-reviewer",
+          "decidedAt": "2026-10-11",
+          "rationale": "Synthetic fixture decision only.",
+          "conditions": []
+        }
+      ],
+      "disposition": { "status": "active" }
+    }
+  ]
+}

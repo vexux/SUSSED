@@ -153,6 +153,38 @@ review, and rights-review statuses are reported separately. In particular,
 `unknown` rights status is unresolved and is never treated as permission.
 Successful validation is not a factual or legal approval.
 
+## Offline review decisions and readiness report
+
+`reviewDecisionManifest.js` validates a versioned review-decision sidecar and
+reports readiness for an explicitly named intended use. The manifest refers to
+canonical transformation, claim, and source IDs without modifying canonical
+records. It records claim verification, each claim/source support assessment,
+rights outcomes, use-specific approvals and optional rejected/withdrawn
+dispositions independently. Missing decisions are reported as not ready;
+unknown rights are never approval. Checked decisions require reviewer, date,
+and rationale, with evidence locators or rights bases where applicable.
+
+Run from `server`:
+
+```sh
+npm run report:content-readiness -- <review-manifest.json> <canonical.json> --intended-use <use-id>
+```
+
+The report can also receive `--migration <manifest.json>` to display legacy
+parity independently, `--require-legacy-parity` to require a match, and
+`--allowed-rights permitted,public-domain` to set allowed rights outcomes.
+Default allowed outcomes are `permitted` and `public-domain`; all other or
+missing rights statuses block readiness. Adapter compatibility is reported
+separately and must pass. Structural validity, compatibility, parity, factual
+verification, source support, rights, and use approval are not interchangeable.
+Recorded status does not prove a claim or establish legal permission.
+
+The synthetic demonstration fixture is under
+`server/test/fixtures/canonical-review/`. It is explicitly fictional test data, not an example of
+real verification or rights clearance. `review-shadow-batch.md` lists ten
+additional legacy candidates for a future manual shadow exercise; no canonical
+records or approval decisions have been created for them.
+
 Manifest entries use existing game IDs, lowercase pack/question IDs, and one
 kind-prefixed canonical transformation ID. One legacy question may appear only
 once in a manifest, and each transformation may map to only one legacy
