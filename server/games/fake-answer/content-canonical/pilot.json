@@ -52,7 +52,11 @@
       "reviewStatus": "unreviewed",
       "payload": {
         "text": "In Toei Animation's Sailor Moon series description, the talking cat who gives Usagi a transformation brooch is",
-        "correctCompletion": "Luna"
+        "answerEntityId": "entity:luna",
+        "sourceId": "source:toei-sailor-moon",
+        "category": "anime",
+        "tags": ["Sailor Moon", "official-anime-series"],
+        "difficulty": "easy"
       }
     },
     {

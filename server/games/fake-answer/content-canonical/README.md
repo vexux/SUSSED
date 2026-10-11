@@ -84,6 +84,35 @@ claim is true, whether a source supports it, whether text is original, whether
 a license permits reuse, or whether a transformation is suitable or balanced
 for a game. Those need distinct editorial, factual, and rights review.
 
+## Fact-or-Cap adapter
+
+`factOrCapAdapter.js` is a standalone converter; live question banks do not call
+it. It accepts a schema-valid document and one transformation ID or a list of
+IDs whose `gameFormatId` is `fact-or-cap.completion.v1`. Each selected
+transformation must reference exactly one claim and provide a non-empty
+`payload.text`. Provide exactly one answer input: `payload.correctCompletion`
+for a literal completion, or `payload.answerEntityId` to derive the completion
+from the referenced entity's display name. Optional `category`, `tags`, and
+`difficulty` values are copied from that transformation's payload. The caller
+may pass `contentPackId` as adapter options because pack identity is a packaging
+concern, not an entity or claim identity.
+
+The adapter returns legacy-shaped `questions` plus a separate
+`provenanceByQuestionId` map. The question ID is the transformation ID. Each
+provenance entry retains transformation, claim, entity, and all source IDs. The
+legacy question fields have room for one source name and URL: when a claim has
+one source, it is used automatically; with multiple sources, the transformation
+must choose one using `payload.sourceId`. Other source IDs remain in the
+provenance map. The adapter validates the result against the current
+`questionLibrary.js` playable-question rules. Do not send provenance maps to
+clients or treat successful conversion as factual or rights approval.
+
+Another game format can add its own transformation with a different
+`gameFormatId` and payload while reusing the same entities, claims, and sources.
+That does not require changing canonical records. A format-specific adapter
+would define how that payload is validated and materialized; this adapter
+intentionally handles only Fact-or-Cap completions.
+
 The current `questionLibrary.js` validator remains responsible for legacy
 playable packs and their prompt/answer duplicate heuristic. The canonical
 validator is separate and does not feed, convert, or modify those packs. A
