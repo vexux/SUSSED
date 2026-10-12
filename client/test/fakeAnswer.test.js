@@ -1,13 +1,36 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createAnswerResultCard, createStandingsList } from "../src/ui/gamePresentation.ts";
 import {
   FINAL_STATISTIC_LABELS,
   VOTING_ROUND_HEADING,
   formatRoundPoints,
   getPersonalRoundFeedback,
   getRevealAnswerGroups,
+  renderFakeAnswerGame,
   updateFakeAnswerProgress,
 } from "../src/games/fakeAnswer.ts";
+
+class FakeElement {
+  constructor(tagName) {
+    this.tagName = tagName;
+    this.children = [];
+    this.attributes = {};
+    this.listeners = {};
+    this.dataset = {};
+    this.textContent = "";
+    this.className = "";
+    this.disabled = false;
+  }
+  append(...children) { this.children.push(...children); }
+  addEventListener(type, listener) { this.listeners[type] = listener; }
+  setAttribute(name, value) { this.attributes[name] = value; }
+  dispatch(type, event = {}) { this.listeners[type]?.({ preventDefault() {}, stopPropagation() {}, ...event }); }
+  get text() { return this.textContent + this.children.map((child) => child.text).join(""); }
+  query(predicate) {
+    return this.children.find(predicate) ?? this.children.map((child) => child.query(predicate)).find(Boolean) ?? null;
+  }
+}
 
 function createResults(overrides = {}) {
   const results = {
@@ -71,6 +94,9 @@ test("remote submission progress updates without changing the active answer inpu
     append(child) {
       children.push(child);
     },
+    get children() {
+      return children;
+    },
   };
   const input = {
     value: "partial answer",
@@ -94,6 +120,7 @@ test("remote submission progress updates without changing the active answer inpu
     createElement() {
       return {
         dataset: {},
+        className: "",
         append() {},
       };
     },
@@ -206,4 +233,104 @@ test("missing or invalid votes produce neutral feedback", () => {
     title: "No vote submitted",
     detail: "",
   });
+});
+
+test("Fact-or-Cap voting renderer retains shared voting labels, option markup, and submission callback", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  try {
+    const publicState = {
+      phase: "voting",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: { id: "prompt-1", text: "Complete the prompt." },
+      submissionCount: 3,
+      playerCount: 3,
+      voteCount: 0,
+      voteProgress: [
+        { playerId: "local", name: "Alex", voted: false },
+        { playerId: "p2", name: "Sam", voted: false },
+        { playerId: "p3", name: "Riley", voted: false },
+      ],
+      options: [
+        { id: "real", completion: "REAL", isOwnAnswer: false },
+        { id: "own", completion: "MY ANSWER", isOwnAnswer: true },
+        { id: "fake-2", completion: "OTHER TWO", isOwnAnswer: false },
+        { id: "fake-3", completion: "OTHER THREE", isOwnAnswer: false },
+      ],
+    };
+    const submission = {
+      currentPlayerId: "local", hasSubmitted: true, completionDraft: "", isSubmitting: false,
+      submissionError: null, hasVoted: false, isVoting: false, selectedOptionId: null,
+      voteError: null, isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null, isRoundFeedbackDismissed: true,
+    };
+    let selected = null;
+    let submitted = null;
+    const screen = renderFakeAnswerGame(
+      publicState, submission, () => {}, (id) => { selected = id; }, (id) => { submitted = id; },
+      () => {}, () => {}, "Fact or Cap", false, () => {},
+    );
+    const heading = screen.query((node) => node.tagName === "h1");
+    const ownRadio = screen.query((node) => node.tagName === "input" && node.value === "own");
+    const validRadio = screen.query((node) => node.tagName === "input" && node.value === "fake-2");
+    const button = screen.query((node) => node.tagName === "button");
+    const form = screen.query((node) => node.tagName === "form");
+    assert.equal(heading.textContent, "Voting Round");
+    assert.equal(ownRadio.attributes["aria-disabled"], "true");
+    assert.equal(ownRadio.className, validRadio.className);
+    assert.match(screen.text, /my answer/u);
+    assert.equal(button.textContent, "Submit");
+    assert.equal(button.disabled, true);
+    validRadio.dispatch("change");
+    assert.equal(selected, "fake-2");
+    assert.equal(button.disabled, false);
+    form.dispatch("submit");
+    assert.equal(submitted, "fake-2");
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
+test("shared result cards and standings preserve Fact-or-Cap result presentation", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  try {
+    const card = createAnswerResultCard({
+      completion: "REAL ANSWER",
+      authorName: "Player Two",
+      voteCount: 1,
+      voterNames: ["Player One"],
+      formatAnswer: (answer) => answer.toLowerCase(),
+      voterPrefix: "Chosen by",
+      noVotesText: "No one chose this answer.",
+    });
+    const correct = createAnswerResultCard({
+      completion: "REAL ANSWER",
+      authorName: null,
+      voteCount: 2,
+      voterNames: ["Player One", "Player Two"],
+      formatAnswer: (answer) => answer.toLowerCase(),
+      voterPrefix: "Chosen by",
+      isCorrect: true,
+    });
+    const standings = createStandingsList([
+      { playerId: "p1", name: "Player One", rank: 1, totalScore: 4 },
+      { playerId: "p2", name: "Player Two", rank: 2, totalScore: 2 },
+    ], { roundPointsByPlayer: new Map([["p1", 3], ["p2", -1]]) });
+    assert.equal(card.className, "result-card");
+    assert.match(card.text, /Player Two\|real answer/u);
+    assert.match(card.text, /Chosen by: Player One/u);
+    assert.equal(correct.className, "result-card result-card-correct real-answer-card");
+    assert.match(correct.text, /2 votes/u);
+    assert.equal(standings.className, "result-card-list standings-list");
+    assert.match(standings.text, /\+3/u);
+    assert.match(standings.text, /-1/u);
+    assert.match(standings.text, /4 points/u);
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
 });

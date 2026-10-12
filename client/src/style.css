@@ -406,18 +406,6 @@ button:focus-visible {
   text-align: left;
 }
 
-.bruh-result-answer {
-  display: grid;
-  justify-items: start;
-  gap: 4px;
-  min-width: 0;
-}
-
-.bruh-result-answer p {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
 .vote-option {
   cursor: pointer;
   transition: border-color 120ms ease, background-color 120ms ease;
@@ -560,6 +548,10 @@ button:focus-visible {
   grid-template-columns: 48px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
+}
+
+.round-points-card {
+  grid-template-columns: 48px minmax(0, 1fr) auto;
 }
 
 .standing-name {
@@ -797,6 +789,10 @@ button:focus-visible {
     grid-template-columns: 32px minmax(0, 1fr) auto auto;
     gap: 6px;
     padding: 12px;
+  }
+
+  .round-points-card {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
   }
 
   .answer-card-main-row {

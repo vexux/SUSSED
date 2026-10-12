@@ -1,3 +1,19 @@
+import {
+  appendContinueReadiness,
+  appendGameHeader,
+  appendWinnerPresentation,
+  createAnswerResultCard,
+  createPointRows,
+  createQuestionText,
+  createStandingsList,
+  createStatusMessage,
+  createSubmissionForm,
+  createSubmissionProgress,
+  createVoteProgress,
+  createVotingForm,
+  replaceProgressChipList,
+} from "../ui/gamePresentation.ts";
+
 export interface BruhWtfPublicState {
   phase: "answer-submission" | "voting" | "waiting-for-results" | "results";
   currentRound: number;
@@ -78,12 +94,13 @@ export function updateBruhSubmissionProgress(
   const current = publicState.submissionProgress?.find(({ playerId }) => playerId === currentPlayerId);
   if (!progress || !list || !current) return false;
   progress.textContent = `${publicState.submissionCount} of ${publicState.playerCount} answers submitted`;
-  list.replaceChildren();
-  for (const player of publicState.submissionProgress ?? []) {
-    const item = document.createElement("li");
-    item.className = player.submitted ? "progress-chip progress-chip-done" : "progress-chip";
-    item.textContent = `${player.name} · ${player.submitted ? "Submitted" : "Waiting"}`;
-    list.append(item);
+  replaceProgressChipList(list, publicState.submissionProgress ?? [], (player) => {
+    const status = player.submitted ? "Submitted" : "Waiting";
+    return player.playerId === currentPlayerId ? `You · ${status}` : `${player.name} · ${status}`;
+  });
+  for (const item of Array.from(list.children)) {
+    const player = publicState.submissionProgress?.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
+    if (player?.submitted) item.classList.add("progress-chip-done");
   }
   return !current.submitted;
 }
@@ -95,9 +112,20 @@ export function updateBruhVoteProgress(
 ): boolean {
   if (!isBruhWtfPublicState(publicState) || publicState.phase !== "voting") return false;
   const progress = root.querySelector<HTMLElement>(".bruh-vote-progress");
+  const list = root.querySelector<HTMLUListElement>(".bruh-vote-player-list");
   const current = publicState.voteProgress?.find(({ playerId }) => playerId === currentPlayerId);
   if (!progress || !current) return false;
   progress.textContent = `${publicState.voteCount ?? 0} of ${publicState.playerCount} players voted`;
+  if (list) {
+    replaceProgressChipList(list, publicState.voteProgress ?? [], (player) => {
+      const label = player.voted ? "Voted" : "Waiting";
+      return player.playerId === currentPlayerId ? `You · ${label}` : `${player.name} · ${label}`;
+    });
+    for (const item of Array.from(list.children)) {
+      const player = publicState.voteProgress?.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
+      if (player?.voted) item.classList.add("progress-chip-done");
+    }
+  }
   return !current.voted;
 }
 
@@ -126,131 +154,130 @@ export function renderBruhWtfGame(
     return screen;
   }
   const state = value;
-  screen.append(
-    element("p", "screen-description", gameDisplayName),
-    element("h1", undefined, state.phase === "voting" ? "Voting Round" : state.phase === "results" ? "Round results" : "Bruh wtf?"),
-    element("p", "round-counter", `Round ${state.currentRound} of ${state.totalRounds}`),
-    element("p", "question-text", state.phase === "results" && state.results ? state.results.prompt : state.prompt),
-  );
+  const isFinalRound = state.currentRound === state.totalRounds;
+  const phaseTitle = state.phase === "voting"
+    ? "Voting Round"
+    : state.phase === "waiting-for-results"
+      ? "All votes are in"
+      : state.phase === "results"
+        ? isFinalRound ? "Final results" : "Round results"
+        : "Question";
+  appendGameHeader(screen, gameDisplayName, phaseTitle, state.currentRound, state.totalRounds);
+  screen.append(createQuestionText(state.phase === "results" && state.results ? state.results.prompt : state.prompt));
 
   if (state.phase === "answer-submission") {
     const submitted = state.submissionProgress?.some(({ playerId, submitted: done }) => playerId === view.currentPlayerId && done) === true;
-    const progress = element("p", "bruh-submission-progress submission-progress");
-    progress.setAttribute("aria-live", "polite");
-    const list = element("ul", "bruh-submission-player-list submission-player-list progress-chip-list");
+    const [progress, list] = createSubmissionProgress(state.submissionCount ?? 0, state.playerCount, state.submissionProgress ?? [], view.currentPlayerId);
+    list.classList.add("bruh-submission-player-list");
     screen.append(progress, list);
     updateBruhSubmissionProgress(screen, state, view.currentPlayerId);
     if (submitted) {
-      screen.append(element("p", "status-message", "Answer submitted. Waiting for the other players."));
+      const waitingCount = state.playerCount - (state.submissionCount ?? 0);
+      screen.append(createStatusMessage(waitingCount > 0
+        ? `Answer submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}.`
+        : "Answer submitted. Preparing the answers…"));
     } else {
-      screen.append(element("p", "status-message", "Write an answer and submit when you’re ready."));
-      const form = element("form", "submission-form");
-      const label = element("label", "field-label", "Your answer");
-      label.htmlFor = "bruh-answer";
-      const input = element("input", "text-input");
-      input.id = "bruh-answer";
-      input.name = "answer";
-      input.type = "text";
-      input.maxLength = 160;
-      input.required = true;
-      input.autocomplete = "off";
-      input.value = view.answerDraft;
-      input.disabled = view.isSubmitting;
-      input.addEventListener("input", () => onDraftChange(input.value));
-      const button = element("button", "primary-button", view.isSubmitting ? "Submitting…" : "Submit");
-      button.type = "submit";
-      button.disabled = view.isSubmitting;
-      form.append(label, input, button);
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        onSubmit(input.value);
-      });
-      screen.append(form);
-      if (view.submitError) screen.append(element("p", "error-message", view.submitError));
+      screen.append(createStatusMessage("Submit your answer when you’re ready."));
+      if (view.submitError) {
+        const error = createStatusMessage(view.submitError, "error-message");
+        error.setAttribute("role", "alert");
+        screen.append(error);
+      }
+      screen.append(createSubmissionForm({
+        inputId: "bruh-answer",
+        inputName: "answer",
+        label: "Your answer",
+        draft: view.answerDraft,
+        isSubmitting: view.isSubmitting,
+        onSubmit,
+        onDraftChange,
+      }));
     }
   } else if (state.phase === "voting") {
     const viewerVoted = view.hasVoted || state.voteProgress?.some(({ playerId, voted }) => playerId === view.currentPlayerId && voted) === true;
-    screen.append(element("p", "screen-description", "Answers are anonymous. Choose another player’s answer."));
-    const form = element("form", "vote-form");
-    let voteButton: HTMLButtonElement | null = null;
-    let selectedOptionId = view.selectedOptionId;
-    for (const option of state.options ?? []) {
-      const label = element("label", "vote-option");
-      const input = element("input");
-      input.type = "radio";
-      input.name = "bruh-vote";
-      input.value = option.id;
-      input.checked = view.selectedOptionId === option.id;
-      input.disabled = view.isVoting || viewerVoted;
-      if (option.isOwnAnswer) {
-        input.setAttribute("aria-disabled", "true");
-        input.tabIndex = -1;
-        input.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        });
-        input.addEventListener("keydown", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        });
-      } else {
-        input.addEventListener("change", () => {
-          selectedOptionId = option.id;
-          onSelectVote(option.id);
-          if (voteButton) voteButton.disabled = view.isVoting || viewerVoted;
-        });
-      }
-      label.append(input, element("span", undefined, option.completion));
-      form.append(label);
+    screen.append(createStatusMessage("Answers are anonymous. Choose another player’s answer.", "screen-description"));
+    const voteProgress = createVoteProgress(state.voteCount ?? 0, state.playerCount, state.voteProgress ?? [], view.currentPlayerId);
+    voteProgress[0].classList.add("bruh-vote-progress");
+    voteProgress[1].classList.add("bruh-vote-player-list");
+    if (viewerVoted) {
+      screen.append(...voteProgress);
+      const waitingCount = state.playerCount - (state.voteCount ?? 0);
+      screen.append(createStatusMessage(waitingCount > 0
+        ? `Vote submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}…`
+        : "Vote submitted. Preparing results…", "status-message vote-accepted"));
+    } else {
+      screen.append(createVotingForm({
+        answers: state.options ?? [],
+        selectedOptionId: view.selectedOptionId,
+        isSubmitting: view.isVoting,
+        radioName: "bruh-vote",
+        onSelect: onSelectVote,
+        onSubmit: onVote,
+      }));
+      screen.append(...voteProgress);
     }
-    voteButton = element("button", "primary-button", viewerVoted ? "Vote submitted" : view.isVoting ? "Submitting…" : "Submit");
-    voteButton.type = "submit";
-    voteButton.disabled = view.isVoting || viewerVoted || !view.selectedOptionId;
-    form.append(voteButton);
-    form.addEventListener("submit", (event) => { event.preventDefault(); if (selectedOptionId) onVote(selectedOptionId); });
-    screen.append(form);
-    const progress = element("p", "vote-progress bruh-vote-progress", `${state.voteCount ?? 0} of ${state.playerCount} players voted`);
-    screen.append(progress);
     if (view.voteError) {
-      const error = element("p", "error-message", view.voteError);
+      const error = createStatusMessage(view.voteError, "error-message");
       error.setAttribute("role", "alert");
       screen.append(error);
     }
   } else if (state.phase === "waiting-for-results") {
-    screen.append(element("p", "status-message", "All votes are in. Preparing results…"));
-    screen.append(element("p", "vote-progress", `${state.voteCount ?? 0} of ${state.playerCount} players voted`));
+    screen.append(createStatusMessage("Waiting for results.", "screen-description"));
+    screen.append(...createVoteProgress(state.voteCount ?? 0, state.playerCount, state.voteProgress ?? [], view.currentPlayerId));
   } else if (state.results) {
     const results = state.results;
-    if (results.winners) {
-      screen.append(element("h2", undefined, results.winners.length === 1 ? `Winner: ${results.winners[0].name}` : `Tied winners: ${results.winners.map(({ name }) => name).join(", ")}`));
+    if (isFinalRound && isSessionFinished && results.winners) {
+      const winnerScores = results.leaderboard.filter(({ playerId }) => results.winners?.some((winner) => winner.playerId === playerId));
+      appendWinnerPresentation(screen, results.winners.map(({ name }) => name), `${winnerScores[0]?.score ?? 0} points`);
     }
-    const answers = element("ul", "revealed-options");
+    const answersHeading = element("h2", "results-section-heading", "Answers");
+    const answers = element("ul", "result-card-list");
     for (const answer of results.answers) {
-      const item = element("li", "bruh-result-answer");
-      item.append(
-        element("p", undefined, answer.completion),
-        element("p", "screen-description", `By ${answer.authorName} · ${answer.voteCount} vote${answer.voteCount === 1 ? "" : "s"} · +${answer.pointsAwarded} points`),
-        element("p", "screen-description", answer.voterNames.length ? `Voted by: ${answer.voterNames.join(", ")}` : "No votes"),
-      );
-      answers.append(item);
+      answers.append(createAnswerResultCard({
+        completion: answer.completion,
+        authorName: answer.authorName,
+        voteCount: answer.voteCount,
+        voterNames: answer.voterNames,
+        voterPrefix: "Voted by",
+        noVotesText: "No votes",
+        pointsAwarded: answer.pointsAwarded,
+      }));
     }
-    screen.append(element("h2", undefined, "Answers"), answers, element("h2", undefined, "Round points"));
-    for (const player of results.roundScores) screen.append(element("p", "status-message", `${player.name}: +${player.pointsEarned}`));
-    screen.append(element("h2", undefined, "Leaderboard"));
-    for (const player of results.leaderboard) screen.append(element("p", "status-message", `${player.rank}. ${player.name} — ${player.score}`));
-    if (!results.winners) {
-      const continueButton = element("button", "primary-button", view.isContinuing ? "Waiting…" : view.continueError ?? (state.continueReadyCount ? "Ready to continue" : "Continue"));
-      continueButton.disabled = view.isContinuing || state.viewerReadyToContinue === true;
-      continueButton.addEventListener("click", onContinue);
-      screen.append(continueButton, element("p", "continue-progress", `${state.continueReadyCount ?? 0} of ${state.continuePlayerCount ?? state.playerCount} players ready`));
-      for (const player of state.continueProgress ?? []) screen.append(element("p", "status-message", `${player.name}: ${player.ready ? "Ready" : "Waiting"}`));
+    screen.append(answersHeading, answers);
+    const rankByPlayer = new Map(results.leaderboard.map(({ playerId, rank }) => [playerId, rank]));
+    const roundScoresByPlayer = new Map(results.roundScores.map((row) => [row.playerId, row]));
+    const rankedRoundScores = results.leaderboard.map(({ playerId, name }) => ({
+      playerId,
+      name,
+      pointsEarned: roundScoresByPlayer.get(playerId)?.pointsEarned ?? 0,
+    }));
+    screen.append(element("h2", "results-section-heading", "Round points"), createPointRows(rankedRoundScores, rankByPlayer));
+    const presentationStandings = results.leaderboard.map(({ playerId, name, score, rank }) => ({ playerId, name, totalScore: score, rank }));
+    screen.append(element("h2", "results-section-heading", isFinalRound ? "Final leaderboard" : "Current leaderboard"), createStandingsList(presentationStandings, { className: isFinalRound ? "final-leaderboard" : undefined }));
+    if (!isFinalRound) {
+      appendContinueReadiness({
+        screen,
+        readyCount: state.continueReadyCount ?? 0,
+        playerCount: state.continuePlayerCount ?? state.playerCount,
+        players: state.continueProgress ?? [],
+        viewerReady: state.viewerReadyToContinue === true,
+        isContinuing: view.isContinuing,
+        onContinue,
+        error: view.continueError,
+      });
     }
     if (isSessionFinished && view.isHost) {
-      const returnButton = element("button", "secondary-button", view.isReturningToLobby ? "Returning…" : "Return to Lobby");
+      const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to lobby");
       returnButton.disabled = view.isReturningToLobby;
       returnButton.addEventListener("click", onReturnToLobby);
       screen.append(returnButton);
-      if (view.returnToLobbyError) screen.append(element("p", "error-message", view.returnToLobbyError));
+    } else if (isSessionFinished) {
+      screen.append(createStatusMessage("Waiting for the host to return everyone to the lobby…"));
+    }
+    if (view.returnToLobbyError) {
+      const error = createStatusMessage(view.returnToLobbyError, "error-message");
+      error.setAttribute("role", "alert");
+      screen.append(error);
     }
   }
   return screen;

@@ -11,7 +11,9 @@ function withFakeDocument(run) {
   const original = globalThis.document;
   globalThis.document = {
     createElement() {
-      return { dataset: {}, append() {} };
+      const item = { dataset: {}, className: "", append() {} };
+      item.classList = { add(...names) { item.className = [...new Set(`${item.className} ${names.join(" ")}`.trim().split(/\s+/u))].join(" "); } };
+      return item;
     },
   };
   try {
@@ -28,12 +30,19 @@ class FakeElement {
     this.children = [];
     this.attributes = {};
     this.listeners = {};
+    this.dataset = {};
     this.textContent = "";
     this.className = "";
     this.disabled = false;
     this.tabIndex = 0;
+    this.classList = {
+      add: (...names) => {
+        this.className = [...new Set(`${this.className} ${names.join(" ")}`.trim().split(/\s+/u))].join(" ");
+      },
+    };
   }
   append(...children) { this.children.push(...children); }
+  replaceChildren(...children) { this.children = children; }
   addEventListener(type, listener) { this.listeners[type] = listener; }
   setAttribute(name, value) { this.attributes[name] = value; }
   dispatch(type, event = {}) { this.listeners[type]?.({ preventDefault() {}, stopPropagation() {}, ...event }); }
@@ -41,6 +50,12 @@ class FakeElement {
   query(selector) {
     const found = this.children.find((child) => selector(child));
     return found ?? this.children.map((child) => child.query(selector)).find(Boolean) ?? null;
+  }
+  queryAll(selector) {
+    return [
+      ...this.children.filter(selector),
+      ...this.children.flatMap((child) => child.queryAll(selector)),
+    ];
   }
 }
 
@@ -87,6 +102,7 @@ test("Bruh wtf remote submission progress retains an unsubmitted answer input", 
     const list = {
       replaceChildren() { chips.length = 0; },
       append(item) { chips.push(item); },
+      get children() { return chips; },
     };
     const input = {
       value: "unfinished thought",
@@ -128,8 +144,23 @@ test("Bruh wtf remote submission progress retains an unsubmitted answer input", 
 });
 
 test("Bruh wtf vote progress updates in place until the local vote is acknowledged", () => {
+  withFakeElements(() => {
   const progress = { textContent: "" };
-  const root = { querySelector: () => progress };
+  const input = { checked: true, value: "selected-option" };
+  const chips = [];
+  const list = {
+    replaceChildren() { chips.length = 0; },
+    append(item) { chips.push(item); },
+    get children() { return chips; },
+  };
+  const root = {
+    querySelector(selector) {
+      if (selector === ".bruh-vote-progress") return progress;
+      if (selector === ".bruh-vote-player-list") return list;
+      if (selector === "#selected-option") return input;
+      return null;
+    },
+  };
   const state = {
     phase: "voting",
     currentRound: 1,
@@ -145,8 +176,94 @@ test("Bruh wtf vote progress updates in place until the local vote is acknowledg
   };
   assert.equal(updateBruhVoteProgress(root, state, "local"), true);
   assert.equal(progress.textContent, "1 of 2 players voted");
+  assert.equal(chips.length, 2);
+  assert.equal(root.querySelector("#selected-option"), input);
+  assert.equal(input.checked, true);
   state.voteProgress[0].voted = true;
   assert.equal(updateBruhVoteProgress(root, state, "local"), false);
+  });
+});
+
+test("Bruh results use shared answer cards, round-points rows, leaderboard, and continue readiness", () => {
+  withFakeElements(() => {
+    const state = {
+      phase: "results",
+      currentRound: 2,
+      totalRounds: 5,
+      roundId: "round-2",
+      prompt: "What would Alex do?",
+      playerCount: 3,
+      continueReadyCount: 1,
+      continuePlayerCount: 3,
+      viewerReadyToContinue: false,
+      continueProgress: [
+        { playerId: "local", name: "Alex", ready: true },
+        { playerId: "p2", name: "Sam", ready: false },
+        { playerId: "p3", name: "Riley", ready: false },
+      ],
+      results: {
+        prompt: "What would Alex do?",
+        answers: [
+          { completion: "a long answer ".repeat(10), authorId: "local", authorName: "Alex", voterNames: ["Sam"], voteCount: 1, pointsAwarded: 1 },
+          { completion: "second answer", authorId: "p2", authorName: "Sam", voterNames: [], voteCount: 0, pointsAwarded: 0 },
+          { completion: "third answer", authorId: "p3", authorName: "Riley", voterNames: ["Alex", "Riley"], voteCount: 2, pointsAwarded: 2 },
+        ],
+        roundScores: [
+          { playerId: "local", name: "Alex", pointsEarned: 1 },
+          { playerId: "p2", name: "Sam", pointsEarned: 0 },
+          { playerId: "p3", name: "Riley", pointsEarned: 2 },
+        ],
+        leaderboard: [
+          { playerId: "p3", name: "Riley", score: 4, rank: 1 },
+          { playerId: "local", name: "Alex", score: 2, rank: 2 },
+          { playerId: "p2", name: "Sam", score: 1, rank: 3 },
+        ],
+      },
+    };
+    const root = renderBruhWtfGame(state, {
+      currentPlayerId: "local", answerDraft: "", isSubmitting: false, submitError: null,
+      selectedOptionId: null, hasVoted: false, isVoting: false, voteError: null,
+      isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null,
+    }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", false);
+    assert.equal(root.queryAll((node) => node.className.split(" ").includes("result-card")).length, 9);
+    assert.match(root.text, /Alex\|/u);
+    assert.match(root.text, /Voted by: Sam/u);
+    assert.match(root.text, /\+2 points this round/u);
+    assert.match(root.text, /Round points/u);
+    assert.match(root.text, /Current leaderboard/u);
+    assert.match(root.text, /1 \/ 3 players ready to continue/u);
+    assert.match(root.text, /Alex.*Ready/u);
+    assert.equal(root.query((node) => node.className.includes("round-points-card")).className.includes("standing-card"), true);
+  });
+});
+
+test("Bruh final results share winner and final leaderboard presentation", () => {
+  withFakeElements(() => {
+    const root = renderBruhWtfGame({
+      phase: "results", currentRound: 5, totalRounds: 5, roundId: "final", prompt: "Final prompt", playerCount: 3,
+      results: {
+        answers: [], roundScores: [],
+        leaderboard: [
+          { playerId: "p1", name: "Alex", score: 8, rank: 1 },
+          { playerId: "p2", name: "Sam", score: 8, rank: 1 },
+          { playerId: "p3", name: "Riley", score: 4, rank: 3 },
+        ],
+        winners: [{ playerId: "p1", name: "Alex" }, { playerId: "p2", name: "Sam" }],
+      },
+    }, {
+      currentPlayerId: "p1", answerDraft: "", isSubmitting: false, submitError: null,
+      selectedOptionId: null, hasVoted: false, isVoting: false, voteError: null,
+      isContinuing: false, continueError: null, isHost: true,
+      isReturningToLobby: false, returnToLobbyError: null,
+    }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true);
+    assert.match(root.text, /Final results/u);
+    assert.match(root.text, /It's a tie!/u);
+    assert.match(root.text, /Alex, Sam/u);
+    assert.match(root.text, /Final leaderboard/u);
+    assert.match(root.text, /Return to lobby/u);
+    assert.doesNotMatch(root.text, /Correct Answer|Bluff answers/u);
+  });
 });
 
 test("Bruh wtf voting matches Fact-or-Cap labels and shows own answer in the same non-selectable radio style", () => {
