@@ -7,6 +7,7 @@
     "dev": "node --watch server.js",
     "test": "node --test",
     "validate:questions": "node games/fake-answer/scripts/validate-question-pack.js",
+    "validate:bruh-wtf": "node games/bruh-wtf/validate-question-pack.js",
     "validate:canonical": "node games/fake-answer/scripts/validate-canonical-content.js",
     "validate:migration": "node games/fake-answer/scripts/validate-migration-manifest.js",
     "report:content-readiness": "node games/fake-answer/scripts/report-content-readiness.js",

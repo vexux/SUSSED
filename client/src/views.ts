@@ -3,6 +3,10 @@ import {
   renderFakeAnswerGame,
   type FakeAnswerViewState,
 } from "./games/fakeAnswer";
+import {
+  renderBruhWtfGame,
+  type BruhWtfViewState,
+} from "./games/bruhWtf";
 
 export interface AppActions {
   onPlayerNameChange(name: string): void;
@@ -14,6 +18,11 @@ export interface AppActions {
   onSelectRoundCount(roundCount: 5 | 7 | 10, revision: number): void;
   onStartGame(): void;
   onSubmitFakeAnswer(completion: string): void;
+  onSubmitBruhAnswer(answer: string): void;
+  onBruhAnswerDraftChange(answer: string): void;
+  onSelectBruhVote(optionId: string): void;
+  onVoteBruhWtf(optionId: string): void;
+  onContinueBruhWtf(): void;
   onSelectVote(optionId: string): void;
   onVoteFakeAnswer(optionId: string): void;
   onContinueFakeAnswer(): void;
@@ -317,6 +326,7 @@ function renderGame(
   state: AppState,
   actions: AppActions,
   submission: FakeAnswerViewState,
+  bruhWtfSubmission: BruhWtfViewState,
 ): HTMLElement {
   const game = state.game;
   if (!game) {
@@ -343,6 +353,19 @@ function renderGame(
         game.status === "finished",
         actions.onDismissRoundFeedback,
       );
+    case "bruh-wtf":
+      return renderBruhWtfGame(
+        game.state,
+        bruhWtfSubmission,
+        actions.onSubmitBruhAnswer,
+        actions.onBruhAnswerDraftChange,
+        actions.onSelectBruhVote,
+        actions.onVoteBruhWtf,
+        actions.onContinueBruhWtf,
+        actions.onReturnToLobby,
+        game.displayName,
+        game.status === "finished",
+      );
     default: {
       const screen = createElement("section", "app-screen starting-screen");
       screen.append(
@@ -359,6 +382,7 @@ export function renderApp(
   state: AppState,
   actions: AppActions,
   fakeAnswerSubmission: FakeAnswerViewState,
+  bruhWtfSubmission: BruhWtfViewState,
 ): void {
   const shell = createElement("main", "app-shell");
   shell.append(createHeader(state));
@@ -366,7 +390,7 @@ export function renderApp(
     state.currentView === "starting"
       ? renderStarting(state)
       : state.currentView === "game"
-        ? renderGame(state, actions, fakeAnswerSubmission)
+        ? renderGame(state, actions, fakeAnswerSubmission, bruhWtfSubmission)
         : state.currentView === "lobby"
         ? renderLobby(state, actions)
         : renderHome(state, actions),

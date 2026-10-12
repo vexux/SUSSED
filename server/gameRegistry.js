@@ -1,9 +1,11 @@
 const factOrCap = require("./games/fake-answer/game");
 const factOrCapAnime = require("./games/fake-answer/anime");
+const bruhWtf = require("./games/bruh-wtf/game");
 
 const games = new Map([
     [factOrCap.id, factOrCap],
-    [factOrCapAnime.id, factOrCapAnime]
+    [factOrCapAnime.id, factOrCapAnime],
+    [bruhWtf.id, bruhWtf]
 ]);
 
 function get(gameId) {

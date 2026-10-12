@@ -158,7 +158,8 @@ test("registry resolves the fake-answer implementation by its game ID", () => {
 test("both registered identities share the same engine and use isolated question banks", () => {
     assert.deepEqual(gameRegistry.list().map(({ id, displayName }) => ({ id, displayName })), [
         { id: "fact-or-cap", displayName: "Fact or Cap" },
-        { id: "fact-or-cap-anime", displayName: "Fact or Cap (Anime)" }
+        { id: "fact-or-cap-anime", displayName: "Fact or Cap (Anime)" },
+        { id: "bruh-wtf", displayName: "Bruh wtf?" }
     ]);
     assert.equal(factOrCapAnime.createInitialState, fakeAnswer.createInitialState);
     assert.equal(factOrCapAnime.handleAction, fakeAnswer.handleAction);

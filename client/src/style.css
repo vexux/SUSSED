@@ -406,6 +406,18 @@ button:focus-visible {
   text-align: left;
 }
 
+.bruh-result-answer {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bruh-result-answer p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .vote-option {
   cursor: pointer;
   transition: border-color 120ms ease, background-color 120ms ease;

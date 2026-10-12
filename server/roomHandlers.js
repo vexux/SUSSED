@@ -1,6 +1,7 @@
 const roomManager = require("./roomManager");
 const gameManager = require("./gameManager");
 const fakeAnswerSocketHandlers = require("./games/fake-answer/socketHandlers");
+const bruhWtfSocketHandlers = require("./games/bruh-wtf/socketHandlers");
 
 function isRecord(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -34,6 +35,7 @@ function isAcknowledgement(value) {
 
 function registerRoomHandlers(io, socket) {
     fakeAnswerSocketHandlers.registerSocketHandlers(io, socket);
+    bruhWtfSocketHandlers.registerSocketHandlers(io, socket);
 
     socket.on("create-room", async (payload, acknowledge) => {
         const isLegacyCall = typeof payload === "function";
