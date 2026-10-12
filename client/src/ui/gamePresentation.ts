@@ -359,8 +359,16 @@ export function appendWinnerPresentation(
   winnerNames: string[],
   scoreText: string,
 ): void {
+  const card = document.createElement("section");
+  card.className = "final-winner-card";
+  card.setAttribute("aria-labelledby", "final-winner-heading");
+  const trophy = document.createElement("span");
+  trophy.className = "final-winner-trophy";
+  trophy.setAttribute("aria-hidden", "true");
+  trophy.textContent = "🏆";
   const heading = document.createElement("h2");
   heading.className = "final-winner-heading";
+  heading.id = "final-winner-heading";
   heading.textContent = winnerNames.length > 1 ? "It's a tie!" : "Winner";
   const names = document.createElement("p");
   names.className = "final-winner-names";
@@ -368,5 +376,6 @@ export function appendWinnerPresentation(
   const score = document.createElement("p");
   score.className = "final-winner-scores";
   score.textContent = scoreText;
-  screen.append(heading, names, score);
+  card.append(trophy, heading, names, score);
+  screen.append(card);
 }

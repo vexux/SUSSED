@@ -568,13 +568,11 @@ function appendRoundFeedback(
 function createFinalResultsScreen(
   publicState: FakeAnswerPublicState,
   submission: FakeAnswerViewState,
-  gameDisplayName: string,
   onReturnToLobby: () => void,
   onDismissFeedback: () => void,
 ): HTMLElement {
   const screen = document.createElement("section");
   screen.className = "app-screen question-screen final-results-screen";
-  appendGameHeader(screen, gameDisplayName, "Final results", publicState.currentRound, publicState.totalRounds);
 
   const results = publicState.results;
   if (!results || !publicState.finalStatistics) {
@@ -677,7 +675,6 @@ export function renderFakeAnswerGame(
     return createFinalResultsScreen(
       publicState,
       submission,
-      gameDisplayName,
       onReturnToLobby,
       onDismissFeedback,
     );
