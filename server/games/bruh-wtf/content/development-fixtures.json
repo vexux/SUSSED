@@ -3,16 +3,16 @@
   "contentPackId": "bruh-wtf-development-fixtures",
   "packType": "development-fixture",
   "questions": [
-    { "id": "dev-wish", "prompt": "What would {{player1}} do if they got one wish granted?", "requiredPlayers": 1, "category": "what-if", "tags": ["single-player"], "contentPackId": "bruh-wtf-development-fixtures" },
-    { "id": "dev-band-name", "prompt": "What would {{player1}} and {{player2}} name their music band?", "requiredPlayers": 2, "category": "creative", "tags": ["duo"], "contentPackId": "bruh-wtf-development-fixtures" },
-    { "id": "dev-rizz", "prompt": "How would {{player1}} try to rizz someone up?", "requiredPlayers": 1, "category": "social", "tags": ["single-player"], "contentPackId": "bruh-wtf-development-fixtures" },
-    { "id": "dev-comeback", "prompt": "What would {{player1}} say if someone tried to rizz them up?", "requiredPlayers": 1, "category": "social", "tags": ["single-player"], "contentPackId": "bruh-wtf-development-fixtures" },
-    { "id": "dev-road-trip", "prompt": "What would {{player1}} and {{player2}} absolutely forget on a road trip?", "requiredPlayers": 2, "category": "what-if", "tags": ["duo"], "contentPackId": "bruh-wtf-development-fixtures" },
-    { "id": "dev-superpower", "prompt": "What extremely inconvenient superpower would {{player1}} have?", "requiredPlayers": 1, "category": "creative", "tags": ["single-player"], "contentPackId": "bruh-wtf-development-fixtures" },
-    { "id": "dev-heist", "prompt": "What would {{player1}}, {{player2}}, and {{player3}} each bring to a very questionable heist?", "requiredPlayers": 3, "category": "what-if", "tags": ["group"], "contentPackId": "bruh-wtf-development-fixtures" },
-    { "id": "dev-talent-show", "prompt": "What talent would {{player1}} claim to have at a talent show?", "requiredPlayers": 1, "category": "creative", "tags": ["single-player"], "contentPackId": "bruh-wtf-development-fixtures" },
-    { "id": "dev-startup", "prompt": "What terrible startup idea would {{player1}} and {{player2}} pitch?", "requiredPlayers": 2, "category": "creative", "tags": ["duo"], "contentPackId": "bruh-wtf-development-fixtures" },
-    { "id": "dev-alien", "prompt": "What would {{player1}} try to explain to an alien first?", "requiredPlayers": 1, "category": "what-if", "tags": ["single-player"], "contentPackId": "bruh-wtf-development-fixtures" },
-    { "id": "dev-emergency-kit", "prompt": "What would {{player1}} put in an emergency kit that absolutely does not belong there?", "requiredPlayers": 1, "category": "creative", "tags": ["single-player"], "contentPackId": "bruh-wtf-development-fixtures" }
+    { "id": "dev-wish", "prompt": "What would {{player1}} do if they got one wish granted?", "requiredPlayers": 1, "category": "absurd-hypotheticals", "tags": ["target-one"], "contentPackId": "bruh-wtf-development-fixtures" },
+    { "id": "dev-band-name", "prompt": "What would {{player1}} and {{player2}} name their music band?", "requiredPlayers": 2, "category": "creative-chaos", "tags": ["target-pair"], "contentPackId": "bruh-wtf-development-fixtures" },
+    { "id": "dev-rizz", "prompt": "How would {{player1}} try to rizz someone up?", "requiredPlayers": 1, "category": "social-flirting", "tags": ["target-one", "tone-flirty"], "contentPackId": "bruh-wtf-development-fixtures" },
+    { "id": "dev-comeback", "prompt": "What would {{player1}} say if someone tried to rizz them up?", "requiredPlayers": 1, "category": "social-flirting", "tags": ["target-one", "tone-flirty"], "contentPackId": "bruh-wtf-development-fixtures" },
+    { "id": "dev-road-trip", "prompt": "What would {{player1}} and {{player2}} absolutely forget on a road trip?", "requiredPlayers": 2, "category": "ordinary-life", "tags": ["target-pair"], "contentPackId": "bruh-wtf-development-fixtures" },
+    { "id": "dev-superpower", "prompt": "What extremely inconvenient superpower would {{player1}} have?", "requiredPlayers": 1, "category": "fantasy-roles", "tags": ["target-one"], "contentPackId": "bruh-wtf-development-fixtures" },
+    { "id": "dev-heist", "prompt": "What would {{player1}}, {{player2}}, and {{player3}} each bring to a very questionable heist?", "requiredPlayers": 3, "category": "group-chaos", "tags": ["target-group", "tone-chaotic"], "contentPackId": "bruh-wtf-development-fixtures" },
+    { "id": "dev-talent-show", "prompt": "What talent would {{player1}} claim to have at a talent show?", "requiredPlayers": 1, "category": "competition", "tags": ["target-one"], "contentPackId": "bruh-wtf-development-fixtures" },
+    { "id": "dev-startup", "prompt": "What terrible startup idea would {{player1}} and {{player2}} pitch?", "requiredPlayers": 2, "category": "work-life", "tags": ["target-pair"], "contentPackId": "bruh-wtf-development-fixtures" },
+    { "id": "dev-alien", "prompt": "What would {{player1}} try to explain to an alien first?", "requiredPlayers": 1, "category": "fictional-worlds", "tags": ["target-one"], "contentPackId": "bruh-wtf-development-fixtures" },
+    { "id": "dev-emergency-kit", "prompt": "What would {{player1}} put in an emergency kit that absolutely does not belong there?", "requiredPlayers": 1, "category": "survival-missions", "tags": ["target-one"], "contentPackId": "bruh-wtf-development-fixtures" }
   ]
 }

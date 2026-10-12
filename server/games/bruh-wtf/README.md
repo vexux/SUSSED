@@ -9,25 +9,75 @@ answer's author would be immediately inferable.
 
 ## Prompt-pack format (version 1)
 
-Each JSON pack contains `formatVersion: 1`, a stable `contentPackId`, a
-`packType` (`development-fixture` or `production`), and a `questions` array.
-Each question has a stable `id`, `prompt`, `requiredPlayers` (1–8), `category`,
-optional `tags`, and a `contentPackId` equal to its pack's ID. Placeholder
-tokens are `{{player1}}` through `{{playerN}}`; every slot must appear exactly
-once, with no gaps. The engine assigns slots to distinct roster members and
-rejects an ineligible question before a game starts. IDs, not prompt text,
-identify individual records; normalized prompts are checked for duplicates.
+Version 1 remains the runtime format. A pack contains only `formatVersion`,
+`contentPackId`, `packType` and `questions`. `packType` is either
+`development-fixture` or `production`. Pack IDs and question IDs are stable,
+lowercase kebab-case slugs (`a-z`, `0-9`, and single hyphens). New pack
+filenames should match their pack IDs; the existing development fixture keeps
+its original filename for compatibility. A question contains `id`, `prompt`,
+`requiredPlayers`, `category`, optional `tags`, and `contentPackId`, which must
+equal its pack's ID. Unknown fields are rejected.
 
-The loader validates all packs under `content/` at runtime. Validate a pack
-offline from the `server` directory with:
+`requiredPlayers` is from 1 through 8. `{{player1}}` through
+`{{playerN}}` must each appear exactly once, without gaps, and N must equal
+`requiredPlayers`. The engine assigns distinct roster members and rejects an
+ineligible question. Eight is the maximum number of named placeholders in one
+prompt, not a room-size limit. Expanding it would require an explicit format
+compatibility decision; the current room architecture has no corresponding
+eight-player cap.
+
+Categories are controlled IDs describing the prompt's main subject:
+`absurd-hypotheticals`, `social-flirting`, `friend-roasts`, `creative-chaos`,
+`survival-missions`, `group-chaos`, `ordinary-life`, `fictional-worlds`,
+`confessions`, `adult-humor`, `pop-culture`, `work-life`, `money`,
+`technology`, `mystery`, `competition`, and `fantasy-roles`. Tags are separate
+descriptors: supported values currently cover tone (`tone-absurd`,
+`tone-chaotic`, `tone-flirty`, `tone-roast`, `tone-surreal`,
+`tone-wholesome`), targeting (`target-one`, `target-pair`, `target-group`),
+and content lifecycle (`adult-content`, `trend-dependent`, `evergreen`). Tags
+are metadata; they do not change game behavior or enforce category quotas.
+
+The loader and offline validator use the same structural and cross-pack
+validation. From `server/`, validate one pack or every JSON pack with:
 
 ```sh
-node games/bruh-wtf/validate-question-pack.js games/bruh-wtf/content/development-fixtures.json
+npm run validate:bruh-wtf -- games/bruh-wtf/content/development-fixtures.json
+npm run validate:bruh-wtf -- --all
 ```
 
-The included pack is explicitly a development fixture, not curated or
-production-quality content. Future content authoring and duplicate-review
-guidance is in `research/`.
+Both modes are read-only. All-pack validation checks every file in `content/`,
+including IDs and normalized prompts across packs. The runtime loader applies
+the same rules and refuses an invalid library. The included pack is explicitly
+a development fixture, not curated or production-quality content.
+
+## Text integrity
+
+Prompt validation rejects invalid UTF-8, U+FFFD, common mojibake signatures,
+and likely apostrophe-to-question-mark corruption inside words. Ordinary
+question marks, valid apostrophes (straight or typographic), and other Unicode
+punctuation remain allowed. This deterministic pattern check is intentionally
+narrow: it can miss unfamiliar encoding damage and a suspicious-looking string
+may require human review. It reports the original filename, question ID and
+matched substring; it never repairs text. The strict UTF-8 decoder is also
+used by Fact-or-Cap/Anime pack parsing. The prompt-pattern scan is not enforced
+on the existing Fact-or-Cap/Anime banks: an audit found existing suspicious
+apostrophe substitutions, and enforcing them there would prevent those banks
+from loading without the separately prohibited content repairs. Review those
+findings before enabling fatal pattern checks on those banks.
+
+## Adult content and editorial approval
+
+The `adult-content` tag and `adult-humor` category identify material for
+editorial review; they do not hide it. Current room/game configuration has no
+adult-content opt-in or filtering mechanism. Do not publish adult prompts on
+the assumption that metadata alone makes them opt-in. Add a product-level
+consent and default-exclusion capability before exposing such a production
+pack. Edgy personal humour and harsh roasts are allowed, but prompts must not
+target protected traits with derogatory attacks or require truthful disclosure
+of sensitive personal information.
+
+Editorial guidance, category/template history and batch-audit records live in
+`research/`, outside `content/` so the runtime cannot load them.
 
 ## Round and privacy contract
 
@@ -43,5 +93,5 @@ must continue before the next round. Final winners include all tied leaders.
 
 The 11 prompts in `content/development-fixtures.json` exercise one-, two- and
 three-player substitution, submission and result flows. They are mechanics
-fixtures only and should be replaced or explicitly retained only after editorial
-review.
+fixtures only and should be replaced or explicitly retained only after
+editorial review.

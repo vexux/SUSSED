@@ -1,9 +1,44 @@
 {
   "formatVersion": 1,
   "categories": [
-    { "id": "what-if", "templateFamilies": ["wish scenario", "road-trip mishap", "alien explanation"] },
-    { "id": "creative", "templateFamilies": ["duo band name", "inconvenient superpower", "claimed talent", "bad startup pitch"] },
-    { "id": "social", "templateFamilies": ["flirting attempt", "flirting response"] }
+    { "id": "absurd-hypotheticals", "templateFamilies": [
+      { "id": "wish-scenario", "premise": "A player reacts to receiving one wish", "premiseFingerprint": "player-one-wish-response", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-wish; not production-approved." }
+    ] },
+    { "id": "social-flirting", "templateFamilies": [
+      { "id": "flirting-attempt", "premise": "A player's approach to flirting", "premiseFingerprint": "player-flirting-approach", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-rizz; overlaps with flirting-response in subject, but asks for a different action." },
+      { "id": "flirting-response", "premise": "A player's response to an unwanted or unexpected flirtation", "premiseFingerprint": "player-response-to-flirting", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-comeback; overlaps with flirting-attempt in subject, but asks for a different action." }
+    ] },
+    { "id": "friend-roasts", "templateFamilies": [] },
+    { "id": "creative-chaos", "templateFamilies": [
+      { "id": "duo-band-name", "premise": "Two players invent a band name", "premiseFingerprint": "pair-invents-band-name", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-band-name." }
+    ] },
+    { "id": "survival-missions", "templateFamilies": [
+      { "id": "wrong-emergency-kit-item", "premise": "A player packs an unsuitable item for emergencies", "premiseFingerprint": "player-wrong-emergency-kit-item", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-emergency-kit." }
+    ] },
+    { "id": "group-chaos", "templateFamilies": [
+      { "id": "questionable-heist-loadout", "premise": "Players each bring something to a questionable heist", "premiseFingerprint": "group-questionable-heist-item", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-heist." }
+    ] },
+    { "id": "ordinary-life", "templateFamilies": [
+      { "id": "road-trip-forgotten-item", "premise": "Two players forget something on a road trip", "premiseFingerprint": "pair-forgets-road-trip-item", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-road-trip." }
+    ] },
+    { "id": "fictional-worlds", "templateFamilies": [
+      { "id": "alien-explanation", "premise": "A player explains a human concept to an alien", "premiseFingerprint": "player-explains-humanity-to-alien", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-alien." }
+    ] },
+    { "id": "confessions", "templateFamilies": [] },
+    { "id": "adult-humor", "templateFamilies": [] },
+    { "id": "pop-culture", "templateFamilies": [] },
+    { "id": "work-life", "templateFamilies": [
+      { "id": "terrible-startup-pitch", "premise": "Two players pitch a bad startup idea", "premiseFingerprint": "pair-pitches-bad-startup", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-startup." }
+    ] },
+    { "id": "money", "templateFamilies": [] },
+    { "id": "technology", "templateFamilies": [] },
+    { "id": "mystery", "templateFamilies": [] },
+    { "id": "competition", "templateFamilies": [
+      { "id": "claimed-talent-show", "premise": "A player claims a talent for a show", "premiseFingerprint": "player-claims-talent-show-skill", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-talent-show." }
+    ] },
+    { "id": "fantasy-roles", "templateFamilies": [
+      { "id": "inconvenient-superpower", "premise": "A player gets an inconvenient superpower", "premiseFingerprint": "player-inconvenient-superpower", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-superpower." }
+    ] }
   ],
-  "note": "Editorial planning aid only. Add reviewed production template families here to reduce repetitive batches."
+  "note": "Editorial ledger only. Listed development families are unreviewed mechanics fixtures, not accepted production concepts. Update accepted/rejected IDs through human review; do not infer semantic originality from fingerprints."
 }

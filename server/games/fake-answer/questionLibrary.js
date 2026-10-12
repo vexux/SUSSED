@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const { decodeUtf8 } = require("../../content/textIntegrity");
 
 const DIFFICULTIES = new Set(["easy", "medium", "hard", "extremely-hard"]);
 const QUESTION_FIELDS = new Set([
@@ -29,7 +30,7 @@ function duplicateKey(question) {
 function readPack(filePath) {
     let text;
     try {
-        text = fs.readFileSync(filePath, "utf8");
+        text = decodeUtf8(fs.readFileSync(filePath), filePath);
     } catch (error) {
         throw new Error(`Unable to read question pack "${filePath}": ${error.message}`);
     }
