@@ -184,7 +184,7 @@ test("Bruh wtf vote progress updates in place until the local vote is acknowledg
   });
 });
 
-test("Bruh results use shared answer cards, round-points rows, leaderboard, and continue readiness", () => {
+test("Bruh round results show answer details and authoritative round deltas in tied leaderboard rows", () => {
   withFakeElements(() => {
     const state = {
       phase: "results",
@@ -204,19 +204,19 @@ test("Bruh results use shared answer cards, round-points rows, leaderboard, and 
       results: {
         prompt: "What would Alex do?",
         answers: [
-          { completion: "a long answer ".repeat(10), authorId: "local", authorName: "Alex", voterNames: ["Sam"], voteCount: 1, pointsAwarded: 1 },
-          { completion: "second answer", authorId: "p2", authorName: "Sam", voterNames: [], voteCount: 0, pointsAwarded: 0 },
+          { completion: "a long answer ".repeat(10), authorId: "local", authorName: "Alex", voterNames: [], voteCount: 0, pointsAwarded: 0 },
+          { completion: "second answer", authorId: "p2", authorName: "Sam", voterNames: ["Alex"], voteCount: 1, pointsAwarded: 1 },
           { completion: "third answer", authorId: "p3", authorName: "Riley", voterNames: ["Alex", "Riley"], voteCount: 2, pointsAwarded: 2 },
         ],
         roundScores: [
-          { playerId: "local", name: "Alex", pointsEarned: 1 },
-          { playerId: "p2", name: "Sam", pointsEarned: 0 },
+          { playerId: "local", name: "Alex", pointsEarned: 0 },
+          { playerId: "p2", name: "Sam", pointsEarned: 1 },
           { playerId: "p3", name: "Riley", pointsEarned: 2 },
         ],
         leaderboard: [
           { playerId: "p3", name: "Riley", score: 4, rank: 1 },
-          { playerId: "local", name: "Alex", score: 2, rank: 2 },
-          { playerId: "p2", name: "Sam", score: 1, rank: 3 },
+          { playerId: "local", name: "Alex", score: 4, rank: 1 },
+          { playerId: "p2", name: "Sam", score: 2, rank: 3 },
         ],
       },
     };
@@ -226,24 +226,39 @@ test("Bruh results use shared answer cards, round-points rows, leaderboard, and 
       isContinuing: false, continueError: null, isHost: false,
       isReturningToLobby: false, returnToLobbyError: null,
     }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", false);
-    assert.equal(root.queryAll((node) => node.className.split(" ").includes("result-card")).length, 9);
+    assert.equal(root.queryAll((node) => node.className.split(" ").includes("result-card")).length, 6);
     assert.match(root.text, /Alex\|/u);
-    assert.match(root.text, /Voted by: Sam/u);
-    assert.match(root.text, /\+2 points this round/u);
-    assert.match(root.text, /Round points/u);
+    assert.match(root.text, /Voted by: Alex/u);
+    assert.match(root.text, /1 vote/u);
+    assert.match(root.text, /No votes/u);
+    assert.doesNotMatch(root.text, /points this round/u);
+    assert.doesNotMatch(root.text, /Round points/u);
     assert.match(root.text, /Current leaderboard/u);
     assert.match(root.text, /1 \/ 3 players ready to continue/u);
     assert.match(root.text, /Alex.*Ready/u);
-    assert.equal(root.query((node) => node.className.includes("round-points-card")).className.includes("standing-card"), true);
+    const answerList = root.query((node) => node.tagName === "ul" && node.className.includes("result-card-list"));
+    assert.equal(answerList.children.length, 3);
+    assert.doesNotMatch(answerList.children[0].text, /points this round/u);
+    const leaderboard = root.query((node) => node.tagName === "ol" && node.className.includes("standings-list"));
+    const [first, second, third] = leaderboard.children;
+    assert.deepEqual(first.children.map(({ textContent }) => textContent), ["#1", "Riley", "+2", "4 points"]);
+    assert.equal(first.children[2].className, "standing-round-score standing-round-score-positive");
+    assert.deepEqual(second.children.map(({ textContent }) => textContent), ["#1", "Alex", "+0", "4 points"]);
+    assert.equal(second.children[2].className, "standing-round-score");
+    assert.deepEqual(third.children.map(({ textContent }) => textContent), ["#3", "Sam", "+1", "2 points"]);
+    assert.equal(third.children[2].className, "standing-round-score standing-round-score-positive");
   });
 });
 
-test("Bruh final results share winner and final leaderboard presentation", () => {
+test("Bruh final results omit round content and show tied winners, final leaderboard, and host control", () => {
   withFakeElements(() => {
+    let returnCalls = 0;
     const root = renderBruhWtfGame({
-      phase: "results", currentRound: 5, totalRounds: 5, roundId: "final", prompt: "Final prompt", playerCount: 3,
+      phase: "results", currentRound: 5, totalRounds: 5, roundId: "final", prompt: "Final prompt must not be shown", playerCount: 3,
       results: {
-        answers: [], roundScores: [],
+        prompt: "Final prompt must not be shown",
+        answers: [{ completion: "final answer", authorId: "p1", authorName: "Alex", voterNames: [], voteCount: 0, pointsAwarded: 0 }],
+        roundScores: [{ playerId: "p1", name: "Alex", pointsEarned: 0 }],
         leaderboard: [
           { playerId: "p1", name: "Alex", score: 8, rank: 1 },
           { playerId: "p2", name: "Sam", score: 8, rank: 1 },
@@ -256,13 +271,47 @@ test("Bruh final results share winner and final leaderboard presentation", () =>
       selectedOptionId: null, hasVoted: false, isVoting: false, voteError: null,
       isContinuing: false, continueError: null, isHost: true,
       isReturningToLobby: false, returnToLobbyError: null,
-    }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true);
-    assert.match(root.text, /Final results/u);
+    }, () => {}, () => {}, () => {}, () => {}, () => {}, () => { returnCalls += 1; }, "Bruh wtf?", true);
     assert.match(root.text, /It's a tie!/u);
     assert.match(root.text, /Alex, Sam/u);
     assert.match(root.text, /Final leaderboard/u);
     assert.match(root.text, /Return to lobby/u);
-    assert.doesNotMatch(root.text, /Correct Answer|Bluff answers/u);
+    assert.doesNotMatch(root.text, /Final prompt|Round 5 of 5|Answers|Round points|final answer|points this round/u);
+    assert.equal(root.query((node) => node.tagName === "h1"), null);
+    assert.equal(root.queryAll((node) => node.className.split(" ").includes("result-card")).length, 3);
+    const leaderboard = root.query((node) => node.tagName === "ol" && node.className.includes("final-leaderboard"));
+    assert.deepEqual(leaderboard.children.map((row) => row.children[0].textContent), ["#1", "#1", "#3"]);
+    const returnButton = root.query((node) => node.tagName === "button");
+    returnButton.dispatch("click");
+    assert.equal(returnCalls, 1);
+  });
+});
+
+test("Bruh final results preserve return loading/errors and non-host waiting state", () => {
+  withFakeElements(() => {
+    const state = {
+      phase: "results", currentRound: 5, totalRounds: 5, roundId: "final", prompt: "Hidden prompt", playerCount: 2,
+      results: {
+        prompt: "Hidden prompt", answers: [], roundScores: [],
+        leaderboard: [{ playerId: "p1", name: "Alex", score: 8, rank: 1 }],
+        winners: [{ playerId: "p1", name: "Alex" }],
+      },
+    };
+    const baseView = {
+      currentPlayerId: "p1", answerDraft: "", isSubmitting: false, submitError: null,
+      selectedOptionId: null, hasVoted: false, isVoting: false, voteError: null,
+      isContinuing: false, continueError: null, isHost: true,
+      isReturningToLobby: true, returnToLobbyError: "Return failed",
+    };
+    const host = renderBruhWtfGame(state, baseView, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true);
+    const button = host.query((node) => node.tagName === "button");
+    assert.equal(button.disabled, true);
+    assert.match(button.textContent, /Returning to lobby/u);
+    assert.match(host.text, /Return failed/u);
+
+    const nonHost = renderBruhWtfGame(state, { ...baseView, isHost: false, isReturningToLobby: false, returnToLobbyError: null }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true);
+    assert.equal(nonHost.query((node) => node.tagName === "button"), null);
+    assert.match(nonHost.text, /Waiting for the host/u);
   });
 });
 

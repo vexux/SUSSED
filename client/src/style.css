@@ -528,15 +528,8 @@ button:focus-visible {
   line-height: 1.45;
 }
 
-.result-detail,
-.result-award {
+.result-detail {
   margin: 8px 0 0;
-}
-
-.result-award {
-  color: #d8c0f0;
-  font-size: 0.9rem;
-  font-weight: 650;
 }
 
 .standings-list {
@@ -548,10 +541,6 @@ button:focus-visible {
   grid-template-columns: 48px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
-}
-
-.round-points-card {
-  grid-template-columns: 48px minmax(0, 1fr) auto;
 }
 
 .standing-name {
@@ -789,10 +778,6 @@ button:focus-visible {
     grid-template-columns: 32px minmax(0, 1fr) auto auto;
     gap: 6px;
     padding: 12px;
-  }
-
-  .round-points-card {
-    grid-template-columns: 32px minmax(0, 1fr) auto;
   }
 
   .answer-card-main-row {

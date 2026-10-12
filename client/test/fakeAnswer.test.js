@@ -288,6 +288,14 @@ test("Fact-or-Cap voting renderer retains shared voting labels, option markup, a
     assert.equal(button.disabled, false);
     form.dispatch("submit");
     assert.equal(submitted, "fake-2");
+
+    const animeScreen = renderFakeAnswerGame(
+      publicState, submission, () => {}, () => {}, () => {}, () => {}, () => {},
+      "Fact-or-Cap Anime", false, () => {},
+    );
+    assert.equal(animeScreen.query((node) => node.tagName === "h1").textContent, "Voting Round");
+    assert.match(animeScreen.text, /Fact-or-Cap Anime/u);
+    assert.match(animeScreen.text, /my answer/u);
   } finally {
     if (originalDocument === undefined) delete globalThis.document;
     else globalThis.document = originalDocument;

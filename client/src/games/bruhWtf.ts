@@ -3,7 +3,6 @@ import {
   appendGameHeader,
   appendWinnerPresentation,
   createAnswerResultCard,
-  createPointRows,
   createQuestionText,
   createStandingsList,
   createStatusMessage,
@@ -155,6 +154,39 @@ export function renderBruhWtfGame(
   }
   const state = value;
   const isFinalRound = state.currentRound === state.totalRounds;
+  if (state.phase === "results" && state.results && isFinalRound) {
+    const { results } = state;
+    const winners = results.winners?.length
+      ? results.winners
+      : results.leaderboard.filter(({ rank }) => rank === 1);
+    const winnerScore = results.leaderboard.find(({ playerId }) => playerId === winners[0]?.playerId)?.score ?? 0;
+    appendWinnerPresentation(screen, winners.map(({ name }) => name), `${winnerScore} points`);
+
+    screen.append(
+      element("h2", "results-section-heading", "Final leaderboard"),
+      createStandingsList(results.leaderboard.map(({ playerId, name, score, rank }) => ({
+        playerId,
+        name,
+        totalScore: score,
+        rank,
+      })), { className: "final-leaderboard" }),
+    );
+    if (isSessionFinished && view.isHost) {
+      const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to lobby");
+      returnButton.disabled = view.isReturningToLobby;
+      returnButton.addEventListener("click", onReturnToLobby);
+      screen.append(returnButton);
+    } else if (isSessionFinished) {
+      screen.append(createStatusMessage("Waiting for the host to return everyone to the lobby…"));
+    }
+    if (view.returnToLobbyError) {
+      const error = createStatusMessage(view.returnToLobbyError, "error-message");
+      error.setAttribute("role", "alert");
+      screen.append(error);
+    }
+    return screen;
+  }
+
   const phaseTitle = state.phase === "voting"
     ? "Voting Round"
     : state.phase === "waiting-for-results"
@@ -226,10 +258,6 @@ export function renderBruhWtfGame(
     screen.append(...createVoteProgress(state.voteCount ?? 0, state.playerCount, state.voteProgress ?? [], view.currentPlayerId));
   } else if (state.results) {
     const results = state.results;
-    if (isFinalRound && isSessionFinished && results.winners) {
-      const winnerScores = results.leaderboard.filter(({ playerId }) => results.winners?.some((winner) => winner.playerId === playerId));
-      appendWinnerPresentation(screen, results.winners.map(({ name }) => name), `${winnerScores[0]?.score ?? 0} points`);
-    }
     const answersHeading = element("h2", "results-section-heading", "Answers");
     const answers = element("ul", "result-card-list");
     for (const answer of results.answers) {
@@ -240,45 +268,30 @@ export function renderBruhWtfGame(
         voterNames: answer.voterNames,
         voterPrefix: "Voted by",
         noVotesText: "No votes",
-        pointsAwarded: answer.pointsAwarded,
       }));
     }
     screen.append(answersHeading, answers);
-    const rankByPlayer = new Map(results.leaderboard.map(({ playerId, rank }) => [playerId, rank]));
-    const roundScoresByPlayer = new Map(results.roundScores.map((row) => [row.playerId, row]));
-    const rankedRoundScores = results.leaderboard.map(({ playerId, name }) => ({
+    const presentationStandings = results.leaderboard.map(({ playerId, name, score, rank }) => ({
       playerId,
       name,
-      pointsEarned: roundScoresByPlayer.get(playerId)?.pointsEarned ?? 0,
+      totalScore: score,
+      rank,
     }));
-    screen.append(element("h2", "results-section-heading", "Round points"), createPointRows(rankedRoundScores, rankByPlayer));
-    const presentationStandings = results.leaderboard.map(({ playerId, name, score, rank }) => ({ playerId, name, totalScore: score, rank }));
-    screen.append(element("h2", "results-section-heading", isFinalRound ? "Final leaderboard" : "Current leaderboard"), createStandingsList(presentationStandings, { className: isFinalRound ? "final-leaderboard" : undefined }));
-    if (!isFinalRound) {
-      appendContinueReadiness({
-        screen,
-        readyCount: state.continueReadyCount ?? 0,
-        playerCount: state.continuePlayerCount ?? state.playerCount,
-        players: state.continueProgress ?? [],
-        viewerReady: state.viewerReadyToContinue === true,
-        isContinuing: view.isContinuing,
-        onContinue,
-        error: view.continueError,
-      });
-    }
-    if (isSessionFinished && view.isHost) {
-      const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to lobby");
-      returnButton.disabled = view.isReturningToLobby;
-      returnButton.addEventListener("click", onReturnToLobby);
-      screen.append(returnButton);
-    } else if (isSessionFinished) {
-      screen.append(createStatusMessage("Waiting for the host to return everyone to the lobby…"));
-    }
-    if (view.returnToLobbyError) {
-      const error = createStatusMessage(view.returnToLobbyError, "error-message");
-      error.setAttribute("role", "alert");
-      screen.append(error);
-    }
+    const roundPointsByPlayer = new Map(results.roundScores.map(({ playerId, pointsEarned }) => [playerId, pointsEarned]));
+    screen.append(
+      element("h2", "results-section-heading", "Current leaderboard"),
+      createStandingsList(presentationStandings, { roundPointsByPlayer }),
+    );
+    appendContinueReadiness({
+      screen,
+      readyCount: state.continueReadyCount ?? 0,
+      playerCount: state.continuePlayerCount ?? state.playerCount,
+      players: state.continueProgress ?? [],
+      viewerReady: state.viewerReadyToContinue === true,
+      isContinuing: view.isContinuing,
+      onContinue,
+      error: view.continueError,
+    });
   }
   return screen;
 }

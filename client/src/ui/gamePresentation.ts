@@ -75,31 +75,6 @@ export function replaceProgressChipList<T extends PresentationPlayer>(
   }
 }
 
-export function createPointRows(
-  rows: Array<PresentationPlayer & { pointsEarned: number }>,
-  rankByPlayer: Map<string, number>,
-): HTMLOListElement {
-  const list = document.createElement("ol");
-  list.className = "result-card-list standings-list";
-  for (const row of rows) {
-    const item = document.createElement("li");
-    item.className = "result-card standing-card round-points-card";
-    item.dataset.playerId = row.playerId;
-    const rank = document.createElement("span");
-    rank.className = "standing-rank";
-    rank.textContent = `#${rankByPlayer.get(row.playerId) ?? "–"}`;
-    const name = document.createElement("span");
-    name.className = "standing-name";
-    name.textContent = row.name;
-    const points = document.createElement("strong");
-    points.className = "standing-score";
-    points.textContent = `${row.pointsEarned >= 0 ? "+" : ""}${row.pointsEarned} point${Math.abs(row.pointsEarned) === 1 ? "" : "s"}`;
-    item.append(rank, name, points);
-    list.append(item);
-  }
-  return list;
-}
-
 export function createSubmissionProgress(
   count: number,
   playerCount: number,
@@ -262,7 +237,6 @@ export function createAnswerResultCard(options: {
   isCorrect?: boolean;
   voterPrefix?: string;
   noVotesText?: string;
-  pointsAwarded?: number;
 }): HTMLLIElement {
   const isCorrect = options.isCorrect === true;
   const item = document.createElement("li");
@@ -297,12 +271,6 @@ export function createAnswerResultCard(options: {
     ? `${options.voterPrefix ?? "Chosen by"}: ${options.voterNames.join(", ")}`
     : options.noVotesText ?? "No one chose this answer.";
   item.append(answerHeading, voterNames);
-  if (typeof options.pointsAwarded === "number") {
-    const award = document.createElement("p");
-    award.className = "result-award";
-    award.textContent = `+${options.pointsAwarded} points this round`;
-    item.append(award);
-  }
   return item;
 }
 
