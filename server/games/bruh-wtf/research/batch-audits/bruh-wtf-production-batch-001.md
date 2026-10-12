@@ -59,7 +59,7 @@ flirting was omitted to keep the default calibration batch non-suggestive.
 
 The accepted prompt concepts were compared with all 11 development fixtures
 and the existing template-family ledger. Intentional boundaries include a
-haunted-office survival prompt rather than another emergency-kit prompt, a
+haunted-office ghost-task prompt rather than another emergency-kit prompt, a
 pair mystery rather than a heist, and a new creative food concept rather than
 another band-name or startup prompt. Exact matching cannot establish semantic
 originality; one editor made this first-pass comparison and playtest feedback
@@ -110,7 +110,12 @@ lyrics. The history records the clarification.
 
 ## Lightweight playtest protocol
 
-- Test with 3–8 players, across several rounds per session and more than one
+The reproducible manual checklist and question-level blank feedback sheet
+are in [the Batch 001 playtest run sheet](./bruh-wtf-production-batch-001-playtest.md).
+It uses the scoring criteria below and makes clear that the game has no skip
+button. No player feedback has been collected yet.
+
+- Test with 3 to 8 players, across several rounds per session and more than one
   session. Use different groups when practical; do not treat a small sample
   as statistically conclusive.
 - After each prompt, collect each player's quick reaction (funny / neutral /
@@ -121,13 +126,13 @@ lyrics. The history records the clarification.
 - Keep a separate technical-issue log with session, round/question ID,
   device/browser, observed behavior, and reproduction steps. Do not score a
   technical failure as a humour or clarity reaction.
-- Score each prompt after a session on four 0–2 dimensions: humour reaction
+- Score each prompt after a session on four 0-to-2 dimensions: humour reaction
   (0 mostly negative, 1 mixed, 2 mostly positive); clarity (0 confused, 1
   needed clarification, 2 understood unaided); answer variety (0 low, 1
   mixed, 2 high); and engagement (0 repeated skips/disinterest, 1 ordinary,
-  2 eager voting or discussion). Maximum is 8. Keep provisionally at 6–8 with
-  no recurring confusion; revise at 3–5 or when a specific fixable issue
-  recurs; consider retiring at 0–2 or when low engagement/confusion repeats
+  2 eager voting or discussion). Maximum is 8. Keep provisionally at 6 to 8 with
+  no recurring confusion; revise at 3 to 5 or when a specific fixable issue
+  recurs; consider retiring at 0 to 2 or when low engagement/confusion repeats
   across sessions. Treat a single-session score as a follow-up signal, not a
   statistically reliable decision.
 - Revisit the decision after multiple sessions and preserve notes by question
