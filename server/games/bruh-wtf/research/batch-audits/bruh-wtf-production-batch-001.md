@@ -22,7 +22,7 @@ Question IDs:
 `bruh-b001-shared-coat`, `bruh-b001-potato-float`,
 `bruh-b001-elevator-anthem`, `bruh-b001-tavern-soup`,
 `bruh-b001-party-expertise`, `bruh-b001-flatpack-cooking-show`,
-`bruh-b001-reply-all-job`, `bruh-b001-haunted-office-gear`,
+`bruh-b001-reply-all-job`, `bruh-b001-haunted-office-ghost-task`,
 `bruh-b001-fridge-podcast`, `bruh-b001-barely-prepared`,
 `bruh-b001-terms-curse`.
 
@@ -70,8 +70,14 @@ Rejected drafts:
 - `b001-reject-wish-prompt`: repeats `dev-wish`'s wish-grant premise.
 - `b001-reject-bad-startup-pitch`: repeats `dev-startup`'s bad-startup pitch.
 
-Both decisions and their family links are preserved in the history and ledger.
-Neither rejection prohibits future questions in the associated category.
+The first two rejected drafts and their family links are preserved in the
+history and ledger. During this review, `bruh-b001-haunted-office-gear` was
+also rejected because its unsuitable-survival-item answer structure repeated
+the `dev-emergency-kit` fixture. It was replaced with
+`bruh-b001-haunted-office-ghost-task`, retaining the haunted-office setting
+but changing the answer mechanism to a routine task demanded by a ghost. The
+original ID remains in history as rejected; it is not in the playable pack.
+These rejections do not prohibit future questions in the associated category.
 
 ## Editorial and trend review
 
@@ -87,3 +93,43 @@ This is a calibration draft, not player-tested. The current game does not
 provide adult-content opt-in filtering; the batch contains no adult or
 suggestive prompts. Structural validation does not certify humour quality or
 audience suitability.
+
+## Review follow-up
+
+An editorial review of all 25 prompts found one semantic repeat against the
+development fixtures and replaced it as described above. The remaining
+prompts were retained after checking clarity, answer openness, placeholder
+use, and joke structure. This is still a single-editor review, not evidence
+of player engagement or independent review. In playtests, specifically watch
+whether the several naming/labeling prompts (warning label, invented job
+title, and fictional show title) feel repetitive to players.
+
+The elevator-anthem wording was clarified to ask for an original chorus; this
+keeps the answer creative and avoids prompting players to quote existing
+lyrics. The history records the clarification.
+
+## Lightweight playtest protocol
+
+- Test with 3–8 players, across several rounds per session and more than one
+  session. Use different groups when practical; do not treat a small sample
+  as statistically conclusive.
+- After each prompt, collect each player's quick reaction (funny / neutral /
+  not fun), whether the prompt was clear, whether they skipped or struggled,
+  and a short reason when they are willing to give one. Record answer variety
+  as low (blank or near-identical answers), mixed, or high (distinct answers
+  with several comic directions), and note voting participation or reluctance.
+- Keep a separate technical-issue log with session, round/question ID,
+  device/browser, observed behavior, and reproduction steps. Do not score a
+  technical failure as a humour or clarity reaction.
+- Score each prompt after a session on four 0–2 dimensions: humour reaction
+  (0 mostly negative, 1 mixed, 2 mostly positive); clarity (0 confused, 1
+  needed clarification, 2 understood unaided); answer variety (0 low, 1
+  mixed, 2 high); and engagement (0 repeated skips/disinterest, 1 ordinary,
+  2 eager voting or discussion). Maximum is 8. Keep provisionally at 6–8 with
+  no recurring confusion; revise at 3–5 or when a specific fixable issue
+  recurs; consider retiring at 0–2 or when low engagement/confusion repeats
+  across sessions. Treat a single-session score as a follow-up signal, not a
+  statistically reliable decision.
+- Revisit the decision after multiple sessions and preserve notes by question
+  ID. A prompt can be funny but confusing, or clear but unengaging; record
+  those dimensions separately instead of collapsing them into one vote.
