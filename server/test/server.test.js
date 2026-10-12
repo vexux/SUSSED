@@ -418,7 +418,8 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
     });
     assert.deepEqual(response.lobby.availableGames.map(({ id }) => id), [
         "fact-or-cap",
-        "fact-or-cap-anime"
+        "fact-or-cap-anime",
+        "bruh-wtf"
     ]);
     assert.deepEqual(
         response.lobby.players.map(({ id, name, isHost }) => ({ id, name, isHost })),
@@ -502,7 +503,8 @@ test("host selects a registered game and broadcasts authoritative metadata to al
     });
     assert.deepEqual(hostLobby.availableGames.map(({ id }) => id), [
         "fact-or-cap",
-        "fact-or-cap-anime"
+        "fact-or-cap-anime",
+        "bruh-wtf"
     ]);
 
     const hostGeneralUpdate = waitForLobby(

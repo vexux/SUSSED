@@ -528,15 +528,8 @@ button:focus-visible {
   line-height: 1.45;
 }
 
-.result-detail,
-.result-award {
+.result-detail {
   margin: 8px 0 0;
-}
-
-.result-award {
-  color: #d8c0f0;
-  font-size: 0.9rem;
-  font-weight: 650;
 }
 
 .standings-list {
@@ -704,14 +697,39 @@ button:focus-visible {
   margin-top: 4px;
 }
 
+.final-results-screen {
+  gap: 12px;
+  padding-top: clamp(24px, 4vh, 44px);
+}
+
+.final-winner-card {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: min(100%, 680px);
+  padding: 22px 24px;
+  border: 1px solid #745b88;
+  border-radius: 16px;
+  background: radial-gradient(ellipse at top, rgb(192 132 252 / 14%), #211b27 72%);
+  box-shadow: 0 0 28px rgb(192 132 252 / 12%);
+  text-align: center;
+}
+
+.final-winner-trophy {
+  color: #e8c8ff;
+  font-size: 2rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px rgb(192 132 252 / 45%));
+}
+
 .final-winner-heading {
-  margin: 16px 0 0;
+  margin: 0;
   color: #d4a8ff;
   font-size: clamp(1.25rem, 3vw, 1.75rem);
 }
 
 .final-winner-names {
-  margin: 8px 0 0;
+  margin: 0;
   font-size: clamp(1.75rem, 5vw, 3rem);
   font-weight: 850;
   line-height: 1.15;
@@ -719,9 +737,13 @@ button:focus-visible {
 }
 
 .final-winner-scores {
-  margin: 8px 0 0;
+  margin: 0;
   color: #c5b9ce;
   font-size: 1.1rem;
+}
+
+.final-winner-card + .results-section-heading {
+  margin-top: 0;
 }
 
 .final-leaderboard .standing-card:first-child {

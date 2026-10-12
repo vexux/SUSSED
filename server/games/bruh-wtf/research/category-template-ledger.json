@@ -1,0 +1,9 @@
+{
+  "formatVersion": 1,
+  "categories": [
+    { "id": "what-if", "templateFamilies": ["wish scenario", "road-trip mishap", "alien explanation"] },
+    { "id": "creative", "templateFamilies": ["duo band name", "inconvenient superpower", "claimed talent", "bad startup pitch"] },
+    { "id": "social", "templateFamilies": ["flirting attempt", "flirting response"] }
+  ],
+  "note": "Editorial planning aid only. Add reviewed production template families here to reduce repetitive batches."
+}

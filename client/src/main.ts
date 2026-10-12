@@ -12,6 +12,11 @@ import {
   updateFakeAnswerProgress,
   updateFakeAnswerVoteProgress,
 } from "./games/fakeAnswer";
+import {
+  isBruhWtfPublicState,
+  updateBruhSubmissionProgress,
+  updateBruhVoteProgress,
+} from "./games/bruhWtf";
 
 interface FakeAnswerSubmissionResponse {
   submitted?: boolean;
@@ -60,6 +65,14 @@ let fakeAnswerContinueError: string | null = null;
 let fakeAnswerIsReturningToLobby = false;
 let fakeAnswerReturnToLobbyError: string | null = null;
 let fakeAnswerFeedbackDismissedIdentity: string | null = null;
+let bruhAnswerDraft = "";
+let bruhIsSubmitting = false;
+let bruhSubmitError: string | null = null;
+let bruhSelectedOptionId: string | null = null;
+let bruhIsVoting = false;
+let bruhVoteError: string | null = null;
+let bruhIsContinuing = false;
+let bruhContinueError: string | null = null;
 const retiredGameSessionIds = new Set<string>();
 const FACT_OR_CAP_GAME_IDS = new Set(["fact-or-cap", "fact-or-cap-anime"]);
 
@@ -77,6 +90,14 @@ function resetFakeAnswerViewState(): void {
   fakeAnswerIsReturningToLobby = false;
   fakeAnswerReturnToLobbyError = null;
   fakeAnswerFeedbackDismissedIdentity = null;
+  bruhAnswerDraft = "";
+  bruhIsSubmitting = false;
+  bruhSubmitError = null;
+  bruhSelectedOptionId = null;
+  bruhIsVoting = false;
+  bruhVoteError = null;
+  bruhIsContinuing = false;
+  bruhContinueError = null;
 }
 
 function render(): void {
@@ -103,6 +124,24 @@ function render(): void {
       isFakeAnswerPublicState(state.game?.state) &&
       fakeAnswerFeedbackDismissedIdentity ===
         `${state.game?.sessionId}:${state.game.state.roundId}`,
+  }, {
+    currentPlayerId: state.localPlayerId,
+    answerDraft: bruhAnswerDraft,
+    isSubmitting: bruhIsSubmitting,
+    submitError: bruhSubmitError,
+    selectedOptionId: bruhSelectedOptionId,
+    hasVoted: isBruhWtfPublicState(state.game?.state) &&
+      state.game.state.phase === "voting" &&
+      state.game.state.voteProgress?.some(({ playerId, voted }) => playerId === state.localPlayerId && voted) === true,
+    isVoting: bruhIsVoting,
+    voteError: bruhVoteError,
+    isContinuing: bruhIsContinuing,
+    continueError: bruhContinueError,
+    isHost: state.lobby?.players.some(
+      (player) => player.id === state.localPlayerId && player.isHost,
+    ) ?? false,
+    isReturningToLobby: fakeAnswerIsReturningToLobby,
+    returnToLobbyError: fakeAnswerReturnToLobbyError,
   });
   document.body.classList.toggle(
     "modal-open",
@@ -221,6 +260,18 @@ function isCurrentFakeAnswerIdentity(identity: {
   );
 }
 
+function currentBruhIdentity(): { sessionId: string; roundId: string } | null {
+  if (!state.game || state.game.gameId !== "bruh-wtf" || !isBruhWtfPublicState(state.game.state)) return null;
+  return { sessionId: state.game.sessionId, roundId: state.game.state.roundId };
+}
+
+function isCurrentBruhIdentity(identity: { sessionId: string; roundId: string }): boolean {
+  return state.game?.sessionId === identity.sessionId &&
+    state.game.gameId === "bruh-wtf" &&
+    isBruhWtfPublicState(state.game.state) &&
+    state.game.state.roundId === identity.roundId;
+}
+
 function recoverFromUnavailableGame(): void {
   state.currentView = "home";
   state.roomCode = null;
@@ -283,6 +334,17 @@ function applyGameState(game: GameSessionState): void {
     JSON.stringify(previousState.options) === JSON.stringify(nextState.options) &&
     JSON.stringify(previousState.voteProgress) !==
       JSON.stringify(nextState.voteProgress);
+  const isBruhSubmissionProgressOnly =
+    state.currentView === "game" &&
+    previousGame?.roomCode === game.roomCode &&
+    previousGame.gameId === game.gameId &&
+    game.gameId === "bruh-wtf" &&
+    isBruhWtfPublicState(previousState) &&
+    isBruhWtfPublicState(nextState) &&
+    previousState.phase === "answer-submission" &&
+    nextState.phase === "answer-submission" &&
+    previousState.roundId === nextState.roundId &&
+    previousState.submissionCount !== nextState.submissionCount;
   const isNewGame =
     state.game?.roomCode !== game.roomCode ||
     state.game?.gameId !== game.gameId ||
@@ -292,9 +354,12 @@ function applyGameState(game: GameSessionState): void {
   }
   const isNewRound =
     !isNewGame &&
-    isFakeAnswerPublicState(previousState) &&
-    isFakeAnswerPublicState(nextState) &&
-    previousState.currentRound !== nextState.currentRound;
+    ((isFakeAnswerPublicState(previousState) &&
+      isFakeAnswerPublicState(nextState) &&
+      previousState.currentRound !== nextState.currentRound) ||
+      (isBruhWtfPublicState(previousState) &&
+        isBruhWtfPublicState(nextState) &&
+        previousState.roundId !== nextState.roundId));
   if (isNewGame || isNewRound) {
     resetFakeAnswerViewState();
   }
@@ -305,6 +370,29 @@ function applyGameState(game: GameSessionState): void {
   if (
     isSubmissionProgressOnly &&
     updateFakeAnswerProgress(appRoot, game.state, state.localPlayerId)
+  ) {
+    return;
+  }
+  if (
+    isBruhSubmissionProgressOnly &&
+    updateBruhSubmissionProgress(appRoot, game.state, state.localPlayerId)
+  ) {
+    return;
+  }
+  const isBruhVoteProgressOnly =
+    state.currentView === "game" &&
+    previousGame?.roomCode === game.roomCode &&
+    previousGame.gameId === game.gameId &&
+    game.gameId === "bruh-wtf" &&
+    isBruhWtfPublicState(previousState) &&
+    isBruhWtfPublicState(nextState) &&
+    previousState.phase === "voting" &&
+    nextState.phase === "voting" &&
+    previousState.roundId === nextState.roundId &&
+    previousState.voteCount !== nextState.voteCount;
+  if (
+    isBruhVoteProgressOnly &&
+    updateBruhVoteProgress(appRoot, game.state, state.localPlayerId)
   ) {
     return;
   }
@@ -498,6 +586,84 @@ const actions: AppActions = {
     if (!fakeAnswerHasSubmitted) {
       fakeAnswerCompletionDraft = completion;
     }
+  },
+  onSubmitBruhAnswer(answer) {
+    const identity = currentBruhIdentity();
+    if (!identity || bruhIsSubmitting || !isBruhWtfPublicState(state.game?.state) || state.game.state.phase !== "answer-submission") return;
+    bruhAnswerDraft = answer;
+    bruhSubmitError = null;
+    bruhIsSubmitting = true;
+    render();
+    socket.timeout(5000).emit(
+      "bruh-wtf:submit",
+      { answer, ...identity },
+      (error: Error | null, response?: FakeAnswerSubmissionResponse) => {
+        if (!isCurrentBruhIdentity(identity)) return;
+        bruhIsSubmitting = false;
+        if (error || !response) {
+          bruhSubmitError = "The server did not respond. Please try again.";
+        } else if (response.error) {
+          bruhSubmitError = response.error.message;
+          if (response.error.code === "GAME_NOT_ACTIVE" || response.error.code === "SESSION_MISMATCH") {
+            recoverFromUnavailableGame();
+            return;
+          }
+        } else if (response.submitted) {
+          bruhAnswerDraft = "";
+          bruhSubmitError = null;
+        } else {
+          bruhSubmitError = "Your answer could not be submitted.";
+        }
+        render();
+      },
+    );
+  },
+  onBruhAnswerDraftChange(answer) {
+    bruhAnswerDraft = answer;
+  },
+  onSelectBruhVote(optionId) {
+    bruhSelectedOptionId = optionId;
+    bruhVoteError = null;
+  },
+  onVoteBruhWtf(optionId) {
+    const identity = currentBruhIdentity();
+    if (!identity || bruhIsVoting) return;
+    bruhVoteError = null;
+    bruhIsVoting = true;
+    render();
+    socket.timeout(5000).emit(
+      "bruh-wtf:vote",
+      { optionId, ...identity },
+      (error: Error | null, response?: FakeAnswerSubmissionResponse) => {
+        if (!isCurrentBruhIdentity(identity)) return;
+        bruhIsVoting = false;
+        if (error || !response) bruhVoteError = "The server did not respond. Please try again.";
+        else if (response.error) bruhVoteError = response.error.message;
+        else if (!response.voted) bruhVoteError = "Your vote could not be submitted.";
+        else bruhVoteError = null;
+        render();
+      },
+    );
+  },
+  onContinueBruhWtf() {
+    const identity = currentBruhIdentity();
+    if (!identity || bruhIsContinuing) return;
+    bruhContinueError = null;
+    bruhIsContinuing = true;
+    render();
+    socket.timeout(5000).emit(
+      "bruh-wtf:continue",
+      identity,
+      (error: Error | null, response?: FakeAnswerSubmissionResponse) => {
+        if (!isCurrentBruhIdentity(identity)) return;
+        bruhIsContinuing = false;
+        if (error || !response) bruhContinueError = "The server did not respond. Please try again.";
+        else if (response.error) bruhContinueError = response.error.message;
+        else if (!response.ready) bruhContinueError = "You could not continue to the next round.";
+        else bruhContinueError = null;
+        render();
+      },
+    );
   },
   onSelectVote(optionId) {
     fakeAnswerSelectedOptionId = optionId;

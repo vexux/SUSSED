@@ -1,3 +1,17 @@
+import {
+  appendContinueReadiness,
+  appendGameHeader,
+  appendWinnerPresentation,
+  createAnswerResultCard,
+  createQuestionText,
+  createStandingsList,
+  createSubmissionForm,
+  createSubmissionProgress,
+  createVoteProgress,
+  createVotingForm,
+  replaceProgressChipList,
+} from "../ui/gamePresentation.ts";
+
 export interface FakeAnswerOption {
   id: string;
   completion: string;
@@ -112,43 +126,16 @@ function createRevealAnswerCard(
   authorName: string | null,
   isCorrect: boolean,
 ): HTMLLIElement {
-  const item = document.createElement("li");
-  item.className = isCorrect
-    ? "result-card result-card-correct real-answer-card"
-    : "result-card";
-
-  const answerHeading = document.createElement("div");
-  answerHeading.className = "result-card-heading answer-card-main-row";
-  const answerContent = document.createElement("div");
-  answerContent.className = "answer-card-content";
-  if (!isCorrect) {
-    const author = document.createElement("span");
-    author.className = "bluff-author";
-    author.textContent = authorName ?? "Unknown player";
-    const separator = document.createElement("span");
-    separator.className = "bluff-author-separator";
-    separator.setAttribute("aria-hidden", "true");
-    separator.textContent = "|";
-    answerContent.append(author, separator);
-  }
-  const answer = document.createElement("span");
-  answer.className = "result-answer-text answer-card-answer";
-  answer.textContent = formatAnswerForDisplay(completion);
-  answerContent.append(answer);
-
-  const voteCount = document.createElement("span");
-  voteCount.className = "answer-vote-count";
-  voteCount.textContent = `${voters.length} vote${voters.length === 1 ? "" : "s"}`;
-  answerHeading.append(answerContent, voteCount);
-
-  const voterNames = document.createElement("p");
-  voterNames.className = "result-detail";
-  voterNames.textContent = voters.length > 0
-    ? `Chosen by: ${voters.map(({ name }) => name).join(", ")}`
-    : "No one chose this answer.";
-
-  item.append(answerHeading, voterNames);
-  return item;
+  return createAnswerResultCard({
+    completion,
+    authorName: isCorrect ? null : authorName ?? "Unknown player",
+    voteCount: voters.length,
+    voterNames: voters.map(({ name }) => name),
+    formatAnswer: formatAnswerForDisplay,
+    isCorrect,
+    voterPrefix: "Chosen by",
+    noVotesText: "No one chose this answer.",
+  });
 }
 
 export interface FakeAnswerPublicState {
@@ -454,18 +441,13 @@ export function updateFakeAnswerProgress(
 
   progress.textContent =
     `${publicState.submissionCount} of ${publicState.playerCount} answers submitted`;
-  playerList.replaceChildren();
-  for (const player of publicState.submissionProgress ?? []) {
-    const item = document.createElement("li");
-    item.className = player.submitted ? "progress-chip progress-chip-done" : "progress-chip";
-    item.dataset.playerId = player.playerId;
-    const isCurrentPlayer = player.playerId === currentPlayerId;
-    item.textContent = isCurrentPlayer
-      ? player.submitted
-        ? "You · Submitted"
-        : "You · Waiting"
-      : `${player.name} · ${player.submitted ? "Submitted" : "Waiting"}`;
-    playerList.append(item);
+  replaceProgressChipList(playerList, publicState.submissionProgress ?? [], (player) => {
+    const status = player.submitted ? "Submitted" : "Waiting";
+    return player.playerId === currentPlayerId ? `You · ${status}` : `${player.name} · ${status}`;
+  });
+  for (const item of Array.from(playerList.children)) {
+    const player = publicState.submissionProgress?.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
+    if (player?.submitted) item.className = "progress-chip progress-chip-done";
   }
   // A local successful submission changes the form into its submitted state;
   // let the normal render perform that transition. Remote progress updates
@@ -494,15 +476,13 @@ export function updateFakeAnswerVoteProgress(
   }
   progress.textContent =
     `${publicState.voteCount} of ${publicState.playerCount} players voted`;
-  playerList.replaceChildren();
-  for (const player of publicState.voteProgress ?? []) {
-    const item = document.createElement("li");
-    item.className = player.voted ? "progress-chip progress-chip-done" : "progress-chip";
-    item.dataset.playerId = player.playerId;
-    item.textContent = player.playerId === currentPlayerId
-      ? player.voted ? "You · Voted" : "You · Waiting"
-      : `${player.name} · ${player.voted ? "Voted" : "Waiting"}`;
-    playerList.append(item);
+  replaceProgressChipList(playerList, publicState.voteProgress ?? [], (player) => {
+    const status = player.voted ? "Voted" : "Waiting";
+    return player.playerId === currentPlayerId ? `You · ${status}` : `${player.name} · ${status}`;
+  });
+  for (const item of Array.from(playerList.children)) {
+    const player = publicState.voteProgress?.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
+    if (player?.voted) item.className = "progress-chip progress-chip-done";
   }
   return true;
 }
@@ -588,21 +568,11 @@ function appendRoundFeedback(
 function createFinalResultsScreen(
   publicState: FakeAnswerPublicState,
   submission: FakeAnswerViewState,
-  gameDisplayName: string,
   onReturnToLobby: () => void,
   onDismissFeedback: () => void,
 ): HTMLElement {
   const screen = document.createElement("section");
   screen.className = "app-screen question-screen final-results-screen";
-  const gameName = document.createElement("p");
-  gameName.className = "screen-description";
-  gameName.textContent = gameDisplayName;
-  const title = document.createElement("h1");
-  title.textContent = "Final results";
-  const round = document.createElement("p");
-  round.className = "round-counter";
-  round.textContent = `Round ${publicState.currentRound} of ${publicState.totalRounds}`;
-  screen.append(gameName, title, round);
 
   const results = publicState.results;
   if (!results || !publicState.finalStatistics) {
@@ -610,38 +580,12 @@ function createFinalResultsScreen(
   }
 
   const winners = results.standings.filter(({ rank }) => rank === 1);
-  const winnerHeading = document.createElement("h2");
-  winnerHeading.className = "final-winner-heading";
-  winnerHeading.textContent = winners.length > 1 ? "It's a tie!" : "Winner";
-  const winnerNames = document.createElement("p");
-  winnerNames.className = "final-winner-names";
-  winnerNames.textContent = winners.map(({ name }) => name).join(", ");
-  const winnerScores = document.createElement("p");
-  winnerScores.className = "final-winner-scores";
-  winnerScores.textContent = `${winners[0]?.totalScore ?? 0} points`;
-  screen.append(winnerHeading, winnerNames, winnerScores);
+  appendWinnerPresentation(screen, winners.map(({ name }) => name), `${winners[0]?.totalScore ?? 0} points`);
 
   const leaderboardHeading = document.createElement("h2");
   leaderboardHeading.className = "results-section-heading";
   leaderboardHeading.textContent = "Final leaderboard";
-  const leaderboard = document.createElement("ol");
-  leaderboard.className = "result-card-list standings-list final-leaderboard";
-  for (const standing of results.standings) {
-    const item = document.createElement("li");
-    item.className = "result-card standing-card";
-    item.dataset.playerId = standing.playerId;
-    const rank = document.createElement("span");
-    rank.className = "standing-rank";
-    rank.textContent = `#${standing.rank}`;
-    const name = document.createElement("span");
-    name.className = "standing-name";
-    name.textContent = standing.name;
-    const score = document.createElement("strong");
-    score.className = "standing-score";
-    score.textContent = `${standing.totalScore} point${standing.totalScore === 1 ? "" : "s"}`;
-    item.append(rank, name, score);
-    leaderboard.append(item);
-  }
+  const leaderboard = createStandingsList(results.standings, { className: "final-leaderboard" });
   screen.append(leaderboardHeading, leaderboard);
 
   const statisticsHeading = document.createElement("h2");
@@ -732,14 +676,12 @@ export function renderFakeAnswerGame(
     return createFinalResultsScreen(
       publicState,
       submission,
-      gameDisplayName,
       onReturnToLobby,
       onDismissFeedback,
     );
   }
 
-  const title = document.createElement("h1");
-  title.textContent = publicState.phase === "reveal"
+  const titleText = publicState.phase === "reveal"
     ? "Answers revealed"
     : publicState.phase === "voting"
       ? VOTING_ROUND_HEADING
@@ -750,20 +692,11 @@ export function renderFakeAnswerGame(
             ? "Final results"
             : "Round results"
         : "Question";
-  const round = document.createElement("p");
-  round.className = "round-counter";
-  round.textContent = `Round ${publicState.currentRound} of ${publicState.totalRounds}`;
-  const gameName = document.createElement("p");
-  gameName.className = "screen-description";
-  gameName.textContent = gameDisplayName;
-  screen.append(gameName, title, round);
+  appendGameHeader(screen, gameDisplayName, titleText, publicState.currentRound, publicState.totalRounds);
 
   if (publicState.phase === "results" && publicState.results) {
     if (publicState.prompt) {
-      const prompt = document.createElement("p");
-      prompt.className = "question-text";
-      prompt.textContent = publicState.prompt.text;
-      screen.append(prompt);
+      screen.append(createQuestionText(publicState.prompt.text));
     }
     const { realOption, fakeOptions } = getRevealAnswerGroups(
       publicState.results.options,
@@ -804,82 +737,19 @@ export function renderFakeAnswerGame(
     const standingsHeading = document.createElement("h2");
     standingsHeading.className = "results-section-heading";
     standingsHeading.textContent = "Current leaderboard";
-    const standings = document.createElement("ol");
-    standings.className = "result-card-list standings-list";
-    for (const standing of publicState.results.standings) {
-      const item = document.createElement("li");
-      item.className = "result-card standing-card";
-      const rank = document.createElement("span");
-      rank.className = "standing-rank";
-      rank.textContent = `#${standing.rank}`;
-      const standingName = document.createElement("span");
-      standingName.className = "standing-name";
-      standingName.textContent = standing.name;
-      const score = document.createElement("strong");
-      score.className = "standing-score";
-      score.textContent =
-        `${standing.totalScore} point${standing.totalScore === 1 ? "" : "s"}`;
-      const roundScore = document.createElement("span");
-      const roundPoints = publicState.results.players.find(
-        ({ playerId }) => playerId === standing.playerId,
-      )?.roundPoints ?? 0;
-      roundScore.className = roundPoints > 0
-        ? "standing-round-score standing-round-score-positive"
-        : roundPoints < 0
-          ? "standing-round-score standing-round-score-negative"
-          : "standing-round-score";
-      roundScore.textContent = formatRoundPoints(roundPoints);
-      roundScore.setAttribute(
-        "aria-label",
-        `Round points: ${formatRoundPoints(roundPoints)} points`,
-      );
-      item.append(rank, standingName, roundScore, score);
-      standings.append(item);
-    }
+    const roundPointsByPlayer = new Map(publicState.results.players.map(({ playerId, roundPoints }) => [playerId, roundPoints]));
+    const standings = createStandingsList(publicState.results.standings, { roundPointsByPlayer });
     screen.append(standingsHeading, standings);
-
-    const continueProgress = document.createElement("p");
-    continueProgress.className = "continue-progress";
-    continueProgress.textContent =
-      `${publicState.continueReadyCount} / ${publicState.continuePlayerCount} players ready to continue`;
-    screen.append(continueProgress);
-
-    const continuePlayerList = document.createElement("ul");
-    continuePlayerList.className = "continue-player-list progress-chip-list";
-    for (const player of publicState.continueProgress ?? []) {
-      const item = document.createElement("li");
-      item.className = player.ready
-        ? "progress-chip progress-chip-done"
-        : "progress-chip";
-      item.dataset.playerId = player.playerId;
-      item.textContent = `${player.name} · ${player.ready ? "Ready" : "Waiting"}`;
-      continuePlayerList.append(item);
-    }
-    screen.append(continuePlayerList);
-
-    if (publicState.viewerReadyToContinue) {
-      const waiting = document.createElement("p");
-      waiting.className = "status-message";
-      waiting.textContent = "You’re ready. Waiting for the other players…";
-      screen.append(waiting);
-    } else {
-      const continueButton = document.createElement("button");
-      continueButton.className = "primary-button";
-      continueButton.type = "button";
-      continueButton.disabled = submission.isContinuing;
-      continueButton.textContent = submission.isContinuing
-        ? "Continuing…"
-        : "Continue";
-      continueButton.addEventListener("click", onContinue);
-      screen.append(continueButton);
-    }
-    if (submission.continueError) {
-      const error = document.createElement("p");
-      error.className = "error-message";
-      error.setAttribute("role", "alert");
-      error.textContent = submission.continueError;
-      screen.append(error);
-    }
+    appendContinueReadiness({
+      screen,
+      readyCount: publicState.continueReadyCount ?? 0,
+      playerCount: publicState.continuePlayerCount ?? publicState.playerCount,
+      players: publicState.continueProgress ?? [],
+      viewerReady: publicState.viewerReadyToContinue === true,
+      isContinuing: submission.isContinuing,
+      onContinue,
+      error: submission.continueError,
+    });
     appendRoundFeedback(screen, publicState, submission, onDismissFeedback);
     return screen;
   }
@@ -898,10 +768,7 @@ export function renderFakeAnswerGame(
   }
 
   if (publicState.prompt) {
-    const prompt = document.createElement("p");
-    prompt.className = "question-text";
-    prompt.textContent = publicState.prompt.text;
-    screen.append(prompt);
+    screen.append(createQuestionText(publicState.prompt.text));
   }
 
   if (publicState.phase === "question") {
@@ -917,11 +784,12 @@ export function renderFakeAnswerGame(
       ({ playerId, submitted }) =>
         playerId === submission.currentPlayerId && submitted,
     ) === true;
-    const progress = document.createElement("p");
-    progress.className = "submission-progress";
-    progress.setAttribute("aria-live", "polite");
-    const playerList = document.createElement("ul");
-    playerList.className = "submission-player-list progress-chip-list";
+    const [progress, playerList] = createSubmissionProgress(
+      publicState.submissionCount,
+      publicState.playerCount,
+      publicState.submissionProgress ?? [],
+      submission.currentPlayerId,
+    );
     if (viewerHasSubmitted) {
       screen.append(progress, playerList);
       updateFakeAnswerProgress(screen, publicState, submission.currentPlayerId);
@@ -940,8 +808,6 @@ export function renderFakeAnswerGame(
     waiting.textContent = "Submit your answer when you’re ready.";
     screen.append(waiting, progress, playerList);
     updateFakeAnswerProgress(screen, publicState, submission.currentPlayerId);
-    const form = document.createElement("form");
-    form.className = "submission-form";
     if (submission.submissionError) {
       const error = document.createElement("p");
       error.className = "error-message";
@@ -949,30 +815,14 @@ export function renderFakeAnswerGame(
       error.textContent = submission.submissionError;
       screen.append(error);
     }
-    const label = document.createElement("label");
-    label.className = "field-label";
-    label.htmlFor = "fake-completion";
-    label.textContent = "Your answer";
-    const input = document.createElement("input");
-    input.className = "text-input";
-    input.id = "fake-completion";
-    input.name = "completion";
-    input.type = "text";
-    input.maxLength = 160;
-    input.required = true;
-    input.autocomplete = "off";
-    input.disabled = submission.isSubmitting;
-    input.value = submission.completionDraft;
-    input.addEventListener("input", () => onDraftChange(input.value));
-    const submit = document.createElement("button");
-    submit.className = "primary-button";
-    submit.type = "submit";
-    submit.disabled = submission.isSubmitting;
-    submit.textContent = submission.isSubmitting ? "Submitting…" : "Submit";
-    form.append(label, input, submit);
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      onSubmit(input.value);
+    const form = createSubmissionForm({
+      inputId: "fake-completion",
+      inputName: "completion",
+      label: "Your answer",
+      draft: submission.completionDraft,
+      isSubmitting: submission.isSubmitting,
+      onSubmit,
+      onDraftChange,
     });
     screen.append(form);
   }
@@ -993,8 +843,6 @@ export function renderFakeAnswerGame(
     const instructions = document.createElement("p");
     instructions.className = "screen-description voting-instructions";
     instructions.textContent = "Choose the real completion.";
-    const progress = document.createElement("p");
-    progress.className = "vote-progress";
     const viewerHasVoted = publicState.voteProgress?.some(
       ({ playerId, voted }) =>
         playerId === submission.currentPlayerId && voted,
@@ -1002,9 +850,12 @@ export function renderFakeAnswerGame(
     screen.append(instructions);
 
     if (viewerHasVoted) {
-      const playerList = document.createElement("ul");
-      playerList.className = "vote-player-list progress-chip-list";
-      screen.append(progress, playerList);
+      screen.append(...createVoteProgress(
+        publicState.voteCount ?? 0,
+        publicState.playerCount,
+        publicState.voteProgress ?? [],
+        submission.currentPlayerId,
+      ));
       updateFakeAnswerVoteProgress(screen, publicState, submission.currentPlayerId);
       const waiting = document.createElement("p");
       waiting.className = "status-message vote-accepted";
@@ -1016,47 +867,14 @@ export function renderFakeAnswerGame(
       return screen;
     }
 
-    const form = document.createElement("form");
-    form.className = "vote-form";
-    for (const option of publicState.options ?? []) {
-      const label = document.createElement("label");
-      label.className = "vote-option";
-      const input = document.createElement("input");
-      input.type = "radio";
-      input.name = "vote-option";
-      input.value = option.id;
-      input.checked = submission.selectedOptionId === option.id;
-      input.disabled = submission.isVoting;
-      if (option.isOwnAnswer) {
-        input.setAttribute("aria-disabled", "true");
-        input.tabIndex = -1;
-        input.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        });
-        input.addEventListener("keydown", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        });
-      } else {
-        input.addEventListener("change", () => onSelectVote(option.id));
-      }
-      const answer = document.createElement("span");
-      answer.textContent = formatAnswerForDisplay(option.completion);
-      label.append(input, answer);
-      form.append(label);
-    }
-    const submit = document.createElement("button");
-    submit.className = "primary-button";
-    submit.type = "submit";
-    submit.disabled = submission.isVoting || submission.selectedOptionId === null;
-    submit.textContent = submission.isVoting ? "Submitting…" : "Submit";
-    form.append(submit);
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      if (submission.selectedOptionId) {
-        onVote(submission.selectedOptionId);
-      }
+    const form = createVotingForm({
+      answers: publicState.options ?? [],
+      selectedOptionId: submission.selectedOptionId,
+      isSubmitting: submission.isVoting,
+      radioName: "vote-option",
+      formatAnswer: formatAnswerForDisplay,
+      onSelect: onSelectVote,
+      onSubmit: onVote,
     });
     screen.append(form);
   }

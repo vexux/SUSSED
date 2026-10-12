@@ -1,13 +1,42 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createAnswerResultCard, createStandingsList } from "../src/ui/gamePresentation.ts";
 import {
   FINAL_STATISTIC_LABELS,
   VOTING_ROUND_HEADING,
   formatRoundPoints,
   getPersonalRoundFeedback,
   getRevealAnswerGroups,
+  renderFakeAnswerGame,
   updateFakeAnswerProgress,
 } from "../src/games/fakeAnswer.ts";
+
+class FakeElement {
+  constructor(tagName) {
+    this.tagName = tagName;
+    this.children = [];
+    this.attributes = {};
+    this.listeners = {};
+    this.dataset = {};
+    this.textContent = "";
+    this.className = "";
+    this.disabled = false;
+    this.classList = {
+      add: (...names) => {
+        this.className = [...new Set(`${this.className} ${names.join(" ")}`.trim().split(/\s+/u))].join(" ");
+      },
+    };
+  }
+  append(...children) { this.children.push(...children); }
+  replaceChildren(...children) { this.children = children; }
+  addEventListener(type, listener) { this.listeners[type] = listener; }
+  setAttribute(name, value) { this.attributes[name] = value; }
+  dispatch(type, event = {}) { this.listeners[type]?.({ preventDefault() {}, stopPropagation() {}, ...event }); }
+  get text() { return this.textContent + this.children.map((child) => child.text).join(""); }
+  query(predicate) {
+    return this.children.find(predicate) ?? this.children.map((child) => child.query(predicate)).find(Boolean) ?? null;
+  }
+}
 
 function createResults(overrides = {}) {
   const results = {
@@ -61,6 +90,46 @@ function createResults(overrides = {}) {
   return { ...results, ...overrides };
 }
 
+function createFinalPublicState(tied = true) {
+  const firstScore = tied ? 9 : 6;
+  const secondRank = tied ? 1 : 2;
+  return {
+    phase: "results",
+    currentRound: 5,
+    totalRounds: 5,
+    roundId: "final-round",
+    prompt: { id: "final-prompt", text: "This final prompt should not appear." },
+    submissionCount: 2,
+    playerCount: 2,
+    isFinalRound: true,
+    finalStatistics: {
+      mostPlayersFooled: { count: 1, playerIds: ["player-1"] },
+      gotFooledMost: { count: 0, playerIds: [] },
+      mostCorrectAnswers: { count: 1, playerIds: ["player-2"] },
+    },
+    results: createResults({
+      options: [
+        ...createResults().options,
+        { id: "extra-option", completion: "another answer", authorId: "player-1", authorName: "Player One", isCorrect: false, voters: [] },
+      ],
+      standings: [
+        { playerId: "player-2", name: "Player Two", totalScore: 9, rank: 1 },
+        { playerId: "player-1", name: "Player One", totalScore: firstScore, rank: secondRank },
+      ],
+    }),
+  };
+}
+
+function createFinalView(overrides = {}) {
+  return {
+    currentPlayerId: "player-1", hasSubmitted: true, completionDraft: "", isSubmitting: false,
+    submissionError: null, hasVoted: true, isVoting: false, selectedOptionId: null,
+    voteError: null, isContinuing: false, continueError: null, isHost: true,
+    isReturningToLobby: false, returnToLobbyError: null, isRoundFeedbackDismissed: true,
+    ...overrides,
+  };
+}
+
 test("remote submission progress updates without changing the active answer input", () => {
   const progress = { textContent: "", setAttribute() {} };
   const children = [];
@@ -70,6 +139,9 @@ test("remote submission progress updates without changing the active answer inpu
     },
     append(child) {
       children.push(child);
+    },
+    get children() {
+      return children;
     },
   };
   const input = {
@@ -94,6 +166,7 @@ test("remote submission progress updates without changing the active answer inpu
     createElement() {
       return {
         dataset: {},
+        className: "",
         append() {},
       };
     },
@@ -206,4 +279,213 @@ test("missing or invalid votes produce neutral feedback", () => {
     title: "No vote submitted",
     detail: "",
   });
+});
+
+test("Fact-or-Cap voting renderer retains shared voting labels, option markup, and submission callback", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  try {
+    const publicState = {
+      phase: "voting",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: { id: "prompt-1", text: "Complete the prompt." },
+      submissionCount: 3,
+      playerCount: 3,
+      voteCount: 0,
+      voteProgress: [
+        { playerId: "local", name: "Alex", voted: false },
+        { playerId: "p2", name: "Sam", voted: false },
+        { playerId: "p3", name: "Riley", voted: false },
+      ],
+      options: [
+        { id: "real", completion: "REAL", isOwnAnswer: false },
+        { id: "own", completion: "MY ANSWER", isOwnAnswer: true },
+        { id: "fake-2", completion: "OTHER TWO", isOwnAnswer: false },
+        { id: "fake-3", completion: "OTHER THREE", isOwnAnswer: false },
+      ],
+    };
+    const submission = {
+      currentPlayerId: "local", hasSubmitted: true, completionDraft: "", isSubmitting: false,
+      submissionError: null, hasVoted: false, isVoting: false, selectedOptionId: null,
+      voteError: null, isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null, isRoundFeedbackDismissed: true,
+    };
+    let selected = null;
+    let submitted = null;
+    const screen = renderFakeAnswerGame(
+      publicState, submission, () => {}, () => {}, (id) => { selected = id; }, (id) => { submitted = id; },
+      () => {}, () => {}, "Fact or Cap", false, () => {},
+    );
+    const heading = screen.query((node) => node.tagName === "h1");
+    const ownRadio = screen.query((node) => node.tagName === "input" && node.value === "own");
+    const validRadio = screen.query((node) => node.tagName === "input" && node.value === "fake-2");
+    const button = screen.query((node) => node.tagName === "button");
+    const form = screen.query((node) => node.tagName === "form");
+    assert.equal(heading.textContent, "Voting Round");
+    assert.equal(screen.query((node) => node.className === "round-counter").textContent, "Round 1 of 5");
+    assert.equal(ownRadio.attributes["aria-disabled"], "true");
+    assert.equal(ownRadio.className, validRadio.className);
+    assert.match(screen.text, /my answer/u);
+    assert.equal(button.textContent, "Submit");
+    assert.equal(button.disabled, true);
+    validRadio.dispatch("change");
+    assert.equal(selected, "fake-2");
+    assert.equal(button.disabled, false);
+    form.dispatch("submit");
+    assert.equal(submitted, "fake-2");
+
+    const animeScreen = renderFakeAnswerGame(
+      publicState, submission, () => {}, () => {}, () => {}, () => {}, () => {}, () => {},
+      "Fact-or-Cap Anime", false, () => {},
+    );
+    assert.equal(animeScreen.query((node) => node.tagName === "h1").textContent, "Voting Round");
+    assert.match(animeScreen.text, /Fact-or-Cap Anime/u);
+    assert.match(animeScreen.text, /my answer/u);
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
+test("Fact-or-Cap final screens show the shared winner card and leaderboard without a phase heading or round counter", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  try {
+    const renderFinal = (gameName, state, view = createFinalView(), onReturn = () => {}) =>
+      renderFakeAnswerGame(state, view, () => {}, () => {}, () => {}, () => {}, () => {}, onReturn, gameName, true, () => {});
+
+    const tieState = createFinalPublicState(true);
+    const screen = renderFinal("Fact or Cap", tieState);
+    const winnerCard = screen.children[0];
+    const leaderboardHeading = screen.children[1];
+    const leaderboard = screen.children[2];
+    assert.equal(winnerCard.className, "final-winner-card");
+    assert.equal(winnerCard.children[0].textContent, "🏆");
+    assert.match(winnerCard.text, /It's a tie!/u);
+    assert.match(winnerCard.text, /Player Two, Player One/u);
+    assert.match(winnerCard.text, /9 points/u);
+    assert.equal(leaderboardHeading.textContent, "Final leaderboard");
+    assert.equal(leaderboard.className.includes("final-leaderboard"), true);
+    assert.deepEqual(leaderboard.children.map((row) => row.children[0].textContent), ["#1", "#1"]);
+    assert.equal(screen.children.indexOf(leaderboard), screen.children.indexOf(winnerCard) + 2);
+    assert.doesNotMatch(screen.text, /Final results|Round 5 of 5|final prompt should not appear|Correct Answer|Bluff answers/u);
+    assert.equal(screen.query((node) => node.tagName === "button").textContent, "Return to lobby");
+
+    const animeScreen = renderFinal("Fact-or-Cap Anime", tieState);
+    assert.equal(animeScreen.children[0].className, "final-winner-card");
+    assert.match(animeScreen.text, /Player Two, Player One/u);
+    assert.doesNotMatch(animeScreen.text, /Final results|Round 5 of 5/u);
+    assert.equal(animeScreen.query((node) => node.className === "round-counter"), null);
+
+    const singleScreen = renderFinal("Fact or Cap", createFinalPublicState(false));
+    const singleWinner = singleScreen.children[0];
+    assert.match(singleWinner.text, /Winner/u);
+    assert.match(singleWinner.text, /Player Two/u);
+    assert.doesNotMatch(singleWinner.text, /Player One/u);
+    assert.deepEqual(singleScreen.children[2].children.map((row) => row.children[0].textContent), ["#1", "#2"]);
+
+    let returnCalls = 0;
+    const hostScreen = renderFinal("Fact or Cap", tieState, createFinalView(), () => { returnCalls += 1; });
+    hostScreen.query((node) => node.tagName === "button").dispatch("click");
+    assert.equal(returnCalls, 1);
+
+    const returningScreen = renderFinal("Fact or Cap", tieState, createFinalView({ isReturningToLobby: true, returnToLobbyError: "Return failed" }));
+    const returning = returningScreen.query((node) => node.tagName === "button");
+    assert.equal(returning.disabled, true);
+    assert.match(returning.textContent, /Returning to lobby/u);
+    assert.match(returningScreen.text, /Return failed/u);
+
+    const nonHostScreen = renderFinal("Fact or Cap", tieState, createFinalView({ isHost: false }));
+    assert.equal(nonHostScreen.query((node) => node.tagName === "button"), null);
+    assert.match(nonHostScreen.text, /Waiting for the host/u);
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
+test("ordinary question and round-results screens retain their heading and round counter", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  try {
+    const submission = createFinalView({ isRoundFeedbackDismissed: true });
+    const question = renderFakeAnswerGame({
+      phase: "question", currentRound: 2, totalRounds: 5, roundId: "round-2",
+      prompt: { id: "prompt", text: "Ordinary prompt" }, submissionCount: 0, playerCount: 2,
+    }, submission, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false, () => {});
+    assert.equal(question.query((node) => node.tagName === "h1").textContent, "Question");
+    assert.equal(question.query((node) => node.className === "round-counter").textContent, "Round 2 of 5");
+
+    const roundState = createFinalPublicState(false);
+    roundState.currentRound = 4;
+    roundState.isFinalRound = false;
+    delete roundState.finalStatistics;
+    roundState.results = createResults({
+      ...roundState.results,
+      options: [
+        ...createResults().options,
+        { id: "extra-option", completion: "another answer", authorId: "player-1", authorName: "Player One", isCorrect: false, voters: [] },
+      ],
+      standings: [
+        { playerId: "player-2", name: "Player Two", totalScore: 9, rank: 1 },
+        { playerId: "player-1", name: "Player One", totalScore: 6, rank: 2 },
+      ],
+    });
+    roundState.continueReadyCount = 0;
+    roundState.continuePlayerCount = 2;
+    roundState.viewerReadyToContinue = false;
+    roundState.continueProgress = [
+      { playerId: "player-1", name: "Player One", ready: false },
+      { playerId: "player-2", name: "Player Two", ready: false },
+    ];
+    const roundResults = renderFakeAnswerGame(roundState, submission, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false, () => {});
+    assert.equal(roundResults.query((node) => node.tagName === "h1").textContent, "Round results");
+    assert.equal(roundResults.query((node) => node.className === "round-counter").textContent, "Round 4 of 5");
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
+test("shared result cards and standings preserve Fact-or-Cap result presentation", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  try {
+    const card = createAnswerResultCard({
+      completion: "REAL ANSWER",
+      authorName: "Player Two",
+      voteCount: 1,
+      voterNames: ["Player One"],
+      formatAnswer: (answer) => answer.toLowerCase(),
+      voterPrefix: "Chosen by",
+      noVotesText: "No one chose this answer.",
+    });
+    const correct = createAnswerResultCard({
+      completion: "REAL ANSWER",
+      authorName: null,
+      voteCount: 2,
+      voterNames: ["Player One", "Player Two"],
+      formatAnswer: (answer) => answer.toLowerCase(),
+      voterPrefix: "Chosen by",
+      isCorrect: true,
+    });
+    const standings = createStandingsList([
+      { playerId: "p1", name: "Player One", rank: 1, totalScore: 4 },
+      { playerId: "p2", name: "Player Two", rank: 2, totalScore: 2 },
+    ], { roundPointsByPlayer: new Map([["p1", 3], ["p2", -1]]) });
+    assert.equal(card.className, "result-card");
+    assert.match(card.text, /Player Two\|real answer/u);
+    assert.match(card.text, /Chosen by: Player One/u);
+    assert.equal(correct.className, "result-card result-card-correct real-answer-card");
+    assert.match(correct.text, /2 votes/u);
+    assert.equal(standings.className, "result-card-list standings-list");
+    assert.match(standings.text, /\+3/u);
+    assert.match(standings.text, /-1/u);
+    assert.match(standings.text, /4 points/u);
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
 });
