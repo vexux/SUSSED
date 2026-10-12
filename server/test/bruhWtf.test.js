@@ -256,3 +256,72 @@ test("Socket.IO starts the selected Bruh wtf? game and publishes round results",
     assert.equal(results.state.results.answers.length, 3);
     assert.equal(results.state.results.leaderboard.reduce((sum, player) => sum + player.score, 0), 3);
 });
+
+test("three-player Bruh wtf? socket session completes rounds, preserves privacy, and returns to lobby", async (context) => {
+    const harness = await createSocketHarness(context);
+    const clients = await Promise.all([harness.connect(), harness.connect(), harness.connect()]);
+    const host = clients[0];
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.rooms.add(created.roomCode);
+    await emitWithAck(clients[1], "join-room", { roomCode: created.roomCode, playerName: "Guest One" });
+    await emitWithAck(clients[2], "join-room", { roomCode: created.roomCode, playerName: "Guest Two" });
+    await emitWithAck(clients[1], "set-ready", { isReady: true });
+    await emitWithAck(clients[2], "set-ready", { isReady: true });
+    const selected = await emitWithAck(host, "select-game", { gameId: "bruh-wtf" });
+    await emitWithAck(host, "select-round-count", { roundCount: 5, revision: selected.lobby.revision });
+    const started = await new Promise((resolve) => host.emit("start-game", resolve));
+    assert.equal(started.error, undefined, JSON.stringify(started));
+
+    const { sessionId } = started.game;
+    for (let round = 1; round <= 5; round += 1) {
+        const initial = gameManager.getPublicGameState(created.roomCode, host.id);
+        assert.equal(initial.state.phase, "answer-submission");
+        assert.equal(initial.state.currentRound, round);
+        const { roundId } = initial.state;
+        const answers = clients.map((_, index) => `private-${round}-${index}`);
+
+        for (let index = 0; index < clients.length; index += 1) {
+            const response = await emitWithAck(clients[index], "bruh-wtf:submit", {
+                sessionId,
+                roundId,
+                answer: answers[index]
+            });
+            assert.equal(response.submitted, true);
+            if (index === 0) {
+                for (const viewer of clients) {
+                    const state = gameManager.getPublicGameState(created.roomCode, viewer.id).state;
+                    assert.equal(JSON.stringify(state).includes(answers[0]), false);
+                }
+            }
+        }
+
+        const votingStates = clients.map((client) => gameManager.getPublicGameState(created.roomCode, client.id).state);
+        assert.ok(votingStates.every(({ phase }) => phase === "voting"));
+        for (const state of votingStates) {
+            assert.ok(state.options.every((option) => !Object.hasOwn(option, "authorId")));
+            assert.equal(state.options.filter(({ isOwnAnswer }) => isOwnAnswer).length, 1);
+        }
+
+        for (let index = 0; index < clients.length; index += 1) {
+            const option = votingStates[index].options.find(({ isOwnAnswer }) => !isOwnAnswer);
+            const response = await emitWithAck(clients[index], "bruh-wtf:vote", { sessionId, roundId, optionId: option.id });
+            assert.equal(response.voted, true);
+        }
+        const results = gameManager.getPublicGameState(created.roomCode, host.id).state;
+        assert.equal(results.phase, "results");
+        assert.equal(results.results.answers.length, 3);
+        assert.equal(results.results.roundScores.reduce((total, player) => total + player.pointsEarned, 0), 3);
+        assert.equal(results.results.leaderboard.reduce((total, player) => total + player.score, 0), round * 3);
+
+        if (round < 5) {
+            for (let index = 0; index < clients.length; index += 1) {
+                const response = await emitWithAck(clients[index], "bruh-wtf:continue", { sessionId, roundId });
+                assert.equal(response.advanced, index === clients.length - 1);
+            }
+        }
+    }
+
+    assert.equal(gameManager.getPublicGameState(created.roomCode, host.id).status, "finished");
+    assert.deepEqual(await emitWithAck(host, "return-to-lobby", { sessionId }), { returned: true });
+    assert.equal(roomManager.createLobbyState(roomManager.getRoom(created.roomCode)).selectedGameId, "bruh-wtf");
+});

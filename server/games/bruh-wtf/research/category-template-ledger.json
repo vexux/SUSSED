@@ -1,9 +1,76 @@
 {
   "formatVersion": 1,
   "categories": [
-    { "id": "what-if", "templateFamilies": ["wish scenario", "road-trip mishap", "alien explanation"] },
-    { "id": "creative", "templateFamilies": ["duo band name", "inconvenient superpower", "claimed talent", "bad startup pitch"] },
-    { "id": "social", "templateFamilies": ["flirting attempt", "flirting response"] }
+    { "id": "absurd-hypotheticals", "templateFamilies": [
+      { "id": "wish-scenario", "premise": "A player reacts to receiving one wish", "premiseFingerprint": "player-one-wish-response", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": ["b001-reject-wish-prompt"], "notes": "Development fixture dev-wish; not production-approved. b001-reject-wish-prompt was rejected as an exact premise repeat." },
+      { "id": "b001-room-entry-rule", "premise": "A player invents a pointless access rule for an unused room", "premiseFingerprint": "player-pointless-room-entry-rule", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-room-entry-rule"], "rejectedQuestionIds": [], "notes": "Distinct from the existing wish-scenario; no reuse of a wish premise." }
+    ] },
+    { "id": "social-flirting", "templateFamilies": [
+      { "id": "flirting-attempt", "premise": "A player's approach to flirting", "premiseFingerprint": "player-flirting-approach", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-rizz; overlaps with flirting-response in subject, but asks for a different action." },
+      { "id": "flirting-response", "premise": "A player's response to an unwanted or unexpected flirtation", "premiseFingerprint": "player-response-to-flirting", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-comeback; overlaps with flirting-attempt in subject, but asks for a different action." }
+    ] },
+    { "id": "friend-roasts", "templateFamilies": [
+      { "id": "b001-warning-label", "premise": "A friendly warning label for a player's small inconvenience becoming everyone's problem", "premiseFingerprint": "player-minor-inconvenience-citywide-event-label", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-warning-label"], "rejectedQuestionIds": [], "notes": "Roasts behavior in a harmless fictional scenario; no protected traits." }
+    ] },
+    { "id": "creative-chaos", "templateFamilies": [
+      { "id": "duo-band-name", "premise": "Two players invent a band name", "premiseFingerprint": "pair-invents-band-name", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-band-name." },
+      { "id": "b001-almost-worked-museum", "premise": "A museum celebrates objects that almost worked", "premiseFingerprint": "museum-almost-working-object-velvet-rope", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-almost-worked-museum"], "rejectedQuestionIds": [], "notes": "Museum premise differs from the fixture's band-name invention." },
+      { "id": "b001-office-supply-diner", "premise": "A pair creates dishes inspired by office supplies", "premiseFingerprint": "pair-office-supply-diner-signature-dish", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-office-supply-diner"], "rejectedQuestionIds": [], "notes": "Food/menu answer space; distinct from startup pitch and band naming." }
+    ] },
+    { "id": "survival-missions", "templateFamilies": [
+      { "id": "wrong-emergency-kit-item", "premise": "A player packs an unsuitable item for emergencies", "premiseFingerprint": "player-wrong-emergency-kit-item", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-emergency-kit." },
+      { "id": "b001-haunted-office-gear", "premise": "A player picks survival gear for crossing a haunted office", "premiseFingerprint": "player-haunted-office-crossing-survival-gear", "status": "rejected", "acceptedQuestionIds": [], "rejectedQuestionIds": ["bruh-b001-haunted-office-gear"], "notes": "Rejected in batch review: choosing an unsuitable survival item repeats development fixture dev-emergency-kit's joke structure." },
+      { "id": "b001-haunted-office-ghost-task", "premise": "A ghost traps a player in an office until they complete a routine task", "premiseFingerprint": "player-haunted-office-ghost-demands-routine-task", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-haunted-office-ghost-task"], "rejectedQuestionIds": [], "notes": "Replaces the rejected wrong-survival-item prompt with a different answer mechanism: naming the routine task demanded by the ghost." }
+    ] },
+    { "id": "group-chaos", "templateFamilies": [
+      { "id": "questionable-heist-loadout", "premise": "Players each bring something to a questionable heist", "premiseFingerprint": "group-questionable-heist-item", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-heist." },
+      { "id": "b001-object-spokesperson", "premise": "A player appoints an object spokesperson after a group meeting derails", "premiseFingerprint": "meeting-derails-object-spokesperson", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-object-spokesperson"], "rejectedQuestionIds": [], "notes": "A role-played group argument, distinct from the fixture's heist gear." },
+      { "id": "b001-gnome-treaty", "premise": "A pair negotiates a treaty between rival garden gnomes", "premiseFingerprint": "pair-rival-gnomes-treaty-clause", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-gnome-treaty"], "rejectedQuestionIds": [], "notes": "Diplomatic negotiation answer space; no player betrayal premise." },
+      { "id": "b001-potato-float", "premise": "A three-player committee responds to an escaped potato parade float", "premiseFingerprint": "trio-escaped-potato-float-emergency-plan", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-potato-float"], "rejectedQuestionIds": [], "notes": "Distinct fictional civic emergency rather than heist planning." }
+    ] },
+    { "id": "ordinary-life", "templateFamilies": [
+      { "id": "road-trip-forgotten-item", "premise": "Two players forget something on a road trip", "premiseFingerprint": "pair-forgets-road-trip-item", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-road-trip." },
+      { "id": "b001-vending-advice", "premise": "A vending machine gives a player oddly specific life advice", "premiseFingerprint": "vending-machine-b7-life-advice", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-vending-advice"], "rejectedQuestionIds": [], "notes": "Different from the road-trip forgetfulness setup." },
+      { "id": "b001-mystery-parcel", "premise": "A parcel addressed to two people contains a disputed order", "premiseFingerprint": "pair-disputed-mystery-parcel-contents", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-mystery-parcel"], "rejectedQuestionIds": [], "notes": "Domestic parcel mystery; distinct from forgotten travel supplies." },
+      { "id": "b001-shared-coat", "premise": "A pair shares a coat with an unreasonable formalwear feature", "premiseFingerprint": "pair-oversized-shared-coat-feature", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-shared-coat"], "rejectedQuestionIds": [], "notes": "Physical costume constraint; distinct from road-trip and parcel premises." }
+    ] },
+    { "id": "fictional-worlds", "templateFamilies": [
+      { "id": "alien-explanation", "premise": "A player explains a human concept to an alien", "premiseFingerprint": "player-explains-humanity-to-alien", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-alien." }
+    ] },
+    { "id": "confessions", "templateFamilies": [
+      { "id": "b001-party-expertise", "premise": "A fictional party guest pretends to expertise and is exposed by a detail", "premiseFingerprint": "player-fictional-party-fake-expertise-tell", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-party-expertise"], "rejectedQuestionIds": [], "notes": "Explicitly fictional and harmless; does not ask for a truthful disclosure." }
+    ] },
+    { "id": "adult-humor", "templateFamilies": [] },
+    { "id": "pop-culture", "templateFamilies": [
+      { "id": "b001-elevator-anthem", "premise": "A trio writes an anthem to replace elevator hold music", "premiseFingerprint": "trio-elevator-hold-music-anthem-chorus", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-elevator-anthem"], "rejectedQuestionIds": [], "notes": "A short invented chorus; distinct from any named franchise or existing cultural work." },
+      { "id": "b001-flatpack-cooking-show", "premise": "A player titles a cooking show about flat-pack assembly", "premiseFingerprint": "player-flatpack-furniture-cooking-show-title", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-flatpack-cooking-show"], "rejectedQuestionIds": [], "notes": "Parody format crossover; original fictional show title." }
+    ] },
+    { "id": "work-life", "templateFamilies": [
+      { "id": "terrible-startup-pitch", "premise": "Two players pitch a bad startup idea", "premiseFingerprint": "pair-pitches-bad-startup", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": ["b001-reject-bad-startup-pitch"], "notes": "Development fixture dev-startup. b001-reject-bad-startup-pitch was rejected as a premise duplicate." },
+      { "id": "b001-basket-announcement", "premise": "A player makes a supermarket emergency announcement about a runaway basket", "premiseFingerprint": "player-supermarket-pa-runaway-basket-alert", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-basket-announcement"], "rejectedQuestionIds": [], "notes": "Retail public-address situation, not a startup or office job premise." },
+      { "id": "b001-reply-all-job", "premise": "A player invents a job title for stopping reply-all storms", "premiseFingerprint": "player-office-reply-all-storm-prevention-title", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-reply-all-job"], "rejectedQuestionIds": [], "notes": "Workplace role-name answer space; distinct from proposing a startup." }
+    ] },
+    { "id": "money", "templateFamilies": [
+      { "id": "b001-dragon-expense", "premise": "A tiny dragon defends a questionable treasure-related business expense", "premiseFingerprint": "tiny-dragon-audit-questionable-expense", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-dragon-expense"], "rejectedQuestionIds": [], "notes": "Fantasy accounting gag; avoids personal financial disclosure." }
+    ] },
+    { "id": "technology", "templateFamilies": [
+      { "id": "b001-self-checkout-case", "premise": "A self-checkout machine files a complaint and a player contests the charge", "premiseFingerprint": "self-checkout-files-complaint-player-defense", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-self-checkout-case"], "rejectedQuestionIds": [], "notes": "Distinct from the fixture's inconvenient superpower and unrelated to identity-based humour." },
+      { "id": "b001-crossing-button", "premise": "A player adds an unnecessary feature to a pedestrian crossing button", "premiseFingerprint": "player-overengineers-pedestrian-crossing-button", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-crossing-button"], "rejectedQuestionIds": [], "notes": "Civic interface overengineering premise." },
+      { "id": "b001-fridge-podcast", "premise": "A smart fridge hosts a podcast with a player's overconfident opinion", "premiseFingerprint": "smart-fridge-player-podcast-episode-one-opinion", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-fridge-podcast"], "rejectedQuestionIds": [], "notes": "Domestic appliance media premise, distinct from interface redesign." }
+    ] },
+    { "id": "mystery", "templateFamilies": [
+      { "id": "b001-towel-exhibit", "premise": "A museum claims a damp towel is famous for a legendary event", "premiseFingerprint": "museum-damp-towel-legendary-history", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-towel-exhibit"], "rejectedQuestionIds": [], "notes": "Inanimate exhibit mythology." },
+      { "id": "b001-goldfish-map-case", "premise": "A pair solves a mystery using maps drawn from a goldfish's memory", "premiseFingerprint": "pair-mystery-goldfish-memory-map-clue", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-goldfish-map-case"], "rejectedQuestionIds": [], "notes": "Investigation and clue resolution; different premise and answer space from the towel's invented history." }
+    ] },
+    { "id": "competition", "templateFamilies": [
+      { "id": "claimed-talent-show", "premise": "A player claims a talent for a show", "premiseFingerprint": "player-claims-talent-show-skill", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-talent-show." },
+      { "id": "b001-barely-prepared", "premise": "A player unexpectedly wins an event at a barely-prepared championship", "premiseFingerprint": "player-barely-prepared-championship-winning-event", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-barely-prepared"], "rejectedQuestionIds": [], "notes": "Different from claiming a talent for a talent show; competition event and strategy are open-ended." }
+    ] },
+    { "id": "fantasy-roles", "templateFamilies": [
+      { "id": "inconvenient-superpower", "premise": "A player gets an inconvenient superpower", "premiseFingerprint": "player-inconvenient-superpower", "status": "unreviewed", "acceptedQuestionIds": [], "rejectedQuestionIds": [], "notes": "Development fixture dev-superpower." },
+      { "id": "b001-tavern-soup", "premise": "A trio interprets suspiciously specific soup as a fantasy quest clue", "premiseFingerprint": "trio-fantasy-tavern-soup-quest-clue", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-tavern-soup"], "rejectedQuestionIds": [], "notes": "Fantasy food clue; distinct from a player receiving a superpower." },
+      { "id": "b001-terms-curse", "premise": "A player lifts a curse from unread terms and conditions through an oddly specific task", "premiseFingerprint": "player-terms-conditions-curse-breaking-task", "status": "accepted", "acceptedQuestionIds": ["bruh-b001-terms-curse"], "rejectedQuestionIds": [], "notes": "Fantasy curse premise; not a wish or superpower." }
+    ] }
   ],
-  "note": "Editorial planning aid only. Add reviewed production template families here to reduce repetitive batches."
+  "note": "Editorial ledger only. Listed development families are unreviewed mechanics fixtures, not accepted production concepts. Update accepted/rejected IDs through human review; do not infer semantic originality from fingerprints."
 }
