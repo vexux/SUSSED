@@ -258,8 +258,11 @@ function createPublicState(state, viewerId) {
             voteCount: state.votes.size,
             voteProgress: state.participants.map(({ id, name }) => ({ playerId: id, name, voted: state.votes.has(id) })),
             options: state.options
-                .filter(({ authorId }) => authorId !== viewerId)
-                .map(({ id, completion }) => ({ id, completion }))
+                .map(({ id, completion, authorId }) => ({
+                    id,
+                    completion,
+                    isOwnAnswer: authorId === viewerId
+                }))
         };
     }
     if (state.phase === "waiting-for-results") {

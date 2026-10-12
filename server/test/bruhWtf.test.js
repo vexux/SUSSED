@@ -135,7 +135,10 @@ test("submissions validate membership, phase, payload and duplicate actions with
     for (const player of players) {
         const publicVote = bruhWtf.createPublicState(state, player.id);
         assert.equal(publicVote.options.some((option) => "authorId" in option), false);
-        assert.equal(publicVote.options.length, players.length - 1);
+        assert.equal(publicVote.options.length, players.length);
+        assert.equal(publicVote.options.filter(({ isOwnAnswer }) => isOwnAnswer).length, 1);
+        const expectedOwnAnswer = new Map([["p1", "Secret one"], ["p2", "Secret two"], ["p3", "Secret three"]]).get(player.id);
+        assert.equal(publicVote.options.find(({ isOwnAnswer }) => isOwnAnswer).completion, expectedOwnAnswer);
         assert.equal(JSON.stringify(publicVote).includes("authorId"), false);
     }
 });
@@ -232,13 +235,22 @@ test("Socket.IO starts the selected Bruh wtf? game and publishes round results",
     const guestVoting = gameManager.getPublicGameState(created.roomCode, guest.id);
     const thirdVoting = gameManager.getPublicGameState(created.roomCode, thirdPlayer.id);
     assert.equal(hostVoting.state.phase, "voting");
-    assert.equal(hostVoting.state.options.length, 2);
-    assert.equal(guestVoting.state.options.length, 2);
-    assert.equal(thirdVoting.state.options.length, 2);
-    const voteOne = await emitWithAck(host, "bruh-wtf:vote", { sessionId, roundId, optionId: hostVoting.state.options[0].id });
+    assert.equal(hostVoting.state.options.length, 3);
+    assert.equal(guestVoting.state.options.length, 3);
+    assert.equal(thirdVoting.state.options.length, 3);
+    const ownOption = hostVoting.state.options.find(({ isOwnAnswer }) => isOwnAnswer);
+    const hostOption = hostVoting.state.options.find(({ isOwnAnswer }) => !isOwnAnswer);
+    const invalidVote = await emitWithAck(host, "bruh-wtf:vote", { sessionId, roundId, optionId: ownOption.id });
+    assert.equal(invalidVote.error.code, "OWN_ANSWER_NOT_ALLOWED");
+    assert.equal(gameManager.getPublicGameState(created.roomCode, host.id).state.voteCount, 0);
+    const votePayload = { sessionId, roundId, optionId: hostOption.id };
+    const voteOne = await emitWithAck(host, "bruh-wtf:vote", votePayload);
     assert.equal(voteOne.voted, true);
-    assert.equal((await emitWithAck(guest, "bruh-wtf:vote", { sessionId, roundId, optionId: guestVoting.state.options[0].id })).voted, true);
-    assert.equal((await emitWithAck(thirdPlayer, "bruh-wtf:vote", { sessionId, roundId, optionId: thirdVoting.state.options[0].id })).voted, true);
+    assert.equal((await emitWithAck(host, "bruh-wtf:vote", votePayload)).error.code, "ALREADY_VOTED");
+    const guestOption = guestVoting.state.options.find(({ isOwnAnswer }) => !isOwnAnswer);
+    const thirdOption = thirdVoting.state.options.find(({ isOwnAnswer }) => !isOwnAnswer);
+    assert.equal((await emitWithAck(guest, "bruh-wtf:vote", { sessionId, roundId, optionId: guestOption.id })).voted, true);
+    assert.equal((await emitWithAck(thirdPlayer, "bruh-wtf:vote", { sessionId, roundId, optionId: thirdOption.id })).voted, true);
     const results = gameManager.getPublicGameState(created.roomCode, host.id);
     assert.equal(results.state.phase, "results");
     assert.equal(results.state.results.answers.length, 3);

@@ -7,7 +7,7 @@ export interface BruhWtfPublicState {
   playerCount: number;
   submissionCount?: number;
   submissionProgress?: Array<{ playerId: string; name: string; submitted: boolean }>;
-  options?: Array<{ id: string; completion: string }>;
+  options?: Array<{ id: string; completion: string; isOwnAnswer: boolean }>;
   voteCount?: number;
   voteProgress?: Array<{ playerId: string; name: string; voted: boolean }>;
   continueReadyCount?: number;
@@ -128,7 +128,7 @@ export function renderBruhWtfGame(
   const state = value;
   screen.append(
     element("p", "screen-description", gameDisplayName),
-    element("h1", undefined, state.phase === "voting" ? "Vote for an answer" : state.phase === "results" ? "Round results" : "Bruh wtf?"),
+    element("h1", undefined, state.phase === "voting" ? "Voting Round" : state.phase === "results" ? "Round results" : "Bruh wtf?"),
     element("p", "round-counter", `Round ${state.currentRound} of ${state.totalRounds}`),
     element("p", "question-text", state.phase === "results" && state.results ? state.results.prompt : state.prompt),
   );
@@ -173,6 +173,7 @@ export function renderBruhWtfGame(
     screen.append(element("p", "screen-description", "Answers are anonymous. Choose another player’s answer."));
     const form = element("form", "vote-form");
     let voteButton: HTMLButtonElement | null = null;
+    let selectedOptionId = view.selectedOptionId;
     for (const option of state.options ?? []) {
       const label = element("label", "vote-option");
       const input = element("input");
@@ -181,22 +182,40 @@ export function renderBruhWtfGame(
       input.value = option.id;
       input.checked = view.selectedOptionId === option.id;
       input.disabled = view.isVoting || viewerVoted;
-      input.addEventListener("change", () => {
-        onSelectVote(option.id);
-        if (voteButton) voteButton.disabled = view.isVoting || viewerVoted;
-      });
+      if (option.isOwnAnswer) {
+        input.setAttribute("aria-disabled", "true");
+        input.tabIndex = -1;
+        input.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
+        input.addEventListener("keydown", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
+      } else {
+        input.addEventListener("change", () => {
+          selectedOptionId = option.id;
+          onSelectVote(option.id);
+          if (voteButton) voteButton.disabled = view.isVoting || viewerVoted;
+        });
+      }
       label.append(input, element("span", undefined, option.completion));
       form.append(label);
     }
-    voteButton = element("button", "primary-button", viewerVoted ? "Vote submitted" : view.isVoting ? "Voting…" : "Submit vote");
+    voteButton = element("button", "primary-button", viewerVoted ? "Vote submitted" : view.isVoting ? "Submitting…" : "Submit");
     voteButton.type = "submit";
     voteButton.disabled = view.isVoting || viewerVoted || !view.selectedOptionId;
     form.append(voteButton);
-    form.addEventListener("submit", (event) => { event.preventDefault(); if (view.selectedOptionId) onVote(view.selectedOptionId); });
+    form.addEventListener("submit", (event) => { event.preventDefault(); if (selectedOptionId) onVote(selectedOptionId); });
     screen.append(form);
     const progress = element("p", "vote-progress bruh-vote-progress", `${state.voteCount ?? 0} of ${state.playerCount} players voted`);
     screen.append(progress);
-    if (view.voteError) screen.append(element("p", "error-message", view.voteError));
+    if (view.voteError) {
+      const error = element("p", "error-message", view.voteError);
+      error.setAttribute("role", "alert");
+      screen.append(error);
+    }
   } else if (state.phase === "waiting-for-results") {
     screen.append(element("p", "status-message", "All votes are in. Preparing results…"));
     screen.append(element("p", "vote-progress", `${state.voteCount ?? 0} of ${state.playerCount} players voted`));
