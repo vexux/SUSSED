@@ -64,6 +64,30 @@ test("private-answer checks allow answer text already present in the public prom
     );
 });
 
+test("Socket.IO polling allows the deployed frontend origins and rejects unlisted origins", async (context) => {
+    const harness = await createHarness(context);
+    const address = harness.io.httpServer.address();
+    assert.ok(address && typeof address === "object");
+    const endpoint = `http://127.0.0.1:${address.port}/socket.io/?EIO=4&transport=polling`;
+
+    for (const origin of [
+        "https://getsussed.vercel.app",
+        "https://sussed-sigma.vercel.app",
+    ]) {
+        const response = await fetch(endpoint, { headers: { origin } });
+        assert.equal(response.status, 200, `${origin} should complete Socket.IO polling`);
+        assert.equal(response.headers.get("access-control-allow-origin"), origin);
+        await response.text();
+    }
+
+    const rejected = await fetch(endpoint, {
+        headers: { origin: "https://attacker.example" },
+    });
+    assert.equal(rejected.status, 400);
+    assert.equal(rejected.headers.has("access-control-allow-origin"), false);
+    await rejected.text();
+});
+
 async function createHarness(context) {
     const io = startServer(0);
     const clients = [];
