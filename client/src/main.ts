@@ -151,6 +151,7 @@ function render(): void {
 
 function showOperationError(response: RoomOperationResponse): void {
   state.isBusy = false;
+  state.errorCode = response.error?.code ?? null;
   if (
     response.error?.code === "NOT_IN_ROOM" ||
     response.error?.code === "ROOM_NOT_FOUND"
@@ -163,6 +164,7 @@ function showOperationError(response: RoomOperationResponse): void {
     resetFakeAnswerViewState();
     state.errorMessage =
       "This room is no longer available. Create a room or join another room to continue.";
+    state.errorCode = null;
     render();
     return;
   }
@@ -231,6 +233,7 @@ function applyLobbyState(lobby: LobbyState): void {
   state.playerName = localPlayer.name;
   state.lobby = lobby;
   state.errorMessage = null;
+  state.errorCode = null;
   state.isBusy = false;
   render();
 }
@@ -282,6 +285,7 @@ function recoverFromUnavailableGame(): void {
   state.isBusy = false;
   state.errorMessage =
     "This game session is no longer available. Create a room or join another room to continue.";
+  state.errorCode = null;
   render();
 }
 
@@ -366,6 +370,7 @@ function applyGameState(game: GameSessionState): void {
   state.game = game;
   state.currentView = "game";
   state.errorMessage = null;
+  state.errorCode = null;
   state.isBusy = false;
   if (
     isSubmissionProgressOnly &&
@@ -409,9 +414,11 @@ const actions: AppActions = {
   onPlayerNameChange(name) {
     state.playerName = name;
     state.errorMessage = null;
+    state.errorCode = null;
   },
   onCreateRoom() {
     state.errorMessage = null;
+    state.errorCode = null;
     state.isBusy = true;
     render();
     emitRoomOperation(
@@ -429,6 +436,7 @@ const actions: AppActions = {
   },
   onJoinRoom(roomCode) {
     state.errorMessage = null;
+    state.errorCode = null;
     state.isBusy = true;
     render();
     emitRoomOperation(
@@ -446,6 +454,7 @@ const actions: AppActions = {
   },
   onLeaveRoom() {
     state.errorMessage = null;
+    state.errorCode = null;
     state.isBusy = true;
     render();
     emitRoomOperation("leave-room", undefined, (response) => {
@@ -465,11 +474,13 @@ const actions: AppActions = {
       resetFakeAnswerViewState();
       state.isBusy = false;
       state.errorMessage = null;
+      state.errorCode = null;
       render();
     });
   },
   onSetReady(isReady) {
     state.errorMessage = null;
+    state.errorCode = null;
     state.isBusy = true;
     render();
     emitRoomOperation(
@@ -487,6 +498,7 @@ const actions: AppActions = {
   },
   onSelectGame(gameId) {
     state.errorMessage = null;
+    state.errorCode = null;
     state.isBusy = true;
     render();
     emitRoomOperation("select-game", { gameId }, (response) => {
@@ -506,6 +518,7 @@ const actions: AppActions = {
   },
   onSelectRoundCount(roundCount, revision) {
     state.errorMessage = null;
+    state.errorCode = null;
     state.isBusy = true;
     render();
     emitRoomOperation(
@@ -527,6 +540,7 @@ const actions: AppActions = {
   },
   onStartGame() {
     state.errorMessage = null;
+    state.errorCode = null;
     state.isBusy = true;
     render();
     emitRoomOperation("start-game", undefined, (response) => {
@@ -821,6 +835,7 @@ socket.on("connect", () => {
   state.errorMessage = hasConnectedOnce && connectionWasLost
     ? "Connection restored. Create or join a room to continue."
     : null;
+  state.errorCode = null;
   connectionWasLost = false;
   hasConnectedOnce = true;
   render();
@@ -837,6 +852,7 @@ socket.on("disconnect", () => {
   resetFakeAnswerViewState();
   state.isBusy = false;
   state.errorMessage = "Connection lost. Reconnect to create or join a room.";
+  state.errorCode = null;
   render();
 });
 
@@ -845,6 +861,7 @@ socket.on("connect_error", () => {
   state.connectionStatus = "disconnected";
   state.isBusy = false;
   state.errorMessage = "Unable to connect to the server. Retrying…";
+  state.errorCode = null;
   render();
 });
 

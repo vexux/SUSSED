@@ -128,3 +128,50 @@ test("round count changes require an eligible host and a current lobby revision"
     roomManager.selectRoundCount(guest.players[0].id, 7, guest.revision);
     assert.equal(guest.selectedRoundCount, 7);
 });
+
+test("player names are unique within one room after trimming and case normalization", (context) => {
+    const room = roomManager.createRoom("unique-host", "Alex");
+    context.after(() => roomManager.removeRoom(room.code));
+
+    for (const name of ["alex", " Alex ", "ALEX"]) {
+        assert.throws(
+            () => roomManager.joinRoom(room.code, `duplicate-${name}`, name),
+            {
+                code: "DUPLICATE_PLAYER_NAME",
+                message: "That name is already used in this room. Choose another name."
+            }
+        );
+    }
+    assert.equal(room.players.length, 1);
+});
+
+test("identical names are allowed in separate rooms and become reusable after removal", (context) => {
+    const firstRoom = roomManager.createRoom("name-room-host-1", "Alex");
+    const secondRoom = roomManager.createRoom("name-room-host-2", "alex");
+    context.after(() => {
+        roomManager.removeRoom(firstRoom.code);
+        roomManager.removeRoom(secondRoom.code);
+    });
+
+    const guest = roomManager.joinRoom(firstRoom.code, "name-room-guest", "Guest");
+    roomManager.removePlayer("name-room-guest");
+    const replacement = roomManager.joinRoom(firstRoom.code, "name-room-replacement", " guest ");
+    assert.equal(replacement.players.length, 2);
+    assert.equal(replacement.players[1].name, "guest");
+    assert.equal(secondRoom.players[0].name, "alex");
+    assert.equal(guest.code, firstRoom.code);
+});
+
+test("simultaneous equivalent-name joins can only insert one player", async (context) => {
+    const room = roomManager.createRoom("atomic-name-host", "Host");
+    context.after(() => roomManager.removeRoom(room.code));
+
+    const attempts = await Promise.allSettled([
+        Promise.resolve().then(() => roomManager.joinRoom(room.code, "atomic-name-1", "Shared")),
+        Promise.resolve().then(() => roomManager.joinRoom(room.code, "atomic-name-2", " shared ")),
+    ]);
+    assert.equal(attempts.filter(({ status }) => status === "fulfilled").length, 1);
+    const rejected = attempts.find(({ status }) => status === "rejected");
+    assert.equal(rejected.reason.code, "DUPLICATE_PLAYER_NAME");
+    assert.equal(room.players.length, 2);
+});

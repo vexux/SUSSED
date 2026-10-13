@@ -1,12 +1,12 @@
-import type { AppState } from "./appState";
+import type { AppState } from "./appState.ts";
 import {
   renderFakeAnswerGame,
   type FakeAnswerViewState,
-} from "./games/fakeAnswer";
+} from "./games/fakeAnswer.ts";
 import {
   renderBruhWtfGame,
   type BruhWtfViewState,
-} from "./games/bruhWtf";
+} from "./games/bruhWtf.ts";
 
 export interface AppActions {
   onPlayerNameChange(name: string): void;
@@ -81,8 +81,8 @@ function renderHome(
   const title = createElement("h1", undefined, "SUSSED!");
   const introduction = createElement(
     "p",
-    "screen-description",
-    "Create a room or join your friends with a memorable four-letter room code.",
+    "screen-description landing-tagline",
+    state.landingTagline,
   );
   screen.append(title, introduction);
 
@@ -103,6 +103,13 @@ function renderHome(
   const identityField = createElement("div", "field");
   identityField.append(playerNameLabel, playerNameInput);
   screen.append(identityField);
+  if (state.errorCode === "DUPLICATE_PLAYER_NAME") {
+    const duplicateNameError = createErrorMessage(state.errorMessage);
+    if (duplicateNameError) {
+      duplicateNameError.classList.add("duplicate-name-error");
+      screen.append(duplicateNameError);
+    }
+  }
 
   const createButton = createElement("button", "primary-button", "Create room");
   createButton.type = "button";
@@ -121,7 +128,7 @@ function renderHome(
   roomCodeInput.type = "text";
   roomCodeInput.autocomplete = "off";
   roomCodeInput.maxLength = 4;
-  roomCodeInput.placeholder = "WORD";
+  roomCodeInput.placeholder = "CODE";
   roomCodeInput.setAttribute("aria-label", "Room code");
 
   const joinButton = createElement("button", "secondary-button", "Join room");
@@ -140,14 +147,12 @@ function renderHome(
   const actionsPanel = createElement("div", "room-actions");
   actionsPanel.append(createPanel, joinPanel);
   screen.append(actionsPanel);
-  screen.append(
-    createElement("p", "room-code-hint", "Room codes are memorable four-letter words."),
-  );
-
   if (state.isBusy) {
     screen.append(createElement("p", "status-message", "Connecting to room…"));
   }
-  const error = createErrorMessage(state.errorMessage);
+  const error = state.errorCode === "DUPLICATE_PLAYER_NAME"
+    ? null
+    : createErrorMessage(state.errorMessage);
   if (error) {
     screen.append(error);
   }

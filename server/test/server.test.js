@@ -802,6 +802,60 @@ test("rejects invalid or empty player names on create and join", async (context)
     assert.equal(invalidCreateResponse.error.code, "INVALID_NAME");
 });
 
+test("room joining enforces unique names atomically and releases names after leave or disconnect", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const firstJoiner = await harness.connect();
+    const secondJoiner = await harness.connect();
+    const replacement = await harness.connect();
+    const leaver = await harness.connect();
+    const leaveReplacement = await harness.connect();
+    const otherRoomHost = await harness.connect();
+
+    const created = await emitWithAck(host, "create-room", { playerName: "Alex" });
+    assert.equal(created.error, undefined);
+    harness.trackRoom(created.roomCode);
+    const otherRoom = await emitWithAck(otherRoomHost, "create-room", { playerName: "alex" });
+    assert.equal(otherRoom.error, undefined, "names are scoped to a room");
+    harness.trackRoom(otherRoom.roomCode);
+
+    const duplicate = await emitWithAck(firstJoiner, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "  aLeX  "
+    });
+    assert.equal(duplicate.error.code, "DUPLICATE_PLAYER_NAME");
+    assert.match(duplicate.error.message, /choose another name/i);
+    assert.equal(roomManager.getRoom(created.roomCode).players.length, 1);
+
+    const simultaneous = await Promise.all([
+        emitWithAck(firstJoiner, "join-room", { roomCode: created.roomCode, playerName: "Shared" }),
+        emitWithAck(secondJoiner, "join-room", { roomCode: created.roomCode, playerName: " shared " })
+    ]);
+    assert.equal(simultaneous.filter(({ error }) => !error).length, 1);
+    assert.equal(simultaneous.filter(({ error }) => error?.code === "DUPLICATE_PLAYER_NAME").length, 1);
+    assert.equal(roomManager.getRoom(created.roomCode).players.length, 2);
+
+    const winningClient = simultaneous[0].error ? secondJoiner : firstJoiner;
+    const afterDisconnect = waitForLobby(host, (lobby) => lobby.playerCount === 1);
+    winningClient.disconnect();
+    await afterDisconnect;
+    const reusedAfterDisconnect = await emitWithAck(replacement, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "SHARED"
+    });
+    assert.equal(reusedAfterDisconnect.error, undefined);
+
+    assert.equal((await emitWithAck(leaver, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Temporary"
+    })).error, undefined);
+    assert.deepEqual(await emitWithAck(leaver, "leave-room"), { left: true });
+    assert.equal((await emitWithAck(leaveReplacement, "join-room", {
+        roomCode: created.roomCode,
+        playerName: " temporary "
+    })).error, undefined);
+});
+
 test("rejects a socket already in a room from joining another room", async (context) => {
     const harness = await createHarness(context);
     const firstPlayer = await harness.connect();
