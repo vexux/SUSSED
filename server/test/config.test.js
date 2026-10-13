@@ -7,7 +7,20 @@ test("allows configured frontend origins in production without development defau
         nodeEnv: "production",
         clientOrigin: "https://game.example,https://preview.example/",
     });
-    assert.deepEqual(origins, ["https://game.example", "https://preview.example"]);
+    assert.deepEqual(origins, [
+        "https://getsussed.vercel.app",
+        "https://sussed-sigma.vercel.app",
+        "https://game.example",
+        "https://preview.example",
+    ]);
+    assert.equal(
+        isOriginAllowed("https://getsussed.vercel.app", { nodeEnv: "production", origins }),
+        true
+    );
+    assert.equal(
+        isOriginAllowed("https://sussed-sigma.vercel.app", { nodeEnv: "production", origins }),
+        true
+    );
     assert.equal(
         isOriginAllowed("https://game.example", { nodeEnv: "production", origins }),
         true
@@ -18,6 +31,16 @@ test("allows configured frontend origins in production without development defau
     );
     assert.equal(
         isOriginAllowed("http://localhost:5173", { nodeEnv: "production", origins }),
+        false
+    );
+});
+
+test("keeps the deployed frontend origins explicitly allowlisted", () => {
+    const origins = resolveAllowedOrigins({ nodeEnv: "production", clientOrigin: "https://getsussed.vercel.app" });
+    assert.equal(origins.includes("https://getsussed.vercel.app"), true);
+    assert.equal(origins.includes("https://sussed-sigma.vercel.app"), true);
+    assert.equal(
+        isOriginAllowed("https://attacker.example", { nodeEnv: "production", origins }),
         false
     );
 });

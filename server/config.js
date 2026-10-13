@@ -1,4 +1,8 @@
 const DEFAULT_PORT = 3000;
+const KNOWN_CLIENT_ORIGINS = Object.freeze([
+    "https://getsussed.vercel.app",
+    "https://sussed-sigma.vercel.app",
+]);
 const configuredPort = process.env.PORT;
 
 let port = DEFAULT_PORT;
@@ -54,7 +58,7 @@ function resolveAllowedOrigins({
             "CLIENT_ORIGIN is required in production and must list at least one frontend origin."
         );
     }
-    return [...new Set(origins)];
+    return [...new Set([...KNOWN_CLIENT_ORIGINS, ...origins])];
 }
 
 const allowedOrigins = resolveAllowedOrigins();
