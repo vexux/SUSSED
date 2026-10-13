@@ -276,7 +276,7 @@ export function renderBruhWtfGame(
       }));
     }
     screen.append(answersHeading, answers);
-    const presentationStandings = results.leaderboard.map(({ playerId, name, score, rank }) => ({
+    const presentationStandings = (results.activeLeaderboard ?? results.leaderboard).map(({ playerId, name, score, rank }) => ({
       playerId,
       name,
       totalScore: score,

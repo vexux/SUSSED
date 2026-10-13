@@ -92,6 +92,42 @@ async function createSocketHarness(context) {
     return { connect, rooms };
 }
 
+async function startBruhResults(context, { roundCount = 5 } = {}) {
+    const harness = await createSocketHarness(context);
+    const clients = await Promise.all([harness.connect(), harness.connect(), harness.connect()]);
+    const [host, guest, third] = clients;
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.rooms.add(created.roomCode);
+    await emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "Guest" });
+    await emitWithAck(third, "join-room", { roomCode: created.roomCode, playerName: "Third" });
+    await emitWithAck(guest, "set-ready", { isReady: true });
+    await emitWithAck(third, "set-ready", { isReady: true });
+    const selected = await emitWithAck(host, "select-game", { gameId: "bruh-wtf" });
+    await emitWithAck(host, "select-round-count", { roundCount, revision: selected.lobby.revision });
+    const started = await new Promise((resolve) => host.emit("start-game", resolve));
+    assert.equal(started.error, undefined, JSON.stringify(started));
+    const { sessionId } = started.game;
+    const roundId = started.game.state.roundId;
+    for (const [client, answer] of [[host, "Host answer"], [guest, "Guest answer"], [third, "Third answer"]]) {
+        assert.equal((await emitWithAck(client, "bruh-wtf:submit", { sessionId, roundId, answer })).submitted, true);
+    }
+    const states = clients.map((client) => gameManager.getPublicGameState(created.roomCode, client.id).state);
+    const targetAnswer = (voterIndex, text) => {
+        const option = states[voterIndex].options.find(({ completion }) => completion === text);
+        assert.ok(option);
+        return option.id;
+    };
+    for (const [index, target] of [[0, "Third answer"], [1, "Host answer"], [2, "Host answer"]]) {
+        assert.equal((await emitWithAck(clients[index], "bruh-wtf:vote", {
+            sessionId,
+            roundId,
+            optionId: targetAnswer(index, target)
+        })).voted, true);
+    }
+    assert.equal(gameManager.getPublicGameState(created.roomCode, host.id).state.phase, "results");
+    return { clients, host, guest, third, created, sessionId, roundId };
+}
+
 test("Bruh wtf? is registered with its own game implementation and protocol", () => {
     assert.equal(gameRegistry.get("bruh-wtf"), bruhWtf);
     assert.equal(bruhWtf.displayName, "Bruh wtf?");
@@ -384,4 +420,51 @@ test("Bruh wtf? continues with two players after the host leaves mid-round", asy
     assert.equal(results.state.phase, "results");
     assert.equal(results.state.results.leaderboard.length, 2);
     assert.equal(results.state.results.leaderboard.reduce((sum, player) => sum + player.score, 0), 2);
+});
+
+test("Bruh results stay published when the host voter explicitly leaves and remaining players continue", async (context) => {
+    const { host, guest, third, created, sessionId, roundId } = await startBruhResults(context, { roundCount: 5 });
+    const published = gameManager.getPublicGameState(created.roomCode, guest.id).state.results;
+    const hostVote = published.answers.find(({ authorId }) => authorId === third.id);
+    assert.equal(hostVote.voteCount, 1);
+    assert.deepEqual(hostVote.voterNames, ["Host"]);
+
+    const updated = waitForGameState(guest, (state) => state.sessionId === sessionId &&
+        state.state.phase === "results" && state.state.playerCount === 2);
+    assert.deepEqual(await new Promise((resolve) => host.emit("leave-room", resolve)), { left: true });
+    const state = (await updated).state;
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, guest.id);
+    assert.equal(state.results.answers.find(({ authorId }) => authorId === third.id).voteCount, 1);
+    assert.deepEqual(state.results.answers.find(({ authorId }) => authorId === third.id).voterNames, ["Host"]);
+    assert.equal(state.results.activeLeaderboard.some(({ playerId }) => playerId === host.id), false);
+    assert.equal(state.results.activeLeaderboard.find(({ playerId }) => playerId === third.id).score, 1);
+    assert.equal((await emitWithAck(guest, "bruh-wtf:vote", {
+        sessionId, roundId, optionId: "already-published-option"
+    })).error.code, "VOTING_NOT_OPEN");
+
+    assert.equal((await emitWithAck(guest, "bruh-wtf:continue", { sessionId, roundId })).advanced, false);
+    assert.equal((await emitWithAck(third, "bruh-wtf:continue", { sessionId, roundId })).advanced, true);
+    const nextRound = gameManager.getPublicGameState(created.roomCode, guest.id).state;
+    assert.equal(nextRound.phase, "answer-submission");
+    assert.equal(nextRound.currentRound, 2);
+    assert.equal(nextRound.playerCount, 2);
+});
+
+test("Bruh results preserve a disconnected answer author's published history", async (context) => {
+    const { host, guest, third, created, sessionId } = await startBruhResults(context, { roundCount: 5 });
+    const thirdId = third.id;
+    const before = gameManager.getPublicGameState(created.roomCode, host.id).state.results;
+    const thirdAnswer = before.answers.find(({ authorId }) => authorId === thirdId);
+    assert.ok(thirdAnswer);
+    const updated = waitForGameState(host, (state) => state.sessionId === sessionId &&
+        state.state.phase === "results" && state.state.playerCount === 2);
+    third.disconnect();
+    await updated;
+    const state = gameManager.getPublicGameState(created.roomCode, host.id).state;
+    assert.equal(state.results.answers.find(({ authorId }) => authorId === thirdId).completion, "Third answer");
+    assert.equal(state.results.answers.find(({ authorId }) => authorId === thirdId).voteCount, thirdAnswer.voteCount);
+    assert.deepEqual(state.results.answers.find(({ authorId }) => authorId === thirdId).voterNames, thirdAnswer.voterNames);
+    assert.equal(state.results.activeLeaderboard.some(({ playerId }) => playerId === thirdId), false);
+    assert.equal(state.phase, "results");
+    assert.equal(gameManager.getPublicGameState(created.roomCode, guest.id).state.phase, "results");
 });

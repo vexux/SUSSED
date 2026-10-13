@@ -232,12 +232,14 @@ function removeParticipant(state, playerId) {
     state.scores.delete(playerId);
     state.continueReady.delete(playerId);
 
-    const removedOptionIds = new Set(state.options
-        .filter(({ authorId }) => authorId === playerId)
-        .map(({ id }) => id));
-    if (!wasPublished) state.options = state.options.filter(({ authorId }) => authorId !== playerId);
-    for (const [voterId, optionId] of state.votes) {
-        if (voterId === playerId || (!wasPublished && removedOptionIds.has(optionId))) state.votes.delete(voterId);
+    if (!wasPublished) {
+        const removedOptionIds = new Set(state.options
+            .filter(({ authorId }) => authorId === playerId)
+            .map(({ id }) => id));
+        state.options = state.options.filter(({ authorId }) => authorId !== playerId);
+        for (const [voterId, optionId] of state.votes) {
+            if (voterId === playerId || removedOptionIds.has(optionId)) state.votes.delete(voterId);
+        }
     }
 
     const currentAndPast = state.questionOrder.slice(0, state.currentRound);
