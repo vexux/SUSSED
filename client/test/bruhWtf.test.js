@@ -247,6 +247,7 @@ test("Bruh round results show answer details and authoritative round deltas in t
     const [first, second] = leaderboard.children;
     assert.equal(leaderboard.children.length, 2);
     assert.doesNotMatch(leaderboard.textContent, /Riley/u);
+    assert.equal(root.queryAll((node) => node.tagName === "input").length, 0);
     assert.deepEqual(first.children.map(({ textContent }) => textContent), ["#1", "Alex", "+0", "4 points"]);
     assert.equal(first.children[2].className, "standing-round-score");
     assert.deepEqual(second.children.map(({ textContent }) => textContent), ["#2", "Sam", "+1", "2 points"]);

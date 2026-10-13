@@ -63,6 +63,16 @@ function waitForGameState(client, predicate) {
     });
 }
 
+function recordGameStatePhases(client) {
+    const phases = [];
+    const listener = (game) => phases.push(game.state.phase);
+    client.on("game-state", listener);
+    return {
+        phases,
+        stop: () => client.off("game-state", listener)
+    };
+}
+
 async function createSocketHarness(context) {
     const io = startServer(0);
     await new Promise((resolve, reject) => {
@@ -429,10 +439,16 @@ test("Bruh results stay published when the host voter explicitly leaves and rema
     assert.equal(hostVote.voteCount, 1);
     assert.deepEqual(hostVote.voterNames, ["Host"]);
 
+    const guestPhases = recordGameStatePhases(guest);
+    const thirdPhases = recordGameStatePhases(third);
     const updated = waitForGameState(guest, (state) => state.sessionId === sessionId &&
         state.state.phase === "results" && state.state.playerCount === 2);
     assert.deepEqual(await new Promise((resolve) => host.emit("leave-room", resolve)), { left: true });
     const state = (await updated).state;
+    guestPhases.stop();
+    thirdPhases.stop();
+    assert.deepEqual(guestPhases.phases, ["results"]);
+    assert.deepEqual(thirdPhases.phases, ["results"]);
     assert.equal(roomManager.getRoom(created.roomCode).hostId, guest.id);
     assert.equal(state.results.answers.find(({ authorId }) => authorId === third.id).voteCount, 1);
     assert.deepEqual(state.results.answers.find(({ authorId }) => authorId === third.id).voterNames, ["Host"]);
@@ -451,15 +467,23 @@ test("Bruh results stay published when the host voter explicitly leaves and rema
 });
 
 test("Bruh results preserve a disconnected answer author's published history", async (context) => {
-    const { host, guest, third, created, sessionId } = await startBruhResults(context, { roundCount: 5 });
+    const { host, guest, third, created, sessionId, roundId } = await startBruhResults(context, { roundCount: 5 });
     const thirdId = third.id;
     const before = gameManager.getPublicGameState(created.roomCode, host.id).state.results;
     const thirdAnswer = before.answers.find(({ authorId }) => authorId === thirdId);
     assert.ok(thirdAnswer);
+    const hostPhases = recordGameStatePhases(host);
+    const guestPhases = recordGameStatePhases(guest);
     const updated = waitForGameState(host, (state) => state.sessionId === sessionId &&
         state.state.phase === "results" && state.state.playerCount === 2);
+    const guestUpdated = waitForGameState(guest, (state) => state.sessionId === sessionId &&
+        state.state.phase === "results" && state.state.playerCount === 2);
     third.disconnect();
-    await updated;
+    await Promise.all([updated, guestUpdated]);
+    hostPhases.stop();
+    guestPhases.stop();
+    assert.deepEqual(hostPhases.phases, ["results"]);
+    assert.deepEqual(guestPhases.phases, ["results"]);
     const state = gameManager.getPublicGameState(created.roomCode, host.id).state;
     assert.equal(state.results.answers.find(({ authorId }) => authorId === thirdId).completion, "Third answer");
     assert.equal(state.results.answers.find(({ authorId }) => authorId === thirdId).voteCount, thirdAnswer.voteCount);
@@ -467,4 +491,7 @@ test("Bruh results preserve a disconnected answer author's published history", a
     assert.equal(state.results.activeLeaderboard.some(({ playerId }) => playerId === thirdId), false);
     assert.equal(state.phase, "results");
     assert.equal(gameManager.getPublicGameState(created.roomCode, guest.id).state.phase, "results");
+    assert.equal((await emitWithAck(guest, "bruh-wtf:vote", {
+        sessionId, roundId, optionId: "already-published-option"
+    })).error.code, "VOTING_NOT_OPEN");
 });
