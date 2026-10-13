@@ -144,17 +144,25 @@ Round results also give each viewer a dismissible, short-lived personal
 feedback message derived from their own revealed vote. It is hidden until
 results are published and does not affect the normal answer or score breakdown.
 
-The participant roster is fixed when the game starts. If a player disconnects
-or leaves before the game finishes, the server aborts and retires that active
-session and returns any remaining room members to the lobby unready. This
-avoids changing a round's submission or vote quorum after actions have been
-accepted. A finished session remains available for results and host-driven
-return to the lobby after a membership change. If all room members leave, the
-existing room cleanup removes the game session and room.
+The server removes a disconnecting or voluntarily leaving player from the
+active session and reevaluates the current phase against the remaining roster.
+Their submission, vote, score, and statistics are removed. Votes for their
+bluff are invalidated so affected players can vote again; if the remaining
+submission or vote quorum is already complete, the server advances once. If
+one player remains, the session ends and that player returns to the lobby
+unready. An empty room and its session are deleted. Host migration does not
+interrupt an active game. Departed sockets cannot read state or act in the
+session, and session/round IDs continue to guard delayed events.
+
+Bruh wtf? keeps already-published round results as historical data after a
+departure while exposing an active leaderboard for the remaining players.
+Future prompts are restricted to the new roster size. If a selected prompt
+cannot be replaced from the eligible library, the remaining session's round
+count is shortened to the available sequence.
 
 Submission, voting, and between-round continuation phases have no inactivity
-deadline. Players may wait in these phases indefinitely; only an actual
-disconnect follows the existing session-abort and lobby-recovery policy.
+deadline. Players may wait in these phases indefinitely while the remaining
+players are still participating.
 Submission progress exposes player IDs, names, and submitted status only; it
 never includes answer contents or authorship before reveal.
 

@@ -495,6 +495,96 @@ function continueToNextRound(state, playerId) {
     };
 }
 
+function removeParticipant(state, playerId) {
+    const participantIndex = state.participants.findIndex(({ id }) => id === playerId);
+    if (participantIndex === -1) return { removed: false, advancedRound: false };
+
+    const published = state.phase === "results" ? state.results : null;
+    const readyBeforeDeparture = new Set(state.continueReady);
+    if (published) {
+        for (const player of published.players) {
+            state.scores.set(player.playerId, (state.scores.get(player.playerId) ?? 0) - player.roundPoints);
+            const stats = state.statistics.get(player.playerId);
+            if (stats) {
+                stats.correctVotes -= Number(player.voteCorrect);
+                if (!player.voteCorrect && player.voteOptionId) {
+                    const option = published.options.find(({ id }) => id === player.voteOptionId);
+                    if (option?.authorId !== null && option?.authorId !== undefined) stats.fakeVotesCast -= 1;
+                }
+            }
+        }
+        for (const option of published.options) {
+            if (!option.isCorrect && option.authorId !== null) {
+                const stats = state.statistics.get(option.authorId);
+                if (stats) stats.fakeVotesReceived -= option.voters.length;
+            }
+        }
+        state.scoredRounds.delete(state.currentRound);
+        state.results = null;
+    }
+
+    state.participants.splice(participantIndex, 1);
+    state.submissions.delete(playerId);
+    state.submissionStatus.delete(playerId);
+    state.scores.delete(playerId);
+    state.statistics.delete(playerId);
+    state.continueReady.delete(playerId);
+
+    const removedOptionIds = new Set(state.options
+        .filter(({ authorId }) => authorId === playerId)
+        .map(({ id }) => id));
+    state.options = state.options.filter(({ authorId }) => authorId !== playerId);
+    for (const [voterId, optionId] of state.votes) {
+        if (voterId === playerId || removedOptionIds.has(optionId)) state.votes.delete(voterId);
+    }
+
+    if (state.phase === "results") state.phase = "voting";
+    if (state.phase === "answer-submission" && state.submissions.size === state.participants.length) {
+        state.options = shuffleOptions([
+            ...Array.from(state.submissions, ([authorId, completion]) => ({
+                id: randomUUID(), completion, authorId, correct: false
+            })),
+            { id: randomUUID(), completion: state.currentQuestion.correctCompletion, authorId: null, correct: true }
+        ]);
+        state.phase = "voting";
+    } else if (state.phase === "reveal") {
+        state.phase = "voting";
+    }
+
+    let advancedRound = false;
+    if (state.phase === "voting" && state.votes.size === state.participants.length) {
+        state.phase = "waiting-for-results";
+    }
+    if (state.phase === "waiting-for-results" && state.votes.size < state.participants.length) {
+        state.phase = "voting";
+    }
+    if (state.phase === "waiting-for-results") {
+        publishResults(state);
+        if (published && state.phase === "results") {
+            state.continueReady = new Set([...readyBeforeDeparture].filter((id) => id !== playerId));
+        }
+    }
+    if (state.phase === "results" && state.currentRound < state.totalRounds &&
+        state.continueReady.size === state.participants.length) {
+        const nextRound = state.currentRound + 1;
+        const nextQuestion = state.questionOrder[nextRound - 1];
+        if (nextQuestion) {
+            state.currentRound = nextRound;
+            state.roundId = randomUUID();
+            state.currentQuestion = nextQuestion;
+            state.phase = "question";
+            state.submissions = new Map();
+            state.submissionStatus = new Map(state.participants.map(({ id }) => [id, false]));
+            state.options = [];
+            state.votes = new Map();
+            state.continueReady = new Set();
+            state.results = null;
+            advancedRound = true;
+        }
+    }
+    return { removed: true, advancedRound };
+}
+
 function handleAction(state, action, playerId, payload) {
     switch (action) {
         case "open-submissions":
@@ -611,6 +701,7 @@ function createFakeAnswerGame({ id, displayName, description, questionBank: bank
         },
         createPublicState,
         handleAction,
+        removeParticipant,
         isFinished(state) {
             return state.phase === "results" && state.currentRound === state.totalRounds;
         },

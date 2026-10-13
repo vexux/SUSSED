@@ -29,6 +29,55 @@ function broadcastLobby(io, room) {
     io.to(room.code).emit("lobby-state", roomManager.createLobbyState(room));
 }
 
+async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
+    const room = roomManager.getPlayerRoom(socket.id);
+    if (!room) {
+        socket.data.roomCode = undefined;
+        return null;
+    }
+
+    const departure = gameManager.removeParticipant(room.code, socket.id);
+    const updatedRoom = roomManager.removePlayer(socket.id);
+    socket.data.roomCode = undefined;
+    let leavePromise = Promise.resolve(null);
+    if (leaveSocket) {
+        try {
+            leavePromise = Promise.resolve(socket.leave(room.code))
+                .then(() => null, (error) => getOperationError(error));
+        } catch (error) {
+            leavePromise = Promise.resolve(getOperationError(error));
+        }
+    }
+
+    if (!updatedRoom) {
+        gameManager.removeGame(room.code, departure?.sessionId);
+        return { room, updatedRoom: null, departure, leaveError: await leavePromise };
+    }
+
+    if (departure?.removed && updatedRoom.players.length <= 1) {
+        gameManager.removeGame(room.code, departure.sessionId);
+        roomManager.recoverRoomToLobby(updatedRoom);
+        broadcastLobby(io, updatedRoom);
+    } else if (departure?.removed) {
+        for (const player of departure.players) {
+            io.to(player.id).emit("game-state", gameManager.getPublicGameState(room.code, player.id));
+        }
+        if (departure.advancedRound && departure.gameId.startsWith("fact-or-cap")) {
+            const current = gameManager.getPublicGameState(room.code, departure.players[0].id);
+            fakeAnswerSocketHandlers.scheduleSubmissionPhase(
+                io,
+                room.code,
+                departure.sessionId,
+                current.state.roundId,
+                departure.gameId
+            );
+        }
+    } else {
+        broadcastLobby(io, updatedRoom);
+    }
+    return { room, updatedRoom, departure, leaveError: await leavePromise };
+}
+
 function isAcknowledgement(value) {
     return typeof value === "function";
 }
@@ -130,21 +179,9 @@ function registerRoomHandlers(io, socket) {
             return;
         }
 
-        socket.data.roomCode = undefined;
-        const updatedRoom = roomManager.removePlayer(socket.id);
-        if (updatedRoom) {
-            if (gameManager.abortActiveGame(updatedRoom.code)) {
-                roomManager.recoverRoomToLobby(updatedRoom);
-            }
-            broadcastLobby(io, updatedRoom);
-        } else {
-            gameManager.removeGame(room.code);
-        }
-        try {
-            await socket.leave(room.code);
-        } catch (error) {
-            const operationError = getOperationError(error);
-            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        const result = await handlePlayerDeparture(io, socket, { leaveSocket: true });
+        if (result?.leaveError) {
+            acknowledgeError(acknowledge, result.leaveError.code, result.leaveError.message);
             return;
         }
         acknowledge({ left: true });
@@ -309,17 +346,7 @@ function registerRoomHandlers(io, socket) {
 }
 
 function handleDisconnect(io, socket) {
-    const room = roomManager.getPlayerRoom(socket.id);
-    const updatedRoom = roomManager.removePlayer(socket.id);
-    socket.data.roomCode = undefined;
-    if (updatedRoom) {
-        if (gameManager.abortActiveGame(updatedRoom.code)) {
-            roomManager.recoverRoomToLobby(updatedRoom);
-        }
-        broadcastLobby(io, updatedRoom);
-    } else if (room) {
-        gameManager.removeGame(room.code);
-    }
+    void handlePlayerDeparture(io, socket);
 }
 
 module.exports = { handleDisconnect, registerRoomHandlers };

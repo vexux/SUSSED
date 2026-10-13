@@ -315,6 +315,37 @@ test("Bruh final results preserve return loading/errors and non-host waiting sta
   });
 });
 
+test("Bruh final results use active standings after a player leaves", () => {
+  withFakeElements(() => {
+    const root = renderBruhWtfGame({
+      phase: "results", currentRound: 5, totalRounds: 5, roundId: "final", prompt: "Hidden", playerCount: 2,
+      results: {
+        prompt: "Hidden", answers: [], roundScores: [],
+        leaderboard: [
+          { playerId: "left", name: "Departed", score: 9, rank: 1 },
+          { playerId: "p1", name: "Alex", score: 8, rank: 2 },
+          { playerId: "p2", name: "Sam", score: 8, rank: 2 },
+        ],
+        winners: [{ playerId: "left", name: "Departed" }],
+        activeLeaderboard: [
+          { playerId: "p1", name: "Alex", score: 8, rank: 1 },
+          { playerId: "p2", name: "Sam", score: 8, rank: 1 },
+        ],
+        activeWinners: [{ playerId: "p1", name: "Alex" }, { playerId: "p2", name: "Sam" }],
+      },
+    }, {
+      currentPlayerId: "p1", answerDraft: "", isSubmitting: false, submitError: null,
+      selectedOptionId: null, hasVoted: false, isVoting: false, voteError: null,
+      isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null,
+    }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true);
+    assert.match(root.text, /Alex, Sam/u);
+    assert.doesNotMatch(root.text, /Departed/u);
+    const leaderboard = root.query((node) => node.tagName === "ol" && node.className.includes("final-leaderboard"));
+    assert.deepEqual(leaderboard.children.map((row) => row.children[0].textContent), ["#1", "#1"]);
+  });
+});
+
 test("Bruh wtf voting matches Fact-or-Cap labels and shows own answer in the same non-selectable radio style", () => {
   withFakeElements(() => {
     const root = renderVoting({ currentPlayerId: "local", selectedOptionId: null }, () => {}, () => {});

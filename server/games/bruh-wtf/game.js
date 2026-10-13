@@ -222,6 +222,64 @@ function continueRound(state, playerId) {
     return { ready: true, advanced: true, readyCount: 0, playerCount: state.participants.length };
 }
 
+function removeParticipant(state, playerId) {
+    const participantIndex = state.participants.findIndex(({ id }) => id === playerId);
+    if (participantIndex === -1) return { removed: false, advancedRound: false };
+    const wasPublished = state.phase === "results";
+    state.participants.splice(participantIndex, 1);
+    state.submittedAnswers.delete(playerId);
+    state.submissionProgress.delete(playerId);
+    state.scores.delete(playerId);
+    state.continueReady.delete(playerId);
+
+    const removedOptionIds = new Set(state.options
+        .filter(({ authorId }) => authorId === playerId)
+        .map(({ id }) => id));
+    if (!wasPublished) state.options = state.options.filter(({ authorId }) => authorId !== playerId);
+    for (const [voterId, optionId] of state.votes) {
+        if (voterId === playerId || (!wasPublished && removedOptionIds.has(optionId))) state.votes.delete(voterId);
+    }
+
+    const currentAndPast = state.questionOrder.slice(0, state.currentRound);
+    const usedIds = new Set(currentAndPast.map(({ id }) => id));
+    const future = state.questionOrder.slice(state.currentRound)
+        .filter(({ id, requiredPlayers }) => requiredPlayers <= state.participants.length && !usedIds.has(id));
+    for (const { id } of future) usedIds.add(id);
+    const futureTarget = state.totalRounds - state.currentRound;
+    const replacements = shuffle(questionLibrary.loadQuestionPacks().filter(({ id, requiredPlayers }) =>
+        requiredPlayers <= state.participants.length && !usedIds.has(id)
+    ));
+    while (future.length < futureTarget && replacements.length) {
+        const question = replacements.shift();
+        future.push(question);
+        usedIds.add(question.id);
+    }
+    state.questionOrder = [...currentAndPast, ...future];
+    state.totalRounds = state.currentRound + future.length;
+
+    let advancedRound = false;
+    if (!wasPublished && state.phase === "answer-submission" && state.submittedAnswers.size === state.participants.length) {
+        state.options = shuffle(state.participants.map(({ id }) => ({
+            id: randomUUID(), authorId: id, completion: state.submittedAnswers.get(id)
+        })));
+        state.phase = "voting";
+    }
+    if (!wasPublished && state.phase === "voting" && state.votes.size === state.participants.length) {
+        state.phase = "waiting-for-results";
+    }
+    if (!wasPublished && state.phase === "waiting-for-results" && state.votes.size < state.participants.length) {
+        state.phase = "voting";
+    }
+    if (state.phase === "waiting-for-results") publishResults(state);
+
+    if (wasPublished && state.currentRound < state.totalRounds &&
+        state.continueReady.size === state.participants.length) {
+        openRound(state, state.currentRound);
+        advancedRound = true;
+    }
+    return { removed: true, advancedRound };
+}
+
 function handleAction(state, action, playerId, payload) {
     switch (action) {
         case "submit-answer": return submitAnswer(state, playerId, payload);
@@ -273,13 +331,21 @@ function createPublicState(state, viewerId) {
         };
     }
     if (state.phase === "results") {
+        const activeLeaderboard = leaderboard(state);
+        const highestScore = activeLeaderboard[0]?.score ?? 0;
         return {
             ...base,
             continueReadyCount: state.continueReady.size,
             continuePlayerCount: state.participants.length,
             viewerReadyToContinue: state.continueReady.has(viewerId),
             continueProgress: state.participants.map(({ id, name }) => ({ playerId: id, name, ready: state.continueReady.has(id) })),
-            results: state.results
+            results: {
+                ...state.results,
+                activeLeaderboard,
+                activeWinners: activeLeaderboard
+                    .filter(({ score }) => score === highestScore)
+                    .map(({ playerId, name }) => ({ playerId, name }))
+            }
         };
     }
     return base;
@@ -297,6 +363,7 @@ module.exports = {
     resolvePrompt,
     start,
     handleAction,
+    removeParticipant,
     createPublicState,
     isFinished: (state) => state.phase === "results" && state.currentRound === state.totalRounds,
     BruhWtfError,

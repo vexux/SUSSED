@@ -89,6 +89,16 @@ the server publishes authors, voter names, vote totals, +1-per-vote author
 points, and the cumulative leaderboard. Results publish once, and all players
 must continue before the next round. Final winners include all tied leaders.
 
+When a player leaves mid-game, their active submissions, votes, score and
+continuation readiness are removed. Votes targeting their answer are cleared
+so affected players may vote again; completed quorums publish once. Two
+remaining players may continue playing. Published round results remain
+historical, while the public active leaderboard excludes departed players.
+Future prompts are filtered or replaced to fit the remaining roster. If only
+one player remains, the game session ends and the room returns to the lobby;
+an empty room and session are removed. Host departure migrates the host and
+does not abort the game.
+
 ## Development fixtures
 
 The 11 prompts in `content/development-fixtures.json` exercise one-, two- and
