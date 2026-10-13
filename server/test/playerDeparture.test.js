@@ -125,6 +125,57 @@ test("Bruh published results remain historical while departures update active st
     assert.equal(state.participants.some(({ id }) => id === "c"), false);
 });
 
+test("Bruh results departures preserve published votes, scoring, and historical answers", () => {
+    for (const departedId of ["b", "c"]) {
+        const state = readyBruhForVoting();
+        const optionFor = (authorId) => state.options.find(({ authorId: owner }) => owner === authorId);
+        bruh.handleAction(state, "vote", "a", optionFor("b").id);
+        bruh.handleAction(state, "vote", "b", optionFor("c").id);
+        bruh.handleAction(state, "vote", "c", optionFor("a").id);
+        bruh.handleAction(state, "publish-results");
+
+        const published = JSON.stringify(state.results);
+        const publishedVotes = [...state.votes];
+        const scoreC = state.scores.get("c");
+        const removed = bruh.removeParticipant(state, departedId);
+        const publicState = bruh.createPublicState(state, "a");
+
+        assert.equal(removed.removed, true);
+        assert.equal(state.phase, "results");
+        assert.equal(JSON.stringify(state.results), published);
+        assert.deepEqual([...state.votes], publishedVotes);
+        assert.equal(state.scores.has("c"), departedId !== "c");
+        if (departedId !== "c") assert.equal(state.scores.get("c"), scoreC);
+        assert.equal(publicState.results.answers.find(({ authorId }) => authorId === "c").authorName, "C");
+        assert.equal(publicState.results.answers.find(({ authorId }) => authorId === "c").voteCount, 1);
+        assert.equal(publicState.results.activeLeaderboard.some(({ playerId }) => playerId === departedId), false);
+        assert.throws(() => bruh.handleAction(state, "vote", "a", optionFor("c").id), { code: "VOTING_NOT_OPEN" });
+        assert.throws(() => bruh.handleAction(state, "publish-results"), { code: "RESULTS_ALREADY_PUBLISHED" });
+        assert.equal(bruh.removeParticipant(state, departedId).removed, false);
+    }
+});
+
+test("multiple departures after Bruh results preserve history and advance once when remaining players are ready", () => {
+    const fourPlayers = [...players, { id: "d", name: "D" }];
+    const state = bruh.start(bruh.createInitialState(fourPlayers, { roundCount: 5 }));
+    for (const player of fourPlayers) bruh.handleAction(state, "submit-answer", player.id, `answer ${player.id}`);
+    for (const player of state.participants) {
+        const option = state.options.find(({ authorId }) => authorId !== player.id);
+        bruh.handleAction(state, "vote", player.id, option.id);
+    }
+    bruh.handleAction(state, "publish-results");
+    const published = JSON.stringify(state.results);
+    bruh.removeParticipant(state, "c");
+    bruh.removeParticipant(state, "d");
+    assert.equal(state.phase, "results");
+    assert.equal(JSON.stringify(state.results), published);
+    assert.deepEqual(state.participants.map(({ id }) => id), ["a", "b"]);
+    assert.equal(bruh.handleAction(state, "continue", "a").advanced, false);
+    assert.equal(bruh.handleAction(state, "continue", "b").advanced, true);
+    assert.equal(state.phase, "answer-submission");
+    assert.equal(state.currentRound, 2);
+});
+
 test("Bruh advances once when a departure leaves every remaining player ready", () => {
     const state = readyBruhForVoting();
     for (const player of state.participants) {

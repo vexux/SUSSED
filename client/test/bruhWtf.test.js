@@ -218,6 +218,10 @@ test("Bruh round results show answer details and authoritative round deltas in t
           { playerId: "local", name: "Alex", score: 4, rank: 1 },
           { playerId: "p2", name: "Sam", score: 2, rank: 3 },
         ],
+        activeLeaderboard: [
+          { playerId: "local", name: "Alex", score: 4, rank: 1 },
+          { playerId: "p2", name: "Sam", score: 2, rank: 2 },
+        ],
       },
     };
     const root = renderBruhWtfGame(state, {
@@ -226,7 +230,7 @@ test("Bruh round results show answer details and authoritative round deltas in t
       isContinuing: false, continueError: null, isHost: false,
       isReturningToLobby: false, returnToLobbyError: null,
     }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", false);
-    assert.equal(root.queryAll((node) => node.className.split(" ").includes("result-card")).length, 6);
+    assert.equal(root.queryAll((node) => node.className.split(" ").includes("result-card")).length, 5);
     assert.match(root.text, /Alex\|/u);
     assert.match(root.text, /Voted by: Alex/u);
     assert.match(root.text, /1 vote/u);
@@ -240,13 +244,14 @@ test("Bruh round results show answer details and authoritative round deltas in t
     assert.equal(answerList.children.length, 3);
     assert.doesNotMatch(answerList.children[0].text, /points this round/u);
     const leaderboard = root.query((node) => node.tagName === "ol" && node.className.includes("standings-list"));
-    const [first, second, third] = leaderboard.children;
-    assert.deepEqual(first.children.map(({ textContent }) => textContent), ["#1", "Riley", "+2", "4 points"]);
-    assert.equal(first.children[2].className, "standing-round-score standing-round-score-positive");
-    assert.deepEqual(second.children.map(({ textContent }) => textContent), ["#1", "Alex", "+0", "4 points"]);
-    assert.equal(second.children[2].className, "standing-round-score");
-    assert.deepEqual(third.children.map(({ textContent }) => textContent), ["#3", "Sam", "+1", "2 points"]);
-    assert.equal(third.children[2].className, "standing-round-score standing-round-score-positive");
+    const [first, second] = leaderboard.children;
+    assert.equal(leaderboard.children.length, 2);
+    assert.doesNotMatch(leaderboard.textContent, /Riley/u);
+    assert.equal(root.queryAll((node) => node.tagName === "input").length, 0);
+    assert.deepEqual(first.children.map(({ textContent }) => textContent), ["#1", "Alex", "+0", "4 points"]);
+    assert.equal(first.children[2].className, "standing-round-score");
+    assert.deepEqual(second.children.map(({ textContent }) => textContent), ["#2", "Sam", "+1", "2 points"]);
+    assert.equal(second.children[2].className, "standing-round-score standing-round-score-positive");
   });
 });
 

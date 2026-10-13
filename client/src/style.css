@@ -96,6 +96,11 @@ button:disabled {
   line-height: 1.6;
 }
 
+.landing-tagline {
+  width: min(100%, 680px);
+  padding: 0 12px;
+}
+
 .field {
   display: grid;
   gap: 8px;
@@ -190,10 +195,10 @@ button:focus-visible {
   text-transform: uppercase;
 }
 
-.room-code-hint {
+.duplicate-name-error {
+  width: min(100%, 420px);
   margin: 8px 0 0;
-  color: #c5b9ce;
-  font-size: 0.9rem;
+  text-align: left;
 }
 
 .error-message,

@@ -122,6 +122,13 @@ function joinRoom(roomCode, playerId, playerName) {
     if (room.status !== "lobby") {
         throw new RoomError("ROOM_NOT_IN_LOBBY", "That room is no longer accepting players.");
     }
+    const comparisonName = name.toLowerCase();
+    if (room.players.some((player) => player.name.toLowerCase() === comparisonName)) {
+        throw new RoomError(
+            "DUPLICATE_PLAYER_NAME",
+            "That name is already used in this room. Choose another name."
+        );
+    }
     const player = { id: playerId, name, isReady: false };
     room.players.push(player);
     playerRooms.set(playerId, room.code);
