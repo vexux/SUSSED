@@ -991,19 +991,15 @@ test("host disconnect migrates host to the earliest remaining player", async (co
     assert.equal(roomManager.getRoom(created.roomCode).hostId, nextHost.id);
 });
 
-test("disconnect during an active game aborts the round and recovers remaining players to lobby", async (context) => {
+test("disconnect during an active game removes only that player and the remaining players keep playing", async (context) => {
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, { playerCount: 3 });
     const originalHostSocket = harness.io.sockets.sockets.get(game.host.id);
     const room = roomManager.getRoom(game.roomCode);
     const originalSessionId = game.gameState.sessionId;
-    const hostUpdate = waitForLobby(
+    const activeUpdate = waitForGameState(
         game.players[0],
-        (lobby) => lobby.status === "lobby" && lobby.playerCount === 2
-    );
-    const otherPlayerUpdate = waitForLobby(
-        game.players[1],
-        (lobby) => lobby.status === "lobby" && lobby.playerCount === 2
+        (state) => state.sessionId === originalSessionId && state.state.playerCount === 2
     );
     const disconnected = new Promise((resolve) =>
         originalHostSocket.once("disconnect", resolve)
@@ -1011,18 +1007,12 @@ test("disconnect during an active game aborts the round and recovers remaining p
 
     game.host.disconnect();
     await disconnected;
-    const [firstLobby, secondLobby] = await Promise.all([
-        hostUpdate,
-        otherPlayerUpdate,
-    ]);
-
-    assert.deepEqual(firstLobby, secondLobby);
-    assert.equal(firstLobby.roomCode, game.roomCode);
-    assert.equal(firstLobby.status, "lobby");
-    assert.equal(firstLobby.playerCount, 2);
-    assert.equal(firstLobby.players[0].id, game.players[0].id);
-    assert.equal(firstLobby.players[0].isHost, true);
-    assert.ok(firstLobby.players.every((player) => !player.isReady));
+    const active = await activeUpdate;
+    assert.equal(active.roomCode, game.roomCode);
+    assert.equal(active.sessionId, originalSessionId);
+    assert.equal(active.status, "active");
+    assert.equal(active.state.playerCount, 2);
+    assert.equal(active.players.some(({ id }) => id === game.host.id), false);
     assert.equal(roomManager.getRoom(game.roomCode), room);
     assert.equal(room.hostId, game.players[0].id);
     assert.equal(room.players.length, 2);
@@ -1031,26 +1021,31 @@ test("disconnect during an active game aborts the round and recovers remaining p
         () => roomManager.setPlayerReady(game.host.id, true),
         { code: "NOT_IN_ROOM" }
     );
-    assert.throws(
-        () => gameManager.getPublicGameState(game.roomCode, game.players[0].id),
-        { code: "GAME_NOT_ACTIVE" }
-    );
-    assert.equal(
-        (await emitWithAck(game.players[0], "fake-answer:submit", {
-            completion: "Cannot be accepted after a game-aborting disconnect",
-            sessionId: originalSessionId,
-            roundId: game.gameState.state.roundId,
-        })).error.code,
-        "GAME_NOT_ACTIVE"
-    );
-
-    await emitWithAck(game.players[0], "leave-room");
+    assert.throws(() => gameManager.getPublicGameState(game.roomCode, game.host.id), { code: "NOT_A_GAME_PLAYER" });
+    assert.equal(gameManager.getPublicGameState(game.roomCode, game.players[0].id).state.playerCount, 2);
+    const lobbyUpdate = waitForLobby(game.players[1], (lobby) => lobby.status === "lobby" && lobby.playerCount === 1);
+    assert.deepEqual(await emitWithAck(game.players[0], "leave-room"), { left: true });
+    const lobby = await lobbyUpdate;
+    assert.equal(lobby.players[0].id, game.players[1].id);
+    assert.equal(lobby.players[0].isHost, true);
+    assert.equal(lobby.players[0].isReady, false);
+    assert.throws(() => gameManager.getPublicGameState(game.roomCode, game.players[1].id), { code: "GAME_NOT_ACTIVE" });
     await emitWithAck(game.players[1], "leave-room");
     assert.equal(roomManager.getRoom(game.roomCode), null);
-    assert.throws(
-        () => gameManager.getPublicGameState(game.roomCode, game.players[0].id),
-        { code: "GAME_NOT_ACTIVE" }
-    );
+    assert.throws(() => gameManager.getPublicGameState(game.roomCode, game.players[1].id), { code: "GAME_NOT_ACTIVE" });
+});
+
+test("explicit leave during a game preserves the same session for remaining players", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, { playerCount: 3 });
+    const sessionId = game.gameState.sessionId;
+    const update = waitForGameState(game.players[1], (state) => state.sessionId === sessionId && state.state.playerCount === 2);
+
+    assert.deepEqual(await emitWithAck(game.players[0], "leave-room"), { left: true });
+    const state = await update;
+    assert.equal(state.status, "active");
+    assert.equal(state.state.playerCount, 2);
+    assert.equal(gameManager.getPublicGameState(game.roomCode, game.players[1].id).sessionId, sessionId);
 });
 
 test("host leaving migrates host to the earliest remaining player", async (context) => {

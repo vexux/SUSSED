@@ -117,6 +117,9 @@ function performGameAction(
     if (session.gameId !== gameId) {
         throw new GameSessionError("GAME_MISMATCH", "That game is not active in this room.");
     }
+    if (playerId !== null && !session.players.some((player) => player.id === playerId)) {
+        throw new GameSessionError("NOT_A_GAME_PLAYER", "You are not participating in this game.");
+    }
     if (typeof session.implementation.handleAction !== "function") {
         throw new GameSessionError("ACTION_NOT_SUPPORTED", "This game does not support that action.");
     }
@@ -135,6 +138,33 @@ function performGameAction(
     return {
         result,
         gameState: createPublicGameState(session, viewerId)
+    };
+}
+
+function removeParticipant(roomCode, playerId, expectedSessionId) {
+    const session = sessions.get(roomCode);
+    if (!session) return null;
+    if (expectedSessionId !== undefined && session.sessionId !== expectedSessionId) {
+        return null;
+    }
+    if (!session.players.some((player) => player.id === playerId)) {
+        return { removed: false, sessionId: session.sessionId, gameId: session.gameId, players: session.players };
+    }
+    if (typeof session.implementation.removeParticipant !== "function") {
+        throw new GameSessionError("PARTICIPANT_REMOVAL_UNSUPPORTED", "This game cannot remove a player during a session.");
+    }
+    const result = session.implementation.removeParticipant(session.privateState, playerId);
+    if (!result?.removed) {
+        throw new GameSessionError("PARTICIPANT_REMOVAL_FAILED", "The player could not be removed from the game session.");
+    }
+    session.players = session.privateState.participants.map(({ id, name }) => ({ id, name }));
+    session.status = session.implementation.isFinished?.(session.privateState) ? "finished" : "active";
+    return {
+        ...result,
+        sessionId: session.sessionId,
+        gameId: session.gameId,
+        status: session.status,
+        players: session.players
     };
 }
 
@@ -204,6 +234,7 @@ module.exports = {
     getPublicGameState,
     isPlayerCountSupported,
     performGameAction,
+    removeParticipant,
     retireFinishedGame,
     removeGame,
     startGame,

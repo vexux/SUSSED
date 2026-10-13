@@ -47,6 +47,22 @@ function emitWithAck(client, event, payload) {
     });
 }
 
+function waitForGameState(client, predicate) {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            client.off("game-state", onState);
+            reject(new Error("game-state event timed out"));
+        }, 3000);
+        function onState(state) {
+            if (!predicate(state)) return;
+            clearTimeout(timer);
+            client.off("game-state", onState);
+            resolve(state);
+        }
+        client.on("game-state", onState);
+    });
+}
+
 async function createSocketHarness(context) {
     const io = startServer(0);
     await new Promise((resolve, reject) => {
@@ -324,4 +340,48 @@ test("three-player Bruh wtf? socket session completes rounds, preserves privacy,
     assert.equal(gameManager.getPublicGameState(created.roomCode, host.id).status, "finished");
     assert.deepEqual(await emitWithAck(host, "return-to-lobby", { sessionId }), { returned: true });
     assert.equal(roomManager.createLobbyState(roomManager.getRoom(created.roomCode)).selectedGameId, "bruh-wtf");
+});
+
+test("Bruh wtf? continues with two players after the host leaves mid-round", async (context) => {
+    const harness = await createSocketHarness(context);
+    const clients = [await harness.connect(), await harness.connect(), await harness.connect()];
+    const [host, guest, third] = clients;
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.rooms.add(created.roomCode);
+    await emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "Guest" });
+    await emitWithAck(third, "join-room", { roomCode: created.roomCode, playerName: "Third" });
+    await emitWithAck(guest, "set-ready", { isReady: true });
+    await emitWithAck(third, "set-ready", { isReady: true });
+    await emitWithAck(host, "select-game", { gameId: "bruh-wtf" });
+    const started = await new Promise((resolve) => host.emit("start-game", resolve));
+    assert.equal(started.error, undefined, JSON.stringify(started));
+    const sessionId = started.game.sessionId;
+    const roundId = started.game.state.roundId;
+    const remainingState = waitForGameState(guest, (state) => state.sessionId === sessionId && state.state.playerCount === 2);
+
+    const left = await new Promise((resolve) => host.emit("leave-room", resolve));
+    assert.deepEqual(left, { left: true });
+    const update = await remainingState;
+    assert.equal(update.players.some(({ id }) => id === host.id), false);
+    assert.equal(update.players[0].id, guest.id);
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, guest.id);
+    assert.equal((await emitWithAck(host, "bruh-wtf:submit", { sessionId, roundId, answer: "not a participant" })).error.code, "NOT_IN_ROOM");
+
+    for (const [client, answer] of [[guest, "Guest answer"], [third, "Third answer"]]) {
+        assert.equal((await emitWithAck(client, "bruh-wtf:submit", { sessionId, roundId, answer })).submitted, true);
+    }
+    const guestState = gameManager.getPublicGameState(created.roomCode, guest.id).state;
+    const thirdState = gameManager.getPublicGameState(created.roomCode, third.id).state;
+    assert.equal(guestState.phase, "voting");
+    assert.equal(guestState.options.length, 2);
+    assert.equal((await emitWithAck(guest, "bruh-wtf:vote", {
+        sessionId, roundId, optionId: guestState.options.find(({ isOwnAnswer }) => !isOwnAnswer).id
+    })).voted, true);
+    assert.equal((await emitWithAck(third, "bruh-wtf:vote", {
+        sessionId, roundId, optionId: thirdState.options.find(({ isOwnAnswer }) => !isOwnAnswer).id
+    })).voted, true);
+    const results = gameManager.getPublicGameState(created.roomCode, guest.id);
+    assert.equal(results.state.phase, "results");
+    assert.equal(results.state.results.leaderboard.length, 2);
+    assert.equal(results.state.results.leaderboard.reduce((sum, player) => sum + player.score, 0), 2);
 });

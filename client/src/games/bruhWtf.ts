@@ -34,7 +34,9 @@ export interface BruhWtfPublicState {
     answers: Array<{ completion: string; authorId: string; authorName: string; voterNames: string[]; voteCount: number; pointsAwarded: number }>;
     roundScores: Array<{ playerId: string; name: string; pointsEarned: number }>;
     leaderboard: Array<{ playerId: string; name: string; score: number; rank: number }>;
+    activeLeaderboard?: Array<{ playerId: string; name: string; score: number; rank: number }>;
     winners?: Array<{ playerId: string; name: string }>;
+    activeWinners?: Array<{ playerId: string; name: string }>;
   };
 }
 
@@ -156,15 +158,18 @@ export function renderBruhWtfGame(
   const isFinalRound = state.currentRound === state.totalRounds;
   if (state.phase === "results" && state.results && isFinalRound) {
     const { results } = state;
-    const winners = results.winners?.length
-      ? results.winners
-      : results.leaderboard.filter(({ rank }) => rank === 1);
-    const winnerScore = results.leaderboard.find(({ playerId }) => playerId === winners[0]?.playerId)?.score ?? 0;
+    const finalLeaderboard = results.activeLeaderboard ?? results.leaderboard;
+    const winners = results.activeWinners?.length
+      ? results.activeWinners
+      : results.winners?.length
+        ? results.winners
+        : finalLeaderboard.filter(({ rank }) => rank === 1);
+    const winnerScore = finalLeaderboard.find(({ playerId }) => playerId === winners[0]?.playerId)?.score ?? 0;
     appendWinnerPresentation(screen, winners.map(({ name }) => name), `${winnerScore} points`);
 
     screen.append(
       element("h2", "results-section-heading", "Final leaderboard"),
-      createStandingsList(results.leaderboard.map(({ playerId, name, score, rank }) => ({
+      createStandingsList(finalLeaderboard.map(({ playerId, name, score, rank }) => ({
         playerId,
         name,
         totalScore: score,
