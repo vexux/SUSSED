@@ -61,6 +61,10 @@ present in published packs, then reconcile identity and pack membership
 against the inventory as described in the guide. The ledger does not replace
 the inventory, editorial checklist, canonical records, or formal source-review
 workflow, and it does not establish factual accuracy, source support, or rights.
+Run `npm run report:general-content-coverage` from `server/` to reconcile its
+stable identities with published General packs and review provisional topic,
+subtopic, and question-type coverage. The report is read-only; see the guide for
+the configurable low-coverage threshold and interpretation of its warnings.
 
 The game shuffles valid playable questions and selects the configured number of
 unique prompts per session (5, 7, or 10). If a session needs more prompts than

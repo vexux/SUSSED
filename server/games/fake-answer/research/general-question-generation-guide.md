@@ -161,5 +161,27 @@ summary from the actual question, not merely its legacy category or tags;
 Do not add incoming or rejected candidates as represented playable questions.
 Record planning notes separately if they are useful, clearly marked as
 unpublished. Keep this file under `research/`; it must never be moved into
-`content/` or loaded by the question bank. No automatic reconciliation or
-batch-planning tool is introduced in this phase.
+`content/` or loaded by the question bank.
+
+Run the read-only reconciliation and coverage report from `server/`:
+
+```sh
+npm run report:general-content-coverage
+npm run report:general-content-coverage -- --low-topic-threshold 8
+```
+
+The default low-coverage threshold is fewer than five questions per topic or
+subtopic; `--low-topic-threshold` changes both. A non-zero exit indicates
+structural ledger errors or disagreement with published pack membership and
+copied fields. Editorial uncertainty and possible semantic repetition remain
+separate review notes. The report checks topic, subtopic, question-type, and
+repetition-note references. Its structural reconciliation errors mean the
+ledger does not match stable published identities, membership, or copied
+metadata; they do not make an editorial classification factually false. The
+inventory's normalized prompt/completion matches are automated exact-format
+signals, while repetition clusters and suspected semantic overlaps in the
+ledger are human review notes with their stated uncertainty. Neither category
+is exhaustive semantic duplicate detection. Topic classifications are
+provisional editorial assignments. This report does not verify facts, inspect
+source pages, assess source support or rights, or replace inventory and
+editorial review. It never repairs or rewrites the ledger.
