@@ -6,8 +6,8 @@
     "commit": "3d04cf2",
     "snapshotDate": "2026-10-14",
     "gameId": "fact-or-cap",
-    "publishedQuestionCount": 145,
-    "publishedContentPackCount": 7,
+    "publishedQuestionCount": 157,
+    "publishedContentPackCount": 8,
     "contentPacks": [
       {
         "fileName": "general-expansion-batch-001.json",
@@ -18,6 +18,11 @@
         "fileName": "general-expansion-batch-001-reviewed-2026-10-15.json",
         "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
         "questionCount": 18
+      },
+      {
+        "fileName": "general-expansion-batch-002-reviewed-2026-10-15.json",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionCount": 12
       },
       {
         "fileName": "general-expansion-pilot-2026-10.json",
@@ -45,26 +50,26 @@
         "questionCount": 3
       }
     ],
-    "attributionMetadataPresentCount": 145,
+    "attributionMetadataPresentCount": 157,
     "validationBasis": "npm run report:question-inventory on the snapshot; reports schema validity, IDs, and exact normalized prompt/completion matching only.",
     "editorialDistribution": {
       "basis": "Provisional editorial classifications in this ledger; counts are planning signals, not independently verified subject truth.",
       "topicCounts": {
-        "space-astronomy": 38,
-        "life-sciences": 46,
+        "space-astronomy": 39,
+        "life-sciences": 48,
         "earth-environment": 23,
         "geography": 8,
-        "history-civilizations": 16,
-        "culture-society": 4,
-        "technology-engineering": 5,
-        "physical-sciences-mathematics": 5
+        "history-civilizations": 18,
+        "culture-society": 9,
+        "technology-engineering": 6,
+        "physical-sciences-mathematics": 6
       },
       "questionTypeCounts": {
-        "identification": 58,
+        "identification": 64,
         "measurement-or-count": 26,
-        "chronology": 11,
-        "cause-or-mechanism": 15,
-        "behavior-or-process": 22,
+        "chronology": 12,
+        "cause-or-mechanism": 16,
+        "behavior-or-process": 26,
         "classification": 13
       }
     }
@@ -136,7 +141,8 @@
       "subtopics": [
         "national-symbols",
         "food-and-cultural-practices",
-        "writing-systems-and-accessibility"
+        "writing-systems-and-accessibility",
+        "arts-and-material-culture"
       ]
     },
     {
@@ -4942,6 +4948,426 @@
         "attributionMetadataPresent": true,
         "sourceName": "Royal Botanic Gardens, Kew ? Carnivorous plants explained: Venus flytraps, pitcher plants & more",
         "sourceUrl": "https://www.kew.org/read-and-watch/carnivorous-plants",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "ancient-roman-purple-dye"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Phoenician purple dye was derived from the shells of murex snails.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with current cultural and historical claims; no Tyrian-purple dye source claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "ancient-rome",
+          "dye"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "The Metropolitan Museum of Art ? Phoenicia and the Bible",
+        "sourceUrl": "https://www.metmuseum.org/exhibitions/listings/2014/assyria-to-iberia/blog/posts/phoenicia-and-the-bible",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "bismuth-rainbow-oxide"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "chemistry-and-materials",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "A thin bismuth oxide layer creates the iridescent colors on bismuth crystals.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with current materials and chemistry claims; no bismuth surface-oxide color claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "chemistry",
+        "tags": [
+          "elements",
+          "crystals"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Society of Chemistry — Bismuth",
+        "sourceUrl": "https://periodic-table.rsc.org/element/83/bismuth",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "first-postage-stamp-penny-black"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "communications-and-navigation",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "The Penny Black was the world?s first adhesive postage stamp and was issued in Britain in 1840.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with current communication, invention, and history claims; no first adhesive postage stamp claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "postal-history",
+          "inventions"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "The British Postal Museum & Archive — Penny Black",
+        "sourceUrl": "https://www.postalmuseum.org/collections/highlights/penny-black/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "kintsugi-lacquer-gold"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Kintsugi repairs broken pottery with lacquer and metallic powder.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with current craft and material-culture claims; no kintsugi repair claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "crafts",
+          "japan"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Victoria and Albert Museum ? Visible Repair and Kintsugi",
+        "sourceUrl": "https://www.vam.ac.uk/blog/museum-life/va-youth-collective-objects-and-opinion-sustainable-histories",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "lyrebird-sound-mimicry"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Superb lyrebirds imitate mechanical sounds, including chainsaws and car engines.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with current bird claims and ledger summaries; no lyrebird mimicry claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "birds",
+          "mimicry"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Australian Museum — Superb Lyrebird",
+        "sourceUrl": "https://australian.museum/learn/animals/birds/superb-lyrebird/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "mimas-herschel-crater"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Saturn?s moon Mimas has a prominent impact crater named Herschel.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared this crater claim with current General prompts and ledger summaries; no same underlying claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moons",
+          "craters"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Our Solar System’s Most Marvelous Moons",
+        "sourceUrl": "https://science.nasa.gov/solar-system/moons/10-things-about-our-solar-systems-most-marvelous-moons/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "oldest-known-board-game-senet"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-egypt",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Senet is an ancient Egyptian board game represented in tomb scenes and Book of the Dead vignettes.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "flagged",
+          "note": "The ledger has an Egypt-history cluster. Senet gameplay and tomb depictions are distinct from the existing claims but add to the Egypt cluster."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "games",
+          "ancient-egypt"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "The Metropolitan Museum of Art ? Board Games from Ancient Egypt and the Near East",
+        "sourceUrl": "https://www.metmuseum.org/essays/board-games-from-ancient-egypt-and-the-near-east",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "samurai-armor-lacquer"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "japanese-history",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Japanese armor used small lacquered iron and leather plates laced together with silk.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "flagged",
+          "note": "The ledger includes Japanese-history items. This armor-construction fact is distinct but adds to that regional cluster."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "japan",
+          "crafts"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "The Metropolitan Museum of Art ? Armor (Yoroi) of Ashikaga Takauji",
+        "sourceUrl": "https://www.metmuseum.org/ja/audio-guide/4436",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "trompe-loeil-eye-trick"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Trompe-l?oeil is an illusionistic art technique associated with deceiving the eye.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with current art and cultural claims; no trompe-l?oeil technique claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "painting",
+          "art-terms"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "The Metropolitan Museum of Art ? Cubism and the Trompe l?Oeil Tradition",
+        "sourceUrl": "https://www.metmuseum.org/met-publications/cubism-and-the-trompe-loeil-tradition",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "tudor-pineapple-status"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "food-and-cultural-practices",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Eighteenth-century English gentry sometimes rented scarce pineapples for dinner display.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with current food and cultural-practice claims; no rented-pineapple display custom found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "food",
+          "trade"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "George Washington?s Mount Vernon ? Pineapples",
+        "sourceUrl": "https://www.mountvernon.org/library/digitalhistory/digital-encyclopedia/article/pineapples",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "vampire-squid-oxygen-poor"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Vampire squid live in oxygen-minimum zones with very low oxygen levels.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with current deep-sea and marine-life claims; no vampire-squid oxygen-tolerance claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "deep-sea",
+          "survival"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Monterey Bay Aquarium Research Institute — Vampire Squid",
+        "sourceUrl": "https://www.mbari.org/animal/vampire-squid/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+        "questionId": "victorian-mourning-jewelry-hair"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Victorian mourning jewelry could incorporate human hair.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with current culture and material-culture claims; no mourning-jewelry hair claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "fashion",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Victoria and Albert Museum — Hair Jewellery",
+        "sourceUrl": "https://www.vam.ac.uk/articles/hair-jewellery",
         "claimVerification": "not-assessed-by-this-ledger",
         "claimSourceSupport": "not-assessed-by-this-ledger",
         "rightsOrReuse": "unknown"

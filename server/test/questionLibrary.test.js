@@ -22,8 +22,8 @@ test("loads all migrated JSON content packs with existing answer and source data
     const { questions: loaded } = loadQuestionPacks(
         path.join(fakeAnswerDirectory, "content")
     );
-    assert.equal(loaded.length, 145);
-    assert.equal(questions.length, 145);
+    assert.equal(loaded.length, 157);
+    assert.equal(questions.length, 157);
     assert.equal(new Set(loaded.map(({ id }) => id)).size, loaded.length);
     assert.equal(
         loaded.find(({ id }) => id === "wombat-cubes").correctCompletion,
@@ -42,8 +42,21 @@ test("loads all migrated JSON content packs with existing answer and source data
             "general-facts-batch-2026-10",
             "general-expansion-pilot-2026-10",
             "general-expansion-batch-001",
-            "general-expansion-batch-001-reviewed-2026-10-15"
+            "general-expansion-batch-001-reviewed-2026-10-15",
+            "general-expansion-batch-002-reviewed-2026-10-15"
         ])
+    );
+    assert.equal(
+        loaded.filter(({ contentPackId }) => contentPackId === "general-expansion-batch-002-reviewed-2026-10-15").length,
+        12
+    );
+    assert.equal(
+        loaded.find(({ id }) => id === "lyrebird-sound-mimicry").correctCompletion,
+        "engines"
+    );
+    assert.equal(
+        loaded.find(({ id }) => id === "tudor-pineapple-status").sourceUrl,
+        "https://www.mountvernon.org/library/digitalhistory/digital-encyclopedia/article/pineapples"
     );
 });
 
