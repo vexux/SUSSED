@@ -194,6 +194,15 @@ function compareGeneralTopicLedger({ ledger, contentDirectory, fileSystem = fs, 
                 editorialNotes.push(`${displayKey}: classification status is ${classification.status ?? "missing"}; confirm its intended editorial meaning.`);
             }
             if (classification.uncertaintyNote) editorialNotes.push(`${displayKey}: classification uncertainty: ${classification.uncertaintyNote}`);
+            if (classification.repetitionReview !== undefined) {
+                const review = classification.repetitionReview;
+                if (!review || !["no-known-overlap", "flagged"].includes(review.outcome) ||
+                    typeof review.note !== "string" || !review.note.trim()) {
+                    errors.push(`${displayKey}: repetitionReview requires outcome no-known-overlap or flagged and a non-empty editorial note.`);
+                } else {
+                    editorialNotes.push(`${displayKey}: repetition review ${review.outcome}: ${review.note}`);
+                }
+            }
         }
     }
 

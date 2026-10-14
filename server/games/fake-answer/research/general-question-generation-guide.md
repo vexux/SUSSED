@@ -143,27 +143,97 @@ Its source fields describe only the attribution present in the JSON. The ledger
 marks source support and factual verification as unassessed and rights as
 unknown unless a separate evidence-based review record says otherwise.
 
-Update the ledger only after a question has been accepted into a published
-content pack. For each accepted addition:
+Update the ledger only after a question has been reviewed and explicitly
+imported into a published content pack. The updater derives identity, legacy
+metadata, and source attribution from the published question itself. Editors
+must supply provisional topic, subtopic, question type, claim summary, and an
+explicit repetition-review note for each newly published ID. These are
+planning classifications, not factual or rights decisions. Existing
+classifications and human-authored repetition notes are preserved; the tool
+does not retire records or resolve suspected overlaps.
 
-1. copy the exact `gameId`, `contentPackId`, and `questionId` from the imported
-record;
-2. assign topic, subtopic, question type, and a concise underlying-claim
-summary from the actual question, not merely its legacy category or tags;
-3. compare the summary with existing entries and log likely overlaps or
-   uncertain classifications for human review;
-4. describe supplied source attribution faithfully without changing unchecked
-   review statuses to verified or approved; and
-5. reconcile every ledger identity against the published pack inventory and
-   remove no ledger entry unless its corresponding published content was
-   intentionally retired, documenting the reason.
+From `server/`, prepare a classification JSON file outside the runtime content
+directories, for example `games/fake-answer/incoming/general-batch-001-ledger.json`:
 
-Do not add incoming or rejected candidates as represented playable questions.
-Record planning notes separately if they are useful, clearly marked as
-unpublished. Keep this file under `research/`; it must never be moved into
-`content/` or loaded by the question bank.
+```json
+{
+  "manifestVersion": 1,
+  "classifications": [
+    {
+      "contentPackId": "general-space-batch-2026-11-001",
+      "questionId": "saturn-rings-ice-particles",
+      "topicId": "space-astronomy",
+      "subtopicId": "solar-system-objects",
+      "questionType": "identification",
+      "underlyingClaimSummary": "Saturn's rings consist mostly of ice particles.",
+      "repetitionReview": {
+        "outcome": "no-known-overlap",
+        "note": "Compared with the current ledger claim summaries and repetition notes."
+      }
+    }
+  ]
+}
+```
 
-Run the read-only reconciliation and coverage report from `server/`:
+The only supported repetition outcomes are `no-known-overlap` and `flagged`;
+both require a human note. Optional `repetitionReviewClusters` and
+`suspectedSemanticDuplicates` arrays can append human review notes using the
+ledger's existing fields. They cannot overwrite an existing cluster ID or
+duplicate an existing suspected question set. All referenced IDs must resolve
+unambiguously in the published General bank. The manifest does not accept
+copied category/source fields: the updater derives those values from packs.
+
+The updater previews by default. It refuses missing/ambiguous IDs, invalid
+taxonomy/type references, invalid packs, stale ledger references, changes not
+explained by new published questions, and invalid resulting reconciliation.
+`--apply` performs an atomic deterministic replacement of the ledger file
+only. Repeating an applied update produces no changes. Snapshot branch,
+commit, date, and validation-basis provenance are preserved because the tool
+cannot independently establish a new provenance context. It recalculates only
+published-bank inventory/count and editorial-distribution fields.
+
+If someone imports a pack but forgets the ledger update, do not import it
+again: the import is already published and destinations are no-overwrite.
+Prepare classifications for the missing stable IDs, run the preview, resolve
+all errors and human overlap questions, then apply. If the updater reports
+stale records, a removed pack, or broader count drift, investigate that change
+instead of using maintenance to erase or conceal it.
+
+The complete required workflow from `server/` is:
+
+```sh
+# 1. Preview a candidate (read-only).
+npm run questions:preview -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
+
+# 2. Generate and complete the per-question editorial checklist (stdout).
+npm run report:question-editorial-checklist -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
+
+# 3. Import only after editorial/source/rights review and a clean preview.
+npm run questions:import -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
+
+# 4. Validate the published pack.
+npm run validate:questions -- fact-or-cap games/fake-answer/content/<content-pack-id>.json
+
+# 5. Prepare the classification manifest described above; preview, inspect, then explicitly apply.
+npm run update:general-topic-ledger -- --classifications games/fake-answer/incoming/general-batch-001-ledger.json
+npm run update:general-topic-ledger -- --classifications games/fake-answer/incoming/general-batch-001-ledger.json --apply
+
+# 6. Reconcile coverage and inspect the inventory across both banks.
+npm run report:general-content-coverage
+npm run report:question-inventory
+
+# 7. Run focused and full tests, inspect the diff, then commit approved files.
+node --test test/generalTopicLedgerMaintenance.test.js test/generalTopicLedgerReport.test.js test/questionInventory.test.js test/questionBatch.test.js test/questionLibrary.test.js
+npm test
+git diff --check
+```
+
+If a normalized duplicate requires explicit human approval, use the import
+override only after documenting the editorial decision. The ledger updater
+cannot establish factual accuracy, direct source support, reuse rights, or
+publication approval.
+
+The standalone read-only reconciliation and coverage report can also be run from `server/`:
 
 ```sh
 npm run report:general-content-coverage

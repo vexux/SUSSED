@@ -159,3 +159,39 @@ this inventory covers both. Canonical content remains in `content-canonical/`
 with separate validators and manifests. Bruh wtf? uses
 `games/bruh-wtf/content/` and its own versioned schema and validator; this
 workflow neither reads nor imports it.
+
+## General topic-ledger maintenance after import
+
+For an imported **General** pack only, complete the separate ledger update after
+editorial classification. Do not add incoming/rejected questions to the ledger,
+and do not re-import a pack if the ledger step was missed. The updater previews
+without writing; `--apply` is required to atomically update only
+`research/general-topic-ledger.json`.
+
+Create a version 1 classification manifest under `incoming/` with one entry
+for every published General question absent from the ledger. Each entry names
+the exact `contentPackId` and `questionId` and supplies taxonomy IDs,
+`questionType`, `underlyingClaimSummary`, and a human
+`repetitionReview` (`no-known-overlap` or `flagged`) with a note. The CLI derives
+the game ID, identity, category, tags, difficulty, and source attribution from
+the actual published pack. It never sets factual verification, source support,
+rights clearance, or use approval. Optional cluster/semantic-overlap notes are
+append-only and must reference unambiguous published question IDs.
+
+From `server/`, after validating the imported pack, run:
+
+```sh
+npm run update:general-topic-ledger -- --classifications games/fake-answer/incoming/general-batch-001-ledger.json
+# Inspect the proposal and resolve errors; only then:
+npm run update:general-topic-ledger -- --classifications games/fake-answer/incoming/general-batch-001-ledger.json --apply
+npm run report:general-content-coverage
+npm run report:question-inventory
+```
+
+Missing classifications, invalid taxonomy or types, stale identities,
+unexplained pack/count changes, or a failed resulting reconciliation prevent
+the write. If you forgot the ledger step after importing, classify the already
+published IDs and run this preview/apply sequence; the updater does not import
+again or overwrite the question pack. See
+[`../research/general-question-generation-guide.md`](../research/general-question-generation-guide.md)
+for the complete workflow and manifest example.

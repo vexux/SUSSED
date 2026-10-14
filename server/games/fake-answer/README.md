@@ -65,6 +65,11 @@ Run `npm run report:general-content-coverage` from `server/` to reconcile its
 stable identities with published General packs and review provisional topic,
 subtopic, and question-type coverage. The report is read-only; see the guide for
 the configurable low-coverage threshold and interpretation of its warnings.
+After importing a reviewed General batch, prepare explicit provisional
+classifications and use `npm run update:general-topic-ledger` to preview, then
+`--apply` to atomically update the ledger. The maintenance workflow and
+recovery procedure for a forgotten ledger update are documented in the General
+guide and `incoming/README.md`.
 
 The game shuffles valid playable questions and selects the configured number of
 unique prompts per session (5, 7, or 10). If a session needs more prompts than
