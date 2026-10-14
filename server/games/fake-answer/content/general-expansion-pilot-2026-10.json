@@ -1,0 +1,229 @@
+{
+  "contentPackId": "general-expansion-pilot-2026-10",
+  "questions": [
+    {
+      "id": "sound-needs-medium",
+      "text": "Unlike light, sound cannot travel through a perfect ____.",
+      "correctCompletion": "vacuum",
+      "sourceName": "Discovery of Sound in the Sea — What Is Sound? (University of Rhode Island)",
+      "sourceUrl": "https://dosits.org/science/sound/what-is-sound/",
+      "category": "science",
+      "difficulty": "easy",
+      "tags": [
+        "physics",
+        "sound",
+        "waves"
+      ]
+    },
+    {
+      "id": "si-kilo-factor",
+      "text": "In the metric system, the prefix “kilo-” means a factor of ____.",
+      "correctCompletion": "1,000",
+      "sourceName": "NIST — Metric (SI) Prefixes",
+      "sourceUrl": "https://www.nist.gov/pml/owm/metric-si-prefixes",
+      "category": "science",
+      "difficulty": "easy",
+      "tags": [
+        "measurement",
+        "metric-system",
+        "prefixes"
+      ]
+    },
+    {
+      "id": "graphite-diamond-element",
+      "text": "Diamond and graphite are different forms of the same chemical element: ____.",
+      "correctCompletion": "carbon",
+      "sourceName": "Royal Society of Chemistry — Carbon",
+      "sourceUrl": "https://periodic-table.rsc.org/element/6/C",
+      "category": "science",
+      "difficulty": "medium",
+      "tags": [
+        "chemistry",
+        "materials",
+        "carbon"
+      ]
+    },
+    {
+      "id": "ozone-layer-stratosphere",
+      "text": "Earth's ozone layer is located mainly in the ____.",
+      "correctCompletion": "stratosphere",
+      "sourceName": "NASA — Ozone",
+      "sourceUrl": "https://science.nasa.gov/mission/aura/ozone/",
+      "category": "science",
+      "difficulty": "medium",
+      "tags": [
+        "atmosphere",
+        "ozone",
+        "Earth"
+      ]
+    },
+    {
+      "id": "ocean-average-depth",
+      "text": "NOAA gives the average depth of the ocean as about ____ meters.",
+      "correctCompletion": "3,682",
+      "sourceName": "NOAA Ocean Service — How deep is the ocean?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/oceandepth.html",
+      "category": "geography",
+      "difficulty": "hard",
+      "tags": [
+        "ocean",
+        "measurement",
+        "NOAA"
+      ]
+    },
+    {
+      "id": "challenger-deep-mariana-trench",
+      "text": "Challenger Deep, the deepest known part of the ocean, lies in the ____ Trench.",
+      "correctCompletion": "Mariana",
+      "sourceName": "NOAA Ocean Service — How deep is the ocean?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/oceandepth.html",
+      "category": "geography",
+      "difficulty": "easy",
+      "tags": [
+        "ocean",
+        "landforms",
+        "Pacific"
+      ]
+    },
+    {
+      "id": "grand-canyon-colorado-river",
+      "text": "About 5–6 million years ago, the ____ River began carving downward through the Grand Canyon.",
+      "correctCompletion": "Colorado",
+      "sourceName": "National Park Service — Grand Canyon Geology",
+      "sourceUrl": "https://www.nps.gov/grca/learn/nature/grca-geology.htm",
+      "category": "geography",
+      "difficulty": "easy",
+      "tags": [
+        "rivers",
+        "landforms",
+        "United States"
+      ]
+    },
+    {
+      "id": "kimjang-kimchi-sharing",
+      "text": "The Korean community tradition of preparing and sharing kimchi is called ____.",
+      "correctCompletion": "Kimjang",
+      "sourceName": "Korea.net — Kimchi Making Officially Becomes National Heritage Item",
+      "sourceUrl": "https://www.korea.net/NewsFocus/Culture/view?articleId=149270",
+      "category": "culture",
+      "difficulty": "medium",
+      "tags": [
+        "Korea",
+        "food",
+        "traditions"
+      ]
+    },
+    {
+      "id": "braille-raised-dots",
+      "text": "The reading system Louis Braille developed is based on patterns of raised ____.",
+      "correctCompletion": "dots",
+      "sourceName": "Library of Congress — About Braille",
+      "sourceUrl": "https://www.loc.gov/nls/services-and-resources/informational-publications/about-braille/",
+      "category": "culture",
+      "difficulty": "easy",
+      "tags": [
+        "accessibility",
+        "writing-systems",
+        "communication"
+      ]
+    },
+    {
+      "id": "us-flag-stars-states",
+      "text": "Under federal law, the U.S. flag gains a star on the July 4 after a new ____ is admitted.",
+      "correctCompletion": "state",
+      "sourceName": "National Archives — Design for American Flag with 50 Stars",
+      "sourceUrl": "https://www.archives.gov/exhibits/designs_for_democracy/designs_for_a_new_century/articles/american_flag_with_50_stars_2.html",
+      "category": "culture",
+      "difficulty": "easy",
+      "tags": [
+        "flags",
+        "national-symbols",
+        "United States"
+      ]
+    },
+    {
+      "id": "microwave-oven-electromagnetic-waves",
+      "text": "A microwave oven heats food using electromagnetic waves called ____.",
+      "correctCompletion": "microwaves",
+      "sourceName": "U.S. Food and Drug Administration — Microwave Ovens",
+      "sourceUrl": "https://www.fda.gov/radiation-emitting-products/resources-you-radiation-emitting-products/microwave-ovens",
+      "category": "technology",
+      "difficulty": "easy",
+      "tags": [
+        "technology",
+        "appliances",
+        "electromagnetism"
+      ]
+    },
+    {
+      "id": "gps-satellite-navigation",
+      "text": "GPS determines location using signals transmitted by a constellation of ____.",
+      "correctCompletion": "satellites",
+      "sourceName": "GPS.gov — GPS",
+      "sourceUrl": "https://www.gps.gov/gps",
+      "category": "technology",
+      "difficulty": "easy",
+      "tags": [
+        "GPS",
+        "navigation",
+        "satellites"
+      ]
+    },
+    {
+      "id": "fiber-optic-light-signals",
+      "text": "Fiber-optic cables carry information using pulses of ____.",
+      "correctCompletion": "light",
+      "sourceName": "IEEE Technology Navigator — Fiber Optics",
+      "sourceUrl": "https://technav.ieee.org/topic/fiber-optics/",
+      "category": "technology",
+      "difficulty": "medium",
+      "tags": [
+        "communications",
+        "engineering",
+        "optics"
+      ]
+    },
+    {
+      "id": "induction-cooktop-magnetic-field",
+      "text": "An induction cooktop heats compatible cookware using an ____ field.",
+      "correctCompletion": "electromagnetic",
+      "sourceName": "U.S. Department of Energy — Making the Switch to Induction Stoves or Cooktops",
+      "sourceUrl": "https://www.energy.gov/articles/making-switch-induction-stoves-or-cooktops",
+      "category": "technology",
+      "difficulty": "medium",
+      "tags": [
+        "appliances",
+        "engineering",
+        "electromagnetism"
+      ]
+    },
+    {
+      "id": "delta-river-sediment",
+      "text": "As a river slows near its mouth and deposits sediment, it may build a ____.",
+      "correctCompletion": "delta",
+      "sourceName": "National Geographic Society — Delta",
+      "sourceUrl": "https://education.nationalgeographic.org/resource/delta/",
+      "category": "geography",
+      "difficulty": "medium",
+      "tags": [
+        "landforms",
+        "rivers",
+        "sediment"
+      ]
+    },
+    {
+      "id": "water-expands-freezing",
+      "text": "As liquid water freezes, its volume ____.",
+      "correctCompletion": "increases",
+      "sourceName": "MIT News — Revealing water’s secrets",
+      "sourceUrl": "https://news.mit.edu/2011/heavy-water-0801",
+      "category": "science",
+      "difficulty": "medium",
+      "tags": [
+        "water",
+        "chemistry",
+        "phase-changes"
+      ]
+    }
+  ]
+}

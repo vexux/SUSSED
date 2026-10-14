@@ -6,9 +6,14 @@
     "commit": "3d04cf2",
     "snapshotDate": "2026-10-14",
     "gameId": "fact-or-cap",
-    "publishedQuestionCount": 100,
-    "publishedContentPackCount": 4,
+    "publishedQuestionCount": 116,
+    "publishedContentPackCount": 5,
     "contentPacks": [
+      {
+        "fileName": "general-expansion-pilot-2026-10.json",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionCount": 16
+      },
       {
         "fileName": "general-facts-batch-2026-10.json",
         "contentPackId": "general-facts-batch-2026-10",
@@ -30,27 +35,27 @@
         "questionCount": 3
       }
     ],
-    "attributionMetadataPresentCount": 100,
+    "attributionMetadataPresentCount": 116,
     "validationBasis": "npm run report:question-inventory on the snapshot; reports schema validity, IDs, and exact normalized prompt/completion matching only.",
     "editorialDistribution": {
       "basis": "Provisional editorial classifications in this ledger; counts are planning signals, not independently verified subject truth.",
       "topicCounts": {
         "space-astronomy": 28,
         "life-sciences": 37,
-        "earth-environment": 15,
-        "geography": 5,
+        "earth-environment": 18,
+        "geography": 7,
         "history-civilizations": 13,
-        "culture-society": 1,
-        "technology-engineering": 1,
-        "physical-sciences-mathematics": 0
+        "culture-society": 4,
+        "technology-engineering": 5,
+        "physical-sciences-mathematics": 4
       },
       "questionTypeCounts": {
-        "identification": 41,
-        "measurement-or-count": 22,
+        "identification": 48,
+        "measurement-or-count": 24,
         "chronology": 9,
-        "cause-or-mechanism": 9,
-        "behavior-or-process": 12,
-        "classification": 7
+        "cause-or-mechanism": 11,
+        "behavior-or-process": 16,
+        "classification": 8
       }
     }
   },
@@ -116,7 +121,9 @@
       "label": "Culture and society",
       "definition": "Cultural practices, symbols, language, institutions, and social conventions.",
       "subtopics": [
-        "national-symbols"
+        "national-symbols",
+        "food-and-cultural-practices",
+        "writing-systems-and-accessibility"
       ]
     },
     {
@@ -124,7 +131,9 @@
       "label": "Technology and engineering",
       "definition": "How structures, devices, materials, and engineered systems work.",
       "subtopics": [
-        "structures-and-materials"
+        "structures-and-materials",
+        "communications-and-navigation",
+        "appliances-and-energy"
       ]
     },
     {
@@ -3329,6 +3338,582 @@
         "attributionMetadataPresent": true,
         "sourceName": "Encyclopaedia Britannica",
         "sourceUrl": "https://www.britannica.com/story/are-strawberries-really-berries",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "braille-raised-dots"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "writing-systems-and-accessibility",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Louis Braille developed a reading and writing system based on raised dots.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published communication and culture claims; no Braille system question found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "accessibility",
+          "writing-systems",
+          "communication"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Library of Congress — About Braille",
+        "sourceUrl": "https://www.loc.gov/nls/services-and-resources/informational-publications/about-braille/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "challenger-deep-mariana-trench"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Challenger Deep is at the southern end of the Mariana Trench.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published ocean claims; location of Challenger Deep is distinct from ocean statistics and salinity claims."
+        }
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "ocean",
+          "landforms",
+          "Pacific"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — How deep is the ocean?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/oceandepth.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "delta-river-sediment"
+      },
+      "editorialClassification": {
+        "topicId": "geography",
+        "subtopicId": "rivers-and-waterways",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "A river may build a delta when it slows near its mouth and deposits sediment.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published river claims and the Grand Canyon item in this batch; delta formation is a distinct landform process."
+        }
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "landforms",
+          "rivers",
+          "sediment"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Society — Delta",
+        "sourceUrl": "https://education.nationalgeographic.org/resource/delta/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "fiber-optic-light-signals"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "communications-and-navigation",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Fiber-optic technology transmits data as pulses of light through transparent strands.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published communications claims; no fiber-optic transmission question found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "technology",
+        "tags": [
+          "communications",
+          "engineering",
+          "optics"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "IEEE Technology Navigator — Fiber Optics",
+        "sourceUrl": "https://technav.ieee.org/topic/fiber-optics/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "gps-satellite-navigation"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "communications-and-navigation",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "GPS receivers use signals from satellites to calculate position.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published technology and navigation claims; no GPS satellite positioning question found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "technology",
+        "tags": [
+          "GPS",
+          "navigation",
+          "satellites"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "GPS.gov — GPS",
+        "sourceUrl": "https://www.gps.gov/gps",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "grand-canyon-colorado-river"
+      },
+      "editorialClassification": {
+        "topicId": "geography",
+        "subtopicId": "rivers-and-waterways",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The Colorado River began carving downward through the Grand Canyon about 5–6 million years ago.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published river and landform claims; no Grand Canyon river-carving claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "rivers",
+          "landforms",
+          "United States"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Park Service — Grand Canyon Geology",
+        "sourceUrl": "https://www.nps.gov/grca/learn/nature/grca-geology.htm",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "graphite-diamond-element"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "chemistry-and-materials",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Graphite and diamond are pure forms of the element carbon.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published General claim summaries and this batch; no same carbon allotrope question found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "science",
+        "tags": [
+          "chemistry",
+          "materials",
+          "carbon"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Society of Chemistry — Carbon",
+        "sourceUrl": "https://periodic-table.rsc.org/element/6/C",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "induction-cooktop-magnetic-field"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "appliances-and-energy",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Induction cooking uses an electromagnetic field to transfer currents into compatible cookware.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published appliance and physics claims; no induction cooktop mechanism question found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "technology",
+        "tags": [
+          "appliances",
+          "engineering",
+          "electromagnetism"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "U.S. Department of Energy — Making the Switch to Induction Stoves or Cooktops",
+        "sourceUrl": "https://www.energy.gov/articles/making-switch-induction-stoves-or-cooktops",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "kimjang-kimchi-sharing"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "food-and-cultural-practices",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Kimjang is the Korean practice of making and sharing kimchi.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published culture and food claims; no Kimjang practice question found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "Korea",
+          "food",
+          "traditions"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Korea.net — Kimchi Making Officially Becomes National Heritage Item",
+        "sourceUrl": "https://www.korea.net/NewsFocus/Culture/view?articleId=149270",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "microwave-oven-electromagnetic-waves"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "appliances-and-energy",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Microwave ovens heat food using microwaves, a form of electromagnetic radiation.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published technology claims; no microwave oven or electromagnetic cooking question found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "technology",
+        "tags": [
+          "technology",
+          "appliances",
+          "electromagnetism"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "U.S. Food and Drug Administration — Microwave Ovens",
+        "sourceUrl": "https://www.fda.gov/radiation-emitting-products/resources-you-radiation-emitting-products/microwave-ovens",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "ocean-average-depth"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "NOAA reports the average ocean depth as about 3,682 meters.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Distinct from published ocean coverage, water share, salinity, and salt-source claims; no same average-depth claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "ocean",
+          "measurement",
+          "NOAA"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — How deep is the ocean?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/oceandepth.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "ozone-layer-stratosphere"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "atmosphere",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Most atmospheric ozone is in the stratosphere.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published atmosphere and environmental claims; this layer-location claim is distinct."
+        }
+      },
+      "legacyMetadata": {
+        "category": "science",
+        "tags": [
+          "atmosphere",
+          "ozone",
+          "Earth"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Ozone",
+        "sourceUrl": "https://science.nasa.gov/mission/aura/ozone/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "si-kilo-factor"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "measurement",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "The SI prefix kilo denotes a factor of 1,000.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published General claim summaries and this batch; no same SI prefix factor question found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "science",
+        "tags": [
+          "measurement",
+          "metric-system",
+          "prefixes"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIST — Metric (SI) Prefixes",
+        "sourceUrl": "https://www.nist.gov/pml/owm/metric-si-prefixes",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "sound-needs-medium"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "physics-and-forces",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Sound requires a medium and does not propagate through a vacuum.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published General claim summaries and this batch; no same sound-propagation claim found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "science",
+        "tags": [
+          "physics",
+          "sound",
+          "waves"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Discovery of Sound in the Sea — What Is Sound? (University of Rhode Island)",
+        "sourceUrl": "https://dosits.org/science/sound/what-is-sound/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "us-flag-stars-states"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "national-symbols",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "A star is added to the U.S. flag on the July 4 after a new state is admitted.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published national-symbol claims; no U.S. flag star-admission rule question found."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "flags",
+          "national-symbols",
+          "United States"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Archives — Design for American Flag with 50 Stars",
+        "sourceUrl": "https://www.archives.gov/exhibits/designs_for_democracy/designs_for_a_new_century/articles/american_flag_with_50_stars_2.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-pilot-2026-10",
+        "questionId": "water-expands-freezing"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "chemistry-and-materials",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Liquid water increases in volume as it freezes into ice.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared with published thermal-expansion claims; water expanding during freezing is distinct from metal expansion when heated."
+        }
+      },
+      "legacyMetadata": {
+        "category": "science",
+        "tags": [
+          "water",
+          "chemistry",
+          "phase-changes"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "MIT News — Revealing water’s secrets",
+        "sourceUrl": "https://news.mit.edu/2011/heavy-water-0801",
         "claimVerification": "not-assessed-by-this-ledger",
         "claimSourceSupport": "not-assessed-by-this-ledger",
         "rightsOrReuse": "unknown"

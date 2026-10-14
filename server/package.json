@@ -13,12 +13,10 @@
     "report:question-inventory": "node games/fake-answer/scripts/report-question-inventory.js",
     "report:general-content-coverage": "node games/fake-answer/scripts/report-general-content-coverage.js",
     "update:general-topic-ledger": "node games/fake-answer/scripts/update-general-topic-ledger.js",
-    "report:question-editorial-checklist": "node games/fake-answer/scripts/generate-question-editorial-checklist.js",
     "report:content-readiness": "node games/fake-answer/scripts/report-content-readiness.js",
     "report:review-packet": "node games/fake-answer/scripts/generate-review-packet.js",
     "report:review-packet": "node games/fake-answer/scripts/generate-review-packet.js",
     "questions:preview": "node games/fake-answer/scripts/manage-question-batch.js preview",
-    "questions:review": "node games/fake-answer/scripts/review-question-batch.js",
     "questions:import": "node games/fake-answer/scripts/manage-question-batch.js import"
   },
   "keywords": [],

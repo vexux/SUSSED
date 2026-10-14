@@ -55,40 +55,7 @@ Run commands from `server/`. Examples assume these candidate files:
 `games/fake-answer/incoming/general-batch-001.json` and
 `games/fake-answer/incoming/anime-batch-001.json`.
 
-For the normal review path, use the consolidated command for either bank:
-
-```sh
-npm run questions:review -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
-npm run questions:review -- --target fact-or-cap-anime --input games/fake-answer/incoming/anime-batch-001.json
-```
-
-This command is read-only and composes the existing batch preview checks with a
-compact question table. It reports hard validation/import blockers, ID
-conflicts, exact normalized prompt/completion matches, source-metadata issues,
-category counts, and which human checks remain. Each row includes the stable
-question ID, shortened prompt, answer, category, source name/URL, and warning
-flags. A structurally eligible batch is not factually or legally approved.
-Every claim still requires a human to inspect evidence, decide source support
-and accuracy, check wording and game quality, and assess reuse rights. A source
-URL is attribution, not proof.
-
-Optional Markdown output contains the same review summary and question-level
-signals with full prompts and linked URLs. It is written only when explicitly
-requested; it is a disposable artifact, not a canonical record:
-
-```sh
-npm run questions:review -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json --output games/fake-answer/incoming/general-batch-001-review.md
-```
-
-The workflow does not perform semantic duplicate detection. The normalized
-prompt/completion heuristic catches exact pairs after Unicode, case,
-punctuation, and spacing normalization; it can miss paraphrases or flag
-wording that expresses a different claim. Category counts are descriptive and
-do not claim topic balance. Compare facts and patterns manually. The report
-does not fetch URLs, verify facts, establish source support or reuse rights, or
-approve publication.
-
-For the existing detailed preview output alone, use:
+Preview each candidate against the intended bank before importing:
 
 ```sh
 npm run questions:preview -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
@@ -108,40 +75,18 @@ duplicates: paraphrases can be missed, and similar wording can express a
 different claim. Inspect every match and review likely paraphrases manually.
 Do not delete or rewrite a question automatically based on this signal.
 
-### Detailed editorial checklist (optional)
+Preview is read-only and does not fetch sources or decide whether questions
+are accurate, well-supported, suitable for the game, or reusable. Inspect each
+cited source passage; check every part of compound claims; review wording,
+answerability, variety, and game quality; and assess reuse rights separately.
+A source URL and attribution alone are not evidence of support or permission.
+Preview's normalized prompt/completion comparison catches exact pairs after
+Unicode, case, punctuation, and spacing normalization. It can miss paraphrases
+and is not semantic duplicate detection, so compare underlying claims manually.
 
-For batches of 25–50 questions, generate an offline, read-only Markdown checklist
-after running the consolidated review:
-
-```sh
-npm run report:question-editorial-checklist -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
-npm run report:question-editorial-checklist -- --target fact-or-cap-anime --input games/fake-answer/incoming/anime-batch-001.json
-```
-
-The consolidated `questions:review` command is the recommended single review
-report. The separate checklist remains optional when reviewers want its blank
-evidence and disposition fields. It prints to stdout and retains each stable question ID, candidate
-prompt/completion and metadata, supplied source attribution, and preview
-warnings/matches. It provides separate blank fields for checking source passages
-and evidence locators, factual support (including compound claims), clarity and
-answerability, intended-game quality, rights/reuse review, intended-use
-decision, reviewer/date, and disposition. Source names and URLs are shown as
-candidate-provided metadata only. The packet makes no human decisions and does
-not edit or approve its input; structural validity and an import-eligible
-preview are not evidence of factual accuracy, source support, entertainment
-quality, or permission to reuse content. Rights remain unknown until separately
-assessed. It is an editorial aid, not the canonical migration review packet or
-formal readiness report.
-
-Automated checks distinguish blocking structure/ID/import errors, source
-metadata warnings, and likely normalized duplicate matches. They do not perform
-semantic duplicate detection, source-page inspection, factual verification,
-editorial judgment, or rights assessment. Resolve each category with its own
-checks; do not treat one category as a substitute for another.
-
-After resolving review blockers, warnings/matches, and any human concerns,
-rerun the consolidated review command. Import remains an explicit separate
-operation. Import a batch with no likely duplicate matches:
+Resolve validation errors and review every warning or duplicate match. If a
+reviewer confirms a normalized match is a distinct question, use the explicit
+duplicate override only for import. Import remains a separate action:
 
 ```sh
 npm run questions:import -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
@@ -150,11 +95,11 @@ npm run questions:import -- --target fact-or-cap-anime --input games/fake-answer
 
 If a human has reviewed the reported matches and explicitly decides the
 candidate is distinct, add `--allow-likely-duplicates` to the corresponding
-`questions:import` command. This is an explicit override for content-match
-warnings only; it cannot override invalid questions, duplicate IDs, missing
-source attribution, or an existing destination pack. Import validates again
-and atomically creates a new file without overwriting. Keep the incoming source
-file until the imported pack and report have been reviewed.
+`questions:import` command. This override applies to content-match warnings
+only; it cannot override invalid questions, duplicate IDs, missing source
+attribution, or an existing destination pack. Import validates again and
+atomically creates a new file without overwriting. Keep the incoming candidate
+until the imported pack and inventory have been checked.
 
 ## Validation and inventory
 

@@ -39,13 +39,12 @@ it never scans `incoming/`. The canonical/migration workflow in
 of this importer.
 
 The incoming-batch instructions document the current legacy question format,
-stable ID and pack-ID conventions, the consolidated `npm run questions:review`
-command for both game variants, explicit import, source requirements, duplicate
-approval, validation, and checking published counts. The review combines
-existing validation and duplicate signals with a concise per-question table;
-source support, factual accuracy, editorial quality, and rights still require
-human review. The detailed blank checklist command remains optional. Run
-`npm run report:question-inventory` from
+stable ID and pack-ID conventions, read-only preview, explicit import, source
+requirements, duplicate approval, validation, and checking published counts.
+Preview reports structural/ID issues, source metadata issues, and exact
+normalized prompt/completion matches. Review cited evidence, factual support,
+wording, game quality, and reuse rights separately; preview does not fetch
+sources or approve content. Run `npm run report:question-inventory` from
 `server/` for a read-only report of published packs, question totals, validation
 failures, and normalized duplicate matches.
 
@@ -60,8 +59,8 @@ the only runtime content. New candidates stay in `incoming/` until reviewed
 and explicitly imported. Update the ledger only after accepted questions are
 present in published packs, then reconcile identity and pack membership
 against the inventory as described in the guide. The ledger does not replace
-the inventory, editorial checklist, canonical records, or formal source-review
-workflow, and it does not establish factual accuracy, source support, or rights.
+the inventory, canonical records, or human source review, and it does not
+establish factual accuracy, source support, or rights.
 Run `npm run report:general-content-coverage` from `server/` to reconcile its
 stable identities with published General packs and review provisional topic,
 subtopic, and question-type coverage. The report is read-only; see the guide for
