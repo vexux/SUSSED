@@ -1,0 +1,355 @@
+{
+  "contentPackId": "general-expansion-pilot-2026-10",
+  "questions": [
+    {
+      "id": "sound-needs-medium",
+      "text": "Unlike light, sound cannot travel through a perfect ____.",
+      "correctCompletion": "vacuum",
+      "sourceName": "The Physics Classroom — Sound as a Mechanical Wave",
+      "sourceUrl": "https://www.physicsclassroom.com/Class/sound/u11l1a.cfm",
+      "category": "science",
+      "difficulty": "easy",
+      "tags": [
+        "physics",
+        "sound",
+        "waves"
+      ]
+    },
+    {
+      "id": "si-kilo-factor",
+      "text": "In the metric system, the prefix “kilo-” means a factor of ____.",
+      "correctCompletion": "1,000",
+      "sourceName": "NIST — Metric (SI) Prefixes",
+      "sourceUrl": "https://www.nist.gov/pml/owm/metric-si-prefixes",
+      "category": "science",
+      "difficulty": "easy",
+      "tags": [
+        "measurement",
+        "metric-system",
+        "prefixes"
+      ]
+    },
+    {
+      "id": "si-milli-factor",
+      "text": "In the metric system, the prefix “milli-” means one ____ of a unit.",
+      "correctCompletion": "thousandth",
+      "sourceName": "NIST — Metric (SI) Prefixes",
+      "sourceUrl": "https://www.nist.gov/pml/owm/metric-si-prefixes",
+      "category": "science",
+      "difficulty": "easy",
+      "tags": [
+        "measurement",
+        "metric-system",
+        "prefixes"
+      ]
+    },
+    {
+      "id": "graphite-diamond-element",
+      "text": "Diamond and graphite are different forms of the same chemical element: ____.",
+      "correctCompletion": "carbon",
+      "sourceName": "Royal Society of Chemistry — Carbon",
+      "sourceUrl": "https://www.rsc.org/periodic-table/element/6/carbon",
+      "category": "science",
+      "difficulty": "medium",
+      "tags": [
+        "chemistry",
+        "materials",
+        "carbon"
+      ]
+    },
+    {
+      "id": "ozone-layer-stratosphere",
+      "text": "Earth's ozone layer is located mainly in the ____.",
+      "correctCompletion": "stratosphere",
+      "sourceName": "NASA — Earth's Atmosphere: A Multi-layered Cake",
+      "sourceUrl": "https://science.nasa.gov/earth/earth-atmosphere/earths-atmosphere-a-multi-layered-cake/",
+      "category": "science",
+      "difficulty": "medium",
+      "tags": [
+        "atmosphere",
+        "ozone",
+        "Earth"
+      ]
+    },
+    {
+      "id": "ocean-average-depth",
+      "text": "NOAA gives the average depth of the ocean as about ____ meters.",
+      "correctCompletion": "3,682",
+      "sourceName": "NOAA Ocean Service — How deep is the ocean?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/oceandepth.html",
+      "category": "geography",
+      "difficulty": "hard",
+      "tags": [
+        "ocean",
+        "measurement",
+        "NOAA"
+      ]
+    },
+    {
+      "id": "challenger-deep-mariana-trench",
+      "text": "Challenger Deep, the deepest known part of the ocean, lies in the ____ Trench.",
+      "correctCompletion": "Mariana",
+      "sourceName": "NOAA Ocean Service — How deep is the ocean?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/oceandepth.html",
+      "category": "geography",
+      "difficulty": "easy",
+      "tags": [
+        "ocean",
+        "landforms",
+        "Pacific"
+      ]
+    },
+    {
+      "id": "grand-canyon-colorado-river",
+      "text": "The river that carved the Grand Canyon is the ____ River.",
+      "correctCompletion": "Colorado",
+      "sourceName": "National Park Service — Grand Canyon Geology",
+      "sourceUrl": "https://www.nps.gov/grca/learn/nature/grca-geology.htm",
+      "category": "geography",
+      "difficulty": "easy",
+      "tags": [
+        "rivers",
+        "landforms",
+        "United States"
+      ]
+    },
+    {
+      "id": "grand-canyon-downcutting",
+      "text": "Geologists use the term ____ for a river cutting downward into rock to form a canyon.",
+      "correctCompletion": "downcutting",
+      "sourceName": "National Park Service — Grand Canyon Geology",
+      "sourceUrl": "https://www.nps.gov/grca/learn/nature/grca-geology.htm",
+      "category": "geography",
+      "difficulty": "hard",
+      "tags": [
+        "geology",
+        "erosion",
+        "rivers"
+      ]
+    },
+    {
+      "id": "kimjang-kimchi-sharing",
+      "text": "The Korean community tradition of preparing and sharing kimchi is called ____.",
+      "correctCompletion": "Kimjang",
+      "sourceName": "UNESCO — Kimjang, making and sharing kimchi in the Republic of Korea",
+      "sourceUrl": "https://ich.unesco.org/en/RL/kimjang-making-and-sharing-kimchi-in-the-republic-of-korea-00881",
+      "category": "culture",
+      "difficulty": "medium",
+      "tags": [
+        "Korea",
+        "food",
+        "traditions"
+      ]
+    },
+    {
+      "id": "kimjang-unesco-inscription-year",
+      "text": "UNESCO inscribed the Korean tradition of Kimjang on its Intangible Cultural Heritage list in ____.",
+      "correctCompletion": "2013",
+      "sourceName": "UNESCO — Kimjang, making and sharing kimchi in the Republic of Korea",
+      "sourceUrl": "https://ich.unesco.org/en/RL/kimjang-making-and-sharing-kimchi-in-the-republic-of-korea-00881",
+      "category": "culture",
+      "difficulty": "medium",
+      "tags": [
+        "Korea",
+        "UNESCO",
+        "cultural-heritage"
+      ]
+    },
+    {
+      "id": "braille-raised-dots",
+      "text": "Braille represents letters and numbers using patterns of raised ____.",
+      "correctCompletion": "dots",
+      "sourceName": "National Federation of the Blind — What Is Braille?",
+      "sourceUrl": "https://nfb.org/braille",
+      "category": "culture",
+      "difficulty": "easy",
+      "tags": [
+        "accessibility",
+        "writing-systems",
+        "communication"
+      ]
+    },
+    {
+      "id": "us-flag-stars-states",
+      "text": "On the flag of the United States, each star represents one ____.",
+      "correctCompletion": "state",
+      "sourceName": "Library of Congress — Symbols of the United States",
+      "sourceUrl": "https://www.loc.gov/classroom-materials/symbols-of-the-united-states/",
+      "category": "culture",
+      "difficulty": "easy",
+      "tags": [
+        "flags",
+        "national-symbols",
+        "United States"
+      ]
+    },
+    {
+      "id": "olympic-marathon-distance",
+      "text": "The modern marathon's standard distance is about ____ kilometers.",
+      "correctCompletion": "42.195",
+      "sourceName": "World Athletics — Marathon",
+      "sourceUrl": "https://worldathletics.org/disciplines/road-running/marathon",
+      "category": "culture",
+      "difficulty": "medium",
+      "tags": [
+        "sport",
+        "measurement",
+        "running"
+      ]
+    },
+    {
+      "id": "microwave-oven-electromagnetic-waves",
+      "text": "A microwave oven heats food using electromagnetic waves called ____.",
+      "correctCompletion": "microwaves",
+      "sourceName": "U.S. Food and Drug Administration — Microwave Oven Radiation",
+      "sourceUrl": "https://www.fda.gov/radiation-emitting-products/home-business-and-entertainment-products/microwave-oven-radiation",
+      "category": "technology",
+      "difficulty": "easy",
+      "tags": [
+        "technology",
+        "appliances",
+        "electromagnetism"
+      ]
+    },
+    {
+      "id": "gps-satellite-navigation",
+      "text": "GPS determines location using signals transmitted by a constellation of ____.",
+      "correctCompletion": "satellites",
+      "sourceName": "GPS.gov — Space Segment",
+      "sourceUrl": "https://www.gps.gov/systems/gps/space/",
+      "category": "technology",
+      "difficulty": "easy",
+      "tags": [
+        "GPS",
+        "navigation",
+        "satellites"
+      ]
+    },
+    {
+      "id": "fiber-optic-light-signals",
+      "text": "Fiber-optic cables carry information using pulses of ____.",
+      "correctCompletion": "light",
+      "sourceName": "Encyclopaedia Britannica — Optical Fiber",
+      "sourceUrl": "https://www.britannica.com/technology/optical-fiber",
+      "category": "technology",
+      "difficulty": "medium",
+      "tags": [
+        "communications",
+        "engineering",
+        "optics"
+      ]
+    },
+    {
+      "id": "bridge-expansion-joints",
+      "text": "Many bridges include expansion joints to accommodate changes in length caused by ____ changes.",
+      "correctCompletion": "temperature",
+      "sourceName": "Federal Highway Administration — Bridge Design",
+      "sourceUrl": "https://www.fhwa.dot.gov/bridge/",
+      "category": "technology",
+      "difficulty": "medium",
+      "tags": [
+        "engineering",
+        "bridges",
+        "thermal-expansion"
+      ]
+    },
+    {
+      "id": "induction-cooktop-magnetic-field",
+      "text": "An induction cooktop heats compatible cookware using a changing ____ field.",
+      "correctCompletion": "magnetic",
+      "sourceName": "U.S. Department of Energy — Induction Cooking",
+      "sourceUrl": "https://www.energy.gov/energysaver/induction-cooking",
+      "category": "technology",
+      "difficulty": "medium",
+      "tags": [
+        "appliances",
+        "engineering",
+        "electromagnetism"
+      ]
+    },
+    {
+      "id": "delta-river-sediment",
+      "text": "A river delta commonly forms where a river deposits sediment as it enters a slower-moving body of ____.",
+      "correctCompletion": "water",
+      "sourceName": "National Geographic Society — Delta",
+      "sourceUrl": "https://education.nationalgeographic.org/resource/delta/",
+      "category": "geography",
+      "difficulty": "medium",
+      "tags": [
+        "landforms",
+        "rivers",
+        "sediment"
+      ]
+    },
+    {
+      "id": "strait-connects-water-bodies",
+      "text": "A narrow natural waterway connecting two larger bodies of water is a ____.",
+      "correctCompletion": "strait",
+      "sourceName": "National Geographic Society — Strait",
+      "sourceUrl": "https://education.nationalgeographic.org/resource/strait/",
+      "category": "geography",
+      "difficulty": "medium",
+      "tags": [
+        "geography",
+        "waterways",
+        "landforms"
+      ]
+    },
+    {
+      "id": "thermal-expansion-metal-rails",
+      "text": "When heated, most solid metals expand because their particles vibrate more and their average spacing ____.",
+      "correctCompletion": "increases",
+      "sourceName": "OpenStax — University Physics, Thermal Expansion",
+      "sourceUrl": "https://openstax.org/books/university-physics-volume-2/pages/1-3-thermal-expansion",
+      "category": "science",
+      "difficulty": "hard",
+      "tags": [
+        "physics",
+        "heat",
+        "materials"
+      ]
+    },
+    {
+      "id": "water-expands-freezing",
+      "text": "Unlike most substances, water expands when it ____ into ice.",
+      "correctCompletion": "freezes",
+      "sourceName": "U.S. Geological Survey — Water Science School",
+      "sourceUrl": "https://www.usgs.gov/special-topics/water-science-school",
+      "category": "science",
+      "difficulty": "medium",
+      "tags": [
+        "water",
+        "chemistry",
+        "phase-changes"
+      ]
+    },
+    {
+      "id": "binary-computer-information",
+      "text": "At the most basic level, digital computers represent data using binary digits called ____.",
+      "correctCompletion": "bits",
+      "sourceName": "NIST — Computer Security Resource Center Glossary",
+      "sourceUrl": "https://csrc.nist.gov/glossary/term/bit",
+      "category": "technology",
+      "difficulty": "easy",
+      "tags": [
+        "computing",
+        "data",
+        "binary"
+      ]
+    },
+    {
+      "id": "triangular-strong-structure",
+      "text": "In many trusses, triangles help make a structure rigid because a triangle's shape is difficult to change without changing a side's ____.",
+      "correctCompletion": "length",
+      "sourceName": "Encyclopaedia Britannica — Truss",
+      "sourceUrl": "https://www.britannica.com/technology/truss",
+      "category": "technology",
+      "difficulty": "hard",
+      "tags": [
+        "engineering",
+        "structures",
+        "mechanics"
+      ]
+    }
+  ]
+}
