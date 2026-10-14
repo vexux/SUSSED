@@ -48,6 +48,20 @@ legal, or publication decisions. Run `npm run report:question-inventory` from
 `server/` for a read-only report of published packs, question totals, validation
 failures, and normalized duplicate matches.
 
+For General Fact-or-Cap planning, see the
+[`research/general-question-generation-guide.md`](research/general-question-generation-guide.md)
+and its reconciled
+[`research/general-topic-ledger.json`](research/general-topic-ledger.json).
+The guide records editorial generation and review practice; the ledger indexes
+published question identities and provisional topic/claim classifications to
+help plan coverage and spot possible repetition. Published JSON packs remain
+the only runtime content. New candidates stay in `incoming/` until reviewed
+and explicitly imported. Update the ledger only after accepted questions are
+present in published packs, then reconcile identity and pack membership
+against the inventory as described in the guide. The ledger does not replace
+the inventory, editorial checklist, canonical records, or formal source-review
+workflow, and it does not establish factual accuracy, source support, or rights.
+
 The game shuffles valid playable questions and selects the configured number of
 unique prompts per session (5, 7, or 10). If a session needs more prompts than
 the library contains, game start fails with `QUESTION_POOL_EXHAUSTED`. A new session avoids questions used by

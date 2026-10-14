@@ -1,0 +1,3482 @@
+{
+  "ledgerVersion": 1,
+  "purpose": "Editorial planning index for General Fact-or-Cap. It reconciles published question identities and adds provisional topic, subtopic, question-type, and underlying-claim summaries to support coverage planning and human repetition review. It is not runtime content or a factual, source-support, rights, or publication approval record.",
+  "baselineSnapshot": {
+    "branch": "dev",
+    "commit": "3d04cf2",
+    "snapshotDate": "2026-10-14",
+    "gameId": "fact-or-cap",
+    "publishedQuestionCount": 100,
+    "publishedContentPackCount": 4,
+    "contentPacks": [
+      {
+        "fileName": "general-facts-batch-2026-10.json",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionCount": 80
+      },
+      {
+        "fileName": "space.json",
+        "contentPackId": "space",
+        "questionCount": 3
+      },
+      {
+        "fileName": "wildlife.json",
+        "contentPackId": "wildlife",
+        "questionCount": 14
+      },
+      {
+        "fileName": "world-and-culture.json",
+        "contentPackId": "world-and-culture",
+        "questionCount": 3
+      }
+    ],
+    "attributionMetadataPresentCount": 100,
+    "validationBasis": "npm run report:question-inventory on the snapshot; reports schema validity, IDs, and exact normalized prompt/completion matching only.",
+    "editorialDistribution": {
+      "basis": "Provisional editorial classifications in this ledger; counts are planning signals, not independently verified subject truth.",
+      "topicCounts": {
+        "space-astronomy": 28,
+        "life-sciences": 37,
+        "earth-environment": 15,
+        "geography": 5,
+        "history-civilizations": 13,
+        "culture-society": 1,
+        "technology-engineering": 1,
+        "physical-sciences-mathematics": 0
+      },
+      "questionTypeCounts": {
+        "identification": 41,
+        "measurement-or-count": 22,
+        "chronology": 9,
+        "cause-or-mechanism": 9,
+        "behavior-or-process": 12,
+        "classification": 7
+      }
+    }
+  },
+  "taxonomy": [
+    {
+      "topicId": "space-astronomy",
+      "label": "Space and astronomy",
+      "definition": "Solar-system bodies, planetary properties and motion, moons, astronomy history, and spaceflight.",
+      "subtopics": [
+        "solar-system-objects",
+        "orbits-and-rotation",
+        "earth-moon-and-moons",
+        "astronomy-history",
+        "spaceflight-history"
+      ]
+    },
+    {
+      "topicId": "life-sciences",
+      "label": "Life sciences",
+      "definition": "Plants, animals, biological structures, physiology, behavior, ecology, and classification.",
+      "subtopics": [
+        "mammals",
+        "birds",
+        "marine-life",
+        "reptiles-and-amphibians",
+        "insects",
+        "plants-and-classification"
+      ]
+    },
+    {
+      "topicId": "earth-environment",
+      "label": "Earth and environment",
+      "definition": "Oceans, atmosphere, geology, Earth systems, and geophysical processes.",
+      "subtopics": [
+        "oceans-and-seas",
+        "atmosphere",
+        "geology",
+        "earth-systems-and-geophysics"
+      ]
+    },
+    {
+      "topicId": "geography",
+      "label": "Geography",
+      "definition": "Places, coordinates, landforms, rivers, waterways, and geographic measurements.",
+      "subtopics": [
+        "coordinates-and-geographic-measurements",
+        "rivers-and-waterways"
+      ]
+    },
+    {
+      "topicId": "history-civilizations",
+      "label": "History and civilizations",
+      "definition": "Historical events, civilizations, chronology, exploration, and documented social institutions.",
+      "subtopics": [
+        "ancient-egypt",
+        "japanese-history",
+        "ancient-greece-and-olympic-history",
+        "ancient-china"
+      ]
+    },
+    {
+      "topicId": "culture-society",
+      "label": "Culture and society",
+      "definition": "Cultural practices, symbols, language, institutions, and social conventions.",
+      "subtopics": [
+        "national-symbols"
+      ]
+    },
+    {
+      "topicId": "technology-engineering",
+      "label": "Technology and engineering",
+      "definition": "How structures, devices, materials, and engineered systems work.",
+      "subtopics": [
+        "structures-and-materials"
+      ]
+    },
+    {
+      "topicId": "physical-sciences-mathematics",
+      "label": "Physical sciences and mathematics",
+      "definition": "Physical quantities, matter, forces, chemistry, physics, mathematical relationships, and counterintuitive demonstrations.",
+      "subtopics": [
+        "physics-and-forces",
+        "chemistry-and-materials",
+        "measurement",
+        "mathematical-patterns"
+      ]
+    }
+  ],
+  "classificationConventions": {
+    "basis": "Classifications were assigned from the actual prompt and completion. Legacy category/tags/difficulty are retained only as context and did not determine the topic assignment.",
+    "questionTypes": [
+      "identification",
+      "measurement-or-count",
+      "chronology",
+      "cause-or-mechanism",
+      "behavior-or-process",
+      "classification"
+    ],
+    "uncertainty": "A null uncertaintyNote means no specific categorization concern was recorded during this baseline pass; all classifications remain provisional and may be revised by an editor.",
+    "sourceStatus": "Source name and URL are transcribed as supplied. not-assessed-by-this-ledger is not a finding that the claim is unsupported; it means the ledger did not inspect source passages. rightsOrReuse remains unknown."
+  },
+  "questionRecords": [
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "mercury-nearest-sun"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The planet closest to the Sun is Mercury.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "solar-system",
+          "planets",
+          "Mercury"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Planets",
+        "sourceUrl": "https://science.nasa.gov/solar-system/planets/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "jupiter-largest-planet"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The largest planet in our solar system is Jupiter.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "solar-system",
+          "planets",
+          "Jupiter"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Planets",
+        "sourceUrl": "https://science.nasa.gov/solar-system/planets/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "venus-hottest-planet"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The hottest planet in our solar system is Venus.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "solar-system",
+          "planets",
+          "Venus"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Venus Facts",
+        "sourceUrl": "https://science.nasa.gov/venus/venus-facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "jupiter-shortest-day"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The planet with the shortest day in the solar system is Jupiter.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "solar-system",
+          "rotation",
+          "Jupiter"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Jupiter Facts",
+        "sourceUrl": "https://science.nasa.gov/jupiter/jupiter-facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "mercury-shortest-year"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "A year on Mercury lasts about 88 Earth days.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "solar-system",
+          "orbit",
+          "Mercury"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Mercury Facts",
+        "sourceUrl": "https://science.nasa.gov/mercury/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "earth-one-natural-moon"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "earth-moon-and-moons",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Earth has one natural moon.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Earth",
+          "moons",
+          "solar-system"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Earth Facts",
+        "sourceUrl": "https://science.nasa.gov/earth/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "mars-two-moons"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "earth-moon-and-moons",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Mars has two moons, Phobos and Deimos.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Mars",
+          "moons",
+          "solar-system"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Mars Facts",
+        "sourceUrl": "https://science.nasa.gov/mars/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "moon-synchronous-rotation"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "earth-moon-and-moons",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Because the Moon rotates at the same rate it orbits Earth, the same lunar hemisphere always faces Earth.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Moon",
+          "rotation",
+          "orbit"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Moon Facts",
+        "sourceUrl": "https://science.nasa.gov/moon/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "moon-receding-rate"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "earth-moon-and-moons",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "The Moon moves away from Earth by about one inch each year.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Moon",
+          "Earth",
+          "distance"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Moon Facts",
+        "sourceUrl": "https://science.nasa.gov/moon/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "earth-orbit-days"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Earth takes about 365.25 days to complete one orbit around the Sun.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Earth",
+          "orbit",
+          "calendar"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Earth Facts",
+        "sourceUrl": "https://science.nasa.gov/earth/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "earth-seasons-tilt"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Earth's yearly cycle of seasons is caused by the tilt of its axis.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Earth",
+          "seasons",
+          "axis"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Earth Facts",
+        "sourceUrl": "https://science.nasa.gov/earth/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "uranus-sideways-spin"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The planet that rotates at a nearly right angle to its orbital plane, appearing to spin on its side, is Uranus.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Uranus",
+          "rotation",
+          "planets"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Uranus Facts",
+        "sourceUrl": "https://science.nasa.gov/uranus/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "uranus-telescope-discovery"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "astronomy-history",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "The first planet discovered with the aid of a telescope was Uranus.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Uranus",
+          "astronomy",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Uranus Facts",
+        "sourceUrl": "https://science.nasa.gov/uranus/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "neptune-discovery-year"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "astronomy-history",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "Neptune was discovered in 1846.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Neptune",
+          "astronomy",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Neptune Facts",
+        "sourceUrl": "https://science.nasa.gov/neptune/neptune-facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "neptune-orbital-period"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "One orbit of Neptune around the Sun takes about 165 Earth years.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Neptune",
+          "orbit",
+          "solar-system"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Neptune Facts",
+        "sourceUrl": "https://science.nasa.gov/neptune/neptune-facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "saturn-density"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Saturn is the only planet in our solar system with an average density lower than water.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Saturn",
+          "density",
+          "planets"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Saturn Facts",
+        "sourceUrl": "https://science.nasa.gov/saturn/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "saturn-ring-material"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Saturn's rings are made mostly of chunks of ice and rock.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Saturn",
+          "rings",
+          "solar-system"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Saturn Facts",
+        "sourceUrl": "https://science.nasa.gov/saturn/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "mars-red-color"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Iron minerals in Martian rocks and dust appear red because they have rusted.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Mars",
+          "iron",
+          "surface"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Mars Facts",
+        "sourceUrl": "https://science.nasa.gov/mars/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "olympus-mons-volcano"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The largest volcano in the solar system, Olympus Mons, is on Mars.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Mars",
+          "volcanoes",
+          "solar-system"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Mars Facts",
+        "sourceUrl": "https://science.nasa.gov/mars/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "venus-retrograde-spin"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The planet that spins in the opposite direction from most planets is Venus.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "Venus",
+          "rotation",
+          "planets"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Venus Facts",
+        "sourceUrl": "https://science.nasa.gov/venus/venus-facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "giraffe-tallest-mammal"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The world's tallest mammals are giraffes.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "giraffe",
+          "size"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Giraffe Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/giraffe",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "giraffe-tongue-length"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "A giraffe's tongue can be about 21 inches long.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "giraffe",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Giraffe Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/giraffe",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "cheetah-fastest-land-mammal"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The fastest land mammal is the cheetah.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "cheetah",
+          "speed"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Cheetah Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/cheetah",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "bats-only-flying-mammals"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "The only mammals capable of true flight are bats.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "bats",
+          "flight"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Bat Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/bats",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "bat-echolocation"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Many bats use echolocation to locate objects in the dark.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "bats",
+          "senses",
+          "echolocation"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Bat Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/bats",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "emperor-largest-penguin"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "classification",
+        "underlyingClaimSummary": "The largest penguin species is the emperor penguin.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "birds",
+          "penguins",
+          "Antarctica"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Emperor Penguin Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/birds/facts/emperor-penguin",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "emperor-penguin-egg-care"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "During incubation, a male emperor penguin keeps its egg warm on its feet.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "birds",
+          "penguins",
+          "parenting"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Emperor Penguin Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/birds/facts/emperor-penguin",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "octopus-arms"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "identification",
+        "underlyingClaimSummary": "A common octopus has eight arms.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "invertebrates",
+          "octopus",
+          "anatomy"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Common Octopus Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/invertebrates/facts/common-octopus",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "octopus-hard-body-part"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "classification",
+        "underlyingClaimSummary": "The beak is the only hard part of an octopus's body.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "invertebrates",
+          "octopus",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Common Octopus Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/invertebrates/facts/common-octopus",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "octopus-ink-defense"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "When threatened, an octopus can release a cloud of ink to help it escape.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "invertebrates",
+          "octopus",
+          "defense"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Common Octopus Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/invertebrates/facts/common-octopus",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "platypus-egg-laying"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Along with echidnas, platypuses belong to the small group of mammals that lay eggs.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "platypus",
+          "reproduction"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Platypus Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/platypus",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "male-platypus-spur"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "A male platypus can deliver venom with a sharp spur on a hind foot.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "platypus",
+          "venom"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Platypus Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/platypus",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "koala-marsupial"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Although sometimes nicknamed a bear, the koala is a marsupial.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "koala",
+          "Australia"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Koala Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/koala",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "koala-eucalyptus-diet"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Koalas rely on eucalyptus trees for both food and habitat.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "koala",
+          "diet"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Koala Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/koala",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "african-elephant-land-animal"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The largest land animals on Earth are African elephants.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "elephants",
+          "Africa"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — African Elephant Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/african-elephant",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "elephant-trunk-muscles"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "An elephant's trunk contains about 40,000 muscles.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "elephants",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — African Elephant Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/african-elephant",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "blue-whale-largest-animal"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The largest animals known to have lived on Earth are blue whales.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "whales",
+          "size"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Blue Whale Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/blue-whale",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "blue-whale-krill-diet"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Blue whales feed nearly exclusively on tiny shrimp-like animals called krill.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "whales",
+          "diet"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Blue Whale Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/blue-whale",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "polar-bear-skin-color"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Beneath its fur, a polar bear has black skin.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "mammals",
+          "polar-bear",
+          "Arctic"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Polar Bear Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/polar-bear",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "leatherback-turtle-shell"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "reptiles-and-amphibians",
+        "questionType": "classification",
+        "underlyingClaimSummary": "The sea turtle species that lacks a hard, bony shell is the leatherback.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "reptiles",
+          "sea-turtles",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Sea Turtle Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/reptiles/facts/sea-turtles",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "seahorse-male-pregnancy"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "In seahorses, it is the male that carries the developing young in a brood pouch.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "fish",
+          "seahorses",
+          "reproduction"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Seahorse Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/fish/facts/seahorses",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "seahorse-independent-eyes"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "A seahorse can move its two eyes independently of each other.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife/biology",
+        "tags": [
+          "fish",
+          "seahorses",
+          "senses"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Seahorse Facts",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/fish/facts/seahorses",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "ocean-earth-surface"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "The ocean covers more than 70 percent of Earth's surface.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "ocean",
+          "Earth",
+          "water"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — How Much Water Is in the Ocean?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/oceanwater.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "earth-water-in-ocean"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "About 97 percent of Earth's water is found in the ocean.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "ocean",
+          "Earth",
+          "water"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — How Much Water Is in the Ocean?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/oceanwater.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "ocean-average-salinity"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Average ocean salinity is about 35 parts per thousand.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "ocean",
+          "salinity",
+          "chemistry"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — Why Is the Ocean Salty?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/whysalty.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "ocean-main-dissolved-ions"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Sodium and chloride together make up about 85 percent of the dissolved ions in the ocean.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "ocean",
+          "salinity",
+          "chemistry"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — Why Is the Ocean Salty?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/whysalty.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "ocean-salt-land-source"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The major source of dissolved salts in seawater is the weathering of rocks on land.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "ocean",
+          "geology",
+          "salinity"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — Why Is the Ocean Salty?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/whysalty.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "ocean-hydrothermal-salt-source"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Hot fluids released from seafloor vents also contribute salts to the ocean.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "ocean",
+          "geology",
+          "hydrothermal-vents"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — Why Is the Ocean Salty?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/whysalty.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "atmosphere-nitrogen"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "atmosphere",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "About 78 percent of Earth's atmosphere is nitrogen.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "Earth",
+          "atmosphere",
+          "nitrogen"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Earth Facts",
+        "sourceUrl": "https://science.nasa.gov/earth/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "atmosphere-oxygen"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "atmosphere",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "About 21 percent of Earth's atmosphere is oxygen.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "Earth",
+          "atmosphere",
+          "oxygen"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Earth Facts",
+        "sourceUrl": "https://science.nasa.gov/earth/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "earth-four-main-layers"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Earth's four main layers, from the center outward, are inner core, outer core, mantle, and crust.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "Earth",
+          "geology",
+          "structure"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Earth Facts",
+        "sourceUrl": "https://science.nasa.gov/earth/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "earth-tectonic-plates"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Earth's lithosphere is divided into huge moving plates.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "Earth",
+          "geology",
+          "tectonics"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Earth Facts",
+        "sourceUrl": "https://science.nasa.gov/earth/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "freshwater-share-earth-water"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "earth-systems-and-geophysics",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Less than one percent of all Earth's water is fresh water.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "water",
+          "Earth",
+          "freshwater"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — How Much Water Is in the Ocean?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/oceanwater.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "equator-zero-latitude"
+      },
+      "editorialClassification": {
+        "topicId": "geography",
+        "subtopicId": "coordinates-and-geographic-measurements",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "The Equator lies at 0 degrees latitude.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "Earth",
+          "latitude",
+          "Equator"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Education — Equator",
+        "sourceUrl": "https://education.nationalgeographic.org/resource/equator/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "equator-hemispheres"
+      },
+      "editorialClassification": {
+        "topicId": "geography",
+        "subtopicId": "coordinates-and-geographic-measurements",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The Equator divides Earth into the Northern and Southern Hemispheres.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "Earth",
+          "hemispheres",
+          "Equator"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Education — Equator",
+        "sourceUrl": "https://education.nationalgeographic.org/resource/equator/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "equatorial-circumference"
+      },
+      "editorialClassification": {
+        "topicId": "geography",
+        "subtopicId": "coordinates-and-geographic-measurements",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Earth's circumference at the Equator is about 40,075 kilometers.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "Earth",
+          "measurement",
+          "Equator"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Education — Equator",
+        "sourceUrl": "https://education.nationalgeographic.org/resource/equator/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "earth-equatorial-bulge-cause"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "earth-systems-and-geophysics",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Earth's equatorial bulge is caused by the planet's rotation.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "Earth",
+          "rotation",
+          "geophysics"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Education — Equator",
+        "sourceUrl": "https://education.nationalgeographic.org/resource/equator/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "equator-rotational-speed"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "earth-systems-and-geophysics",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "At the Equator, Earth's surface spins at about 1,670 kilometers per hour.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "Earth",
+          "rotation",
+          "Equator"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Education — Equator",
+        "sourceUrl": "https://education.nationalgeographic.org/resource/equator/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "apollo-11-launch-date"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "spaceflight-history",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "Apollo 11 launched on July 16, 1969.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Apollo-11",
+          "spaceflight",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Apollo 11 Mission Overview",
+        "sourceUrl": "https://www.nasa.gov/history/apollo-11-mission-overview/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "apollo-11-lunar-landing-site"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "spaceflight-history",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Apollo 11's lunar module landed in the Moon's Sea of Tranquility.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Apollo-11",
+          "Moon",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Apollo 11 Mission Overview",
+        "sourceUrl": "https://www.nasa.gov/history/apollo-11-mission-overview/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "apollo-11-moonwalkers"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "spaceflight-history",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The two Apollo 11 astronauts who descended to the lunar surface were Neil Armstrong and Edwin “Buzz” Aldrin.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Apollo-11",
+          "astronauts",
+          "history"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Apollo 11 Mission Overview",
+        "sourceUrl": "https://www.nasa.gov/history/apollo-11-mission-overview/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "apollo-11-command-module-pilot"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "spaceflight-history",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The Apollo 11 astronaut who piloted the command module while Armstrong and Aldrin were on the Moon was Michael Collins.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Apollo-11",
+          "astronauts",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Apollo 11 Mission Overview",
+        "sourceUrl": "https://www.nasa.gov/history/apollo-11-mission-overview/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "apollo-11-tv-audience"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "spaceflight-history",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "NASA estimated that about 650 million people watched Armstrong's televised Apollo 11 image.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Apollo-11",
+          "television",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Apollo 11 Mission Overview",
+        "sourceUrl": "https://www.nasa.gov/history/apollo-11-mission-overview/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "egypt-unification-date"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-egypt",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Around 3100 B.C., a king united Upper and Lower Egypt.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Egypt",
+          "ancient-history",
+          "civilization"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Ancient Egypt",
+        "sourceUrl": "https://kids.nationalgeographic.com/history/article/ancient-egypt",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "egypt-hieroglyph-records"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-egypt",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Ancient Egyptians used hieroglyphic writing for records such as royal decrees and taxes.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Egypt",
+          "writing",
+          "ancient-history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Ancient Egypt",
+        "sourceUrl": "https://kids.nationalgeographic.com/history/article/ancient-egypt",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "nile-flow-direction"
+      },
+      "editorialClassification": {
+        "topicId": "geography",
+        "subtopicId": "rivers-and-waterways",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The Nile River flows from south to north.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "Egypt",
+          "Nile",
+          "rivers"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Ancient Egypt",
+        "sourceUrl": "https://kids.nationalgeographic.com/history/article/ancient-egypt",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "egypt-pyramid-era"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-egypt",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The Old Kingdom of Egypt is sometimes called the “Age of the Pyramids.”.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Egypt",
+          "pyramids",
+          "ancient-history"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Ancient Egypt",
+        "sourceUrl": "https://kids.nationalgeographic.com/history/article/ancient-egypt",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "yayoi-rice-cultivation"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "japanese-history",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The Yayoi people in Japan began growing rice in flooded paddy fields.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Japan",
+          "rice",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Japan",
+        "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/japan",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "japan-shogun-rule"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "japanese-history",
+        "questionType": "identification",
+        "underlyingClaimSummary": "In the 12th century, military rulers called shoguns took control of Japan.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Japan",
+          "shoguns",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Japan",
+        "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/japan",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "japan-isolation-period"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "japanese-history",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Japan's 17th-century isolation from foreigners lasted more than 200 years.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Japan",
+          "history",
+          "isolation"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Japan",
+        "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/japan",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "japan-meiji-restoration-year"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "japanese-history",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "In 1868 the shoguns were overthrown and emperors returned to power in Japan.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Japan",
+          "history",
+          "modernization"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Japan",
+        "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/japan",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "ancient-greek-city-states"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-greece-and-olympic-history",
+        "questionType": "identification",
+        "underlyingClaimSummary": "In ancient Greece, Athens, Sparta, Thebes, and Corinth were examples of city-states.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Greece",
+          "city-states",
+          "ancient-history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Greece",
+        "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/greece",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "athenian-democracy-date"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-greece-and-olympic-history",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "According to National Geographic Kids, Athens instituted a system of democracy in 508 B.C.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Greece",
+          "democracy",
+          "history"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Greece",
+        "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/greece",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "ancient-olympics-location"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-greece-and-olympic-history",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The ancient Olympic Games were held in the Greek city of Olympia.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Greece",
+          "Olympics",
+          "ancient-history"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Greece",
+        "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/greece",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "modern-olympics-return"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-greece-and-olympic-history",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "The Olympic Games began again in Athens in 1896.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "Greece",
+          "Olympics",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Greece",
+        "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/greece",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "qin-first-chinese-empire"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-china",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "The first Chinese empire began under the Qin dynasty in 221 B.C.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "China",
+          "Qin",
+          "ancient-history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — China",
+        "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/china",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "ancient-chinese-inventions"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-china",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Among the inventions credited to ancient China are paper, printing, silk, gunpowder, and the magnetic compass.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "China",
+          "inventions",
+          "culture"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — China",
+        "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/china",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "suez-canal-seas"
+      },
+      "editorialClassification": {
+        "topicId": "geography",
+        "subtopicId": "rivers-and-waterways",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The Suez Canal links the Mediterranean Sea with the Red Sea.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "Egypt",
+          "canals",
+          "seas"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Kids — Egypt",
+        "sourceUrl": "https://kids.nationalgeographic.com/geography/countries/article/egypt",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "tides-moon-sun-forces"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Ocean tides respond to forces exerted by the Moon and the Sun.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "ocean",
+          "tides",
+          "Moon",
+          "Sun"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — Introduction to Tides",
+        "sourceUrl": "https://oceanservice.noaa.gov/education/tutorial_tides/tides01_intro.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-facts-batch-2026-10",
+        "questionId": "geyser-plumbing-constrictions"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "A geyser differs from an ordinary hot spring because its plumbing contains one or more constrictions that restrict water flow.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "science/nature",
+        "tags": [
+          "geology",
+          "geysers",
+          "Yellowstone"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Park Service — Hydrothermal Features",
+        "sourceUrl": "https://www.nps.gov/yell/learn/nature/hydrothermal-features.htm",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "space",
+        "questionId": "venus-day"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "On Venus, one full rotation takes longer than one orbit around the Sun.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "planets",
+          "astronomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Solar System Exploration",
+        "sourceUrl": "https://science.nasa.gov/venus/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "space",
+        "questionId": "jupiter-day"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "One day on Jupiter lasts for about ten hours.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "planets",
+          "astronomy"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Solar System Exploration",
+        "sourceUrl": "https://science.nasa.gov/jupiter/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "space",
+        "questionId": "moon-mirror"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "spaceflight-history",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Apollo astronauts left a special mirror on the Moon so scientists could measure the Earth-Moon distance with laser light.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moon",
+          "space-exploration"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA",
+        "sourceUrl": "https://science.nasa.gov/solar-system/moon/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "wombat-cubes"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "A wombat's droppings are famously shaped like small cubes.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "mammals",
+          "biology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Nature",
+        "sourceUrl": "https://www.nature.com/articles/s41586-018-0751-9",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "octopus-hearts"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "identification",
+        "underlyingClaimSummary": "An octopus has three hearts, and its blood is blue.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": "The prompt joins two assertions (three hearts and blue blood). Check evidence for each separately and consider whether a one-claim prompt is needed; this ledger does not rewrite or verify the published question."
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "marine-life",
+          "biology"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Encyclopaedia Britannica",
+        "sourceUrl": "https://www.britannica.com/animal/octopus-mollusk",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "butterfly-taste"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "insects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "A butterfly senses the taste of a plant with sensors on its feet.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "insects",
+          "biology"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Encyclopaedia Britannica",
+        "sourceUrl": "https://www.britannica.com/animal/butterfly",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "mantis-shrimp-punch"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "A mantis shrimp's punch can create tiny collapsing bubbles hot enough to emit light.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "marine-life",
+          "physics"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/mantis-shrimp",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "turtle-breathing"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "reptiles-and-amphibians",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Some freshwater turtles can absorb oxygen through specialized tissues in their cloaca.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "reptiles",
+          "biology"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Australian Museum",
+        "sourceUrl": "https://australian.museum/learn/animals/reptiles/short-necked-turtle/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "dolphin-whistle"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "A dolphin's individual signature whistle works a little like a name that identifies it to other dolphins.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "marine-life",
+          "communication"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Fisheries",
+        "sourceUrl": "https://www.fisheries.noaa.gov/feature-story/dolphin-communication",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "sharks-before-trees"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Sharks were swimming in the oceans before the first trees appeared on land.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "marine-life",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/sharks-rays/sharks",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "koala-fingerprints"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Koala fingerprints are so similar to human fingerprints that they can be difficult to tell apart.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "mammals",
+          "biology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Australian Museum",
+        "sourceUrl": "https://australian.museum/learn/animals/mammals/koala/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "swift-flight"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Common swifts have been recorded staying airborne for more than ten months.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "birds",
+          "biology"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Nature Communications",
+        "sourceUrl": "https://www.nature.com/articles/ncomms3554",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "seahorse-pregnancy"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "A male seahorse carries developing young in a brood pouch.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "marine-life",
+          "reproduction"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Ocean Service",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/seahorse.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "axolotl-regrowth"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "reptiles-and-amphibians",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "An axolotl can regrow a lost limb.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "amphibians",
+          "biology"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian's National Zoo",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/axolotl",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "beaver-teeth"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "A beaver's front teeth are orange because their enamel contains iron.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "mammals",
+          "biology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/beavers",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "flamingo-color"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Flamingos get their pink color from pigments in the algae and crustaceans they eat.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "birds",
+          "biology"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian's National Zoo",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/flamingo",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "wildlife",
+        "questionId": "honeybee-dance"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "insects",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "A honeybee's waggle dance tells other bees where food is and how far away it is.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "wildlife",
+        "tags": [
+          "insects",
+          "communication"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Encyclopaedia Britannica",
+        "sourceUrl": "https://www.britannica.com/animal/honeybee",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "world-and-culture",
+        "questionId": "scotland-unicorn"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "national-symbols",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Scotland's national animal is the unicorn.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "scotland",
+          "symbols"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "VisitScotland",
+        "sourceUrl": "https://www.visitscotland.com/blog/culture/scotlands-national-animal-unicorn",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "world-and-culture",
+        "questionId": "eiffel-expansion"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "structures-and-materials",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "The Eiffel Tower can grow slightly taller on hot days because its iron expands as it warms.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "engineering",
+        "tags": [
+          "landmarks",
+          "physics"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Eiffel Tower official site",
+        "sourceUrl": "https://www.toureiffel.paris/en/news/history-and-culture/why-does-eiffel-tower-change-size",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "world-and-culture",
+        "questionId": "banana-berry"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "plants-and-classification",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Botanically speaking, a banana is a berry, but a strawberry is not a true berry.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null
+      },
+      "legacyMetadata": {
+        "category": "nature",
+        "tags": [
+          "botany",
+          "food"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Encyclopaedia Britannica",
+        "sourceUrl": "https://www.britannica.com/story/are-strawberries-really-berries",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    }
+  ],
+  "repetitionReviewClusters": [
+    {
+      "clusterId": "solar-system-basics",
+      "questionIds": [
+        "mercury-nearest-sun",
+        "jupiter-largest-planet",
+        "venus-hottest-planet",
+        "jupiter-shortest-day",
+        "mercury-shortest-year",
+        "earth-one-natural-moon",
+        "mars-two-moons",
+        "moon-synchronous-rotation",
+        "moon-receding-rate",
+        "earth-orbit-days",
+        "earth-seasons-tilt",
+        "uranus-sideways-spin",
+        "uranus-telescope-discovery",
+        "neptune-discovery-year",
+        "neptune-orbital-period",
+        "saturn-density",
+        "saturn-ring-material",
+        "mars-red-color",
+        "olympus-mons-volcano",
+        "venus-retrograde-spin",
+        "venus-day",
+        "jupiter-day"
+      ],
+      "note": "Multiple familiar solar-system facts include several size/extreme-property, orbital, and rotation formats. The claims are not asserted to be duplicates; review future batches for overconcentration and compare underlying facts.",
+      "status": "human-review-signal"
+    },
+    {
+      "clusterId": "ocean-and-water-statistics",
+      "questionIds": [
+        "ocean-earth-surface",
+        "earth-water-in-ocean",
+        "ocean-average-salinity",
+        "ocean-main-dissolved-ions",
+        "ocean-salt-land-source",
+        "ocean-hydrothermal-salt-source",
+        "freshwater-share-earth-water"
+      ],
+      "note": "Related ocean/water quantities and salinity-source facts share subject matter and some cited source pages. Claims differ by measurement or mechanism; use the cluster to avoid repetitive batch composition.",
+      "status": "human-review-signal"
+    },
+    {
+      "clusterId": "equator-and-earth-rotation",
+      "questionIds": [
+        "equator-zero-latitude",
+        "equator-hemispheres",
+        "equatorial-circumference",
+        "earth-equatorial-bulge-cause",
+        "equator-rotational-speed"
+      ],
+      "note": "Several distinct geographic and geophysical facts use the Equator as context. Review for subject concentration; not a duplicate determination.",
+      "status": "human-review-signal"
+    },
+    {
+      "clusterId": "apollo-11",
+      "questionIds": [
+        "apollo-11-launch-date",
+        "apollo-11-lunar-landing-site",
+        "apollo-11-moonwalkers",
+        "apollo-11-command-module-pilot",
+        "apollo-11-tv-audience",
+        "moon-mirror"
+      ],
+      "note": "A concentrated set of Apollo/spaceflight history questions. Underlying claims differ, but future batches should avoid extending the same mission cluster without editorial justification.",
+      "status": "human-review-signal"
+    },
+    {
+      "clusterId": "octopus-facts",
+      "questionIds": [
+        "octopus-arms",
+        "octopus-hard-body-part",
+        "octopus-ink-defense",
+        "octopus-hearts"
+      ],
+      "note": "Four distinct anatomical/defense facts about octopuses occur across two packs. Not exact or asserted semantic duplicates; review for repeated subject and biology-fact style.",
+      "status": "human-review-signal"
+    },
+    {
+      "clusterId": "egypt-history-geography",
+      "questionIds": [
+        "egypt-unification-date",
+        "egypt-hieroglyph-records",
+        "egypt-pyramid-era",
+        "nile-flow-direction",
+        "suez-canal-seas"
+      ],
+      "note": "Egypt is the context for several separate historical and geography claims. Track topic density rather than treating the claims as interchangeable.",
+      "status": "human-review-signal"
+    },
+    {
+      "clusterId": "greek-and-olympic-history",
+      "questionIds": [
+        "ancient-greek-city-states",
+        "athenian-democracy-date",
+        "ancient-olympics-location",
+        "modern-olympics-return"
+      ],
+      "note": "Related Greek history and Olympic questions cover distinct claims but concentrate on one cultural region and institution.",
+      "status": "human-review-signal"
+    },
+    {
+      "clusterId": "seahorse-reproduction",
+      "questionIds": [
+        "seahorse-male-pregnancy",
+        "seahorse-pregnancy"
+      ],
+      "note": "The two records appear to encode the same male-pregnancy/brood-pouch claim in opposite blank positions; see suspectedSemanticDuplicates for the explicit likely-duplicate signal.",
+      "status": "human-review-signal"
+    }
+  ],
+  "sourceAndRightsLimitations": [
+    "Attribution metadata is copied from the published records; this ledger did not open source pages or confirm claim support.",
+    "A supplied source title or URL does not establish factual accuracy, direct support, license, or permission to reuse.",
+    "No formal source-support, rights, or intended-use decision is represented for these legacy questions; values remain unassessed or unknown."
+  ],
+  "maintenanceRules": [
+    "Reconcile exact gameId/contentPackId/questionId membership against published packs before updating this ledger.",
+    "Add question records only after acceptance into a published pack; incoming and rejected candidates are not represented as playable records.",
+    "Classify from the prompt and completion, not solely from legacy category or tags; retain uncertainty for human resolution.",
+    "Compare concise underlying-claim summaries to flag exact and suspected semantic repetition; do not claim exhaustive duplicate detection.",
+    "Copy source attribution faithfully but never infer factual verification, source support, rights clearance, or intended-use approval from structural validity or a URL.",
+    "Keep the ledger under research/, outside runtime-loaded content directories; published JSON packs remain the only runtime content source."
+  ],
+  "suspectedSemanticDuplicates": [
+    {
+      "questionIds": [
+        "jupiter-shortest-day",
+        "jupiter-day"
+      ],
+      "note": "Both ask about Jupiter?s roughly ten-hour rotation/day length, once as the shortest planetary day and once as a duration. Likely the same underlying fact; human confirmation is required.",
+      "status": "likely-same-underlying-fact-needs-human-confirmation"
+    },
+    {
+      "questionIds": [
+        "seahorse-male-pregnancy",
+        "seahorse-pregnancy"
+      ],
+      "note": "Both assert that male seahorses carry developing young in a brood pouch, with the blank placed on different parts of the same assertion. Likely a semantic duplicate; human confirmation is required.",
+      "status": "likely-same-underlying-fact-needs-human-confirmation"
+    }
+  ]
+}
