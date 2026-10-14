@@ -116,23 +116,28 @@ records, not the fact itself; do not derive identity from array position, pack
 filename, tags, category, or displayed wording. Do not change an ID to evade a
 duplicate warning or reuse one for a different question.
 
-For each incoming batch, use the established workflow from `incoming/README.md`:
+For each incoming batch, use the consolidated review command in
+`incoming/README.md` and the established workflow:
 
 1. Draft a JSON candidate in `incoming/`, outside runtime-loaded directories.
-2. Run batch preview for the intended game and inspect blocking errors, source
-   metadata warnings, and every within-bank, cross-bank, or batch duplicate
-   match.
-3. Generate and complete the offline editorial checklist for each stable ID.
-   Inspect sources and evidence yourself; record factual support, wording and
-   game-quality judgments, and rights assessment separately. Do not mark
-   unknown rights as approved.
-4. Resolve concerns in the incoming candidate, then rerun preview.
+2. Run one consolidated review for the intended game. It composes the existing
+   batch preview with a concise table of IDs, prompts, completions, categories,
+   sources, and automated warning flags. It reports blockers, ID conflicts,
+   normalized matches, source metadata gaps, and descriptive category counts.
+   Optionally request one Markdown review file with `--output`; no file is
+   created by default.
+3. Inspect cited evidence yourself and decide factual support, wording,
+   answerability, game quality, and rights/reuse separately. The report does
+   not inspect URLs, detect semantic duplicates, verify claims, or approve use.
+   Do not mark unknown rights as approved.
+4. Resolve concerns in the incoming candidate, then rerun consolidated review.
 5. Import only after human review. Use explicit duplicate approval only when a
    reviewer has checked each match and recorded why it is distinct.
 6. Run the individual validator and read-only question inventory after import.
 
-The preview and checklist are review aids, not approval, publication, or
-factual/legal determinations. Import remains a separate explicit action.
+The consolidated review and optional checklist are review aids, not approval,
+publication, or factual/legal determinations. Import remains a separate
+explicit action.
 
 ## 6. Maintain the topic ledger
 
@@ -202,27 +207,24 @@ instead of using maintenance to erase or conceal it.
 The complete required workflow from `server/` is:
 
 ```sh
-# 1. Preview a candidate (read-only).
-npm run questions:preview -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
+# 1. Review a candidate (read-only; optionally add --output <review.md>).
+npm run questions:review -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
 
-# 2. Generate and complete the per-question editorial checklist (stdout).
-npm run report:question-editorial-checklist -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
-
-# 3. Import only after editorial/source/rights review and a clean preview.
+# 2. Import only after editorial/source/rights review and a clean review report.
 npm run questions:import -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
 
-# 4. Validate the published pack.
+# 3. Validate the published pack.
 npm run validate:questions -- fact-or-cap games/fake-answer/content/<content-pack-id>.json
 
-# 5. Prepare the classification manifest described above; preview, inspect, then explicitly apply.
+# 4. Prepare the classification manifest described above; preview, inspect, then explicitly apply.
 npm run update:general-topic-ledger -- --classifications games/fake-answer/incoming/general-batch-001-ledger.json
 npm run update:general-topic-ledger -- --classifications games/fake-answer/incoming/general-batch-001-ledger.json --apply
 
-# 6. Reconcile coverage and inspect the inventory across both banks.
+# 5. Reconcile coverage and inspect the inventory across both banks.
 npm run report:general-content-coverage
 npm run report:question-inventory
 
-# 7. Run focused and full tests, inspect the diff, then commit approved files.
+# 6. Run focused and full tests, inspect the diff, then commit approved files.
 node --test test/generalTopicLedgerMaintenance.test.js test/generalTopicLedgerReport.test.js test/questionInventory.test.js test/questionBatch.test.js test/questionLibrary.test.js
 npm test
 git diff --check

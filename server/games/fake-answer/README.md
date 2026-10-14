@@ -39,12 +39,13 @@ it never scans `incoming/`. The canonical/migration workflow in
 of this importer.
 
 The incoming-batch instructions document the current legacy question format,
-stable ID and pack-ID conventions, exact preview/import commands for both game
-variants, source requirements, duplicate approval, validation, and checking
-published counts. They also provide a per-question editorial checklist command
-for evidence, source support, clarity, answerability, intended-game quality,
-and rights review. This checklist is a human aid and does not make factual,
-legal, or publication decisions. Run `npm run report:question-inventory` from
+stable ID and pack-ID conventions, the consolidated `npm run questions:review`
+command for both game variants, explicit import, source requirements, duplicate
+approval, validation, and checking published counts. The review combines
+existing validation and duplicate signals with a concise per-question table;
+source support, factual accuracy, editorial quality, and rights still require
+human review. The detailed blank checklist command remains optional. Run
+`npm run report:question-inventory` from
 `server/` for a read-only report of published packs, question totals, validation
 failures, and normalized duplicate matches.
 

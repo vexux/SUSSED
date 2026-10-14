@@ -49,13 +49,46 @@ display text, tags, or source filename. Never change an ID to disguise a
 duplicate or reuse an ID for a different question. Question IDs must be unique
 across both registered Fact-or-Cap banks.
 
-## Preview and import
+## Review and import
 
 Run commands from `server/`. Examples assume these candidate files:
 `games/fake-answer/incoming/general-batch-001.json` and
 `games/fake-answer/incoming/anime-batch-001.json`.
 
-Preview each batch against its selected bank:
+For the normal review path, use the consolidated command for either bank:
+
+```sh
+npm run questions:review -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
+npm run questions:review -- --target fact-or-cap-anime --input games/fake-answer/incoming/anime-batch-001.json
+```
+
+This command is read-only and composes the existing batch preview checks with a
+compact question table. It reports hard validation/import blockers, ID
+conflicts, exact normalized prompt/completion matches, source-metadata issues,
+category counts, and which human checks remain. Each row includes the stable
+question ID, shortened prompt, answer, category, source name/URL, and warning
+flags. A structurally eligible batch is not factually or legally approved.
+Every claim still requires a human to inspect evidence, decide source support
+and accuracy, check wording and game quality, and assess reuse rights. A source
+URL is attribution, not proof.
+
+Optional Markdown output contains the same review summary and question-level
+signals with full prompts and linked URLs. It is written only when explicitly
+requested; it is a disposable artifact, not a canonical record:
+
+```sh
+npm run questions:review -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json --output games/fake-answer/incoming/general-batch-001-review.md
+```
+
+The workflow does not perform semantic duplicate detection. The normalized
+prompt/completion heuristic catches exact pairs after Unicode, case,
+punctuation, and spacing normalization; it can miss paraphrases or flag
+wording that expresses a different claim. Category counts are descriptive and
+do not claim topic balance. Compare facts and patterns manually. The report
+does not fetch URLs, verify facts, establish source support or reuse rights, or
+approve publication.
+
+For the existing detailed preview output alone, use:
 
 ```sh
 npm run questions:preview -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
@@ -75,17 +108,19 @@ duplicates: paraphrases can be missed, and similar wording can express a
 different claim. Inspect every match and review likely paraphrases manually.
 Do not delete or rewrite a question automatically based on this signal.
 
-### Editorial review packet
+### Detailed editorial checklist (optional)
 
 For batches of 25–50 questions, generate an offline, read-only Markdown checklist
-after previewing the batch:
+after running the consolidated review:
 
 ```sh
 npm run report:question-editorial-checklist -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
 npm run report:question-editorial-checklist -- --target fact-or-cap-anime --input games/fake-answer/incoming/anime-batch-001.json
 ```
 
-The report prints to stdout and retains each stable question ID, candidate
+The consolidated `questions:review` command is the recommended single review
+report. The separate checklist remains optional when reviewers want its blank
+evidence and disposition fields. It prints to stdout and retains each stable question ID, candidate
 prompt/completion and metadata, supplied source attribution, and preview
 warnings/matches. It provides separate blank fields for checking source passages
 and evidence locators, factual support (including compound claims), clarity and
@@ -104,9 +139,9 @@ semantic duplicate detection, source-page inspection, factual verification,
 editorial judgment, or rights assessment. Resolve each category with its own
 checks; do not treat one category as a substitute for another.
 
-After completing the checklist, resolving preview errors/warnings/matches, and
-making any necessary edits to the incoming file, run preview again. Import a
-batch with no likely duplicate matches:
+After resolving review blockers, warnings/matches, and any human concerns,
+rerun the consolidated review command. Import remains an explicit separate
+operation. Import a batch with no likely duplicate matches:
 
 ```sh
 npm run questions:import -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
