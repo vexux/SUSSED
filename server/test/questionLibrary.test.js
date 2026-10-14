@@ -22,8 +22,8 @@ test("loads all migrated JSON content packs with existing answer and source data
     const { questions: loaded } = loadQuestionPacks(
         path.join(fakeAnswerDirectory, "content")
     );
-    assert.equal(loaded.length, 116);
-    assert.equal(questions.length, 116);
+    assert.equal(loaded.length, 127);
+    assert.equal(questions.length, 127);
     assert.equal(new Set(loaded.map(({ id }) => id)).size, loaded.length);
     assert.equal(
         loaded.find(({ id }) => id === "wombat-cubes").correctCompletion,
@@ -40,7 +40,8 @@ test("loads all migrated JSON content packs with existing answer and source data
             "space",
             "world-and-culture",
             "general-facts-batch-2026-10",
-            "general-expansion-pilot-2026-10"
+            "general-expansion-pilot-2026-10",
+            "general-expansion-batch-001"
         ])
     );
 });

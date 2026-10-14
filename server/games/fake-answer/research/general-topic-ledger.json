@@ -6,9 +6,14 @@
     "commit": "3d04cf2",
     "snapshotDate": "2026-10-14",
     "gameId": "fact-or-cap",
-    "publishedQuestionCount": 116,
-    "publishedContentPackCount": 5,
+    "publishedQuestionCount": 127,
+    "publishedContentPackCount": 6,
     "contentPacks": [
+      {
+        "fileName": "general-expansion-batch-001.json",
+        "contentPackId": "general-expansion-batch-001",
+        "questionCount": 11
+      },
       {
         "fileName": "general-expansion-pilot-2026-10.json",
         "contentPackId": "general-expansion-pilot-2026-10",
@@ -35,27 +40,27 @@
         "questionCount": 3
       }
     ],
-    "attributionMetadataPresentCount": 116,
+    "attributionMetadataPresentCount": 127,
     "validationBasis": "npm run report:question-inventory on the snapshot; reports schema validity, IDs, and exact normalized prompt/completion matching only.",
     "editorialDistribution": {
       "basis": "Provisional editorial classifications in this ledger; counts are planning signals, not independently verified subject truth.",
       "topicCounts": {
-        "space-astronomy": 28,
-        "life-sciences": 37,
-        "earth-environment": 18,
-        "geography": 7,
-        "history-civilizations": 13,
+        "space-astronomy": 29,
+        "life-sciences": 40,
+        "earth-environment": 22,
+        "geography": 8,
+        "history-civilizations": 15,
         "culture-society": 4,
         "technology-engineering": 5,
         "physical-sciences-mathematics": 4
       },
       "questionTypeCounts": {
-        "identification": 48,
+        "identification": 53,
         "measurement-or-count": 24,
         "chronology": 9,
-        "cause-or-mechanism": 11,
-        "behavior-or-process": 16,
-        "classification": 8
+        "cause-or-mechanism": 15,
+        "behavior-or-process": 17,
+        "classification": 9
       }
     }
   },
@@ -66,6 +71,7 @@
       "definition": "Solar-system bodies, planetary properties and motion, moons, astronomy history, and spaceflight.",
       "subtopics": [
         "solar-system-objects",
+        "galaxies",
         "orbits-and-rotation",
         "earth-moon-and-moons",
         "astronomy-history",
@@ -111,6 +117,7 @@
       "definition": "Historical events, civilizations, chronology, exploration, and documented social institutions.",
       "subtopics": [
         "ancient-egypt",
+        "medieval-west-africa",
         "japanese-history",
         "ancient-greece-and-olympic-history",
         "ancient-china"
@@ -3914,6 +3921,391 @@
         "attributionMetadataPresent": true,
         "sourceName": "MIT News — Revealing water’s secrets",
         "sourceUrl": "https://news.mit.edu/2011/heavy-water-0801",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001",
+        "questionId": "camel-fat-hump"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "A dromedary camel's hump stores fat.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared the underlying claim and wording with the current published bank and ledger classifications."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "mammals",
+          "adaptation"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian's National Zoo and Conservation Biology Institute",
+        "sourceUrl": "https://nationalzoo.si.edu/global-health-program/news/getting-over-hump-camel-care-kenya",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001",
+        "questionId": "chemosynthesis-energy-chemicals"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Some vent-associated microbes use energy from chemical reactions rather than sunlight to build organic matter.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "flagged",
+          "note": "Shares the deep-sea vent context with ocean-hydrothermal-salt-source, but asks about microbial energy production rather than vent-derived ocean salts."
+        }
+      },
+      "legacyMetadata": {
+        "category": "oceanography",
+        "tags": [
+          "deep-sea",
+          "microbes"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Exploration",
+        "sourceUrl": "https://oceanexplorer.noaa.gov/ocean-fact/seeps-vents/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001",
+        "questionId": "coral-bleaching-algae-loss"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Stressed corals can expel symbiotic algae, causing coral bleaching.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared the underlying claim and wording with the current published bank and ledger classifications."
+        }
+      },
+      "legacyMetadata": {
+        "category": "oceanography",
+        "tags": [
+          "corals",
+          "bleaching"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/coral_bleach.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001",
+        "questionId": "firefly-light-luciferin"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "insects",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Firefly light production involves luciferin in a biochemical reaction.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared the underlying claim and wording with the current published bank and ledger classifications."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "insects",
+          "bioluminescence"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Ask Dr. Universe, Washington State University",
+        "sourceUrl": "https://askdruniverse.wsu.edu/2023/08/31/makes-fireflies-light-night/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001",
+        "questionId": "lowest-land-elevation-dead-sea"
+      },
+      "editorialClassification": {
+        "topicId": "geography",
+        "subtopicId": "coordinates-and-geographic-measurements",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The world's lowest land elevation lies beside the Dead Sea in the Jordan Rift Valley.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared the underlying claim and wording with the current published bank and ledger classifications."
+        }
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "landforms",
+          "elevation"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic Education",
+        "sourceUrl": "https://education.nationalgeographic.org/resource/rift-valley/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001",
+        "questionId": "mali-empire-mansa-musa"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "medieval-west-africa",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Mansa Musa of Mali made a pilgrimage to Mecca in 1324.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared the underlying claim and wording with the current published bank and ledger classifications."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "africa",
+          "medieval"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "The Metropolitan Museum of Art",
+        "sourceUrl": "https://www.metmuseum.org/fr/exhibitions/sahel-art-empire-sahara/inside-the-exhibition",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001",
+        "questionId": "marine-snow-falling-particles"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Marine snow is organic material falling from upper waters into the deep ocean.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared the underlying claim and wording with the current published bank and ledger classifications."
+        }
+      },
+      "legacyMetadata": {
+        "category": "oceanography",
+        "tags": [
+          "deep-sea",
+          "carbon"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/marinesnow.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001",
+        "questionId": "milky-way-galaxy-type"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "galaxies",
+        "questionType": "classification",
+        "underlyingClaimSummary": "The Milky Way is thought to be a barred spiral galaxy.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared the underlying claim and wording with the current published bank and ledger classifications."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "milky-way",
+          "galaxies"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science",
+        "sourceUrl": "https://science.nasa.gov/mission/hubble/science/universe-uncovered/hubble-galaxies/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001",
+        "questionId": "pumice-gas-bubbles"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Abundant gas bubbles make pumice float in water.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared the underlying claim and wording with the current published bank and ledger classifications."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth_science",
+        "tags": [
+          "rocks",
+          "volcanic"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "U.S. Geological Survey, Hawaiian Volcano Observatory",
+        "sourceUrl": "https://www.usgs.gov/observatories/hvo/news/volcano-watch-almost-nothing-enough-reticulite-helps-measure-depth-kilaueas",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001",
+        "questionId": "rosetta-stone-three-scripts"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-egypt",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The Rosetta Stone records the same decree in hieroglyphic, Demotic, and Greek scripts.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "flagged",
+          "note": "Adds another Egypt-context question in the existing egypt-history-geography cluster; the claim concerns the scripts on a specific artifact, not the existing records or geography claims."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "egypt",
+          "decipherment"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Magazine",
+        "sourceUrl": "https://www.smithsonianmag.com/history/rosetta-stone-hieroglyphs-champollion-decipherment-egypt-180980834/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001",
+        "questionId": "snow-leopard-tail-balance"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "A snow leopard's tail helps with balance and can wrap around its face and body for warmth.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared the underlying claim and wording with the current published bank and ledger classifications."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "mammals",
+          "adaptation"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Los Angeles Zoo and Botanical Gardens",
+        "sourceUrl": "https://lazoo.org/explore-your-zoo/our-animals/mammals/snow-leopard/",
         "claimVerification": "not-assessed-by-this-ledger",
         "claimSourceSupport": "not-assessed-by-this-ledger",
         "rightsOrReuse": "unknown"
