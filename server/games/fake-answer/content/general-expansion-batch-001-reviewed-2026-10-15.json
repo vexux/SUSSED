@@ -1,0 +1,239 @@
+{
+  "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+  "questions": [
+    {
+      "id": "titan-rock-is-ice",
+      "text": "On Titan, water ice behaves much like solid ____ does on Earth.",
+      "correctCompletion": "rock",
+      "sourceName": "NASA Science — Titan Facts",
+      "sourceUrl": "https://science.nasa.gov/saturn/moons/titan/facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "moons",
+        "geology"
+      ]
+    },
+    {
+      "id": "europa-ice-reflectivity",
+      "text": "Europa’s icy surface reflects about 5.5 times as much sunlight as Earth’s ____.",
+      "correctCompletion": "Moon",
+      "sourceName": "NASA Science — Europa Facts",
+      "sourceUrl": "https://science.nasa.gov/jupiter/jupiter-moons/europa/europa-facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "moons",
+        "ice"
+      ]
+    },
+    {
+      "id": "ganymede-magnetic-field",
+      "text": "The only moon known to have its own magnetic field is Jupiter’s moon ____.",
+      "correctCompletion": "Ganymede",
+      "sourceName": "NASA Science — Ganymede Facts",
+      "sourceUrl": "https://science.nasa.gov/jupiter/jupiter-moons/ganymede/facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "moons",
+        "magnetism"
+      ]
+    },
+    {
+      "id": "triton-retrograde-orbit",
+      "text": "Neptune’s large moon Triton orbits in the direction opposite to Neptune’s rotation, called a ____ orbit.",
+      "correctCompletion": "retrograde",
+      "sourceName": "NASA Science — Our Solar System’s Most Marvelous Moons",
+      "sourceUrl": "https://science.nasa.gov/solar-system/moons/10-things-about-our-solar-systems-most-marvelous-moons/",
+      "category": "space",
+      "difficulty": "hard",
+      "tags": [
+        "moons",
+        "orbits"
+      ]
+    },
+    {
+      "id": "charon-name-wife",
+      "text": "The name Charon was partly chosen because its first four letters matched the name of discoverer James Christy’s wife, ____.",
+      "correctCompletion": "Charlene",
+      "sourceName": "NASA Science — Calling All Pluto Lovers",
+      "sourceUrl": "https://science.nasa.gov/solar-system/dwarf-planets/pluto/10-things-calling-all-pluto-lovers/",
+      "category": "space",
+      "difficulty": "hard",
+      "tags": [
+        "astronomy-history",
+        "naming"
+      ]
+    },
+    {
+      "id": "arrokoth-snowman-shape",
+      "text": "NASA says Arrokoth's double-lobed shape resembles a partially flattened ____.",
+      "correctCompletion": "snowman",
+      "sourceName": "NASA Science — What’s That Space Rock?",
+      "sourceUrl": "https://science.nasa.gov/solar-system/10-things-whats-that-space-rock/",
+      "category": "space",
+      "difficulty": "easy",
+      "tags": [
+        "kuiper-belt",
+        "spacecraft"
+      ]
+    },
+    {
+      "id": "meteorite-injury-record",
+      "text": "The first known case of a person in the United States being injured by an extraterrestrial object involved a meteorite striking Ann Hodges in ____.",
+      "correctCompletion": "1954",
+      "sourceName": "NASA Science — What’s That Space Rock?",
+      "sourceUrl": "https://science.nasa.gov/solar-system/10-things-whats-that-space-rock/",
+      "category": "space",
+      "difficulty": "hard",
+      "tags": [
+        "meteorites",
+        "history"
+      ]
+    },
+    {
+      "id": "saturn-hexagon-pole",
+      "text": "A six-sided jet-stream pattern encircles the north pole of ____.",
+      "correctCompletion": "Saturn",
+      "sourceName": "NASA Science — Planetary Atmospheres",
+      "sourceUrl": "https://science.nasa.gov/solar-system/10-things-planetary-atmospheres/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "saturn",
+        "weather"
+      ]
+    },
+    {
+      "id": "exoplanet-51pegasi-first",
+      "text": "The first exoplanet discovered orbiting a Sun-like star was 51 Pegasi ____.",
+      "correctCompletion": "b",
+      "sourceName": "NASA Science — Exoplanets 101",
+      "sourceUrl": "https://science.nasa.gov/solar-system/10-things-exoplanets-101/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "exoplanets",
+        "discovery"
+      ]
+    },
+    {
+      "id": "porcupine-quills-not-projectiles",
+      "text": "Despite a common myth, North American porcupines cannot ____ their quills at attackers.",
+      "correctCompletion": "shoot",
+      "sourceName": "Smithsonian National Zoo — 11 Fascinating Facts About North American Porcupines",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/news/11-fascinating-facts-about-north-american-porcupines",
+      "category": "animals",
+      "difficulty": "easy",
+      "tags": [
+        "porcupines",
+        "defense"
+      ]
+    },
+    {
+      "id": "porcupette-quills-harden",
+      "text": "A newborn prehensile-tailed porcupine’s initially soft quills harden within a few ____.",
+      "correctCompletion": "minutes",
+      "sourceName": "Smithsonian National Zoo — Curious About Quills",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/news/curious-about-quills-celebrating-arrival-baby-porcupine",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "porcupines",
+        "babies"
+      ]
+    },
+    {
+      "id": "panda-pseudothumb",
+      "text": "Giant pandas use an enlarged wrist bone, often called a ____ thumb, to grasp bamboo.",
+      "correctCompletion": "pseudo",
+      "sourceName": "Smithsonian National Zoo — Giant Panda",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/giant-panda",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "pandas",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "fossil-coprolite-poop",
+      "text": "A fossilized piece of animal dung is known to paleontologists as a ____.",
+      "correctCompletion": "coprolite",
+      "sourceName": "Natural History Museum — Coprolites",
+      "sourceUrl": "https://www.nhm.ac.uk/discover/what-is-a-coprolite.html",
+      "category": "earth",
+      "difficulty": "medium",
+      "tags": [
+        "fossils",
+        "paleontology"
+      ]
+    },
+    {
+      "id": "venus-flytrap-trigger-count",
+      "text": "A Venus flytrap closes when two trigger hairs are touched, or one is touched twice, within a short space of ____.",
+      "correctCompletion": "time",
+      "sourceName": "Royal Botanic Gardens, Kew ? Carnivorous plants explained: Venus flytraps, pitcher plants & more",
+      "sourceUrl": "https://www.kew.org/read-and-watch/carnivorous-plants",
+      "category": "plants",
+      "difficulty": "medium",
+      "tags": [
+        "carnivorous-plants",
+        "behavior"
+      ]
+    },
+    {
+      "id": "sundew-sticky-tentacles",
+      "text": "Sundews catch insects with leaves covered in fine ____ tipped with sticky mucus.",
+      "correctCompletion": "tentacles",
+      "sourceName": "Royal Botanic Gardens, Kew ? Carnivorous plants explained: Venus flytraps, pitcher plants & more",
+      "sourceUrl": "https://www.kew.org/read-and-watch/carnivorous-plants",
+      "category": "plants",
+      "difficulty": "medium",
+      "tags": [
+        "carnivorous-plants",
+        "adaptation"
+      ]
+    },
+    {
+      "id": "rafflesia-largest-flower",
+      "text": "Rafflesia arnoldii has the largest known individual ____ in the world.",
+      "correctCompletion": "flower",
+      "sourceName": "Kew Science ? Plants of the World Online: Rafflesia arnoldii",
+      "sourceUrl": "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:316069-1/general-information",
+      "category": "plants",
+      "difficulty": "easy",
+      "tags": [
+        "rafflesia",
+        "flowers"
+      ]
+    },
+    {
+      "id": "chemical-gallium-hand-melt",
+      "text": "Gallium's melting point is 29.7646 ?C, so it melts just under ____ ?C.",
+      "correctCompletion": "30",
+      "sourceName": "Royal Society of Chemistry — Gallium",
+      "sourceUrl": "https://periodic-table.rsc.org/element/31/gallium",
+      "category": "chemistry",
+      "difficulty": "medium",
+      "tags": [
+        "elements",
+        "melting-points"
+      ]
+    },
+    {
+      "id": "medieval-book-chain-library",
+      "text": "At Hereford Cathedral's chained library, books could be taken from shelves to read at a desk but not removed from the ____.",
+      "correctCompletion": "bookcase",
+      "sourceName": "Hereford Cathedral — Chained Library",
+      "sourceUrl": "https://www.herefordcathedral.org/chained-library",
+      "category": "history",
+      "difficulty": "medium",
+      "tags": [
+        "books",
+        "libraries"
+      ]
+    }
+  ]
+}

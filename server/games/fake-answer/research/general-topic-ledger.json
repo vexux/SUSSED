@@ -6,13 +6,18 @@
     "commit": "3d04cf2",
     "snapshotDate": "2026-10-14",
     "gameId": "fact-or-cap",
-    "publishedQuestionCount": 127,
-    "publishedContentPackCount": 6,
+    "publishedQuestionCount": 145,
+    "publishedContentPackCount": 7,
     "contentPacks": [
       {
         "fileName": "general-expansion-batch-001.json",
         "contentPackId": "general-expansion-batch-001",
         "questionCount": 11
+      },
+      {
+        "fileName": "general-expansion-batch-001-reviewed-2026-10-15.json",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionCount": 18
       },
       {
         "fileName": "general-expansion-pilot-2026-10.json",
@@ -40,27 +45,27 @@
         "questionCount": 3
       }
     ],
-    "attributionMetadataPresentCount": 127,
+    "attributionMetadataPresentCount": 145,
     "validationBasis": "npm run report:question-inventory on the snapshot; reports schema validity, IDs, and exact normalized prompt/completion matching only.",
     "editorialDistribution": {
       "basis": "Provisional editorial classifications in this ledger; counts are planning signals, not independently verified subject truth.",
       "topicCounts": {
-        "space-astronomy": 29,
-        "life-sciences": 40,
-        "earth-environment": 22,
+        "space-astronomy": 38,
+        "life-sciences": 46,
+        "earth-environment": 23,
         "geography": 8,
-        "history-civilizations": 15,
+        "history-civilizations": 16,
         "culture-society": 4,
         "technology-engineering": 5,
-        "physical-sciences-mathematics": 4
+        "physical-sciences-mathematics": 5
       },
       "questionTypeCounts": {
-        "identification": 53,
-        "measurement-or-count": 24,
-        "chronology": 9,
+        "identification": 58,
+        "measurement-or-count": 26,
+        "chronology": 11,
         "cause-or-mechanism": 15,
-        "behavior-or-process": 17,
-        "classification": 9
+        "behavior-or-process": 22,
+        "classification": 13
       }
     }
   },
@@ -118,6 +123,7 @@
       "subtopics": [
         "ancient-egypt",
         "medieval-west-africa",
+        "medieval-europe",
         "japanese-history",
         "ancient-greece-and-olympic-history",
         "ancient-china"
@@ -4306,6 +4312,636 @@
         "attributionMetadataPresent": true,
         "sourceName": "Los Angeles Zoo and Botanical Gardens",
         "sourceUrl": "https://lazoo.org/explore-your-zoo/our-animals/mammals/snow-leopard/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "arrokoth-snowman-shape"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "New Horizons images showed Arrokoth's double-lobed form resembling a partially flattened snowman.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "kuiper-belt",
+          "spacecraft"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — What’s That Space Rock?",
+        "sourceUrl": "https://science.nasa.gov/solar-system/10-things-whats-that-space-rock/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "charon-name-wife"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "astronomy-history",
+        "questionType": "identification",
+        "underlyingClaimSummary": "James Christy partly chose Charon's name because it began with the first four letters of his wife's name, Charlene.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "astronomy-history",
+          "naming"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Calling All Pluto Lovers",
+        "sourceUrl": "https://science.nasa.gov/solar-system/dwarf-planets/pluto/10-things-calling-all-pluto-lovers/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "chemical-gallium-hand-melt"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "chemistry-and-materials",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Gallium's melting point is 29.7646 degrees Celsius, just below 30 degrees.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "chemistry",
+        "tags": [
+          "elements",
+          "melting-points"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Society of Chemistry — Gallium",
+        "sourceUrl": "https://periodic-table.rsc.org/element/31/gallium",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "europa-ice-reflectivity"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "earth-moon-and-moons",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Europa's icy surface reflects 5.5 times as much sunlight as Earth's Moon.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moons",
+          "ice"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Europa Facts",
+        "sourceUrl": "https://science.nasa.gov/jupiter/jupiter-moons/europa/europa-facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "exoplanet-51pegasi-first"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "astronomy-history",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "51 Pegasi b was the first exoplanet discovered orbiting a star like the Sun, in 1995.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "exoplanets",
+          "discovery"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Exoplanets 101",
+        "sourceUrl": "https://science.nasa.gov/solar-system/10-things-exoplanets-101/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "fossil-coprolite-poop"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Coprolites are fossilized animal faeces.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "fossils",
+          "paleontology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Natural History Museum — Coprolites",
+        "sourceUrl": "https://www.nhm.ac.uk/discover/what-is-a-coprolite.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "ganymede-magnetic-field"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "earth-moon-and-moons",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Ganymede is the only moon known to have its own magnetic field.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moons",
+          "magnetism"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Ganymede Facts",
+        "sourceUrl": "https://science.nasa.gov/jupiter/jupiter-moons/ganymede/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "medieval-book-chain-library"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "medieval-europe",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "At Hereford Cathedral, chained books could be taken to a reading desk but not removed from the bookcase.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "books",
+          "libraries"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Hereford Cathedral — Chained Library",
+        "sourceUrl": "https://www.herefordcathedral.org/chained-library",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "meteorite-injury-record"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "astronomy-history",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "Ann Hodges was injured by a meteorite in the first known U.S. human injury from an extraterrestrial object in 1954.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "meteorites",
+          "history"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — What’s That Space Rock?",
+        "sourceUrl": "https://science.nasa.gov/solar-system/10-things-whats-that-space-rock/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "panda-pseudothumb"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Giant pandas grasp bamboo with an enlarged wrist bone known as a pseudo thumb.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "pandas",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Giant Panda",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/giant-panda",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "porcupette-quills-harden"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "A newborn prehensile-tailed porcupine's quills are soft at birth and become stiff and sharp within minutes.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "porcupines",
+          "babies"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Curious About Quills",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/news/curious-about-quills-celebrating-arrival-baby-porcupine",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "porcupine-quills-not-projectiles"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "North American porcupines cannot shoot or throw their quills at attackers.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "porcupines",
+          "defense"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — 11 Fascinating Facts About North American Porcupines",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/news/11-fascinating-facts-about-north-american-porcupines",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "rafflesia-largest-flower"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "plants-and-classification",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Kew describes Rafflesia arnoldii as having the world's largest known individual flower.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "rafflesia",
+          "flowers"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Kew Science ? Plants of the World Online: Rafflesia arnoldii",
+        "sourceUrl": "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:316069-1/general-information",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "saturn-hexagon-pole"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "A six-sided jet stream encircles Saturn's north pole.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "saturn",
+          "weather"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Planetary Atmospheres",
+        "sourceUrl": "https://science.nasa.gov/solar-system/10-things-planetary-atmospheres/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "sundew-sticky-tentacles"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "plants-and-classification",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Sundews have fine tentacles tipped with sticky mucus that catch insects.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "carnivorous-plants",
+          "adaptation"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Botanic Gardens, Kew ? Carnivorous plants explained: Venus flytraps, pitcher plants & more",
+        "sourceUrl": "https://www.kew.org/read-and-watch/carnivorous-plants",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "titan-rock-is-ice"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Titan's water ice plays the role of rock on its surface.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moons",
+          "geology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Titan Facts",
+        "sourceUrl": "https://science.nasa.gov/saturn/moons/titan/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "triton-retrograde-orbit"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Triton orbits Neptune opposite to the planet's rotation in a retrograde orbit.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moons",
+          "orbits"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Our Solar System’s Most Marvelous Moons",
+        "sourceUrl": "https://science.nasa.gov/solar-system/moons/10-things-about-our-solar-systems-most-marvelous-moons/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-reviewed-2026-10-15",
+        "questionId": "venus-flytrap-trigger-count"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "plants-and-classification",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "A Venus flytrap's trigger hairs must be touched twice in a short interval, either two hairs once each or one hair twice, to close the trap.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current published General question prompts and ledger claim summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "carnivorous-plants",
+          "behavior"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Botanic Gardens, Kew ? Carnivorous plants explained: Venus flytraps, pitcher plants & more",
+        "sourceUrl": "https://www.kew.org/read-and-watch/carnivorous-plants",
         "claimVerification": "not-assessed-by-this-ledger",
         "claimSourceSupport": "not-assessed-by-this-ledger",
         "rightsOrReuse": "unknown"
