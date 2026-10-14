@@ -41,9 +41,12 @@ of this importer.
 The incoming-batch instructions document the current legacy question format,
 stable ID and pack-ID conventions, exact preview/import commands for both game
 variants, source requirements, duplicate approval, validation, and checking
-published counts. Run `npm run report:question-inventory` from `server/` for a
-read-only report of published packs, question totals, validation failures, and
-normalized duplicate matches.
+published counts. They also provide a per-question editorial checklist command
+for evidence, source support, clarity, answerability, intended-game quality,
+and rights review. This checklist is a human aid and does not make factual,
+legal, or publication decisions. Run `npm run report:question-inventory` from
+`server/` for a read-only report of published packs, question totals, validation
+failures, and normalized duplicate matches.
 
 The game shuffles valid playable questions and selects the configured number of
 unique prompts per session (5, 7, or 10). If a session needs more prompts than

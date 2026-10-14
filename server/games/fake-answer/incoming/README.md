@@ -75,7 +75,38 @@ duplicates: paraphrases can be missed, and similar wording can express a
 different claim. Inspect every match and review likely paraphrases manually.
 Do not delete or rewrite a question automatically based on this signal.
 
-After reviewing the preview, import a batch with no likely duplicate matches:
+### Editorial review packet
+
+For batches of 25–50 questions, generate an offline, read-only Markdown checklist
+after previewing the batch:
+
+```sh
+npm run report:question-editorial-checklist -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
+npm run report:question-editorial-checklist -- --target fact-or-cap-anime --input games/fake-answer/incoming/anime-batch-001.json
+```
+
+The report prints to stdout and retains each stable question ID, candidate
+prompt/completion and metadata, supplied source attribution, and preview
+warnings/matches. It provides separate blank fields for checking source passages
+and evidence locators, factual support (including compound claims), clarity and
+answerability, intended-game quality, rights/reuse review, intended-use
+decision, reviewer/date, and disposition. Source names and URLs are shown as
+candidate-provided metadata only. The packet makes no human decisions and does
+not edit or approve its input; structural validity and an import-eligible
+preview are not evidence of factual accuracy, source support, entertainment
+quality, or permission to reuse content. Rights remain unknown until separately
+assessed. It is an editorial aid, not the canonical migration review packet or
+formal readiness report.
+
+Automated checks distinguish blocking structure/ID/import errors, source
+metadata warnings, and likely normalized duplicate matches. They do not perform
+semantic duplicate detection, source-page inspection, factual verification,
+editorial judgment, or rights assessment. Resolve each category with its own
+checks; do not treat one category as a substitute for another.
+
+After completing the checklist, resolving preview errors/warnings/matches, and
+making any necessary edits to the incoming file, run preview again. Import a
+batch with no likely duplicate matches:
 
 ```sh
 npm run questions:import -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
@@ -102,6 +133,10 @@ within the candidate batch.
 # Optional individual structural check
 npm run validate:questions -- fact-or-cap games/fake-answer/incoming/general-batch-001.json
 npm run validate:questions -- fact-or-cap-anime games/fake-answer/incoming/anime-batch-001.json
+
+# After importing, validate the published pack at its destination
+npm run validate:questions -- fact-or-cap games/fake-answer/content/<content-pack-id>.json
+npm run validate:questions -- fact-or-cap-anime games/fake-answer/content-anime/<content-pack-id>.json
 
 # Validate and inspect every published Fact-or-Cap pack, IDs, and duplicate signals
 npm run report:question-inventory
