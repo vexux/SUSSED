@@ -122,6 +122,39 @@ test("preview rejects questions without both source attribution fields", (t) => 
     assert.ok(report.errors.some((error) => error.includes("sourceName and sourceUrl")));
 });
 
+test("preview rejects empty batches and question IDs outside the stable kebab-case convention", (t) => {
+    const workspace = makeWorkspace(t);
+    writeBatch(workspace.inputPath, []);
+    const empty = inspectBatch({
+        target: "fact-or-cap",
+        inputPath: workspace.inputPath,
+        contentDirectories: workspace.directories
+    });
+    assert.equal(empty.canImport, false);
+    assert.ok(empty.errors.includes("The candidate batch must contain at least one question."));
+
+    writeBatch(workspace.inputPath, [makeQuestion("Unstable Question ID")]);
+    const invalidId = inspectBatch({
+        target: "fact-or-cap",
+        inputPath: workspace.inputPath,
+        contentDirectories: workspace.directories
+    });
+    assert.equal(invalidId.canImport, false);
+    assert.ok(invalidId.errors.some((error) => error.includes("must use lowercase letters, numbers, and hyphens")));
+});
+
+test("preview rejects question metadata that disagrees with the candidate pack ID", (t) => {
+    const workspace = makeWorkspace(t);
+    writeBatch(workspace.inputPath, [makeQuestion("question-pack-mismatch", { contentPackId: "other-pack" })]);
+    const report = inspectBatch({
+        target: "fact-or-cap",
+        inputPath: workspace.inputPath,
+        contentDirectories: workspace.directories
+    });
+    assert.equal(report.canImport, false);
+    assert.ok(report.errors.some((error) => error.includes("does not match batch contentPackId")));
+});
+
 test("likely duplicate content requires explicit import approval", (t) => {
     const workspace = makeWorkspace(t);
     fs.writeFileSync(

@@ -179,6 +179,35 @@ function inspectBatch({ target, inputPath, fileSystem = fs, contentDirectories =
         ...crossLibraryDuplicates.duplicateContent
     ])].sort();
     const errors = [...candidateValidation.errors];
+    const questions = Array.isArray(candidate) ? candidate : candidate?.questions;
+    const candidatePackId = Array.isArray(candidate) ? null : candidate?.contentPackId;
+    if (Array.isArray(questions) && questions.length === 0) {
+        errors.push("The candidate batch must contain at least one question.");
+    }
+    if (Array.isArray(questions)) {
+        for (const question of questions) {
+            if (
+                question &&
+                typeof question === "object" &&
+                typeof question.contentPackId === "string" &&
+                question.contentPackId !== candidatePackId
+            ) {
+                errors.push(
+                    `Question "${question.id ?? "<unknown>"}" contentPackId "${question.contentPackId}" does not match batch contentPackId "${candidatePackId}".`
+                );
+            }
+            if (
+                question &&
+                typeof question === "object" &&
+                typeof question.id === "string" &&
+                !/^[a-z0-9][a-z0-9-]{0,95}$/u.test(question.id)
+            ) {
+                errors.push(
+                    `Question ID "${question.id}" must use lowercase letters, numbers, and hyphens (maximum 96 characters).`
+                );
+            }
+        }
+    }
     const missingSourceWarnings = candidateValidation.warnings.filter(
         (warning) =>
             warning.startsWith(`${absoluteInput}:`) &&
@@ -188,9 +217,6 @@ function inspectBatch({ target, inputPath, fileSystem = fs, contentDirectories =
         errors.push(
             `Every imported question must include sourceName and sourceUrl: ${missingSourceWarnings.join("; ")}`
         );
-    }
-    if (candidateValidation.questions.length === 0) {
-        errors.push("The candidate batch contains no valid questions.");
     }
     if (conflicts.duplicateIds.length > 0) {
         errors.push(`Duplicate question IDs: ${conflicts.duplicateIds.join(", ")}`);
@@ -202,7 +228,6 @@ function inspectBatch({ target, inputPath, fileSystem = fs, contentDirectories =
     if (fileSystem.existsSync(destination)) {
         errors.push(`A content pack already exists at ${destination}. Imports never overwrite packs.`);
     }
-    const questions = Array.isArray(candidate) ? candidate : candidate?.questions;
     return {
         target,
         inputPath: absoluteInput,
@@ -311,6 +336,7 @@ function importBatch({
 function formatReport(report) {
     const lines = [
         `Target: ${report.target}`,
+        `Content pack ID: ${path.basename(report.destination, ".json")}`,
         `Candidate questions: ${report.questions.length}`,
         `Destination: ${report.destination}`
     ];
@@ -326,6 +352,7 @@ function formatReport(report) {
     }
     if (report.duplicateContent.length > 0) {
         lines.push(`Likely duplicate content (${report.duplicateContent.length}):`, ...report.duplicateContent.map((item) => `- ${item}`));
+        lines.push(`Duplicate match records: ${report.duplicateMatches?.length ?? 0}`);
         for (const match of report.duplicateMatches ?? []) {
             lines.push(
                 `  Candidate "${match.candidateId}" matches game "${match.gameId}" pack "${match.contentPackId}" question "${match.existingQuestionId}" (${match.scope}${match.matchSource ? `, ${match.matchSource}` : ""}).`
