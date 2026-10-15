@@ -6,8 +6,8 @@
     "commit": "3d04cf2",
     "snapshotDate": "2026-10-14",
     "gameId": "fact-or-cap",
-    "publishedQuestionCount": 157,
-    "publishedContentPackCount": 8,
+    "publishedQuestionCount": 176,
+    "publishedContentPackCount": 9,
     "contentPacks": [
       {
         "fileName": "general-expansion-batch-001.json",
@@ -35,6 +35,11 @@
         "questionCount": 80
       },
       {
+        "fileName": "general-research-pilot-2026-10-15.json",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionCount": 19
+      },
+      {
         "fileName": "space.json",
         "contentPackId": "space",
         "questionCount": 3
@@ -50,27 +55,27 @@
         "questionCount": 3
       }
     ],
-    "attributionMetadataPresentCount": 157,
+    "attributionMetadataPresentCount": 176,
     "validationBasis": "npm run report:question-inventory on the snapshot; reports schema validity, IDs, and exact normalized prompt/completion matching only.",
     "editorialDistribution": {
       "basis": "Provisional editorial classifications in this ledger; counts are planning signals, not independently verified subject truth.",
       "topicCounts": {
-        "space-astronomy": 39,
+        "space-astronomy": 40,
         "life-sciences": 48,
-        "earth-environment": 23,
-        "geography": 8,
+        "earth-environment": 24,
+        "geography": 10,
         "history-civilizations": 18,
-        "culture-society": 9,
-        "technology-engineering": 6,
-        "physical-sciences-mathematics": 6
+        "culture-society": 15,
+        "technology-engineering": 13,
+        "physical-sciences-mathematics": 8
       },
       "questionTypeCounts": {
-        "identification": 64,
-        "measurement-or-count": 26,
-        "chronology": 12,
-        "cause-or-mechanism": 16,
+        "identification": 71,
+        "measurement-or-count": 30,
+        "chronology": 14,
+        "cause-or-mechanism": 19,
         "behavior-or-process": 26,
-        "classification": 13
+        "classification": 16
       }
     }
   },
@@ -5368,6 +5373,690 @@
         "attributionMetadataPresent": true,
         "sourceName": "Victoria and Albert Museum — Hair Jewellery",
         "sourceUrl": "https://www.vam.ac.uk/articles/hair-jewellery",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "bluetooth-harald-placeholder-name"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "communications-and-navigation",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The Bluetooth technology name was a temporary code name referencing King Harald Bluetooth.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "technology",
+        "tags": [
+          "bluetooth",
+          "wireless",
+          "technology-history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Bluetooth SIG — Origin of the Name",
+        "sourceUrl": "https://www.bluetooth.com/about-us/bluetooth-origin/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "cobalt-name-goblin"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "chemistry-and-materials",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The name cobalt comes from German Kobold, meaning goblin or troublemaker.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "chemistry",
+        "tags": [
+          "chemistry",
+          "elements",
+          "etymology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Society of Chemistry — Chemistry in Its Element: Cobalt",
+        "sourceUrl": "https://periodic-table.rsc.org/podcast/27/cobalt",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "crossword-arthur-wynne"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The earliest crossword puzzle is attributed to Arthur Wynne.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "puzzles",
+          "newspapers",
+          "history"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Library of Congress — Free Puzzles: Word Cross, Crosswords, and Acrostics",
+        "sourceUrl": "https://blogs.loc.gov/headlinesandheroes/2021/11/free-puzzles-word-cross-crosswords-and-acrostics/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "dimorphos-orbits-didymos"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Dimorphos orbits the larger asteroid Didymos.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "asteroids",
+          "dart",
+          "spaceflight"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — NASA Study: Asteroid's Orbit, Shape Changed After DART Impact",
+        "sourceUrl": "https://www.nasa.gov/missions/dart/nasa-study-asteroids-orbit-shape-changed-after-dart-impact/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "elizabeth-tower-minute-hand-distance"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "structures-and-materials",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "The Elizabeth Tower clock minute hands travel the equivalent of 190 kilometres yearly.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "engineering",
+        "tags": [
+          "clocks",
+          "measurement",
+          "engineering"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "UK Parliament — Facts and Figures: Big Ben and Elizabeth Tower",
+        "sourceUrl": "https://www.parliament.uk/about/living-heritage/building/palace/big-ben/facts-figures/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "federal-reserve-note-weight"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "measurement",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "A Federal Reserve note weighs about one gram regardless of denomination.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "currency",
+          "measurement",
+          "united-states"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "U.S. Currency Education Program — Currency Facts",
+        "sourceUrl": "https://www.uscurrency.gov/about-us/currency-facts",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "franklin-glass-armonica-mechanism"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "The glass armonica makes sound when moistened fingers touch spinning glass bowls.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "music",
+          "inventions",
+          "sound"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "The Franklin Institute — Benjamin Franklin's Glass Armonica",
+        "sourceUrl": "https://fi.edu/en/science-and-education/collection/benjamin-franklins-glass-armonica",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "greenwich-time-ball-drop"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "structures-and-materials",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "The Greenwich Time Ball normally drops at 1 pm local time.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "timekeeping",
+          "greenwich",
+          "history-of-science"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Museums Greenwich — The Greenwich Time Ball",
+        "sourceUrl": "https://www.rmg.co.uk/royal-observatory/attractions/greenwich-time-ball?show=nav.3613",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "lake-baikal-freshwater-share"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "earth-systems-and-geophysics",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Lake Baikal contains about 20 percent of the world’s unfrozen freshwater reserve.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "freshwater",
+          "lakes",
+          "geography"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "UNESCO World Heritage Centre — Lake Baikal",
+        "sourceUrl": "https://whc.unesco.org/en/list/754/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "lego-name-play-well"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "identification",
+        "underlyingClaimSummary": "LEGO abbreviates Danish leg godt, meaning play well.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "toys",
+          "language",
+          "brands"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "LEGO Group — The LEGO Group History",
+        "sourceUrl": "https://www.lego.com/en-us/aboutus/lego-group/the-lego-group-history",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "lords-woolsack-wool-stuffing"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "classification",
+        "underlyingClaimSummary": "The House of Lords Woolsack is a wool-stuffed seat.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "united-kingdom",
+          "parliament",
+          "traditions"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "House of Lords Library — Who Sits Where in the House of Lords?",
+        "sourceUrl": "https://lordslibrary.parliament.uk/who-sits-where-in-the-house-of-lords/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "mona-lisa-poplar-panel"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "classification",
+        "underlyingClaimSummary": "The Mona Lisa is painted on a poplar wood panel.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "art",
+          "painting",
+          "materials"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Musée du Louvre — From the Mona Lisa to The Wedding Feast at Cana",
+        "sourceUrl": "https://musee.louvre.fr/en/explore/the-palace/from-the-mona-lisa-to-the-wedding-feast-at-cana",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "monopoly-landlords-game"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "Monopoly began as The Landlord’s Game, created by Elizabeth Magie.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "board-games",
+          "inventions",
+          "culture"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Museum of Natural History — Check Out the Monopoly Board You Wish You Had as a Kid",
+        "sourceUrl": "https://www.smithsonianmag.com/blogs/national-museum-of-natural-history/2019/11/18/check-out-monopoly-board-you-wish-you-had-kid/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "mount-scenery-netherlands-high-point"
+      },
+      "editorialClassification": {
+        "topicId": "geography",
+        "subtopicId": "coordinates-and-geographic-measurements",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Mount Scenery is the highest natural point in the Kingdom of the Netherlands.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "saba",
+          "caribbean",
+          "elevation"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Public Entity Saba — Island Governor Visits Newly Completed Mount Scenery Tower",
+        "sourceUrl": "https://www.sabagov.nl/news/island-governor-visits-newly-completed-mount-scenery-tower",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "panama-canal-locks-gravity"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "structures-and-materials",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Panama Canal lock water moves by gravity without pumps.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "flagged",
+          "note": "The published bank has a Suez Canal connection question; this Panama Canal item concerns lock-water mechanics and appears to be a different claim."
+        }
+      },
+      "legacyMetadata": {
+        "category": "engineering",
+        "tags": [
+          "canals",
+          "locks",
+          "engineering"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Panama Canal Authority — Design of the Locks",
+        "sourceUrl": "https://pancanal.com/en/design-of-the-locks/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "qr-code-auto-parts-management"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "communications-and-navigation",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "QR Code was initially used to manage production of automotive parts.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "technology",
+        "tags": [
+          "qr-code",
+          "manufacturing",
+          "technology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "DENSO WAVE — QR Code 30th anniversary",
+        "sourceUrl": "https://www.denso-wave.com/en/system/qr/qr30th/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "statue-liberty-copper-thickness"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "structures-and-materials",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "The Statue of Liberty copper sheeting is 3/32 inch thick, like two pennies.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history/culture",
+        "tags": [
+          "statue-of-liberty",
+          "engineering",
+          "united-states"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "U.S. National Park Service — Statue Statistics",
+        "sourceUrl": "https://home.nps.gov/stli/learn/historyculture/statue-statistics.htm",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "trojan-room-camera-coffee-pot"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "communications-and-navigation",
+        "questionType": "identification",
+        "underlyingClaimSummary": "An early Cambridge Computer Laboratory camera was pointed at a coffee pot.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "technology",
+        "tags": [
+          "computing",
+          "webcam",
+          "technology-history"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "University of Cambridge Computer Laboratory — The Trojan Room Coffee Pot Timeline",
+        "sourceUrl": "https://www.cl.cam.ac.uk/coffee/qsf/timeline.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-research-pilot-2026-10-15",
+        "questionId": "whanganui-river-legal-personhood"
+      },
+      "editorialClassification": {
+        "topicId": "geography",
+        "subtopicId": "rivers-and-waterways",
+        "questionType": "classification",
+        "underlyingClaimSummary": "New Zealand’s 2017 Te Awa Tupua legislation recognized the Whanganui River as a legal person.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the current General ledger claim summaries and published questions; no known underlying-claim overlap identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "geography",
+        "tags": [
+          "new-zealand",
+          "rivers",
+          "law"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Whanganui District Council — Te Awa Tupua",
+        "sourceUrl": "https://www.whanganui.govt.nz/Community-and-Places/About-Whanganui/Our-District/Te-Awa-Tupua-Whanganui-River-Settlement",
         "claimVerification": "not-assessed-by-this-ledger",
         "claimSourceSupport": "not-assessed-by-this-ledger",
         "rightsOrReuse": "unknown"

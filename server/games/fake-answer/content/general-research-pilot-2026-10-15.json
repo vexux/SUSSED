@@ -1,0 +1,271 @@
+{
+  "contentPackId": "general-research-pilot-2026-10-15",
+  "questions": [
+    {
+      "id": "qr-code-auto-parts-management",
+      "text": "The first mission of QR Code was to manage the production of automotive ____.",
+      "correctCompletion": "parts",
+      "sourceName": "DENSO WAVE — QR Code 30th anniversary",
+      "sourceUrl": "https://www.denso-wave.com/en/system/qr/qr30th/",
+      "category": "technology",
+      "tags": [
+        "qr-code",
+        "manufacturing",
+        "technology"
+      ],
+      "difficulty": "medium"
+    },
+    {
+      "id": "panama-canal-locks-gravity",
+      "text": "The Panama Canal's locks move water without pumps, using the force of ____.",
+      "correctCompletion": "gravity",
+      "sourceName": "Panama Canal Authority — Design of the Locks",
+      "sourceUrl": "https://pancanal.com/en/design-of-the-locks/",
+      "category": "engineering",
+      "tags": [
+        "canals",
+        "locks",
+        "engineering"
+      ],
+      "difficulty": "medium"
+    },
+    {
+      "id": "trojan-room-camera-coffee-pot",
+      "text": "Researchers in Cambridge's Trojan Room pointed an early computer camera at a ____.",
+      "correctCompletion": "coffee pot",
+      "sourceName": "University of Cambridge Computer Laboratory — The Trojan Room Coffee Pot Timeline",
+      "sourceUrl": "https://www.cl.cam.ac.uk/coffee/qsf/timeline.html",
+      "category": "technology",
+      "tags": [
+        "computing",
+        "webcam",
+        "technology-history"
+      ],
+      "difficulty": "easy"
+    },
+    {
+      "id": "cobalt-name-goblin",
+      "text": "According to the Royal Society of Chemistry, the German word behind cobalt's name refers to which mythical creature?",
+      "correctCompletion": "goblin",
+      "sourceName": "Royal Society of Chemistry — Chemistry in Its Element: Cobalt",
+      "sourceUrl": "https://periodic-table.rsc.org/podcast/27/cobalt",
+      "category": "chemistry",
+      "tags": [
+        "chemistry",
+        "elements",
+        "etymology"
+      ],
+      "difficulty": "medium"
+    },
+    {
+      "id": "crossword-arthur-wynne",
+      "text": "The earliest crossword puzzle is attributed to Arthur ____.",
+      "correctCompletion": "Wynne",
+      "sourceName": "Library of Congress — Free Puzzles: Word Cross, Crosswords, and Acrostics",
+      "sourceUrl": "https://blogs.loc.gov/headlinesandheroes/2021/11/free-puzzles-word-cross-crosswords-and-acrostics/",
+      "category": "history",
+      "tags": [
+        "puzzles",
+        "newspapers",
+        "history"
+      ],
+      "difficulty": "medium"
+    },
+    {
+      "id": "statue-liberty-copper-thickness",
+      "text": "The Statue of Liberty's copper sheeting is about as thick as two ____ placed together.",
+      "correctCompletion": "pennies",
+      "sourceName": "U.S. National Park Service — Statue Statistics",
+      "sourceUrl": "https://home.nps.gov/stli/learn/historyculture/statue-statistics.htm",
+      "category": "history/culture",
+      "tags": [
+        "statue-of-liberty",
+        "engineering",
+        "united-states"
+      ],
+      "difficulty": "easy"
+    },
+    {
+      "id": "mona-lisa-poplar-panel",
+      "text": "The Mona Lisa was painted on a panel made from ____ wood, not canvas.",
+      "correctCompletion": "poplar",
+      "sourceName": "Musée du Louvre — From the Mona Lisa to The Wedding Feast at Cana",
+      "sourceUrl": "https://musee.louvre.fr/en/explore/the-palace/from-the-mona-lisa-to-the-wedding-feast-at-cana",
+      "category": "culture",
+      "tags": [
+        "art",
+        "painting",
+        "materials"
+      ],
+      "difficulty": "medium"
+    },
+    {
+      "id": "lego-name-play-well",
+      "text": "The LEGO name comes from Danish words meaning “play ____.”",
+      "correctCompletion": "well",
+      "sourceName": "LEGO Group — The LEGO Group History",
+      "sourceUrl": "https://www.lego.com/en-us/aboutus/lego-group/the-lego-group-history",
+      "category": "culture",
+      "tags": [
+        "toys",
+        "language",
+        "brands"
+      ],
+      "difficulty": "easy"
+    },
+    {
+      "id": "lake-baikal-freshwater-share",
+      "text": "UNESCO says Lake Baikal contains about ____ of the world's unfrozen freshwater reserve.",
+      "correctCompletion": "20%",
+      "sourceName": "UNESCO World Heritage Centre — Lake Baikal",
+      "sourceUrl": "https://whc.unesco.org/en/list/754/",
+      "category": "earth",
+      "tags": [
+        "freshwater",
+        "lakes",
+        "geography"
+      ],
+      "difficulty": "hard"
+    },
+    {
+      "id": "whanganui-river-legal-personhood",
+      "text": "The 2017 Te Awa Tupua legislation recognized which New Zealand river as a legal person?",
+      "correctCompletion": "Whanganui River",
+      "sourceName": "Whanganui District Council — Te Awa Tupua",
+      "sourceUrl": "https://www.whanganui.govt.nz/Community-and-Places/About-Whanganui/Our-District/Te-Awa-Tupua-Whanganui-River-Settlement",
+      "category": "geography",
+      "tags": [
+        "new-zealand",
+        "rivers",
+        "law"
+      ],
+      "difficulty": "hard"
+    },
+    {
+      "id": "mount-scenery-netherlands-high-point",
+      "text": "According to Public Entity Saba, the highest natural point in the Kingdom of the Netherlands is Mount ____.",
+      "correctCompletion": "Scenery",
+      "sourceName": "Public Entity Saba — Island Governor Visits Newly Completed Mount Scenery Tower",
+      "sourceUrl": "https://www.sabagov.nl/news/island-governor-visits-newly-completed-mount-scenery-tower",
+      "category": "geography",
+      "tags": [
+        "saba",
+        "caribbean",
+        "elevation"
+      ],
+      "difficulty": "hard"
+    },
+    {
+      "id": "greenwich-time-ball-drop",
+      "text": "Normally, the Greenwich Time Ball drops at exactly ____ o'clock.",
+      "correctCompletion": "one",
+      "sourceName": "Royal Museums Greenwich — The Greenwich Time Ball",
+      "sourceUrl": "https://www.rmg.co.uk/royal-observatory/attractions/greenwich-time-ball?show=nav.3613",
+      "category": "history",
+      "tags": [
+        "timekeeping",
+        "greenwich",
+        "history-of-science"
+      ],
+      "difficulty": "easy"
+    },
+    {
+      "id": "monopoly-landlords-game",
+      "text": "Monopoly began as a game called The ____'s Game.",
+      "correctCompletion": "Landlord",
+      "sourceName": "Smithsonian National Museum of Natural History — Check Out the Monopoly Board You Wish You Had as a Kid",
+      "sourceUrl": "https://www.smithsonianmag.com/blogs/national-museum-of-natural-history/2019/11/18/check-out-monopoly-board-you-wish-you-had-kid/",
+      "category": "history/culture",
+      "tags": [
+        "board-games",
+        "inventions",
+        "culture"
+      ],
+      "difficulty": "medium"
+    },
+    {
+      "id": "federal-reserve-note-weight",
+      "text": "A Federal Reserve note weighs about ____ gram, regardless of denomination.",
+      "correctCompletion": "one",
+      "sourceName": "U.S. Currency Education Program — Currency Facts",
+      "sourceUrl": "https://www.uscurrency.gov/about-us/currency-facts",
+      "category": "culture",
+      "tags": [
+        "currency",
+        "measurement",
+        "united-states"
+      ],
+      "difficulty": "medium"
+    },
+    {
+      "id": "bluetooth-harald-placeholder-name",
+      "text": "The wireless technology name Bluetooth was first suggested as a temporary code name in honor of which king?",
+      "correctCompletion": "Harald Bluetooth",
+      "sourceName": "Bluetooth SIG — Origin of the Name",
+      "sourceUrl": "https://www.bluetooth.com/about-us/bluetooth-origin/",
+      "category": "technology",
+      "tags": [
+        "bluetooth",
+        "wireless",
+        "technology-history"
+      ],
+      "difficulty": "medium"
+    },
+    {
+      "id": "dimorphos-orbits-didymos",
+      "text": "Dimorphos, the asteroid struck by NASA's DART spacecraft, orbits the larger asteroid ____.",
+      "correctCompletion": "Didymos",
+      "sourceName": "NASA — NASA Study: Asteroid's Orbit, Shape Changed After DART Impact",
+      "sourceUrl": "https://www.nasa.gov/missions/dart/nasa-study-asteroids-orbit-shape-changed-after-dart-impact/",
+      "category": "space",
+      "tags": [
+        "asteroids",
+        "dart",
+        "spaceflight"
+      ],
+      "difficulty": "hard"
+    },
+    {
+      "id": "lords-woolsack-wool-stuffing",
+      "text": "The House of Lords' Woolsack is traditionally stuffed with what material?",
+      "correctCompletion": "wool",
+      "sourceName": "House of Lords Library — Who Sits Where in the House of Lords?",
+      "sourceUrl": "https://lordslibrary.parliament.uk/who-sits-where-in-the-house-of-lords/",
+      "category": "history/culture",
+      "tags": [
+        "united-kingdom",
+        "parliament",
+        "traditions"
+      ],
+      "difficulty": "medium"
+    },
+    {
+      "id": "elizabeth-tower-minute-hand-distance",
+      "text": "UK Parliament says the Elizabeth Tower clock's minute hands travel the equivalent of about ____ kilometres per year.",
+      "correctCompletion": "190",
+      "sourceName": "UK Parliament — Facts and Figures: Big Ben and Elizabeth Tower",
+      "sourceUrl": "https://www.parliament.uk/about/living-heritage/building/palace/big-ben/facts-figures/",
+      "category": "engineering",
+      "tags": [
+        "clocks",
+        "measurement",
+        "engineering"
+      ],
+      "difficulty": "hard"
+    },
+    {
+      "id": "franklin-glass-armonica-mechanism",
+      "text": "Benjamin Franklin's glass armonica makes sound when moistened fingers touch spinning glass ____.",
+      "correctCompletion": "bowls",
+      "sourceName": "The Franklin Institute — Benjamin Franklin's Glass Armonica",
+      "sourceUrl": "https://fi.edu/en/science-and-education/collection/benjamin-franklins-glass-armonica",
+      "category": "culture",
+      "tags": [
+        "music",
+        "inventions",
+        "sound"
+      ],
+      "difficulty": "medium"
+    }
+  ]
+}
