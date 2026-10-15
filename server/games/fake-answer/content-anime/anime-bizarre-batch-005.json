@@ -1,0 +1,1578 @@
+{
+  "contentPackId": "anime-bizarre-batch-005",
+  "questions": [
+    {
+      "id": "anime-b005-cardcaptor-sakura-clow-book",
+      "text": "Sakura discovers a mysterious book in her father's _____.",
+      "correctCompletion": "study",
+      "sourceName": "Cardcaptor Sakura Official Website",
+      "sourceUrl": "https://ccsakura-official.com/intro/index2.html",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "cardcaptor-sakura",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-cardcaptor-sakura-sakura-grade",
+      "text": "At the start of Cardcaptor Sakura, Sakura is a fourth-grade _____.",
+      "correctCompletion": "student",
+      "sourceName": "Cardcaptor Sakura Official Website",
+      "sourceUrl": "https://ccsakura-official.com/intro/index2.html",
+      "category": "character-trivia",
+      "difficulty": "hard",
+      "tags": [
+        "cardcaptor-sakura",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-cardcaptor-sakura-kero-role",
+      "text": "The guardian who guides Sakura is the Beast of the _____.",
+      "correctCompletion": "Seal",
+      "sourceName": "Cardcaptor Sakura Official Website",
+      "sourceUrl": "https://ccsakura-official.com/intro/index2.html",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "cardcaptor-sakura",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-black-clover-asta",
+      "text": "Asta is unusual in a world of magic because he has no _____.",
+      "correctCompletion": "magic",
+      "sourceName": "Black Clover Official Website",
+      "sourceUrl": "https://www.bclover.jp/en/",
+      "category": "story-world",
+      "difficulty": "easy",
+      "tags": [
+        "black-clover",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-black-clover-anti-magic",
+      "text": "Asta's power that nullifies magic is called ____-Magic.",
+      "correctCompletion": "Anti",
+      "sourceName": "Black Clover Official Website",
+      "sourceUrl": "https://www.bclover.jp/en/",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "black-clover",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-spice-and-wolf-holo",
+      "text": "Holo was once worshipped as a goddess of the _____.",
+      "correctCompletion": "harvest",
+      "sourceName": "Spice and Wolf Official Character Profiles",
+      "sourceUrl": "https://spicy-wolf.com/1st/anime/character.html",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "spice-and-wolf",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-spice-and-wolf-lawrence",
+      "text": "Kraft Lawrence travels from town to town as a _____.",
+      "correctCompletion": "merchant",
+      "sourceName": "Spice and Wolf Official Character Profiles",
+      "sourceUrl": "https://spicy-wolf.com/1st/anime/character.html",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "spice-and-wolf",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-death-note-notebook",
+      "text": "The supernatural notebook Light Yagami discovers is called the Death _____.",
+      "correctCompletion": "Note",
+      "sourceName": "VIZ — Death Note",
+      "sourceUrl": "https://www.viz.com/death-note",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "death-note",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-death-note-rule",
+      "text": "In the series premise, a human whose name is written in the notebook will _____.",
+      "correctCompletion": "die",
+      "sourceName": "VIZ — Death Note",
+      "sourceUrl": "https://www.viz.com/death-note",
+      "category": "objects",
+      "difficulty": "easy",
+      "tags": [
+        "death-note",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-death-note-detective",
+      "text": "The genius detective investigating Kira is known by the letter _____.",
+      "correctCompletion": "L",
+      "sourceName": "VIZ — Death Note",
+      "sourceUrl": "https://www.viz.com/death-note",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "death-note",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-hunter-x-hunter-gon",
+      "text": "Gon sets out to find his father, a famous _____.",
+      "correctCompletion": "Hunter",
+      "sourceName": "VIZ — Hunter x Hunter",
+      "sourceUrl": "https://www.viz.com/hunter-x-hunter",
+      "category": "character-goal",
+      "difficulty": "medium",
+      "tags": [
+        "hunter-x-hunter",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-hunter-x-hunter-license",
+      "text": "Successful Hunters receive a special _____.",
+      "correctCompletion": "license",
+      "sourceName": "VIZ — Hunter x Hunter",
+      "sourceUrl": "https://www.viz.com/hunter-x-hunter",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "hunter-x-hunter",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-hunter-x-hunter-exam",
+      "text": "Candidates must pass the Hunter ____ before they can earn that title.",
+      "correctCompletion": "Exam",
+      "sourceName": "VIZ — Hunter x Hunter",
+      "sourceUrl": "https://www.viz.com/hunter-x-hunter",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "hunter-x-hunter",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-kimi-ni-todoke-sawako",
+      "text": "Sawako Kuronuma is nicknamed after the horror character _____.",
+      "correctCompletion": "Sadako",
+      "sourceName": "VIZ — Kimi ni Todoke",
+      "sourceUrl": "https://www.viz.com/kimi-ni-todoke-from-me-to-you",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "kimi-ni-todoke",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-kimi-ni-todoke-kazehaya",
+      "text": "The popular classmate who befriends Sawako is Shota _____.",
+      "correctCompletion": "Kazehaya",
+      "sourceName": "VIZ — Kimi ni Todoke",
+      "sourceUrl": "https://www.viz.com/kimi-ni-todoke-from-me-to-you",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "kimi-ni-todoke",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-kimi-ni-todoke-goal",
+      "text": "Sawako's main goal is to make more _____.",
+      "correctCompletion": "friends",
+      "sourceName": "VIZ — Kimi ni Todoke",
+      "sourceUrl": "https://www.viz.com/kimi-ni-todoke-from-me-to-you",
+      "category": "character-goal",
+      "difficulty": "easy",
+      "tags": [
+        "kimi-ni-todoke",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-hikaru-no-go-game",
+      "text": "The ancient board game at the center of Hikaru no Go is _____.",
+      "correctCompletion": "go",
+      "sourceName": "VIZ — Hikaru no Go",
+      "sourceUrl": "https://www.viz.com/hikaru-no-go",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "hikaru-no-go",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-hikaru-no-go-sai",
+      "text": "The spirit living in Hikaru's consciousness is Fujiwara-no-_____.",
+      "correctCompletion": "Sai",
+      "sourceName": "VIZ — Hikaru no Go",
+      "sourceUrl": "https://www.viz.com/hikaru-no-go",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "hikaru-no-go",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-hikaru-no-go-akiratoya",
+      "text": "Hikaru's rival is the go prodigy Akira _____.",
+      "correctCompletion": "Toya",
+      "sourceName": "VIZ — Hikaru no Go",
+      "sourceUrl": "https://www.viz.com/hikaru-no-go",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "hikaru-no-go",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-k-on-club",
+      "text": "Yui joins her school's light ____ club.",
+      "correctCompletion": "music",
+      "sourceName": "Kyoto Animation — K-ON!",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/k-on/",
+      "category": "organization",
+      "difficulty": "medium",
+      "tags": [
+        "k-on",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-k-on-misunderstanding",
+      "text": "Yui misunderstands light music as something easy to play, like a _____.",
+      "correctCompletion": "whistle",
+      "sourceName": "Kyoto Animation — K-ON!",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/k-on/",
+      "category": "occupation",
+      "difficulty": "medium",
+      "tags": [
+        "k-on",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-violet-evergarden-occupation",
+      "text": "After leaving the military, Violet works as an Auto Memory _____.",
+      "correctCompletion": "Doll",
+      "sourceName": "ABC TV — Violet Evergarden",
+      "sourceUrl": "https://www.asahi.co.jp/anime/violet-evergarden/",
+      "category": "occupation",
+      "difficulty": "medium",
+      "tags": [
+        "violet-evergarden",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-violet-evergarden-letters",
+      "text": "Violet's civilian work involves writing ____ for clients.",
+      "correctCompletion": "letters",
+      "sourceName": "ABC TV — Violet Evergarden",
+      "sourceUrl": "https://www.asahi.co.jp/anime/violet-evergarden/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "violet-evergarden",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-your-lie-in-april-composer",
+      "text": "The anime's music was composed by Masaru _____.",
+      "correctCompletion": "Yokoyama",
+      "sourceName": "A-1 Pictures — Your Lie in April",
+      "sourceUrl": "https://a1p.jp/works/kimiuso/",
+      "category": "occupation",
+      "difficulty": "medium",
+      "tags": [
+        "your-lie-in-april",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-anohana-menma",
+      "text": "The childhood friend at the center of Anohana is nicknamed _____.",
+      "correctCompletion": "Menma",
+      "sourceName": "Anohana Official Website",
+      "sourceUrl": "https://www.anohana.jp/tv/intro/index.html",
+      "category": "relationships",
+      "difficulty": "easy",
+      "tags": [
+        "anohana",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-anohana-jinta",
+      "text": "The reclusive former leader of the friend group is nicknamed _____.",
+      "correctCompletion": "Jintan",
+      "sourceName": "Anohana Official Website",
+      "sourceUrl": "https://www.anohana.jp/tv/intro/index.html",
+      "category": "organization",
+      "difficulty": "medium",
+      "tags": [
+        "anohana",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-anohana-promise",
+      "text": "Menma's request that her _____ be granted brings the childhood friends back together.",
+      "correctCompletion": "wish",
+      "sourceName": "Anohana Official Website",
+      "sourceUrl": "https://www.anohana.jp/tv/intro/index.html",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "anohana",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-urusei-yatsura-lum",
+      "text": "Lum is the daughter of an invading race of Oni _____.",
+      "correctCompletion": "aliens",
+      "sourceName": "Fuji TV — Urusei Yatsura",
+      "sourceUrl": "https://www.fujitv.com/animation/uruseiyatsura/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "urusei-yatsura",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-urusei-yatsura-town",
+      "text": "Ataru Moroboshi lives in ____ Town.",
+      "correctCompletion": "Tomobiki",
+      "sourceName": "Fuji TV — Urusei Yatsura",
+      "sourceUrl": "https://www.fujitv.com/animation/uruseiyatsura/",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "urusei-yatsura",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-urusei-yatsura-shocks",
+      "text": "Lum's signature attacks involve electric _____.",
+      "correctCompletion": "shocks",
+      "sourceName": "Fuji TV — Urusei Yatsura",
+      "sourceUrl": "https://www.fujitv.com/animation/uruseiyatsura/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "urusei-yatsura",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-fairy-tail-natsu",
+      "text": "Natsu Dragneel uses Fire Dragon ____ Magic.",
+      "correctCompletion": "Slayer",
+      "sourceName": "TV Tokyo — Fairy Tail Characters",
+      "sourceUrl": "https://www.tv-tokyo.co.jp/anime/fairytail/chara/",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "fairy-tail",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-fairy-tail-lucy",
+      "text": "Lucy Heartfilia summons celestial spirits using special _____.",
+      "correctCompletion": "keys",
+      "sourceName": "TV Tokyo — Fairy Tail Characters",
+      "sourceUrl": "https://www.tv-tokyo.co.jp/anime/fairytail/chara/",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "fairy-tail",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-fairy-tail-happy",
+      "text": "Natsu's blue, winged companion is named _____.",
+      "correctCompletion": "Happy",
+      "sourceName": "TV Tokyo — Fairy Tail Characters",
+      "sourceUrl": "https://www.tv-tokyo.co.jp/anime/fairytail/chara/",
+      "category": "relationships",
+      "difficulty": "easy",
+      "tags": [
+        "fairy-tail",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-free-haruka",
+      "text": "Haruka Nanase's great passion is _____.",
+      "correctCompletion": "swimming",
+      "sourceName": "Kyoto Animation — Free!",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/free/",
+      "category": "terminology",
+      "difficulty": "easy",
+      "tags": [
+        "free",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-free-club",
+      "text": "Haruka, Makoto, Nagisa, and Rei organize the Iwatobi high school ____ club.",
+      "correctCompletion": "swim",
+      "sourceName": "Kyoto Animation — Free!",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/free/",
+      "category": "organization",
+      "difficulty": "medium",
+      "tags": [
+        "free",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-free-rei",
+      "text": "The newcomer who joins the Iwatobi swim club is Rei _____.",
+      "correctCompletion": "Ryugazaki",
+      "sourceName": "Kyoto Animation — Free!",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/free/",
+      "category": "organization",
+      "difficulty": "medium",
+      "tags": [
+        "free",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-tsurune-sport",
+      "text": "The school club at the center of Tsurune practices Japanese _____.",
+      "correctCompletion": "kyudo",
+      "sourceName": "Tsurune Official Character Profiles",
+      "sourceUrl": "https://tsurune.com/character/",
+      "category": "organization",
+      "difficulty": "medium",
+      "tags": [
+        "tsurune",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-tsurune-minato",
+      "text": "Minato Narumiya attends Kazemai High _____.",
+      "correctCompletion": "School",
+      "sourceName": "Tsurune Official Character Profiles",
+      "sourceUrl": "https://tsurune.com/character/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "tsurune",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-tsurune-seiya",
+      "text": "Seiya Takehaya is the captain of Kazemai's kyudo _____.",
+      "correctCompletion": "club",
+      "sourceName": "Tsurune Official Character Profiles",
+      "sourceUrl": "https://tsurune.com/character/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "tsurune",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-cyberpunk-edgerunners-david",
+      "text": "The young protagonist who enters Night City's underworld is David _____.",
+      "correctCompletion": "Martinez",
+      "sourceName": "CD PROJEKT RED — Cyberpunk: Edgerunners",
+      "sourceUrl": "https://www.cyberpunk.net/en/edgerunners",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "cyberpunk-edgerunners",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-cyberpunk-edgerunners-job",
+      "text": "An edgerunner is also described as a mercenary _____.",
+      "correctCompletion": "outlaw",
+      "sourceName": "CD PROJEKT RED — Cyberpunk: Edgerunners",
+      "sourceUrl": "https://www.cyberpunk.net/en/edgerunners",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "cyberpunk-edgerunners",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-cyberpunk-edgerunners-lucy",
+      "text": "David's crew includes the netrunner named _____.",
+      "correctCompletion": "Lucy",
+      "sourceName": "CD PROJEKT RED — Cyberpunk: Edgerunners",
+      "sourceUrl": "https://www.cyberpunk.net/en/edgerunners",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "cyberpunk-edgerunners",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-devilman-crybaby-akira",
+      "text": "The boy who becomes a Devilman is Akira _____.",
+      "correctCompletion": "Fudo",
+      "sourceName": "Devilman Crybaby Official Character Profiles",
+      "sourceUrl": "https://devilman-crybaby.com/character/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "devilman-crybaby",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-devilman-crybaby-ryo",
+      "text": "Akira's childhood friend who fights alongside him against demons is Ryo _____.",
+      "correctCompletion": "Asuka",
+      "sourceName": "Devilman Crybaby Official Character Profiles",
+      "sourceUrl": "https://devilman-crybaby.com/character/",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "devilman-crybaby",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-devilman-crybaby-miki",
+      "text": "Akira's classmate is Miki _____.",
+      "correctCompletion": "Makimura",
+      "sourceName": "Devilman Crybaby Official Character Profiles",
+      "sourceUrl": "https://devilman-crybaby.com/character/",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "devilman-crybaby",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-komi-cant-communicate-goal",
+      "text": "Komi's goal is to make ____ friends.",
+      "correctCompletion": "100",
+      "sourceName": "Netflix — Komi Can't Communicate",
+      "sourceUrl": "https://www.netflix.com/in/title/81228573",
+      "category": "character-goal",
+      "difficulty": "easy",
+      "tags": [
+        "komi-cant-communicate",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-komi-cant-communicate-tadano",
+      "text": "The classmate who helps Komi pursue that goal is Hitohito _____.",
+      "correctCompletion": "Tadano",
+      "sourceName": "Netflix — Komi Can't Communicate",
+      "sourceUrl": "https://www.netflix.com/in/title/81228573",
+      "category": "character-goal",
+      "difficulty": "medium",
+      "tags": [
+        "komi-cant-communicate",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-horimiya-hori-home",
+      "text": "At home, Kyoko Hori handles housework and looks after her younger _____.",
+      "correctCompletion": "brother",
+      "sourceName": "Horimiya Official Character Profiles",
+      "sourceUrl": "https://horimiya-anime.com/1st/character/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "horimiya",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-horimiya-miyamura",
+      "text": "The quiet schoolmate with hidden piercings and tattoos is Izumi _____.",
+      "correctCompletion": "Miyamura",
+      "sourceName": "Horimiya Official Character Profiles",
+      "sourceUrl": "https://horimiya-anime.com/1st/character/",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "horimiya",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-yu-gi-oh-puzzle",
+      "text": "Yugi solves the ancient Egyptian ____ Puzzle given to him by his grandfather.",
+      "correctCompletion": "Millennium",
+      "sourceName": "Official Yu-Gi-Oh! Character Profiles",
+      "sourceUrl": "https://www.yugioh.com/characters/yugi-muto",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "yu-gi-oh",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-yu-gi-oh-alter-ego",
+      "text": "After solving the puzzle, Yugi becomes connected with the other self known as ____ Yugi.",
+      "correctCompletion": "Yami",
+      "sourceName": "Official Yu-Gi-Oh! Character Profiles",
+      "sourceUrl": "https://www.yugioh.com/characters/yugi-muto",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "yu-gi-oh",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-yu-gi-oh-game",
+      "text": "The signature card game played by Yugi is Duel _____.",
+      "correctCompletion": "Monsters",
+      "sourceName": "Official Yu-Gi-Oh! Character Profiles",
+      "sourceUrl": "https://www.yugioh.com/characters/yugi-muto",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "yu-gi-oh",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-pokemon-ash-age",
+      "text": "Ash is ready to begin his journey on his tenth _____.",
+      "correctCompletion": "birthday",
+      "sourceName": "The Official Pokémon Website — TV/Film Series",
+      "sourceUrl": "https://in.portal-pokemon.com/tv-film/1/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "pokemon",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-pokemon-partner",
+      "text": "Instead of a standard first Pokémon, Ash starts with _____.",
+      "correctCompletion": "Pikachu",
+      "sourceName": "The Official Pokémon Website — TV/Film Series",
+      "sourceUrl": "https://in.portal-pokemon.com/tv-film/1/",
+      "category": "character-trivia",
+      "difficulty": "easy",
+      "tags": [
+        "pokemon",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-pokemon-companions",
+      "text": "Two former Gym Leaders who travel with Ash early on are Brock and _____.",
+      "correctCompletion": "Misty",
+      "sourceName": "The Official Pokémon Website — TV/Film Series",
+      "sourceUrl": "https://in.portal-pokemon.com/tv-film/1/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "pokemon",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-clannad-tomoya",
+      "text": "Tomoya Okazaki is in his third year of ____ school.",
+      "correctCompletion": "high",
+      "sourceName": "Kyoto Animation — CLANNAD",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/clannad/",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "clannad",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-revolutionary-girl-utena-academy",
+      "text": "The duels in Revolutionary Girl Utena take place at Ohtori _____.",
+      "correctCompletion": "Academy",
+      "sourceName": "VIZ — Revolutionary Girl Utena",
+      "sourceUrl": "https://www.viz.com/revolutionary-girl-utena",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "revolutionary-girl-utena",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-revolutionary-girl-utena-prince",
+      "text": "Utena is drawn into duels while seeking to become the ____ she admired.",
+      "correctCompletion": "prince",
+      "sourceName": "VIZ — Revolutionary Girl Utena",
+      "sourceUrl": "https://www.viz.com/revolutionary-girl-utena",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "revolutionary-girl-utena",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-revolutionary-girl-utena-creators",
+      "text": "The series was created by Chiho Saito and the group called Be-_____.",
+      "correctCompletion": "Papas",
+      "sourceName": "VIZ — Revolutionary Girl Utena",
+      "sourceUrl": "https://www.viz.com/revolutionary-girl-utena",
+      "category": "organization",
+      "difficulty": "medium",
+      "tags": [
+        "revolutionary-girl-utena",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-bakuman-moritaka",
+      "text": "Moritaka Mashiro enjoys ____ for fun before considering a professional career.",
+      "correctCompletion": "drawing",
+      "sourceName": "VIZ — Bakuman",
+      "sourceUrl": "https://www.viz.com/bakuman",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "bakuman",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-bakuman-akito",
+      "text": "The aspiring writer who asks Moritaka to form a manga duo is Akito _____.",
+      "correctCompletion": "Takagi",
+      "sourceName": "VIZ — Bakuman",
+      "sourceUrl": "https://www.viz.com/bakuman",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "bakuman",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-bakuman-industry",
+      "text": "The pair aim to succeed in the world of manga _____.",
+      "correctCompletion": "publishing",
+      "sourceName": "VIZ — Bakuman",
+      "sourceUrl": "https://www.viz.com/bakuman",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "bakuman",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-monster-tenma",
+      "text": "The doctor pursuing Johan in Monster is Dr. Kenzo _____.",
+      "correctCompletion": "Tenma",
+      "sourceName": "VIZ — Monster",
+      "sourceUrl": "https://www.viz.com/monster",
+      "category": "occupation",
+      "difficulty": "medium",
+      "tags": [
+        "monster",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-monster-johan",
+      "text": "The cold and calculating killer at the center of the mystery is _____.",
+      "correctCompletion": "Johan",
+      "sourceName": "VIZ — Monster",
+      "sourceUrl": "https://www.viz.com/monster",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "monster",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-monster-sister",
+      "text": "Tenma seeks out Johan's twin ____ for clues to the mystery.",
+      "correctCompletion": "sister",
+      "sourceName": "VIZ — Monster",
+      "sourceUrl": "https://www.viz.com/monster",
+      "category": "character-goal",
+      "difficulty": "medium",
+      "tags": [
+        "monster",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-fushigi-yugi-miaka",
+      "text": "The schoolgirl transported by a mysterious book is _____.",
+      "correctCompletion": "Miaka",
+      "sourceName": "VIZ — Fushigi Yûgi",
+      "sourceUrl": "https://www.viz.com/fushigi-yugi",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "fushigi-yugi",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-fushigi-yugi-world",
+      "text": "The book transports Miaka into a fictional version of ancient _____.",
+      "correctCompletion": "China",
+      "sourceName": "VIZ — Fushigi Yûgi",
+      "sourceUrl": "https://www.viz.com/fushigi-yugi",
+      "category": "occupation",
+      "difficulty": "easy",
+      "tags": [
+        "fushigi-yugi",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-fushigi-yugi-grades",
+      "text": "Even in the book's world, Miaka worries about her _____.",
+      "correctCompletion": "grades",
+      "sourceName": "VIZ — Fushigi Yûgi",
+      "sourceUrl": "https://www.viz.com/fushigi-yugi",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "fushigi-yugi",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-maison-ikkoku-manager",
+      "text": "The apartment's beautiful and mysterious manager is Kyoko _____.",
+      "correctCompletion": "Otonashi",
+      "sourceName": "VIZ — Maison Ikkoku",
+      "sourceUrl": "https://www.viz.com/maison-ikkoku",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "maison-ikkoku",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-maison-ikkoku-godai",
+      "text": "The exam-stressed college student living at Ikkoku-kan is Yusaku _____.",
+      "correctCompletion": "Godai",
+      "sourceName": "VIZ — Maison Ikkoku",
+      "sourceUrl": "https://www.viz.com/maison-ikkoku",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "maison-ikkoku",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-maison-ikkoku-yotsuya",
+      "text": "The tenant known for mooching and peeping is Mr. _____.",
+      "correctCompletion": "Yotsuya",
+      "sourceName": "VIZ — Maison Ikkoku",
+      "sourceUrl": "https://www.viz.com/maison-ikkoku",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "maison-ikkoku",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-eureka-seven-hobby",
+      "text": "Renton enjoys lifter, an extreme form of aerial hover-_____.",
+      "correctCompletion": "boarding",
+      "sourceName": "VIZ — Eureka Seven",
+      "sourceUrl": "https://www.viz.com/eureka-seven",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "eureka-seven",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-eureka-seven-nirvash",
+      "text": "The large LFO that falls from the sky is called the _____.",
+      "correctCompletion": "Nirvash",
+      "sourceName": "VIZ — Eureka Seven",
+      "sourceUrl": "https://www.viz.com/eureka-seven",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "eureka-seven",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-durarara-head",
+      "text": "Celty travels to Japan to search for her missing _____.",
+      "correctCompletion": "head",
+      "sourceName": "Durarara!! Official Character Profiles",
+      "sourceUrl": "https://www.durarara.com/character/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "durarara",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-durarara-dollars",
+      "text": "Mikado Ryugamine is one of the founders of the mysterious color gang called the _____.",
+      "correctCompletion": "Dollars",
+      "sourceName": "Durarara!! Official Character Profiles",
+      "sourceUrl": "https://www.durarara.com/character/",
+      "category": "terminology",
+      "difficulty": "easy",
+      "tags": [
+        "durarara",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-akudama-drive-criminals",
+      "text": "In Akudama Drive, criminals are collectively called _____.",
+      "correctCompletion": "Akudama",
+      "sourceName": "Akudama Drive Official Website",
+      "sourceUrl": "https://www.akudama-drive.com/introduction/index.html",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "akudama-drive",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-akudama-drive-regions",
+      "text": "The backstory describes a war between Kanto and _____.",
+      "correctCompletion": "Kansai",
+      "sourceName": "Akudama Drive Official Website",
+      "sourceUrl": "https://www.akudama-drive.com/introduction/index.html",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "akudama-drive",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-d-gray-man-allen-eye",
+      "text": "Allen Walker's cursed left eye lets him see the souls of _____.",
+      "correctCompletion": "Akuma",
+      "sourceName": "D.Gray-man HALLOW Official Character Profiles",
+      "sourceUrl": "https://dgrayman-anime.com/character/character.html",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "d-gray-man",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-d-gray-man-timcanpy",
+      "text": "Allen's little companion is named _____.",
+      "correctCompletion": "Timcanpy",
+      "sourceName": "D.Gray-man HALLOW Official Character Profiles",
+      "sourceUrl": "https://dgrayman-anime.com/character/character.html",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "d-gray-man",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-d-gray-man-kanda-weapon",
+      "text": "Yuu Kanda's anti-Akuma weapon is named _____.",
+      "correctCompletion": "Mugen",
+      "sourceName": "D.Gray-man HALLOW Official Character Profiles",
+      "sourceUrl": "https://dgrayman-anime.com/character/character.html",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "d-gray-man",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-pluto-gesicht",
+      "text": "The robot detective assigned to the murders in Pluto is _____.",
+      "correctCompletion": "Gesicht",
+      "sourceName": "VIZ — Pluto: Urasawa x Tezuka",
+      "sourceUrl": "https://www.viz.com/pluto-urasawa-x-tezuka",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "pluto",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-pluto-robots",
+      "text": "The killer targets the world's seven great _____.",
+      "correctCompletion": "robots",
+      "sourceName": "VIZ — Pluto: Urasawa x Tezuka",
+      "sourceUrl": "https://www.viz.com/pluto-urasawa-x-tezuka",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "pluto",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-pluto-mont-blanc",
+      "text": "The powerful Swiss robot destroyed early in Pluto is named _____.",
+      "correctCompletion": "Mont Blanc",
+      "sourceName": "VIZ — Pluto: Urasawa x Tezuka",
+      "sourceUrl": "https://www.viz.com/pluto-urasawa-x-tezuka",
+      "category": "story-world",
+      "difficulty": "hard",
+      "tags": [
+        "pluto",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-skip-beat-kyoko",
+      "text": "Kyoko Mogami follows Sho to Tokyo to support his career as an _____.",
+      "correctCompletion": "idol",
+      "sourceName": "VIZ — Skip Beat",
+      "sourceUrl": "https://www.viz.com/skip-beat",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "skip-beat",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-skip-beat-revenge",
+      "text": "After Sho rejects her, Kyoko seeks revenge by entering _____.",
+      "correctCompletion": "showbiz",
+      "sourceName": "VIZ — Skip Beat",
+      "sourceUrl": "https://www.viz.com/skip-beat",
+      "category": "character-goal",
+      "difficulty": "medium",
+      "tags": [
+        "skip-beat",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-haruhi-suzumiya-haruhi-request",
+      "text": "Haruhi asks for aliens, time travelers, or people with supernatural _____.",
+      "correctCompletion": "powers",
+      "sourceName": "Kyoto Animation — Haruhi Suzumiya",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/haruhiM/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "haruhi-suzumiya",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-chunibyo-yuta",
+      "text": "Yuta Togashi tries to leave behind his embarrassing middle-school ____ phase.",
+      "correctCompletion": "chunibyo",
+      "sourceName": "Kyoto Animation — Love, Chunibyo & Other Delusions",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/chuni/",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "chunibyo",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-chunibyo-rikka",
+      "text": "The girl Yuta meets who still embraces chunibyo is Rikka _____.",
+      "correctCompletion": "Takanashi",
+      "sourceName": "Kyoto Animation — Love, Chunibyo & Other Delusions",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/chuni/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "chunibyo",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-chunibyo-flames",
+      "text": "Yuta's old signature phrase invokes the embrace of dark _____.",
+      "correctCompletion": "flames",
+      "sourceName": "Kyoto Animation — Love, Chunibyo & Other Delusions",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/chuni/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "chunibyo",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-lucky-star-konata",
+      "text": "The otaku girl at the center of Lucky Star is Konata _____.",
+      "correctCompletion": "Izumi",
+      "sourceName": "Kyoto Animation — Lucky Star",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/luckystar/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "lucky-star",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-lucky-star-kagami",
+      "text": "The friend who often responds to Konata's jokes is Kagami _____.",
+      "correctCompletion": "Hiiragi",
+      "sourceName": "Kyoto Animation — Lucky Star",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/luckystar/",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "lucky-star",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-lucky-star-format",
+      "text": "Lucky Star is based on ____-panel comics.",
+      "correctCompletion": "four",
+      "sourceName": "Kyoto Animation — Lucky Star",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/luckystar/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "lucky-star",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-sound-euphonium-kumiko",
+      "text": "Kumiko Oumae visits her high school's ____ band.",
+      "correctCompletion": "concert",
+      "sourceName": "Kyoto Animation — Sound! Euphonium",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/euphonium/",
+      "category": "setting",
+      "difficulty": "medium",
+      "tags": [
+        "sound-euphonium",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-sound-euphonium-reina",
+      "text": "Kumiko reunites with her junior-high classmate Reina _____.",
+      "correctCompletion": "Kousaka",
+      "sourceName": "Kyoto Animation — Sound! Euphonium",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/euphonium/",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "sound-euphonium",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-sound-euphonium-hazuki",
+      "text": "Kumiko visits the band with classmates Hazuki Kato and Sapphire _____.",
+      "correctCompletion": "Kawashima",
+      "sourceName": "Kyoto Animation — Sound! Euphonium",
+      "sourceUrl": "https://www.kyotoanimation.co.jp/en/works/euphonium/",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "sound-euphonium",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-black-lagoon-boat",
+      "text": "The crew operates from a World War II torpedo _____.",
+      "correctCompletion": "boat",
+      "sourceName": "VIZ — Black Lagoon",
+      "sourceUrl": "https://www.viz.com/black-lagoon",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "black-lagoon",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-black-lagoon-revy",
+      "text": "The mercenary nicknamed Revy Two Hand belongs to the ____ Lagoon crew.",
+      "correctCompletion": "Black",
+      "sourceName": "VIZ — Black Lagoon",
+      "sourceUrl": "https://www.viz.com/black-lagoon",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "black-lagoon",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-tokyo-ghoul-kaneki",
+      "text": "The college student transformed into a half-human, half-ghoul hybrid is Ken _____.",
+      "correctCompletion": "Kaneki",
+      "sourceName": "VIZ — Tokyo Ghoul",
+      "sourceUrl": "https://www.viz.com/tokyo-ghoul",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "tokyo-ghoul",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-tokyo-ghoul-food",
+      "text": "Ghouls are distinguished from ordinary humans by their craving for human _____.",
+      "correctCompletion": "flesh",
+      "sourceName": "VIZ — Tokyo Ghoul",
+      "sourceUrl": "https://www.viz.com/tokyo-ghoul",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "tokyo-ghoul",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-tokyo-ghoul-society",
+      "text": "After his transformation, Kaneki must learn about ghoul _____.",
+      "correctCompletion": "society",
+      "sourceName": "VIZ — Tokyo Ghoul",
+      "sourceUrl": "https://www.viz.com/tokyo-ghoul",
+      "category": "story-world",
+      "difficulty": "hard",
+      "tags": [
+        "tokyo-ghoul",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-promised-neverland-demons",
+      "text": "The children discover they are being raised to be fed to _____.",
+      "correctCompletion": "demons",
+      "sourceName": "VIZ — The Promised Neverland",
+      "sourceUrl": "https://www.viz.com/the-promised-neverland",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "promised-neverland",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-mermaid-saga-immortality",
+      "text": "According to the legend in Mermaid Saga, eating mermaid flesh may grant _____.",
+      "correctCompletion": "immortality",
+      "sourceName": "VIZ — Mermaid Saga",
+      "sourceUrl": "https://www.viz.com/mermaid-saga",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "mermaid-saga",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-dragon-ball-goku",
+      "text": "The martial artist at the center of Dragon Ball is Son _____.",
+      "correctCompletion": "Goku",
+      "sourceName": "Toei Animation — Dragon Ball",
+      "sourceUrl": "https://www.toei-animation.com/catalog/dragon-ball/",
+      "category": "character-trivia",
+      "difficulty": "easy",
+      "tags": [
+        "dragon-ball",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-sailor-moon-usagi",
+      "text": "The heroine who becomes Sailor Moon is Usagi _____.",
+      "correctCompletion": "Tsukino",
+      "sourceName": "Toei Animation — Sailor Moon",
+      "sourceUrl": "https://www.toei-animation.com/catalog/sailor-moon/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "sailor-moon",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-vinland-saga-thors",
+      "text": "Thorfinn's father is named _____.",
+      "correctCompletion": "Thors",
+      "sourceName": "Vinland Saga Official Character Profiles",
+      "sourceUrl": "https://vinlandsaga.jp/character/",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "vinland-saga",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-black-butler-ciel",
+      "text": "The young head of the Phantomhive household is Ciel _____.",
+      "correctCompletion": "Phantomhive",
+      "sourceName": "Black Butler Official Anime Website",
+      "sourceUrl": "https://www.kuroshitsuji.tv/",
+      "category": "organization",
+      "difficulty": "medium",
+      "tags": [
+        "black-butler",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-black-butler-contract",
+      "text": "Sebastian serves Ciel under a supernatural _____.",
+      "correctCompletion": "contract",
+      "sourceName": "Black Butler Official Anime Website",
+      "sourceUrl": "https://www.kuroshitsuji.tv/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "black-butler",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-kaguya-sama-miyuki-role",
+      "text": "Miyuki Shirogane is the student council ____ at Shuchiin Academy.",
+      "correctCompletion": "president",
+      "sourceName": "Kaguya-sama Official Character Profiles",
+      "sourceUrl": "https://kaguyasama-anime.com/1st/character/",
+      "category": "organization",
+      "difficulty": "medium",
+      "tags": [
+        "kaguya-sama",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-kaguya-sama-confession",
+      "text": "Kaguya wants Miyuki Shirogane to confess his ____ to her.",
+      "correctCompletion": "love",
+      "sourceName": "Kaguya-sama Official Character Profiles",
+      "sourceUrl": "https://kaguyasama-anime.com/1st/character/",
+      "category": "character-goal",
+      "difficulty": "medium",
+      "tags": [
+        "kaguya-sama",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-re-zero-subaru",
+      "text": "Subaru Natsuki is suddenly transported from modern Japan to another _____.",
+      "correctCompletion": "world",
+      "sourceName": "Re:Zero Official Character Profiles",
+      "sourceUrl": "https://re-zero-anime.jp/tv/character/",
+      "category": "occupation",
+      "difficulty": "medium",
+      "tags": [
+        "re-zero",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-re-zero-puck",
+      "text": "Emilia travels with a catlike spirit named _____.",
+      "correctCompletion": "Puck",
+      "sourceName": "Re:Zero Official Character Profiles",
+      "sourceUrl": "https://re-zero-anime.jp/tv/character/",
+      "category": "story-world",
+      "difficulty": "easy",
+      "tags": [
+        "re-zero",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-re-zero-rem-ram",
+      "text": "Two maids in the Roswaal household are Rem and _____.",
+      "correctCompletion": "Ram",
+      "sourceName": "Re:Zero Official Character Profiles",
+      "sourceUrl": "https://re-zero-anime.jp/tv/character/",
+      "category": "organization",
+      "difficulty": "medium",
+      "tags": [
+        "re-zero",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-blue-exorcist-rin-parent",
+      "text": "Rin Okumura is the illegitimate son of the demon lord _____.",
+      "correctCompletion": "Satan",
+      "sourceName": "Blue Exorcist Official Website",
+      "sourceUrl": "https://blueexorcist.com/bluenight/character/",
+      "category": "story-world",
+      "difficulty": "easy",
+      "tags": [
+        "blue-exorcist",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-blue-exorcist-academy",
+      "text": "Rin trains to become an exorcist at True Cross _____.",
+      "correctCompletion": "Academy",
+      "sourceName": "Blue Exorcist Official Website",
+      "sourceUrl": "https://blueexorcist.com/bluenight/character/",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "blue-exorcist",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-blue-exorcist-yukio",
+      "text": "Rin's twin brother is _____.",
+      "correctCompletion": "Yukio",
+      "sourceName": "Blue Exorcist Official Website",
+      "sourceUrl": "https://blueexorcist.com/bluenight/story/",
+      "category": "relationships",
+      "difficulty": "medium",
+      "tags": [
+        "blue-exorcist",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-code-geass-lelouch",
+      "text": "Lelouch's Geass gives him the power of absolute _____.",
+      "correctCompletion": "obedience",
+      "sourceName": "Code Geass Official Character Profiles",
+      "sourceUrl": "https://geass.jp/R-geass/character.php",
+      "category": "story-world",
+      "difficulty": "medium",
+      "tags": [
+        "code-geass",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-code-geass-cc",
+      "text": "The immortal girl who grants Lelouch his Geass is _____.",
+      "correctCompletion": "C.C.",
+      "sourceName": "Code Geass Official Character Profiles",
+      "sourceUrl": "https://geass.jp/R-geass/character.php",
+      "category": "terminology",
+      "difficulty": "medium",
+      "tags": [
+        "code-geass",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-code-geass-kallen",
+      "text": "Kallen Kouzuki is an ace ____ of the Black Knights.",
+      "correctCompletion": "pilot",
+      "sourceName": "Code Geass Official Character Profiles",
+      "sourceUrl": "https://geass.jp/R-geass/character.php",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "code-geass",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-devil-is-a-part-timer-job",
+      "text": "After arriving in Tokyo, the Devil King makes ends meet by flipping _____.",
+      "correctCompletion": "burgers",
+      "sourceName": "Disney+ — The Devil Is a Part-Timer!",
+      "sourceUrl": "https://www.disneyplus.com/browse/entity-8534ee83-b681-4dbc-bad9-b9a1d3f08483",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "devil-is-a-part-timer",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-devil-is-a-part-timer-hero",
+      "text": "The Devil King's plans are foiled by a _____.",
+      "correctCompletion": "hero",
+      "sourceName": "Disney+ — The Devil Is a Part-Timer!",
+      "sourceUrl": "https://www.disneyplus.com/browse/entity-8534ee83-b681-4dbc-bad9-b9a1d3f08483",
+      "category": "character-trivia",
+      "difficulty": "medium",
+      "tags": [
+        "devil-is-a-part-timer",
+        "batch-005"
+      ]
+    },
+    {
+      "id": "anime-b005-devil-is-a-part-timer-city",
+      "text": "The displaced Devil King finds himself in modern-day _____.",
+      "correctCompletion": "Tokyo",
+      "sourceName": "Disney+ — The Devil Is a Part-Timer!",
+      "sourceUrl": "https://www.disneyplus.com/browse/entity-8534ee83-b681-4dbc-bad9-b9a1d3f08483",
+      "category": "character-trivia",
+      "difficulty": "easy",
+      "tags": [
+        "devil-is-a-part-timer",
+        "batch-005"
+      ]
+    }
+  ]
+}
