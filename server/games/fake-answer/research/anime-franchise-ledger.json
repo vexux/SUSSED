@@ -3,8 +3,8 @@
   "purpose": "Authoritative inventory of franchises represented by accepted playable Anime questions. Derived by reconciling all JSON question packs under content-anime.",
   "bankSnapshot": {
     "branch": "dev",
-    "questionCount": 469,
-    "contentPackCount": 7
+    "questionCount": 510,
+    "contentPackCount": 8
   },
   "franchises": [
     {
@@ -85,6 +85,39 @@
       "aliases": []
     },
     {
+      "franchiseId": "anime-industry",
+      "displayName": "Anime industry (cross-franchise topic)",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-anime-animator-social-media",
+            "anime-b006-anime-nafca",
+            "anime-b006-anime-nishii-evangelion"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
+      "franchiseId": "anime-production",
+      "displayName": "Anime production (cross-franchise topic)",
+      "questionCount": 4,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-anime-postproduction-compositing",
+            "anime-b006-anime-preproduction-time-slot",
+            "anime-b006-anime-production-cg",
+            "anime-b006-anime-production-storyboards"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
       "franchiseId": "anohana",
       "displayName": "Anohana: The Flower We Saw That Day",
       "questionCount": 3,
@@ -127,6 +160,21 @@
             "attack-on-titan-eren",
             "attack-on-titan-titans",
             "attack-on-titan-wall-maria"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
+      "franchiseId": "avatar-seven-havens",
+      "displayName": "Avatar: Seven Havens",
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-avatar-nadia-inspiration",
+            "anime-b006-avatar-old-anime"
           ]
         }
       ],
@@ -339,8 +387,14 @@
     {
       "franchiseId": "blue-lock",
       "displayName": "Blue Lock",
-      "questionCount": 4,
+      "questionCount": 5,
       "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-blue-lock-chapter-two"
+          ]
+        },
         {
           "contentPackId": "anime-facts-batch-2026-10",
           "questionIds": [
@@ -432,13 +486,19 @@
     {
       "franchiseId": "chihayafuru",
       "displayName": "Chihayafuru",
-      "questionCount": 2,
+      "questionCount": 3,
       "packMemberships": [
         {
           "contentPackId": "anime-bizarre-batch-004",
           "questionIds": [
             "anime-b004-chihayafuru-01",
             "anime-b004-chihayafuru-03"
+          ]
+        },
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-chihayafuru-100-poems"
           ]
         }
       ],
@@ -928,6 +988,22 @@
       "aliases": []
     },
     {
+      "franchiseId": "gachiakuta",
+      "displayName": "Gachiakuta",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-gachiakuta-creators-script",
+            "anime-b006-gachiakuta-graffiti",
+            "anime-b006-gachiakuta-two-creators"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
       "franchiseId": "gegege-no-kitaro",
       "displayName": "GeGeGe no Kitaro",
       "questionCount": 1,
@@ -974,6 +1050,22 @@
       "aliases": []
     },
     {
+      "franchiseId": "girls-band-cry",
+      "displayName": "Girls Band Cry",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-girls-band-cry-cg",
+            "anime-b006-girls-band-cry-live",
+            "anime-b006-girls-band-cry-short-lead"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
       "franchiseId": "golden-kamuy",
       "displayName": "Golden Kamuy",
       "questionCount": 3,
@@ -1013,6 +1105,20 @@
           "contentPackId": "anime-bizarre-batch-005",
           "questionIds": [
             "anime-b005-haruhi-suzumiya-haruhi-request"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
+      "franchiseId": "hells-paradise",
+      "displayName": "Hell's Paradise",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-hells-paradise-iconography"
           ]
         }
       ],
@@ -1100,7 +1206,7 @@
     {
       "franchiseId": "jojos-bizarre-adventure",
       "displayName": "JoJo's Bizarre Adventure",
-      "questionCount": 6,
+      "questionCount": 13,
       "packMemberships": [
         {
           "contentPackId": "anime-bizarre-batch-001",
@@ -1111,6 +1217,18 @@
             "bizarre-jojo-lang-fingers",
             "bizarre-jojo-miu-miu-role",
             "bizarre-jojo-miu-miu-stand"
+          ]
+        },
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-jojo-color-impressions",
+            "anime-b006-jojo-distinct-silhouettes",
+            "anime-b006-jojo-impractical-fashion",
+            "anime-b006-jojo-killer-queen-josuke",
+            "anime-b006-jojo-monthly-manga",
+            "anime-b006-jojo-producer-approval",
+            "anime-b006-jojo-scientific-study"
           ]
         }
       ],
@@ -1228,6 +1346,20 @@
             "anime-b005-kimi-ni-todoke-goal",
             "anime-b005-kimi-ni-todoke-kazehaya",
             "anime-b005-kimi-ni-todoke-sawako"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
+      "franchiseId": "knights-of-sidonia",
+      "displayName": "Knights of Sidonia",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-knights-sidonia-cg"
           ]
         }
       ],
@@ -1407,7 +1539,7 @@
     {
       "franchiseId": "mob-psycho-100",
       "displayName": "Mob Psycho 100",
-      "questionCount": 14,
+      "questionCount": 15,
       "packMemberships": [
         {
           "contentPackId": "anime-bizarre-batch-001",
@@ -1427,6 +1559,12 @@
             "anime-b002-mob-psycho-helmet",
             "anime-b002-mob-school-year",
             "anime-b002-mob-teru-posture"
+          ]
+        },
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-mob-psycho-kindness-growth"
           ]
         },
         {
@@ -1461,6 +1599,22 @@
       "aliases": [
         "gundam"
       ]
+    },
+    {
+      "franchiseId": "mono",
+      "displayName": "mono",
+      "questionCount": 3,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-mono-afro-gadgets",
+            "anime-b006-mono-fisheye",
+            "anime-b006-mono-spin-off-madoka"
+          ]
+        }
+      ],
+      "aliases": []
     },
     {
       "franchiseId": "mononoke",
@@ -1505,6 +1659,20 @@
             "anime-b003-mushishi-author",
             "anime-b003-mushishi-director",
             "anime-b003-mushishi-investigator"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
+      "franchiseId": "my-deer-friend-nokotan",
+      "displayName": "My Deer Friend Nokotan",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-nokotan-memes"
           ]
         }
       ],
@@ -1699,6 +1867,20 @@
       "aliases": []
     },
     {
+      "franchiseId": "oshi-no-ko",
+      "displayName": "Oshi no Ko",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-oshi-no-ko-90-minute"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
       "franchiseId": "ouran-high-school-host-club",
       "displayName": "Ouran High School Host Club",
       "questionCount": 3,
@@ -1827,13 +2009,20 @@
     {
       "franchiseId": "ranking-of-kings",
       "displayName": "Ranking of Kings",
-      "questionCount": 2,
+      "questionCount": 4,
       "packMemberships": [
         {
           "contentPackId": "anime-bizarre-batch-004",
           "questionIds": [
             "anime-b004-ranking-of-kings-01",
             "anime-b004-ranking-of-kings-03"
+          ]
+        },
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-ranking-kings-raw-animation",
+            "anime-b006-ranking-kings-storyboard-depth"
           ]
         }
       ],
@@ -1983,6 +2172,21 @@
             "anime-b003-shirobako-director",
             "anime-b003-shirobako-studio",
             "anime-b003-shirobako-title-term"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
+      "franchiseId": "sing-yesterday-for-me",
+      "displayName": "Sing 'Yesterday' for Me",
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-yesterday-early-2000s-tech",
+            "anime-b006-yesterday-local-interviews"
           ]
         }
       ],
@@ -2157,12 +2361,19 @@
     {
       "franchiseId": "the-ancient-magus-bride",
       "displayName": "The Ancient Magus? Bride",
-      "questionCount": 1,
+      "questionCount": 3,
       "packMemberships": [
         {
           "contentPackId": "anime-bizarre-batch-004",
           "questionIds": [
             "anime-b004-the-ancient-magus-bride-02"
+          ]
+        },
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-ancient-magus-creator-input",
+            "anime-b006-ancient-magus-studio-kafka"
           ]
         }
       ],
@@ -2207,6 +2418,21 @@
           "contentPackId": "anime-facts-batch-2026-10",
           "questionIds": [
             "promised-neverland-learning-ability"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
+      "franchiseId": "the-rising-of-the-shield-hero",
+      "displayName": "The Rising of the Shield Hero",
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-anime-ova-crowdfunding",
+            "anime-b006-anime-production-committee"
           ]
         }
       ],
@@ -2269,6 +2495,20 @@
             "anime-b003-trigun-author",
             "anime-b003-trigun-studio",
             "anime-b003-trigun-vash-bounty"
+          ]
+        }
+      ],
+      "aliases": []
+    },
+    {
+      "franchiseId": "trigun-stampede",
+      "displayName": "Trigun Stampede",
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-006",
+          "questionIds": [
+            "anime-b006-trigun-stampede-cg"
           ]
         }
       ],

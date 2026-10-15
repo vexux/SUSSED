@@ -1,0 +1,579 @@
+{
+  "contentPackId": "anime-bizarre-batch-006",
+  "questions": [
+    {
+      "id": "anime-b006-nokotan-memes",
+      "text": "When a My Deer Friend Nokotan script called for a character to do a weird dance, which meme did director Masahiko Ohta immediately think of?",
+      "correctCompletion": "the Bully Maguire dance",
+      "sourceName": "Anime Trending staff interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/12/09/my-deer-friend-nokotan-staff-interview",
+      "category": "my-deer-friend-nokotan",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "my-deer-friend-nokotan"
+      ]
+    },
+    {
+      "id": "anime-b006-gachiakuta-graffiti",
+      "text": "Gachiakuta anime production put Hideyoshi Andou in charge of designing which visual element?",
+      "correctCompletion": "graffiti",
+      "sourceName": "Anime Corner interview with creator and graffiti artist",
+      "sourceUrl": "https://animecorner.me/inside-the-gachiakuta-anime-interview-with-kei-urana-creator-hideyoshi-andou-graffiti-artist-and-naoki-amano-producer/",
+      "category": "gachiakuta",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "gachiakuta"
+      ]
+    },
+    {
+      "id": "anime-b006-gachiakuta-creators-script",
+      "text": "During Gachiakuta's anime adaptation, the original creators offered to check the script, concept, storyboard, and what else?",
+      "correctCompletion": "character designs",
+      "sourceName": "Anime Corner interview with creator and producer",
+      "sourceUrl": "https://animecorner.me/inside-the-gachiakuta-anime-interview-with-kei-urana-creator-hideyoshi-andou-graffiti-artist-and-naoki-amano-producer/",
+      "category": "gachiakuta",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "gachiakuta"
+      ]
+    },
+    {
+      "id": "anime-b006-girls-band-cry-cg",
+      "text": "Girls Band Cry was produced using which animation approach?",
+      "correctCompletion": "full CG animation",
+      "sourceName": "Toei Animation producer interview",
+      "sourceUrl": "https://corp.toei-anim.co.jp/en/ir/library/Report/main/00/teaserItems1/0/link/PEROS%20REPORT%202022%20en.pdf",
+      "category": "girls-band-cry",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "girls-band-cry"
+      ]
+    },
+    {
+      "id": "anime-b006-girls-band-cry-short-lead",
+      "text": "Toei's producer said the plans for Girls Band Cry came together only about how long before it aired?",
+      "correctCompletion": "six months",
+      "sourceName": "Toei Animation producer interview",
+      "sourceUrl": "https://corp.toei-anim.co.jp/en/ir/library/Report/main/00/teaserItems1/0/link/PEROS%20REPORT%202022%20en.pdf",
+      "category": "girls-band-cry",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "girls-band-cry"
+      ]
+    },
+    {
+      "id": "anime-b006-mono-fisheye",
+      "text": "The 360-degree camera model seen in mono had originally been used for interviews for which earlier anime?",
+      "correctCompletion": "Laid-Back Camp",
+      "sourceName": "MANTANWEB interview with mono staff",
+      "sourceUrl": "https://en.mantan-web.jp/e_article/20250524dog00m200027000c.html",
+      "category": "mono",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "mono"
+      ]
+    },
+    {
+      "id": "anime-b006-mono-afro-gadgets",
+      "text": "According to mono's staff, creator Afro was more interested in gadgets than what?",
+      "correctCompletion": "cameras",
+      "sourceName": "MANTANWEB interview with mono staff",
+      "sourceUrl": "https://en.mantan-web.jp/e_article/20250524dog00m200027000c.html",
+      "category": "mono",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "mono"
+      ]
+    },
+    {
+      "id": "anime-b006-oshi-no-ko-90-minute",
+      "text": "Oshi no Ko's first anime episode was unusual because its premiere was approximately how long?",
+      "correctCompletion": "90 minutes",
+      "sourceName": "Anime Corner staff interview",
+      "sourceUrl": "https://animecorner.me/interview-oshi-no-ko-staff-on-the-animes-creation-and-popularity/",
+      "category": "oshi-no-ko",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "oshi-no-ko"
+      ]
+    },
+    {
+      "id": "anime-b006-hells-paradise-iconography",
+      "text": "In an Anime Corner interview, which two parts of Hell’s Paradise were noted for their religious and spiritual iconography?",
+      "correctCompletion": "backgrounds and monsters",
+      "sourceName": "Anime Corner interview with Yuji Kaku",
+      "sourceUrl": "https://animecorner.me/interview-hells-paradise-creator-yuji-kaku-anime-producer-kirito-iwashita/",
+      "category": "hells-paradise",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "hells-paradise"
+      ]
+    },
+    {
+      "id": "anime-b006-blue-lock-chapter-two",
+      "text": "Blue Lock’s first and second manga chapters each had how many pages?",
+      "correctCompletion": "80 pages",
+      "sourceName": "Anime Corner interview with Blue Lock staff",
+      "sourceUrl": "https://animecorner.me/interview-blue-locks-kazuki-ura-ryoya-arisawa-and-megumu-tsuchiya-on-production-experiences-and-season-2/",
+      "category": "blue-lock",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "blue-lock"
+      ]
+    },
+    {
+      "id": "anime-b006-jojo-scientific-study",
+      "text": "The JoJo animation producers described their approach as first trying to scientifically analyze what?",
+      "correctCompletion": "the essence of JoJo",
+      "sourceName": "SCREENα interview transcript",
+      "sourceUrl": "https://jojowiki.com/Interview%3ASCREEN%CE%B1_%28July_2025%29",
+      "category": "jojos-bizarre-adventure",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "jojos-bizarre-adventure"
+      ]
+    },
+    {
+      "id": "anime-b006-jojo-producer-approval",
+      "text": "JoJo’s animation producer listed getting approval from whom among the company’s project responsibilities?",
+      "correctCompletion": "the original author",
+      "sourceName": "SCREENα interview transcript",
+      "sourceUrl": "https://jojowiki.com/Interview%3ASCREEN%CE%B1_%28July_2025%29",
+      "category": "jojos-bizarre-adventure",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "jojos-bizarre-adventure"
+      ]
+    },
+    {
+      "id": "anime-b006-avatar-old-anime",
+      "text": "Which decades of anime did Avatar: Seven Havens co-creator Bryan Konietzko describe executive producer Ethan Spaulding as an expert on?",
+      "correctCompletion": "the 1970s and 1980s",
+      "sourceName": "GamesRadar interview with creators",
+      "sourceUrl": "https://www.gamesradar.com/entertainment/animation-shows/avatar-seven-havens-co-creator-and-ep-explain-the-shows-new-animation-style-say-they-wanted-to-make-an-old-school-anime/",
+      "category": "avatar:-seven-havens",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "avatar:-seven-havens"
+      ]
+    },
+    {
+      "id": "anime-b006-avatar-nadia-inspiration",
+      "text": "Which older anime did Avatar: Seven Havens co-creator Bryan Konietzko mention while explaining that he wanted a more fantastical feel?",
+      "correctCompletion": "Nadia: The Secret of Blue Water",
+      "sourceName": "GamesRadar interview with creators",
+      "sourceUrl": "https://www.gamesradar.com/entertainment/animation-shows/avatar-seven-havens-co-creator-and-ep-explain-the-shows-new-animation-style-say-they-wanted-to-make-an-old-school-anime/",
+      "category": "avatar:-seven-havens",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "avatar:-seven-havens"
+      ]
+    },
+    {
+      "id": "anime-b006-anime-animator-social-media",
+      "text": "Animator Nishii Terumi said she first realized how far anime had spread internationally through which platform?",
+      "correctCompletion": "Facebook",
+      "sourceName": "ABC News interview with anime creatives",
+      "sourceUrl": "https://www.abc.net.au/news/2024-07-13/japan-anime-creatives-manga-animation-report/104048050",
+      "category": "anime-industry",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "anime-industry"
+      ]
+    },
+    {
+      "id": "anime-b006-anime-nishii-evangelion",
+      "text": "Animator Nishii Terumi said which anime first drew her into the medium while she was in high school?",
+      "correctCompletion": "Neon Genesis Evangelion",
+      "sourceName": "ABC News interview with anime creatives",
+      "sourceUrl": "https://www.abc.net.au/news/2024-07-13/japan-anime-creatives-manga-animation-report/104048050",
+      "category": "anime-industry",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "anime-industry"
+      ]
+    },
+    {
+      "id": "anime-b006-anime-nafca",
+      "text": "The organization NAFCA describes itself in the report as a kind of labor organization for whom?",
+      "correctCompletion": "animators",
+      "sourceName": "ABC News interview with anime creatives",
+      "sourceUrl": "https://www.abc.net.au/news/2024-07-13/japan-anime-creatives-manga-animation-report/104048050",
+      "category": "anime-industry",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "anime-industry"
+      ]
+    },
+    {
+      "id": "anime-b006-girls-band-cry-live",
+      "text": "A Toei Animation report says Girls Band Cry was building a presence in merchandising and what real-world activity?",
+      "correctCompletion": "live performances",
+      "sourceName": "Toei Animation corporate report on GIRLS BAND CRY",
+      "sourceUrl": "https://corp.toei-anim.co.jp/en/ir/library/Report/main/00/teaserItems1/0/link/PEROS%20REPORT%202022%20en.pdf",
+      "category": "girls-band-cry",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "girls-band-cry"
+      ]
+    },
+    {
+      "id": "anime-b006-gachiakuta-two-creators",
+      "text": "Gachiakuta graffiti artist Hideyoshi Andou said collaborating with creator Kei Urana made him think their unusual idea might be possible in what way?",
+      "correctCompletion": "in real life",
+      "sourceName": "Anime Corner interview with creator and graffiti artist",
+      "sourceUrl": "https://animecorner.me/inside-the-gachiakuta-anime-interview-with-kei-urana-creator-hideyoshi-andou-and-naoki-amano-producer/",
+      "category": "gachiakuta",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "gachiakuta"
+      ]
+    },
+    {
+      "id": "anime-b006-mono-spin-off-madoka",
+      "text": "Before Laid-Back Camp, mono's creator had drawn a four-panel comic related to which franchise?",
+      "correctCompletion": "Puella Magi Madoka Magica",
+      "sourceName": "MANTANWEB interview with mono staff",
+      "sourceUrl": "https://en.mantan-web.jp/e_article/20250524dog00m200027000c.html",
+      "category": "mono",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "mono"
+      ]
+    },
+    {
+      "id": "anime-b006-anime-production-committee",
+      "text": "Anime producer Junichiro Tamura says one of his responsibilities is gathering staff to form a ____.",
+      "correctCompletion": "production committee",
+      "sourceName": "Crunchyroll producer interview",
+      "sourceUrl": "https://www.crunchyroll.com/news/features/2018/12/4/shirobako-is-what-i-do-chatting-with-junichiro-tamura-at-crunchyroll-expo",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "anime-production"
+      ]
+    },
+    {
+      "id": "anime-b006-anime-postproduction-compositing",
+      "text": "In anime post-production, compositing brings separate visual layers together to create visual ____.",
+      "correctCompletion": "harmony",
+      "sourceName": "Crunchyroll post-production guide",
+      "sourceUrl": "https://www.crunchyroll.com/news/deep-dives/2023/3/24/feature-what-is-anime-post-production",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "anime-production"
+      ]
+    },
+    {
+      "id": "anime-b006-anime-production-storyboards",
+      "text": "Anime storyboards lay out a rough plan for how each ____ should be staged.",
+      "correctCompletion": "shot",
+      "sourceName": "Crunchyroll post-production guide",
+      "sourceUrl": "https://www.crunchyroll.com/news/deep-dives/2023/3/24/feature-what-is-anime-post-production",
+      "category": "anime-production",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "anime-production"
+      ]
+    },
+    {
+      "id": "anime-b006-anime-production-cg",
+      "text": "The abbreviation 3DCG refers to three-dimensional computer ____.",
+      "correctCompletion": "graphics",
+      "sourceName": "Crunchyroll post-production guide",
+      "sourceUrl": "https://www.crunchyroll.com/news/deep-dives/2023/3/24/feature-what-is-anime-post-production",
+      "category": "anime-production",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "anime-production"
+      ]
+    },
+    {
+      "id": "anime-b006-anime-preproduction-time-slot",
+      "text": "An anime’s target demographic can influence its broadcast ____.",
+      "correctCompletion": "time slot",
+      "sourceName": "Crunchyroll pre-production guide",
+      "sourceUrl": "https://www.crunchyroll.com/news/deep-dives/2023/3/20/feature-what-is-anime-pre-production",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "anime-production"
+      ]
+    },
+    {
+      "id": "anime-b006-anime-ova-crowdfunding",
+      "text": "A producer suggested crowdfunding is more feasible for a limited anime release format than a full TV run. Which format?",
+      "correctCompletion": "an OVA",
+      "sourceName": "Crunchyroll producer AMA summary",
+      "sourceUrl": "https://www.crunchyroll.com/news/features/2019/2/11/the-rising-of-the-shield-hero-anime-producer-answers-fans-burning-questions-in-reddit-ask-me-anything-session",
+      "category": "anime-production",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "anime-production"
+      ]
+    },
+    {
+      "id": "anime-b006-ranking-kings-storyboard-depth",
+      "text": "Some Ranking of Kings staff called director Yosuke Hatta’s storyboards deep, saying their movement and what were hard to describe?",
+      "correctCompletion": "details",
+      "sourceName": "Crunchyroll director interview",
+      "sourceUrl": "https://www.crunchyroll.com/news/interviews/2022/10/26/interview-ranking-of-kings-director-and-animation-producer-on-unbreakable-bonds-and-the-fans-that-gave-them-strength",
+      "category": "ranking-of-kings",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "ranking-of-kings"
+      ]
+    },
+    {
+      "id": "anime-b006-ranking-kings-raw-animation",
+      "text": "Ranking of Kings’ director wanted Bojji’s movement to feel raw rather than perfectly ____.",
+      "correctCompletion": "clean",
+      "sourceName": "Crunchyroll director interview",
+      "sourceUrl": "https://www.crunchyroll.com/news/interviews/2022/10/26/interview-ranking-of-kings-director-and-animation-producer-on-unbreakable-bonds-and-the-fans-that-gave-them-strength",
+      "category": "ranking-of-kings",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "ranking-of-kings"
+      ]
+    },
+    {
+      "id": "anime-b006-ancient-magus-studio-kafka",
+      "text": "Which studio was created to work on The Ancient Magus' Bride Season 2?",
+      "correctCompletion": "Studio Kafka",
+      "sourceName": "Crunchyroll interview with Studio Kafka staff",
+      "sourceUrl": "https://www.crunchyroll.com/news/interviews/2023/7/25/the-ancient-magus-bride-season-2-staff-new-season-interview",
+      "category": "the-ancient-magus-bride",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "the-ancient-magus-bride"
+      ]
+    },
+    {
+      "id": "anime-b006-ancient-magus-creator-input",
+      "text": "The Ancient Magus' Bride creator was involved in designing new characters for the OAD by supplying what?",
+      "correctCompletion": "original character designs",
+      "sourceName": "Crunchyroll interview with Studio Kafka staff",
+      "sourceUrl": "https://www.crunchyroll.com/news/interviews/2023/7/25/the-ancient-magus-bride-season-2-staff-new-season-interview",
+      "category": "the-ancient-magus-bride",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "the-ancient-magus-bride"
+      ]
+    },
+    {
+      "id": "anime-b006-chihayafuru-100-poems",
+      "text": "The card game at the heart of Chihayafuru draws on a collection of how many classical poems?",
+      "correctCompletion": "100",
+      "sourceName": "Nippon TV official Chihayafuru series page",
+      "sourceUrl": "https://www.ntv.co.jp/english/pc/2011/08/chihayafuru.html",
+      "category": "chihayafuru",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "chihayafuru"
+      ]
+    },
+    {
+      "id": "anime-b006-jojo-distinct-silhouettes",
+      "text": "Hirohiko Araki said he selected characters for a JoJo exhibition visual based on their what?",
+      "correctCompletion": "silhouettes",
+      "sourceName": "JoJo’s Bizarre Encyclopedia interview transcript with Hirohiko Araki (JOJOnicle)",
+      "sourceUrl": "https://jojowiki.com/Interview:JOJOnicle_(December_2019)",
+      "category": "jojos-bizarre-adventure",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "jojos-bizarre-adventure"
+      ]
+    },
+    {
+      "id": "anime-b006-jojo-color-impressions",
+      "text": "Araki said color combinations are used to give readers different what?",
+      "correctCompletion": "feelings and impressions",
+      "sourceName": "JoJo’s Bizarre Encyclopedia profile citing Araki’s interview comments",
+      "sourceUrl": "https://jojowiki.com/Araki",
+      "category": "jojos-bizarre-adventure",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "jojos-bizarre-adventure"
+      ]
+    },
+    {
+      "id": "anime-b006-jojo-monthly-manga",
+      "text": "Araki said a monthly manga schedule gave him more pages and freedom to work at what pace?",
+      "correctCompletion": "his own pace",
+      "sourceName": "AnimeMojo summary quoting Araki’s 2017 Anime News Network interview",
+      "sourceUrl": "https://animemojo.com/manga/japanese-otaku-vote-on-who-they-believe-to-be-the-most-skilled-weekly-shonen-jump-manga-artists-of-all-time-a8437",
+      "category": "jojos-bizarre-adventure",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "jojos-bizarre-adventure"
+      ]
+    },
+    {
+      "id": "anime-b006-jojo-killer-queen-josuke",
+      "text": "Araki worried Killer Queen was so powerful that a loss by which character might not surprise readers?",
+      "correctCompletion": "Josuke",
+      "sourceName": "ItsPrime Media article quoting Araki’s Anime News Network interview",
+      "sourceUrl": "https://www.itsprime.media/2024/8/3/jojos-bizarre-adventure-creator-reveals-his-favorite-and-least-favorite-stand-to-draw/",
+      "category": "jojos-bizarre-adventure",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "jojos-bizarre-adventure"
+      ]
+    },
+    {
+      "id": "anime-b006-jojo-impractical-fashion",
+      "text": "Araki combines everyday fashion with designs that would be what if worn literally in everyday life?",
+      "correctCompletion": "impractical",
+      "sourceName": "Book Nerdection article quoting Araki’s 2017 Anime News Network interview",
+      "sourceUrl": "https://booknerdection.com/the-artistic-evolution-of-jojos-author-hirohiko-araki/",
+      "category": "jojos-bizarre-adventure",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "jojos-bizarre-adventure"
+      ]
+    },
+    {
+      "id": "anime-b006-yesterday-early-2000s-tech",
+      "text": "The art team for Sing “Yesterday” for Me wanted details such as traffic lights and LEDs to look like they did in which year?",
+      "correctCompletion": "2001",
+      "sourceName": "Crunchyroll interview with background-art staff",
+      "sourceUrl": "https://www.crunchyroll.com/news/interviews/2020/6/16/dissecting-the-art-of-sing-yesterday-for-me-part-one",
+      "category": "sing-“yesterday”-for-me",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "sing-“yesterday”-for-me"
+      ]
+    },
+    {
+      "id": "anime-b006-yesterday-local-interviews",
+      "text": "To accurately portray locations in Sing “Yesterday” for Me, the staff did more than photograph them: they also did what?",
+      "correctCompletion": "interviewed people familiar with the places",
+      "sourceName": "Crunchyroll interview with background-art staff",
+      "sourceUrl": "https://www.crunchyroll.com/news/interviews/2020/6/16/dissecting-the-art-of-sing-yesterday-for-me-part-one",
+      "category": "sing-“yesterday”-for-me",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "sing-“yesterday”-for-me"
+      ]
+    },
+    {
+      "id": "anime-b006-mob-psycho-kindness-growth",
+      "text": "A Crunchyroll interview introduction describes Mob Psycho 100’s writing and characters as carrying messages of kindness and what?",
+      "correctCompletion": "personal growth",
+      "sourceName": "Crunchyroll interview with Yuzuru Tachikawa",
+      "sourceUrl": "https://www.crunchyroll.com/news/interviews/2019/3/30/interview-mob-psychos-director-is-changing-hearts-and-getting-in-trouble-with-the-president-of-bones",
+      "category": "mob-psycho-100",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "mob-psycho-100"
+      ]
+    },
+    {
+      "id": "anime-b006-trigun-stampede-cg",
+      "text": "Trigun Stampede is cited in a production guide as an example of anime that uses which technique?",
+      "correctCompletion": "3DCG animation",
+      "sourceName": "Crunchyroll post-production guide",
+      "sourceUrl": "https://www.crunchyroll.com/news/deep-dives/2023/3/24/feature-what-is-anime-post-production",
+      "category": "trigun-stampede",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "trigun-stampede"
+      ]
+    },
+    {
+      "id": "anime-b006-knights-sidonia-cg",
+      "text": "Knights of Sidonia is listed as an example of anime produced using what approach?",
+      "correctCompletion": "exclusively 3DCG",
+      "sourceName": "Crunchyroll post-production guide",
+      "sourceUrl": "https://www.crunchyroll.com/news/deep-dives/2023/3/24/feature-what-is-anime-post-production",
+      "category": "knights-of-sidonia",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-006",
+        "knights-of-sidonia"
+      ]
+    }
+  ]
+}
