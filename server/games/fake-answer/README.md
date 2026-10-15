@@ -31,56 +31,45 @@ remain `id`, `text`, and `correctCompletion`. Source attribution
 `contentPackId` metadata are stored separately and are not included in public
 game-state projections.
 
-To add a general pack, create a JSON file in `content/`; add an Anime pack in
-`content-anime/`. Use a top-level
-`contentPackId` and a `questions` array. Each entry needs a unique stable `id`,
-non-empty `text`, and non-empty `correctCompletion`. Source title and URL are
-optional in the base schema, but missing attribution is reported by the
-validation tool. Batch imports require both source fields. Sources should be
-verified and have suitable reuse rights before content is added.
-Optional difficulty values are `easy`, `medium`, `hard`, and `extremely-hard`.
+New candidate batches go in the shared, offline
+[`incoming/` folder](incoming/README.md), outside both runtime content
+directories. The runtime loads JSON only from `content/` and `content-anime/`;
+it never scans `incoming/`. The canonical/migration workflow in
+`content-canonical/` and Bruh wtf?'s separate prompt-pack workflow are not part
+of this importer.
 
-Validate a candidate file before adding it:
+The incoming-batch instructions document the current legacy question format,
+stable ID and pack-ID conventions, read-only preview, explicit import, source
+requirements, duplicate approval, validation, and checking published counts.
+Preview reports structural/ID issues, source metadata issues, and exact
+normalized prompt/completion matches. Review cited evidence, factual support,
+wording, game quality, and reuse rights separately; preview does not fetch
+sources or approve content. Run `npm run report:question-inventory` from
+`server/` for a read-only report of published packs, question totals, validation
+failures, and normalized duplicate matches.
 
-```sh
-cd server
-npm run validate:questions -- path/to/candidate-pack.json
-npm run validate:questions -- fact-or-cap-anime path/to/anime-pack.json
-```
-
-For a multi-question batch, preview it against an explicitly selected game
-library before importing. Batches require a top-level `contentPackId`; imports
-create a new pack and never replace an existing file. Likely normalized
-prompt-and-answer duplicates need explicit approval:
-
-```sh
-cd server
-npm run questions:preview -- -- --target fact-or-cap --input path/to/batch.json
-npm run questions:import -- -- --target fact-or-cap --input path/to/batch.json
-npm run questions:import -- -- --target fact-or-cap-anime --input path/to/anime-batch.json
-```
-
-Preview is read-only and reports validation errors, missing-source warnings,
-duplicate IDs, likely duplicate content, and accepted/rejected counts. Likely
-duplicate matches include the candidate ID and matching game, content pack,
-question ID, and whether the match is within the target bank or across banks.
-Preview compares against both registered banks and earlier candidates in the
-same batch. Imports
-validate again and install the pack atomically without overwriting a competing
-or existing pack. These checks enforce structure and deduplication heuristics;
-they do not replace editorial verification of each claim, source, or gameplay
-quality.
-
-The validator reports blocking schema/ID errors, missing-source warnings, and
-likely duplicate-content candidates. It never writes to or overwrites the
-library. Duplicate detection compares normalized prompt-and-answer pairs
-(Unicode normalization, case folding, and punctuation/spacing normalization)
-within the selected bank, across the two registered banks, and within the
-candidate batch. It reports each matching question separately and keeps ID
-conflicts distinct from content matches. Exact normalized matches are a useful
-review signal, not proof of semantic equivalence; paraphrases and related facts
-may not match, and unrelated content can still normalize to the same pair. The
-tool warns and requires explicit import approval rather than deleting content.
+For General Fact-or-Cap planning, see the
+[`research/general-question-generation-guide.md`](research/general-question-generation-guide.md)
+and its reconciled
+[`research/general-topic-ledger.json`](research/general-topic-ledger.json).
+The guide records editorial generation and review practice; the ledger indexes
+published question identities and provisional topic/claim classifications to
+help plan coverage and spot possible repetition. Published JSON packs remain
+the only runtime content. New candidates stay in `incoming/` until reviewed
+and explicitly imported. Update the ledger only after accepted questions are
+present in published packs, then reconcile identity and pack membership
+against the inventory as described in the guide. The ledger does not replace
+the inventory, canonical records, or human source review, and it does not
+establish factual accuracy, source support, or rights.
+Run `npm run report:general-content-coverage` from `server/` to reconcile its
+stable identities with published General packs and review provisional topic,
+subtopic, and question-type coverage. The report is read-only; see the guide for
+the configurable low-coverage threshold and interpretation of its warnings.
+After importing a reviewed General batch, prepare explicit provisional
+classifications and use `npm run update:general-topic-ledger` to preview, then
+`--apply` to atomically update the ledger. The maintenance workflow and
+recovery procedure for a forgotten ledger update are documented in the General
+guide and `incoming/README.md`.
 
 The game shuffles valid playable questions and selects the configured number of
 unique prompts per session (5, 7, or 10). If a session needs more prompts than

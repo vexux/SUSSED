@@ -1,0 +1,148 @@
+{
+  "contentPackId": "general-expansion-batch-001",
+  "questions": [
+    {
+      "id": "milky-way-galaxy-type",
+      "text": "The Milky Way is thought to be a barred ____ galaxy.",
+      "correctCompletion": "spiral",
+      "sourceName": "NASA Science",
+      "sourceUrl": "https://science.nasa.gov/mission/hubble/science/universe-uncovered/hubble-galaxies/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "milky-way",
+        "galaxies"
+      ]
+    },
+    {
+      "id": "marine-snow-falling-particles",
+      "text": "The shower of organic particles sinking from upper waters into the deep ocean is called marine ____.",
+      "correctCompletion": "snow",
+      "sourceName": "NOAA Ocean Service",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/marinesnow.html",
+      "category": "oceanography",
+      "difficulty": "medium",
+      "tags": [
+        "deep-sea",
+        "carbon"
+      ]
+    },
+    {
+      "id": "chemosynthesis-energy-chemicals",
+      "text": "At some deep-sea vents, microbes build organic matter using energy from chemical reactions rather than sunlight; this is ____.",
+      "correctCompletion": "chemosynthesis",
+      "sourceName": "NOAA Ocean Exploration",
+      "sourceUrl": "https://oceanexplorer.noaa.gov/ocean-fact/seeps-vents/",
+      "category": "oceanography",
+      "difficulty": "hard",
+      "tags": [
+        "deep-sea",
+        "microbes"
+      ]
+    },
+    {
+      "id": "coral-bleaching-algae-loss",
+      "text": "Coral bleaching occurs when corals lose or expel many of their symbiotic ____.",
+      "correctCompletion": "algae",
+      "sourceName": "NOAA Ocean Service",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/coral_bleach.html",
+      "category": "oceanography",
+      "difficulty": "medium",
+      "tags": [
+        "corals",
+        "bleaching"
+      ]
+    },
+    {
+      "id": "pumice-gas-bubbles",
+      "text": "Pumice can float because it contains abundant trapped gas ____.",
+      "correctCompletion": "bubbles",
+      "sourceName": "U.S. Geological Survey, Hawaiian Volcano Observatory",
+      "sourceUrl": "https://www.usgs.gov/observatories/hvo/news/volcano-watch-almost-nothing-enough-reticulite-helps-measure-depth-kilaueas",
+      "category": "earth_science",
+      "difficulty": "medium",
+      "tags": [
+        "rocks",
+        "volcanic"
+      ]
+    },
+    {
+      "id": "firefly-light-luciferin",
+      "text": "Fireflies produce light through a biochemical reaction involving a compound called ____.",
+      "correctCompletion": "luciferin",
+      "sourceName": "Ask Dr. Universe, Washington State University",
+      "sourceUrl": "https://askdruniverse.wsu.edu/2023/08/31/makes-fireflies-light-night/",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "insects",
+        "bioluminescence"
+      ]
+    },
+    {
+      "id": "camel-fat-hump",
+      "text": "A dromedary camel's hump stores primarily ____, not water.",
+      "correctCompletion": "fat",
+      "sourceName": "Smithsonian's National Zoo and Conservation Biology Institute",
+      "sourceUrl": "https://nationalzoo.si.edu/global-health-program/news/getting-over-hump-camel-care-kenya",
+      "category": "animals",
+      "difficulty": "easy",
+      "tags": [
+        "mammals",
+        "adaptation"
+      ]
+    },
+    {
+      "id": "snow-leopard-tail-balance",
+      "text": "A snow leopard's long, thick tail helps with balance and provides warmth around the ____.",
+      "correctCompletion": "face",
+      "sourceName": "Los Angeles Zoo and Botanical Gardens",
+      "sourceUrl": "https://lazoo.org/explore-your-zoo/our-animals/mammals/snow-leopard/",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "mammals",
+        "adaptation"
+      ]
+    },
+    {
+      "id": "mali-empire-mansa-musa",
+      "text": "The 14th-century ruler of the Mali Empire famed for his pilgrimage to Mecca was Mansa ____.",
+      "correctCompletion": "Musa",
+      "sourceName": "The Metropolitan Museum of Art",
+      "sourceUrl": "https://www.metmuseum.org/fr/exhibitions/sahel-art-empire-sahara/inside-the-exhibition",
+      "category": "history",
+      "difficulty": "medium",
+      "tags": [
+        "africa",
+        "medieval"
+      ]
+    },
+    {
+      "id": "lowest-land-elevation-dead-sea",
+      "text": "The lowest land elevation on Earth lies in the Jordan Rift Valley beside the ____ Sea.",
+      "correctCompletion": "Dead",
+      "sourceName": "National Geographic Education",
+      "sourceUrl": "https://education.nationalgeographic.org/resource/rift-valley/",
+      "category": "geography",
+      "difficulty": "medium",
+      "tags": [
+        "landforms",
+        "elevation"
+      ]
+    },
+    {
+      "id": "rosetta-stone-three-scripts",
+      "text": "The Rosetta Stone records the same decree in hieroglyphs, Greek, and ____.",
+      "correctCompletion": "Demotic",
+      "sourceName": "Smithsonian Magazine",
+      "sourceUrl": "https://www.smithsonianmag.com/history/rosetta-stone-hieroglyphs-champollion-decipherment-egypt-180980834/",
+      "category": "history",
+      "difficulty": "hard",
+      "tags": [
+        "egypt",
+        "decipherment"
+      ]
+    }
+  ]
+}

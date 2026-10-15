@@ -1,0 +1,173 @@
+{
+  "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15",
+  "questions": [
+    {
+      "id": "mimas-herschel-crater",
+      "text": "Saturn’s moon Mimas has a huge impact crater named ____, giving it a resemblance to the fictional Death Star.",
+      "correctCompletion": "Herschel",
+      "sourceName": "NASA Science — Our Solar System’s Most Marvelous Moons",
+      "sourceUrl": "https://science.nasa.gov/solar-system/moons/10-things-about-our-solar-systems-most-marvelous-moons/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "moons",
+        "craters"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    },
+    {
+      "id": "lyrebird-sound-mimicry",
+      "text": "Superb lyrebirds can imitate mechanical sounds such as chainsaws and car ____.",
+      "correctCompletion": "engines",
+      "sourceName": "Australian Museum — Superb Lyrebird",
+      "sourceUrl": "https://australian.museum/learn/animals/birds/superb-lyrebird/",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "birds",
+        "mimicry"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    },
+    {
+      "id": "vampire-squid-oxygen-poor",
+      "text": "The vampire squid lives in oxygen-minimum zones and can tolerate very low dissolved ____.",
+      "correctCompletion": "oxygen",
+      "sourceName": "Monterey Bay Aquarium Research Institute — Vampire Squid",
+      "sourceUrl": "https://www.mbari.org/animal/vampire-squid/",
+      "category": "ocean",
+      "difficulty": "hard",
+      "tags": [
+        "deep-sea",
+        "survival"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    },
+    {
+      "id": "bismuth-rainbow-oxide",
+      "text": "The rainbow colors on a bismuth crystal arise from a thin surface layer of ____.",
+      "correctCompletion": "oxide",
+      "sourceName": "Royal Society of Chemistry — Bismuth",
+      "sourceUrl": "https://periodic-table.rsc.org/element/83/bismuth",
+      "category": "chemistry",
+      "difficulty": "medium",
+      "tags": [
+        "elements",
+        "crystals"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    },
+    {
+      "id": "ancient-roman-purple-dye",
+      "text": "The ancient Phoenicians traded a costly purple dye made from the shells of murex ____.",
+      "correctCompletion": "snails",
+      "sourceName": "The Metropolitan Museum of Art ? Phoenicia and the Bible",
+      "sourceUrl": "https://www.metmuseum.org/exhibitions/listings/2014/assyria-to-iberia/blog/posts/phoenicia-and-the-bible",
+      "category": "history",
+      "difficulty": "medium",
+      "tags": [
+        "ancient-rome",
+        "dye"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    },
+    {
+      "id": "tudor-pineapple-status",
+      "text": "When pineapples were scarce in eighteenth-century England, the gentry could rent one for display at a dinner instead of ____ one.",
+      "correctCompletion": "buying",
+      "sourceName": "George Washington?s Mount Vernon ? Pineapples",
+      "sourceUrl": "https://www.mountvernon.org/library/digitalhistory/digital-encyclopedia/article/pineapples",
+      "category": "history",
+      "difficulty": "hard",
+      "tags": [
+        "food",
+        "trade"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    },
+    {
+      "id": "victorian-mourning-jewelry-hair",
+      "text": "Some Victorian mourning jewelry incorporated strands of human ____.",
+      "correctCompletion": "hair",
+      "sourceName": "Victoria and Albert Museum — Hair Jewellery",
+      "sourceUrl": "https://www.vam.ac.uk/articles/hair-jewellery",
+      "category": "culture",
+      "difficulty": "medium",
+      "tags": [
+        "fashion",
+        "history"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    },
+    {
+      "id": "samurai-armor-lacquer",
+      "text": "The small iron and leather plates in traditional Japanese armor were lacquered and laced together in ____.",
+      "correctCompletion": "silk",
+      "sourceName": "The Metropolitan Museum of Art ? Armor (Yoroi) of Ashikaga Takauji",
+      "sourceUrl": "https://www.metmuseum.org/ja/audio-guide/4436",
+      "category": "culture",
+      "difficulty": "hard",
+      "tags": [
+        "japan",
+        "crafts"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    },
+    {
+      "id": "kintsugi-lacquer-gold",
+      "text": "In kintsugi, broken pottery is repaired with lacquer dusted with gold or other metal ____.",
+      "correctCompletion": "powder",
+      "sourceName": "Victoria and Albert Museum ? Visible Repair and Kintsugi",
+      "sourceUrl": "https://www.vam.ac.uk/blog/museum-life/va-youth-collective-objects-and-opinion-sustainable-histories",
+      "category": "culture",
+      "difficulty": "easy",
+      "tags": [
+        "crafts",
+        "japan"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    },
+    {
+      "id": "trompe-loeil-eye-trick",
+      "text": "An art technique that aims to deceive the eye is called trompe l?____.",
+      "correctCompletion": "oeil",
+      "sourceName": "The Metropolitan Museum of Art ? Cubism and the Trompe l?Oeil Tradition",
+      "sourceUrl": "https://www.metmuseum.org/met-publications/cubism-and-the-trompe-loeil-tradition",
+      "category": "culture",
+      "difficulty": "hard",
+      "tags": [
+        "painting",
+        "art-terms"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    },
+    {
+      "id": "oldest-known-board-game-senet",
+      "text": "An ancient Egyptian board game whose scenes appear on tomb walls and in Book of the Dead illustrations was ____.",
+      "correctCompletion": "Senet",
+      "sourceName": "The Metropolitan Museum of Art ? Board Games from Ancient Egypt and the Near East",
+      "sourceUrl": "https://www.metmuseum.org/essays/board-games-from-ancient-egypt-and-the-near-east",
+      "category": "culture",
+      "difficulty": "medium",
+      "tags": [
+        "games",
+        "ancient-egypt"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    },
+    {
+      "id": "first-postage-stamp-penny-black",
+      "text": "The world’s first adhesive postage stamp, issued in Britain in 1840, was the Penny ____.",
+      "correctCompletion": "Black",
+      "sourceName": "The British Postal Museum & Archive — Penny Black",
+      "sourceUrl": "https://www.postalmuseum.org/collections/highlights/penny-black/",
+      "category": "history",
+      "difficulty": "easy",
+      "tags": [
+        "postal-history",
+        "inventions"
+      ],
+      "contentPackId": "general-expansion-batch-002-reviewed-2026-10-15"
+    }
+  ]
+}

@@ -22,8 +22,8 @@ test("loads all migrated JSON content packs with existing answer and source data
     const { questions: loaded } = loadQuestionPacks(
         path.join(fakeAnswerDirectory, "content")
     );
-    assert.equal(loaded.length, 100);
-    assert.equal(questions.length, 100);
+    assert.equal(loaded.length, 810);
+    assert.equal(questions.length, 810);
     assert.equal(new Set(loaded.map(({ id }) => id)).size, loaded.length);
     assert.equal(
         loaded.find(({ id }) => id === "wombat-cubes").correctCompletion,
@@ -35,17 +35,50 @@ test("loads all migrated JSON content packs with existing answer and source data
     );
     assert.deepEqual(
         new Set(loaded.map(({ contentPackId }) => contentPackId)),
-        new Set(["wildlife", "space", "world-and-culture", "general-facts-batch-2026-10"])
+        new Set([
+            "wildlife",
+            "space",
+            "world-and-culture",
+            "general-facts-batch-2026-10",
+            "general-expansion-pilot-2026-10",
+            "general-expansion-batch-001",
+            "general-expansion-batch-001-reviewed-2026-10-15",
+            "general-expansion-batch-002-reviewed-2026-10-15",
+            "general-expansion-recovery-2026-10",
+            "general-research-pilot-2026-10-15",
+            "general-expansion-batch-001-500-reviewed-2026-10-15",
+            "general-expansion-batch-001-recovery-reviewed-2026-10-15"
+        ])
+    );
+    assert.equal(
+        loaded.filter(({ contentPackId }) => contentPackId === "general-expansion-batch-001-500-reviewed-2026-10-15").length,
+        483
+    );
+    assert.equal(
+        loaded.filter(({ contentPackId }) => contentPackId === "general-expansion-batch-001-recovery-reviewed-2026-10-15").length,
+        138
+    );
+    assert.equal(
+        loaded.filter(({ contentPackId }) => contentPackId === "general-expansion-batch-002-reviewed-2026-10-15").length,
+        12
+    );
+    assert.equal(
+        loaded.find(({ id }) => id === "lyrebird-sound-mimicry").correctCompletion,
+        "engines"
+    );
+    assert.equal(
+        loaded.find(({ id }) => id === "tudor-pineapple-status").sourceUrl,
+        "https://www.mountvernon.org/library/digitalhistory/digital-encyclopedia/article/pineapples"
     );
 });
 
-test("loads the expanded anime library and its new sourced pack with distinct IDs", () => {
+test("loads the expanded anime library through batch 006 with distinct IDs", () => {
     const { questions: loaded } = loadQuestionPacks(
         path.join(fakeAnswerDirectory, "content-anime")
     );
-    assert.equal(loaded.length, 348);
-    assert.equal(animeQuestions.length, 348);
-    assert.equal(new Set(loaded.map(({ id }) => id)).size, 348);
+    assert.equal(loaded.length, 510);
+    assert.equal(animeQuestions.length, 510);
+    assert.equal(new Set(loaded.map(({ id }) => id)).size, 510);
     assert.equal(
         loaded.filter(({ contentPackId }) => contentPackId === "anime-bizarre-batch-001").length,
         40
@@ -57,6 +90,10 @@ test("loads the expanded anime library and its new sourced pack with distinct ID
     assert.equal(
         loaded.filter(({ contentPackId }) => contentPackId === "anime-bizarre-batch-003").length,
         76
+    );
+    assert.equal(
+        loaded.filter(({ contentPackId }) => contentPackId === "anime-bizarre-batch-005").length,
+        121
     );
     assert.ok(loaded.some(({ difficulty }) => difficulty === "extremely-hard"));
     assert.ok(loaded.every(({ sourceName, sourceUrl, category, tags }) =>
