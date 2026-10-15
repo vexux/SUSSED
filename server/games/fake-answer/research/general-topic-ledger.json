@@ -6,8 +6,8 @@
     "commit": "3d04cf2",
     "snapshotDate": "2026-10-14",
     "gameId": "fact-or-cap",
-    "publishedQuestionCount": 176,
-    "publishedContentPackCount": 9,
+    "publishedQuestionCount": 189,
+    "publishedContentPackCount": 10,
     "contentPacks": [
       {
         "fileName": "general-expansion-batch-001.json",
@@ -28,6 +28,11 @@
         "fileName": "general-expansion-pilot-2026-10.json",
         "contentPackId": "general-expansion-pilot-2026-10",
         "questionCount": 16
+      },
+      {
+        "fileName": "general-expansion-recovery-2026-10.json",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionCount": 13
       },
       {
         "fileName": "general-facts-batch-2026-10.json",
@@ -55,27 +60,27 @@
         "questionCount": 3
       }
     ],
-    "attributionMetadataPresentCount": 176,
+    "attributionMetadataPresentCount": 189,
     "validationBasis": "npm run report:question-inventory on the snapshot; reports schema validity, IDs, and exact normalized prompt/completion matching only.",
     "editorialDistribution": {
       "basis": "Provisional editorial classifications in this ledger; counts are planning signals, not independently verified subject truth.",
       "topicCounts": {
-        "space-astronomy": 40,
-        "life-sciences": 48,
-        "earth-environment": 24,
+        "space-astronomy": 42,
+        "life-sciences": 56,
+        "earth-environment": 26,
         "geography": 10,
         "history-civilizations": 18,
         "culture-society": 15,
         "technology-engineering": 13,
-        "physical-sciences-mathematics": 8
+        "physical-sciences-mathematics": 9
       },
       "questionTypeCounts": {
         "identification": 71,
-        "measurement-or-count": 30,
+        "measurement-or-count": 32,
         "chronology": 14,
-        "cause-or-mechanism": 19,
-        "behavior-or-process": 26,
-        "classification": 16
+        "cause-or-mechanism": 22,
+        "behavior-or-process": 32,
+        "classification": 18
       }
     }
   },
@@ -6057,6 +6062,461 @@
         "attributionMetadataPresent": true,
         "sourceName": "Whanganui District Council — Te Awa Tupua",
         "sourceUrl": "https://www.whanganui.govt.nz/Community-and-Places/About-Whanganui/Our-District/Te-Awa-Tupua-Whanganui-River-Settlement",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "barreleye-transparent-head"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Barreleye fish can see through their own foreheads because the eyes sit behind the transparent tissue covering the head.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against published General records and ledger summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "deep-sea",
+          "vision"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Monterey Bay Aquarium Research Institute - Barreleye Fish",
+        "sourceUrl": "https://www.mbari.org/animal/barreleye-fish/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "bowerbird-art-display"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Male Western bowerbirds build decorated bowers as courtship displays; their nest is separate.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against published General records and ledger summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "birds",
+          "mating"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Australian Museum - Western Bowerbird",
+        "sourceUrl": "https://australian.museum/learn/animals/birds/western-bowerbird/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "caecilian-skin-feeding"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "reptiles-and-amphibians",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Some egg-laying caecilian young eat fatty pieces of their mother skin.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against published General records and ledger summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "amphibians",
+          "parenting"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo â€” 7 Spooktacular Animal Facts",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/news/7-spooktacular-animal-facts-halloween",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "charon-pluto-double-world"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "earth-moon-and-moons",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Pluto and Charon are sometimes described as a double dwarf planet system.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against published Charon and Pluto records; this relative-size/double-system description differs from the existing Charon naming claim."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "dwarf-planets",
+          "moons"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science â€” Calling All Pluto Lovers",
+        "sourceUrl": "https://science.nasa.gov/solar-system/dwarf-planets/pluto/10-things-calling-all-pluto-lovers/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "gallium-expands-freezing"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "chemistry-and-materials",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Gallium contracts as it melts, unlike most materials.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "flagged",
+          "note": "The published bank has a gallium melting-point question using the same source; the new item is a distinct thermal-expansion behavior, but source and element proximity are noted."
+        }
+      },
+      "legacyMetadata": {
+        "category": "chemistry",
+        "tags": [
+          "elements",
+          "properties"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Society of Chemistry â€” Gallium",
+        "sourceUrl": "https://periodic-table.rsc.org/element/31/gallium",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "hydrothermal-vent-food-chemicals"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Microbes at hydrothermal vents use chemical energy rather than sunlight and form the base of vent food webs.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against published General records and ledger summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "vents",
+          "chemosynthesis"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Exploration - Hydrothermal Vents Factsheet",
+        "sourceUrl": "https://oceanexplorer.noaa.gov/fact-sheet/hydrothermal-vents-fact-sheet/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "marine-snow-weeks-fall"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Some marine snow flakes take several weeks to reach the ocean floor.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against published General records and ledger summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "deep-sea",
+          "marine-snow"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service â€” What Is Marine Snow?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/marinesnow.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "nudibranch-steal-stingers"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Some aeolid nudibranchs store stinging cells taken from prey in pouches called cnidosacs.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against published General records and ledger summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "nudibranchs",
+          "defense"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean - How Sea Slugs Steal the Defenses of Their Prey",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/how-sea-slugs-steal-defenses-their-prey",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "porcupine-salt-cravings"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Porcupines may gnaw salty objects because their plant-heavy diet can be low in sodium.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "flagged",
+          "note": "The bank contains porcupine quill facts; this salt-seeking behavior is distinct but same-animal topic proximity was noted."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "porcupines",
+          "diet"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo â€” 11 Fascinating Facts About North American Porcupines",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/news/11-fascinating-facts-about-north-american-porcupines",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "prehensile-porcupine-tail"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "The quill-free underside of a prehensile-tailed porcupine tail helps it grip branches.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "flagged",
+          "note": "The bank contains other porcupine adaptation and quill questions; this tail-gripping behavior is distinct but same-animal topic proximity was noted."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "porcupines",
+          "adaptation"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo â€” Curious About Quills",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/news/curious-about-quills-celebrating-arrival-baby-porcupine",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "squid-largest-eye"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Giant squid have the largest eyes in the animal kingdom, reaching about ten inches in diameter.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against published General records and ledger summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "squid",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean - Largest Eye in the World, Giant Squid",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/largest-eye-world-giant-squid",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "tardigrade-tun-state"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "classification",
+        "underlyingClaimSummary": "A tardigrade dehydrated dormant survival form is called a tun.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against published General records and ledger summaries; no same underlying claim was identified."
+        }
+      },
+      "legacyMetadata": {
+        "category": "biology",
+        "tags": [
+          "tardigrades",
+          "survival"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Natural History Museum - Life in Earths Most Extreme Environments",
+        "sourceUrl": "https://www.nhm.ac.uk/discover/life-in-earths-most-extreme-environments.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-recovery-2026-10",
+        "questionId": "triton-nitrogen-geysers"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "earth-moon-and-moons",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Frozen nitrogen on Triton can sublimate and erupt in geyser-like activity.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Compared against the full published General bank and ledger; the existing Triton question concerns its retrograde orbit, a distinct claim."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moons",
+          "cryovolcanism"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science â€” Our Solar Systemâ€™s Most Marvelous Moons",
+        "sourceUrl": "https://science.nasa.gov/solar-system/moons/10-things-about-our-solar-systems-most-marvelous-moons/",
         "claimVerification": "not-assessed-by-this-ledger",
         "claimSourceSupport": "not-assessed-by-this-ledger",
         "rightsOrReuse": "unknown"

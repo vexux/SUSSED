@@ -1,0 +1,174 @@
+{
+  "contentPackId": "general-expansion-recovery-2026-10",
+  "questions": [
+    {
+      "id": "triton-nitrogen-geysers",
+      "text": "Geyser-like eruptions on Neptuneâ€™s moon Triton involve frozen ____ that turns directly into gas.",
+      "correctCompletion": "nitrogen",
+      "sourceName": "NASA Science â€” Our Solar Systemâ€™s Most Marvelous Moons",
+      "sourceUrl": "https://science.nasa.gov/solar-system/moons/10-things-about-our-solar-systems-most-marvelous-moons/",
+      "category": "space",
+      "difficulty": "hard",
+      "tags": [
+        "moons",
+        "cryovolcanism"
+      ]
+    },
+    {
+      "id": "charon-pluto-double-world",
+      "text": "Pluto and Charon are sometimes called a double dwarf ____ system.",
+      "correctCompletion": "planet",
+      "sourceName": "NASA Science â€” Calling All Pluto Lovers",
+      "sourceUrl": "https://science.nasa.gov/solar-system/dwarf-planets/pluto/10-things-calling-all-pluto-lovers/",
+      "category": "space",
+      "difficulty": "hard",
+      "tags": [
+        "dwarf-planets",
+        "moons"
+      ]
+    },
+    {
+      "id": "porcupine-salt-cravings",
+      "text": "Because their plant-heavy diet can be low in sodium, porcupines sometimes gnaw on objects for their ____ content.",
+      "correctCompletion": "salt",
+      "sourceName": "Smithsonian National Zoo â€” 11 Fascinating Facts About North American Porcupines",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/news/11-fascinating-facts-about-north-american-porcupines",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "porcupines",
+        "diet"
+      ]
+    },
+    {
+      "id": "prehensile-porcupine-tail",
+      "text": "The underside of a prehensile-tailed porcupineâ€™s tail lacks quills so it can grip ____.",
+      "correctCompletion": "branches",
+      "sourceName": "Smithsonian National Zoo â€” Curious About Quills",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/news/curious-about-quills-celebrating-arrival-baby-porcupine",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "porcupines",
+        "adaptation"
+      ]
+    },
+    {
+      "id": "caecilian-skin-feeding",
+      "text": "Some egg-laying caecilian young feed by peeling off and eating fatty pieces of their motherâ€™s ____.",
+      "correctCompletion": "skin",
+      "sourceName": "Smithsonian National Zoo â€” 7 Spooktacular Animal Facts",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/news/7-spooktacular-animal-facts-halloween",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "amphibians",
+        "parenting"
+      ]
+    },
+    {
+      "id": "marine-snow-weeks-fall",
+      "text": "Some flakes of marine snow can take several ____ to reach the ocean floor.",
+      "correctCompletion": "weeks",
+      "sourceName": "NOAA Ocean Service â€” What Is Marine Snow?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/marinesnow.html",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "deep-sea",
+        "marine-snow"
+      ]
+    },
+    {
+      "id": "hydrothermal-vent-food-chemicals",
+      "text": "At hydrothermal vents, some food webs begin with microbes that obtain energy from chemical reactions instead of ____.",
+      "correctCompletion": "sunlight",
+      "sourceName": "NOAA Ocean Exploration - Hydrothermal Vents Factsheet",
+      "sourceUrl": "https://oceanexplorer.noaa.gov/fact-sheet/hydrothermal-vents-fact-sheet/",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "vents",
+        "chemosynthesis"
+      ]
+    },
+    {
+      "id": "squid-largest-eye",
+      "text": "The giant squid has the largest eye in the animal kingdom; its diameter can reach ten inches, often compared to a dinner ____.",
+      "correctCompletion": "plate",
+      "sourceName": "Smithsonian Ocean - Largest Eye in the World, Giant Squid",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/largest-eye-world-giant-squid",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "squid",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "nudibranch-steal-stingers",
+      "text": "Some aeolid nudibranchs store stinging cells stolen from their prey in pouches called ____.",
+      "correctCompletion": "cnidosacs",
+      "sourceName": "Smithsonian Ocean - How Sea Slugs Steal the Defenses of Their Prey",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/how-sea-slugs-steal-defenses-their-prey",
+      "category": "ocean",
+      "difficulty": "hard",
+      "tags": [
+        "nudibranchs",
+        "defense"
+      ]
+    },
+    {
+      "id": "tardigrade-tun-state",
+      "text": "In a dehydrated survival state, a tardigrade contracts into a compact form called a ____.",
+      "correctCompletion": "tun",
+      "sourceName": "Natural History Museum - Life in Earths Most Extreme Environments",
+      "sourceUrl": "https://www.nhm.ac.uk/discover/life-in-earths-most-extreme-environments.html",
+      "category": "biology",
+      "difficulty": "hard",
+      "tags": [
+        "tardigrades",
+        "survival"
+      ]
+    },
+    {
+      "id": "bowerbird-art-display",
+      "text": "Male Western bowerbirds build and decorate display structures called ____, separate from their nests.",
+      "correctCompletion": "bowers",
+      "sourceName": "Australian Museum - Western Bowerbird",
+      "sourceUrl": "https://australian.museum/learn/animals/birds/western-bowerbird/",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "birds",
+        "mating"
+      ]
+    },
+    {
+      "id": "gallium-expands-freezing",
+      "text": "Gallium contracts as it ____.",
+      "correctCompletion": "melts",
+      "sourceName": "Royal Society of Chemistry â€” Gallium",
+      "sourceUrl": "https://periodic-table.rsc.org/element/31/gallium",
+      "category": "chemistry",
+      "difficulty": "hard",
+      "tags": [
+        "elements",
+        "properties"
+      ]
+    },
+    {
+      "id": "barreleye-transparent-head",
+      "text": "MBARI says barreleye fish can see through their own ____.",
+      "correctCompletion": "foreheads",
+      "sourceName": "Monterey Bay Aquarium Research Institute - Barreleye Fish",
+      "sourceUrl": "https://www.mbari.org/animal/barreleye-fish/",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "deep-sea",
+        "vision"
+      ]
+    }
+  ]
+}
