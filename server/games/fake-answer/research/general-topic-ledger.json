@@ -6,8 +6,8 @@
     "commit": "3d04cf2",
     "snapshotDate": "2026-10-14",
     "gameId": "fact-or-cap",
-    "publishedQuestionCount": 672,
-    "publishedContentPackCount": 11,
+    "publishedQuestionCount": 810,
+    "publishedContentPackCount": 12,
     "contentPacks": [
       {
         "fileName": "general-expansion-batch-001.json",
@@ -18,6 +18,11 @@
         "fileName": "general-expansion-batch-001-500-reviewed-2026-10-15.json",
         "contentPackId": "general-expansion-batch-001-500-reviewed-2026-10-15",
         "questionCount": 483
+      },
+      {
+        "fileName": "general-expansion-batch-001-recovery-reviewed-2026-10-15.json",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionCount": 138
       },
       {
         "fileName": "general-expansion-batch-001-reviewed-2026-10-15.json",
@@ -65,27 +70,27 @@
         "questionCount": 3
       }
     ],
-    "attributionMetadataPresentCount": 672,
+    "attributionMetadataPresentCount": 810,
     "validationBasis": "npm run report:question-inventory on the snapshot; reports schema validity, IDs, and exact normalized prompt/completion matching only.",
     "editorialDistribution": {
       "basis": "Provisional editorial classifications in this ledger; counts are planning signals, not independently verified subject truth.",
       "topicCounts": {
-        "space-astronomy": 78,
-        "life-sciences": 168,
-        "earth-environment": 100,
+        "space-astronomy": 90,
+        "life-sciences": 254,
+        "earth-environment": 124,
         "geography": 45,
-        "history-civilizations": 53,
-        "culture-society": 53,
-        "technology-engineering": 51,
-        "physical-sciences-mathematics": 124
+        "history-civilizations": 57,
+        "culture-society": 55,
+        "technology-engineering": 53,
+        "physical-sciences-mathematics": 132
       },
       "questionTypeCounts": {
-        "identification": 349,
-        "measurement-or-count": 105,
-        "chronology": 32,
-        "cause-or-mechanism": 31,
-        "behavior-or-process": 78,
-        "classification": 77
+        "identification": 400,
+        "measurement-or-count": 112,
+        "chronology": 37,
+        "cause-or-mechanism": 57,
+        "behavior-or-process": 110,
+        "classification": 94
       }
     }
   },
@@ -23439,6 +23444,4836 @@
         "attributionMetadataPresent": true,
         "sourceName": "NOAA Ocean Service",
         "sourceUrl": "https://oceanservice.noaa.gov/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "aerogel-mostly-air"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "chemistry-and-materials",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Silica aerogel is an extremely light solid whose volume is mostly air.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "physics",
+        "tags": [
+          "materials",
+          "aerogel"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Aerogel",
+        "sourceUrl": "https://www.jpl.nasa.gov/edu/learn/project/aerogel/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "ancient-egypt-cat-mummification"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-egypt",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Among the animals mummified in ancient Egypt, one reptile was a crocodile.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "ancient-egypt",
+          "mummies"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "The British Museum — Animal Mummies",
+        "sourceUrl": "https://www.britishmuseum.org/collection/galleries/egyptian-sculpture/animal-mummies",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "ancient-roman-concrete-seawater"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "world-history-and-events",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Some ancient Roman marine concrete became more durable over time as seawater reacted with volcanic ash to form new crystalline minerals.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "engineering",
+          "rome"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "University of Utah — Roman Concrete",
+        "sourceUrl": "https://www.science.utah.edu/roman-concrete/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "anglerfish-lure-bacteria"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "identification",
+        "underlyingClaimSummary": "In some deep-sea anglerfish, the glowing lure is powered by symbiotic light-producing bacteria.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "deep-sea",
+          "bioluminescence"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Exploration — Bioluminescence",
+        "sourceUrl": "https://oceanexplorer.noaa.gov/facts/bioluminescence.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "ant-medicine-resin"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "invertebrates",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Some ants collect plant resins with antimicrobial properties and incorporate them into their nests.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "ants",
+          "behavior"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Magazine — Ants and Medicine",
+        "sourceUrl": "https://www.smithsonianmag.com/science-nature/ants-use-antimicrobial-resins-to-protect-their-colonies-180948342/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "antarctic-blood-falls-iron"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The red color of Antarctica’s Blood Falls comes from iron-rich salty water that oxidizes when it reaches the air.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "antarctica",
+          "chemistry"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Science Foundation — Blood Falls",
+        "sourceUrl": "https://www.nsf.gov/news/special_reports/science_nation/bloodfalls.jsp",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "archerfish-water-jet"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Archerfish knock insects off vegetation by shooting a precise jet of water.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "fish",
+          "hunting"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Archerfish",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/fish/archerfish",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "arctic-fox-seasonal-coat"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The Arctic fox changes coat color seasonally, with many populations becoming white in winter for camouflage.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "arctic-fox",
+          "adaptation"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Arctic Fox",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/arctic-fox",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "axolotl-neoteny"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "reptiles-and-amphibians",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Axolotls can reproduce while retaining larval features, a condition called neoteny.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "biology",
+        "tags": [
+          "axolotl",
+          "development"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian's National Zoo — Axolotl",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/axolotl",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "bamboo-flowering-synchrony"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "plants-and-classification",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "Some bamboo species flower in synchrony across large areas after long intervals, a phenomenon called gregarious flowering.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "bamboo",
+          "plant-cycles"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Botanic Gardens Kew — Bamboo",
+        "sourceUrl": "https://www.kew.org/read-and-watch/bamboo",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "basalt-glass-palagonite"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Basaltic volcanic glass altered by seawater can develop a layer called palagonite.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "volcanoes",
+          "geochemistry"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "USGS — Volcanic Glasses, Their Origins and Alteration Processes",
+        "sourceUrl": "https://www.usgs.gov/publications/volcanic-glasses-their-origins-and-alteration-processes",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "bombardier-beetle-hot-spray"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "invertebrates",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Bombardier beetles defend themselves by ejecting a hot chemical spray produced by a reaction in their abdomen.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "insects",
+          "defense"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Natural History Museum — Bombardier Beetles",
+        "sourceUrl": "https://www.nhm.ac.uk/discover/bombardier-beetles.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "bones-baby-count"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Babies are born with more bones than adults because some bones later fuse.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "skeleton",
+          "development"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIH MedlinePlus — Bones, Joints and Muscles",
+        "sourceUrl": "https://medlineplus.gov/bonesjointsandmuscles.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "brain-pain-itself"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "The brain tissue itself lacks pain receptors, although surrounding structures can generate head pain.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "brain",
+          "physiology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Harvard Health — Pain in the Brain",
+        "sourceUrl": "https://www.health.harvard.edu/mind-and-mood/what-causes-headaches",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "caecilian-milk-like-fluid"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "reptiles-and-amphibians",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Some caecilian mothers also feed their young a milk-like fluid.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "amphibians",
+          "parenting"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — 7 Spooktacular Animal Facts",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/news/7-spooktacular-animal-facts-halloween",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "camel-nostril-closure"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Camels can close their nostrils to keep blowing sand out.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "camels",
+          "adaptation"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Camel",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/camel",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "capybara-webbed-feet"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Capybaras have partially webbed feet that help them move through water.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "capybaras",
+          "adaptation"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Capybara",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/capybara",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "ceres-ice-volcanoes"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The dwarf planet Ceres shows signs of active geology, including ice volcanoes.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "dwarf-planets",
+          "geology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — What’s That Space Rock?",
+        "sourceUrl": "https://science.nasa.gov/solar-system/10-things-whats-that-space-rock/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "charon-discovery-accident"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "astronomy-history",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Astronomer James Christy noticed Pluto’s image looked elongated while he was refining Pluto’s orbit around the Sun.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "astronomy-history",
+          "charon"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Calling All Pluto Lovers",
+        "sourceUrl": "https://science.nasa.gov/solar-system/dwarf-planets/pluto/10-things-calling-all-pluto-lovers/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "chinese-shadow-puppetry-leather"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Traditional Chinese shadow puppets were often made from thin treated animal hide.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "theatre",
+          "china"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "UNESCO — Chinese Shadow Puppetry",
+        "sourceUrl": "https://ich.unesco.org/en/RL/chinese-shadow-puppetry-00421",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "columnar-joints-basalt"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Some cooling lava forms striking polygonal columns as the rock contracts and fractures into columnar joints.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "volcanoes",
+          "landforms"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "USGS — Columnar Jointing",
+        "sourceUrl": "https://www.usgs.gov/observatories/cascades-volcano-observatory/science/columnar-jointing",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "coral-night-feeding"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Many corals extend their tentacles to feed more actively at night.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "corals",
+          "feeding"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — What Are Corals?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/coral.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "coral-reef-animal-colony"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "classification",
+        "underlyingClaimSummary": "A coral colony is made up of many tiny animals called coral polyps.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "corals",
+          "biology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — What Are Corals?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/coral.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "cornea-no-blood-vessels"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The clear cornea at the front of the eye contains no blood vessels.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "eye",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Eye Institute — How the Eye Works",
+        "sourceUrl": "https://www.nei.nih.gov/learn-about-eye-health/healthy-vision/how-eyes-work",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "corpse-flower-odor"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "plants-and-classification",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The corpse flower’s powerful smell resembles rotting flesh and attracts carrion-seeking pollinators.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "corpse-flower",
+          "pollination"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Chicago Botanic Garden — Corpse Flower",
+        "sourceUrl": "https://www.chicagobotanic.org/plantinfo/corpse_flower",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "crocodile-heart-valve"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "reptiles-and-amphibians",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Crocodilians have a special heart structure that allows blood flow to be redirected through a connection called the foramen of Panizza.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "crocodiles",
+          "physiology"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Reptile Discovery Center",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/reptile-discovery-center",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "crocodile-stone-swallowing"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "reptiles-and-amphibians",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Some crocodilians swallow stones, known as gastroliths, which may help with digestion or buoyancy.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "crocodiles",
+          "behavior"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Reptile Discovery Center",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/reptile-discovery-center",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "cuban-crocodile-land-speed"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "reptiles-and-amphibians",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Cuban crocodiles are unusually agile on land partly because they have long, sturdy legs and reduced webbing between their toes.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "crocodiles",
+          "locomotion"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — 8 Fascinating Facts About the Cuban Crocodile",
+        "sourceUrl": "https://www.nationalzoo.si.edu/animals/news/8-fascinating-facts-about-cuban-crocodile-rare-caribbean-predator",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "cuckoo-egg-mimicry"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Some brood-parasitic cuckoos lay eggs that mimic the appearance of their host’s eggs.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "birds",
+          "parasitism"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Cornell Lab of Ornithology — Brood Parasitism",
+        "sourceUrl": "https://www.allaboutbirds.org/news/why-do-cuckoos-lay-their-eggs-in-other-birds-nests/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "cuttlefish-color-changing"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Cuttlefish change skin patterns using specialized pigment cells called chromatophores.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "cuttlefish",
+          "camouflage"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Cuttlefish",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/cuttlefish",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "cuttlefish-w-shaped-pupil"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Many cuttlefish have distinctive W-shaped pupils.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "cuttlefish",
+          "vision"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Cuttlefish",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/cuttlefish",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "deep-ocean-ooze-coverage"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "identification",
+        "underlyingClaimSummary": "NOAA notes that smooth, muddy ooze covers about three-quarters of the deep-ocean floor.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "seafloor",
+          "sediment"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — What Is Marine Snow?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/marinesnow.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "deep-sea-brine-oxygen"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Some deep-sea brine pools are so harsh that their water can be anoxic, meaning it contains almost no dissolved oxygen.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "deep-sea",
+          "chemistry"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Exploration — Brine Pools",
+        "sourceUrl": "https://oceanexplorer.noaa.gov/facts/brine-pools.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "deep-sea-brine-pools"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Extremely salty underwater pools can be so dense that they form a distinct boundary with surrounding seawater, called a brine pool.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "deep-sea",
+          "salinity"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Exploration — Brine Pools",
+        "sourceUrl": "https://oceanexplorer.noaa.gov/facts/brine-pools.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "deep-sea-ooze-accumulation"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "The deep-ocean ooze described by NOAA can accumulate as much as six metres every million years.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "seafloor",
+          "sediment"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — What Is Marine Snow?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/marinesnow.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "deep-sea-pressure-extreme"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "At the deepest parts of the ocean, pressure can exceed 1,000 times the pressure at the sea surface.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "deep-sea",
+          "pressure"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Exploration — Deep Ocean",
+        "sourceUrl": "https://oceanexplorer.noaa.gov/facts/deep-ocean.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "desert-varnish-rock"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "classification",
+        "underlyingClaimSummary": "The dark coating found on many desert rocks is commonly called desert varnish.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "deserts",
+          "geochemistry"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "USGS — Desert Varnish",
+        "sourceUrl": "https://www.usgs.gov/centers/geosciences-and-environmental-change-science-center/science/desert-varnish",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "dry-ice-sublimation"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "chemistry-and-materials",
+        "questionType": "identification",
+        "underlyingClaimSummary": "At ordinary atmospheric pressure, solid carbon dioxide changes directly into gas by sublimation.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "chemistry",
+        "tags": [
+          "carbon-dioxide",
+          "states-of-matter"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Society of Chemistry — Carbon",
+        "sourceUrl": "https://periodic-table.rsc.org/element/6/carbon",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "ear-bones-smallest"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The three tiny bones of the middle ear include the malleus, incus, and stapes.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "hearing",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIDCD — How Do We Hear?",
+        "sourceUrl": "https://www.nidcd.nih.gov/health/how-do-we-hear",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "earth-lightning-sprites"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "atmosphere",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Brief red flashes above thunderstorms, occurring high in the atmosphere, are called sprites.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "lightning",
+          "atmosphere"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Sprites and Elves",
+        "sourceUrl": "https://science.nasa.gov/earth/earth-observatory/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "earthquake-liquefaction-saturated"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "earth-systems-and-geophysics",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "During liquefaction, water-saturated loose sediment can temporarily behave more like a liquid.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "earthquakes",
+          "soil"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "USGS — Liquefaction",
+        "sourceUrl": "https://www.usgs.gov/programs/earthquake-hazards/liquefaction",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "earthquake-sand-boils"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "earth-systems-and-geophysics",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "When liquefaction forces water and sand to the surface, the deposits can form features called sand boils.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "earthquakes",
+          "soil"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "USGS — Liquefaction",
+        "sourceUrl": "https://www.usgs.gov/programs/earthquake-hazards/liquefaction",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "echidna-four-headed-organ"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Male echidnas have a four-headed penis, although only some heads are used at a time during mating.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "echidnas",
+          "reproduction"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Australian Museum — Echidna",
+        "sourceUrl": "https://australian.museum/learn/animals/mammals/echidna/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "electric-eel-electric-organs"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Electric eels generate powerful shocks using specialized electric organs.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "fish",
+          "electricity"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Electric Eel",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/electric-eel",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "enceladus-ocean-plumes"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Saturn’s moon Enceladus sprays water vapor and ice particles from an ocean beneath its icy crust.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moons",
+          "plumes"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Our Solar System’s Most Marvelous Moons",
+        "sourceUrl": "https://science.nasa.gov/solar-system/moons/10-things-about-our-solar-systems-most-marvelous-moons/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "europa-atmosphere"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Europa has a very thin atmosphere composed largely of oxygen.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moons",
+          "atmospheres"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Europa Facts",
+        "sourceUrl": "https://science.nasa.gov/jupiter/jupiter-moons/europa/europa-facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "eye-blind-spot-optic-nerve"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The normal blind spot occurs where the optic nerve exits the retina.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "vision",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Eye Institute — How the Eye Works",
+        "sourceUrl": "https://www.nei.nih.gov/learn-about-eye-health/healthy-vision/how-eyes-work",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "fiddler-crab-claw-display"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "invertebrates",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Male fiddler crabs use their oversized claw in courtship displays and territorial contests.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "crabs",
+          "behavior"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Fiddler Crabs",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/fiddler-crabs",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "fingerprints-before-birth"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "Human fingerprints begin forming before birth.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "skin",
+          "development"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIH MedlinePlus — Genetics",
+        "sourceUrl": "https://medlineplus.gov/genetics/understanding/traits/fingerprints/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "flamingo-one-leg-standing"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Flamingos can stand on one leg for long periods, and research suggests the posture can reduce muscular effort and help conserve energy.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "flamingos",
+          "behavior"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Emory University — Why Flamingos Stand on One Leg",
+        "sourceUrl": "https://news.emory.edu/stories/2017/05/esc_flamingo/index.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "fossa-madagascar-predator"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The fossa, Madagascar’s largest native mammalian predator, is related to the mongoose family.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "madagascar",
+          "carnivores"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Duke Lemur Center — Fossa",
+        "sourceUrl": "https://lemur.duke.edu/discover/meet-the-lemurs/fossa/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "fossil-amber-resin"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Amber is fossilized tree resin, and it can preserve small organisms trapped long ago.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "fossils",
+          "preservation"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Museum of Natural History — Amber",
+        "sourceUrl": "https://naturalhistory.si.edu/education/teaching-resources/fossils/amber",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "frog-eye-swallow"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "reptiles-and-amphibians",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Some frogs pull their eyes downward to help push food toward the throat while swallowing.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "frogs",
+          "feeding"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Scientific American — Why Frogs Close Their Eyes When Swallowing",
+        "sourceUrl": "https://www.scientificamerican.com/article/why-frogs-close-their-eyes-when-swallowing/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "fulgurite-lightning-sand"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "classification",
+        "underlyingClaimSummary": "When lightning melts sand into natural glassy tubes, the formations are called fulgurites.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "lightning",
+          "geology"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "USGS — Volcanic Glasses, Their Origins and Alteration Processes",
+        "sourceUrl": "https://www.usgs.gov/publications/volcanic-glasses-their-origins-and-alteration-processes",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "fungus-ant-zombie"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "ecology-and-ecosystems",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Some parasitic Ophiocordyceps fungi manipulate the behavior of infected ants.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "biology",
+        "tags": [
+          "fungi",
+          "parasites"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Natural History Museum — Zombie Ant Fungus",
+        "sourceUrl": "https://www.nhm.ac.uk/discover/zombie-ant-fungus.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "fungus-glowing-wood"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "cell-biology-and-microbiology",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Some fungi emit visible light through a process called fungal bioluminescence.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "biology",
+        "tags": [
+          "fungi",
+          "light"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Natural History Museum — Glowing Fungi",
+        "sourceUrl": "https://www.nhm.ac.uk/discover/bioluminescent-fungi.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "fungus-largest-organism"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "ecology-and-ecosystems",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "A famous genetically connected honey fungus in Oregon spreads across a forest through underground fungal mycelium.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "fungi",
+          "organisms"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "US Forest Service — Armillaria Root Disease",
+        "sourceUrl": "https://www.fs.usda.gov/foresthealth/protecting-forest/forest-health-monitoring/armillaria.shtml",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "gecko-adhesion-van-der-waals"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "physics-and-forces",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Gecko toe adhesion depends largely on weak intermolecular attractions known as van der Waals forces.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "physics",
+        "tags": [
+          "geckos",
+          "materials"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Gecko",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/gecko",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "gecko-toe-setae"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Gecko feet cling to surfaces using microscopic hairs called setae.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "geckos",
+          "adhesion"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Gecko",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/gecko",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "geoduck-long-siphon"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "The large clam called a geoduck has a long neck-like siphon that can extend well beyond its shell.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "clams",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Washington Department of Fish and Wildlife — Geoduck",
+        "sourceUrl": "https://wdfw.wa.gov/fishing/shellfishing-regulations/geoduck",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "goosebumps-vestigial"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Goosebumps are produced by tiny muscles attached to hair follicles, a response that can raise body hairs.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "skin",
+          "evolution"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Cleveland Clinic — Goosebumps",
+        "sourceUrl": "https://health.clevelandclinic.org/goosebumps",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "honeybadger-snake-venom"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Honey badgers have shown notable resistance to some snake venoms, though they are not completely immune.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "honey-badgers",
+          "defense"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Geographic — Honey Badger",
+        "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/honey-badger",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "hydrothermal-vents-black-smokers"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Some deep-sea hydrothermal vents emit dark mineral-rich plumes nicknamed black smokers.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "vents",
+          "geology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Exploration — Hydrothermal Vents",
+        "sourceUrl": "https://oceanexplorer.noaa.gov/facts/vents.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "hydrothermal-vents-seawater-rock"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Hydrothermal vent fluids form when seawater circulates through hot oceanic crust.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "vents",
+          "geology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Exploration — Hydrothermal Vents",
+        "sourceUrl": "https://oceanexplorer.noaa.gov/facts/vents.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "immortal-jellyfish-reversion"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Turritopsis dohrnii can revert from its adult stage to an earlier life stage, a process often described as cellular transdifferentiation.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "biology",
+        "tags": [
+          "jellyfish",
+          "life-cycle"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Immortal Jellyfish",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/immortal-jellyfish",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "jupiter-cloud-layers"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "NASA describes Jupiter’s clouds as having three main layers involving ammonia, ammonium hydrosulfide, and water.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "jupiter",
+          "atmospheres"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Planetary Atmospheres",
+        "sourceUrl": "https://science.nasa.gov/solar-system/10-things-planetary-atmospheres/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "kangaroo-rat-water-metabolism"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Kangaroo rats can obtain much of the water they need from the metabolism of dry seeds.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "desert-animals",
+          "physiology"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Kangaroo Rat",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/kangaroo-rat",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "kangaroo-three-vaginas"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Female kangaroos have three vaginal canals: two for sperm transport and a central canal used for birth.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "marsupials",
+          "anatomy"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Australian Museum — Kangaroo",
+        "sourceUrl": "https://australian.museum/learn/animals/mammals/red-kangaroo/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "liquid-nitrogen-boiling"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "chemistry-and-materials",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "At standard atmospheric pressure, liquid nitrogen boils at about minus 196 degrees Celsius.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "chemistry",
+        "tags": [
+          "nitrogen",
+          "temperature"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIST Chemistry WebBook — Nitrogen",
+        "sourceUrl": "https://webbook.nist.gov/cgi/cbook.cgi?ID=C7727379&Mask=4",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "liver-regeneration"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "The liver can regrow much of its lost mass through a process of regeneration.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "liver",
+          "physiology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIDDK — Liver Disease",
+        "sourceUrl": "https://www.niddk.nih.gov/health-information/liver-disease",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "magnetic-levitation-superconductor"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "physics-and-forces",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "A superconductor can expel magnetic fields through the Meissner effect.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "physics",
+        "tags": [
+          "superconductivity",
+          "magnetism"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIST — Superconductivity",
+        "sourceUrl": "https://www.nist.gov/pml/superconductivity",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "manta-ray-filter-feeding"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Manta rays feed by filtering tiny organisms from the water.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "rays",
+          "feeding"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Fisheries — Giant Manta Ray",
+        "sourceUrl": "https://www.fisheries.noaa.gov/species/giant-manta-ray",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "marine-snow-flakes-centimeters"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Some marine-snow flakes grow to several centimeters across as they sink.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "deep-sea",
+          "marine-snow"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — What Is Marine Snow?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/marinesnow.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "medieval-bestiarum-animal-morals"
+      },
+      "editorialClassification": {
+        "topicId": "culture-society",
+        "subtopicId": "arts-and-material-culture",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Medieval bestiaries often described animals as moral or religious symbols, not merely as biological specimens.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "culture",
+        "tags": [
+          "books",
+          "medieval"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "The British Library — Medieval Bestiaries",
+        "sourceUrl": "https://www.bl.uk/medieval-english-french-manuscripts/articles/medieval-bestiaries",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "mimic-octopus-imitates"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "The mimic octopus can change its posture and movement to imitate other marine animals.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "octopus",
+          "camouflage"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Mimic Octopus",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/mimic-octopus",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "mimosa-leaves-fold-touch"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "plants-and-classification",
+        "questionType": "classification",
+        "underlyingClaimSummary": "The sensitive plant Mimosa pudica folds its leaflets when touched, a response called thigmonasty.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "plant-movement",
+          "behavior"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Botanic Gardens Kew — Sensitive Plant",
+        "sourceUrl": "https://www.kew.org/read-and-watch/sensitive-plant",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "mole-star-nose-touch"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "The star-nosed mole uses its distinctive facial tentacles to detect prey through extremely sensitive touch.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "moles",
+          "senses"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Star-Nosed Mole",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/star-nosed-mole",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "moon-rust-earth-oxygen"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Scientists have found evidence of hematite on the Moon, a form of iron oxide commonly called rust.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moon",
+          "chemistry"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Moon Rust",
+        "sourceUrl": "https://www.nasa.gov/solar-system/nasas-moon-rust-mystery/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "mudskipper-blink"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Mudskippers can keep their eyes moist by rolling them into a socket-like area and blinking with a skin fold.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "fish",
+          "adaptation"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Mudskippers",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/fish/mudskippers",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "mudskipper-land-movement"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Mudskippers can move across exposed mud using their pectoral fins and can breathe air while out of water.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "fish",
+          "adaptation"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Mudskippers",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/fish/mudskippers",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "mummy-board-cartonnage"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "ancient-egypt",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Ancient Egyptian mummy cases could be made from a papier-mâché-like material called cartonnage.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "ancient-egypt",
+          "materials"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "The British Museum — Cartonnage",
+        "sourceUrl": "https://www.britishmuseum.org/collection/term/x22411",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "mushroom-fairy-rings"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "ecology-and-ecosystems",
+        "questionType": "classification",
+        "underlyingClaimSummary": "A circular growth pattern of mushrooms is commonly called a fairy ring.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "fungi",
+          "patterns"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Natural History Museum — Fairy Rings",
+        "sourceUrl": "https://www.nhm.ac.uk/discover/fairy-rings.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "naked-mole-rat-pain-acid"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Naked mole-rats show unusual tolerance to some forms of acid-induced pain.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "mole-rats",
+          "physiology"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Naked Mole-Rat",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/naked-mole-rat",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "nitinol-memory-metal"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "structures-and-materials",
+        "questionType": "classification",
+        "underlyingClaimSummary": "A nickel-titanium alloy known for returning to a remembered shape is commonly called memory metal.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "technology",
+        "tags": [
+          "materials",
+          "alloys"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Shape Memory Alloys",
+        "sourceUrl": "https://www.nasa.gov/centers-and-facilities/ames/shape-memory-alloys/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "non-newtonian-cornstarch"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "physics-and-forces",
+        "questionType": "identification",
+        "underlyingClaimSummary": "A cornstarch-and-water mixture that stiffens under sudden force is an example of a non-Newtonian fluid.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "physics",
+        "tags": [
+          "fluids",
+          "materials"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Science Buddies — Non-Newtonian Fluids",
+        "sourceUrl": "https://www.sciencebuddies.org/science-fair-projects/project-ideas/Phys_p012/physics/non-newtonian-fluids",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "nudibranch-color-warning"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "invertebrates",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Many nudibranchs use bright colors to warn predators that they are unpalatable or chemically defended.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "nudibranchs",
+          "warning-coloration"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Nudibranchs",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/nudibranchs",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "obsidian-volcanic-glass"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Obsidian is natural glass formed when lava cools so rapidly that crystals have little time to grow.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "volcanoes",
+          "minerals"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "USGS — Volcanic Glasses, Their Origins and Alteration Processes",
+        "sourceUrl": "https://www.usgs.gov/publications/volcanic-glasses-their-origins-and-alteration-processes",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "ocean-sound-travel"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "oceans-and-seas",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Sound generally travels faster through seawater than through the air at ordinary surface conditions.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "sound",
+          "physics"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — How Does Sound Travel in the Ocean?",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/sound.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "orchid-bee-pollination"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "plants-and-classification",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Some orchids mimic female insects in appearance or scent to attract males that transfer their pollen.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "orchids",
+          "pollination"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Botanic Gardens Kew — Orchids and Pollination",
+        "sourceUrl": "https://www.kew.org/read-and-watch/orchids-and-pollination",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "owl-head-rotation"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Owls can rotate their heads far around because specialized neck anatomy helps preserve blood flow to the brain.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "owls",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Owl",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/owl",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "owl-pellets-indigestible"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Owls often regurgitate compact pellets containing fur, feathers, and bones that they cannot digest.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "owls",
+          "feeding"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Cornell Lab of Ornithology — Owl Pellets",
+        "sourceUrl": "https://www.allaboutbirds.org/news/what-is-an-owl-pellet/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "panda-cub-eyes"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Giant panda cubs usually do not open their eyes until they are about six to eight weeks old.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "pandas",
+          "development"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Giant Panda",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/giant-panda",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "panda-cub-mother-years"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "A giant panda cub may stay with its mother for up to three years before leaving.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "pandas",
+          "parenting"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Giant Panda",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/giant-panda",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "panda-newborn-size"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "identification",
+        "underlyingClaimSummary": "A newborn giant panda is pink, nearly hairless, and about the size of a stick of butter.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "pandas",
+          "reproduction"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Giant Panda",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/giant-panda",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "parrotfish-sand-production"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Parrotfish produce much of their reef sand by grinding coral rock and excreting it as fine sand.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "fish",
+          "reef-ecology"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Service — Parrotfish",
+        "sourceUrl": "https://oceanservice.noaa.gov/facts/parrotfish.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "parrotfish-sleep-mucus-cocoon"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Some parrotfish sleep inside a transparent mucus cocoon that may help mask their scent.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "fish",
+          "sleep"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Parrotfish",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/fish/parrotfish",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "phobos-stickney-crater"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The most prominent feature on Mars’s moon Phobos is the large Stickney Crater.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moons",
+          "craters"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Craters We Love",
+        "sourceUrl": "https://science.nasa.gov/solar-system/10-things-greatest-hits-craters-we-love/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "pistol-shrimp-cavitation"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "invertebrates",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "A snapping pistol shrimp’s claw can create a collapsing bubble through a process called cavitation.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "shrimp",
+          "physics"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Pistol Shrimp",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/pistol-shrimp",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "pitcher-plant-drowning-pool"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "plants-and-classification",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Many pitcher plants trap prey in a deep cavity filled with digestive fluid.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "carnivorous-plants",
+          "adaptation"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Royal Botanic Gardens Kew — Carnivorous Plants",
+        "sourceUrl": "https://www.kew.org/read-and-watch/carnivorous-plants",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "porcupine-quill-count"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "A North American porcupine is covered with roughly 30,000 quills.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "flagged",
+          "note": "Distinct claims retained after limiting this candidate batch to two porcupine questions; monitor against existing porcupine content for future repetition."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "porcupines",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — 11 Fascinating Facts About North American Porcupines",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/news/11-fascinating-facts-about-north-american-porcupines",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "porcupine-swimming"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Despite their spines, North American porcupines are capable of climbing trees and swimming.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "flagged",
+          "note": "Distinct claims retained after limiting this candidate batch to two porcupine questions; monitor against existing porcupine content for future repetition."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "porcupines",
+          "behavior"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — North American Porcupine",
+        "sourceUrl": "https://www.nationalzoo.si.edu/animals/north-american-porcupine",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "pufferfish-sand-circles"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Male white-spotted pufferfish create elaborate circular patterns in seafloor sand to attract mates.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "fish",
+          "courtship"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Pufferfish",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/fish/pufferfish",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "red-blood-cell-no-nucleus"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Mature human red blood cells lack a cell nucleus.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "blood",
+          "cells"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIH MedlinePlus — Blood",
+        "sourceUrl": "https://medlineplus.gov/blood.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "reindeer-ultraviolet-vision"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "mammals",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Reindeer can perceive ultraviolet light, which can make some objects stand out against snowy backgrounds.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "reindeer",
+          "vision"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "University College London — Reindeer See in UV",
+        "sourceUrl": "https://www.ucl.ac.uk/news/2011/may/reindeer-see-ultraviolet-light",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "rhyolite-glass-viscosity"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "High-silica rhyolitic magma can form thick bodies of volcanic glass partly because it is very viscous.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "volcanoes",
+          "geology"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "USGS — Volcanic Glasses, Their Origins and Alteration Processes",
+        "sourceUrl": "https://www.usgs.gov/publications/volcanic-glasses-their-origins-and-alteration-processes",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "saturn-megastorm-frequency"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "NASA describes a giant storm on Saturn as occurring roughly every 20 to 30 Earth years.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "saturn",
+          "weather"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Planetary Atmospheres",
+        "sourceUrl": "https://science.nasa.gov/solar-system/10-things-planetary-atmospheres/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "sea-cucumber-defense-organs"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Some sea cucumbers defend themselves by expelling sticky internal organs called Cuvierian tubules.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "echinoderms",
+          "defense"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Sea Cucumbers",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sea-cucumbers",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "sea-cucumber-evisceration"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "classification",
+        "underlyingClaimSummary": "The defense in which a sea cucumber expels internal organs is called evisceration.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "sea-cucumbers",
+          "defense"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Sea Cucumbers",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sea-cucumbers",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "sea-star-eyespots"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Many sea stars have light-sensitive eyespots near the tips of their arms.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "echinoderms",
+          "senses"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Sea Stars",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sea-stars",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "sea-star-regrow-body"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Some sea stars can regenerate lost arms, and certain species can regenerate much of the body from an arm.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "echinoderms",
+          "regeneration"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Sea Stars",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sea-stars",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "sea-urchin-teeth-lantern"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "classification",
+        "underlyingClaimSummary": "A sea urchin’s five-toothed feeding apparatus is called Aristotle’s lantern.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "echinoderms",
+          "anatomy"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Sea Urchins",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sea-urchins",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "shape-memory-metal-temperature"
+      },
+      "editorialClassification": {
+        "topicId": "technology-engineering",
+        "subtopicId": "structures-and-materials",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Shape-memory alloys can return toward a trained shape when their temperature changes through a transformation range.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "technology",
+        "tags": [
+          "materials",
+          "engineering"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA — Shape Memory Alloys",
+        "sourceUrl": "https://www.nasa.gov/centers-and-facilities/ames/shape-memory-alloys/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "shape-of-water-meniscus"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "physics-and-forces",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Water in a clean narrow glass tube can climb against gravity through capillary action.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "physics",
+        "tags": [
+          "fluids",
+          "surfaces"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "USGS Water Science School — Capillary Action",
+        "sourceUrl": "https://www.usgs.gov/special-topics/water-science-school/science/capillary-action",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "shark-skin-dermal-denticles"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "classification",
+        "underlyingClaimSummary": "Shark skin is covered in tiny tooth-like scales called dermal denticles.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "sharks",
+          "skin"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Sharks",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/sharks-rays/sharks",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "shark-teeth-fossil-common"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Shark teeth are common fossils partly because teeth are harder and preserve more readily than much of a shark’s cartilaginous skeleton.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "fossils",
+          "sharks"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Natural History Museum — Shark Teeth",
+        "sourceUrl": "https://www.nhm.ac.uk/discover/shark-teeth.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "skin-largest-organ"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The skin is the body’s largest organ.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "skin",
+          "anatomy"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIH MedlinePlus — Skin",
+        "sourceUrl": "https://medlineplus.gov/skinconditions.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "sneeze-eyes-closed-myth"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "It is possible to sneeze with your eyes open; the reflex does not make eyelid closure absolutely necessary.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "reflexes",
+          "myths"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Cleveland Clinic — Sneezing",
+        "sourceUrl": "https://health.clevelandclinic.org/why-do-we-sneeze",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "sponge-water-filter"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Sponges move water through their bodies using beating cells called choanocytes.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "sponges",
+          "feeding"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian Ocean — Sponges",
+        "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sponges",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "stapes-vibrates-hearing"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The smallest bone in the human body, the stapes, transmits sound vibrations in the middle ear.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "hearing",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIDCD — How Do We Hear?",
+        "sourceUrl": "https://www.nidcd.nih.gov/health/how-do-we-hear",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "stomach-lining-mucus"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The stomach protects itself from its own acid with a mucus-rich protective barrier.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "digestion",
+          "anatomy"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIDDK — Your Digestive System & How It Works",
+        "sourceUrl": "https://www.niddk.nih.gov/health-information/digestive-diseases/digestive-system-how-it-works",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "sunflower-young-tracking"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "plants-and-classification",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Young sunflower heads track the Sun across the sky through a movement called heliotropism.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "sunflowers",
+          "plant-movement"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "University of California Berkeley — Sunflowers",
+        "sourceUrl": "https://news.berkeley.edu/2016/08/05/sunflowers-track-the-sun/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "superfluid-helium-creep"
+      },
+      "editorialClassification": {
+        "topicId": "physical-sciences-mathematics",
+        "subtopicId": "physics-and-forces",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Liquid helium cooled below its lambda point becomes a superfluid with essentially zero viscosity and can exhibit unusual flow behavior.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "physics",
+        "tags": [
+          "quantum",
+          "fluids"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIST — Superfluid Helium",
+        "sourceUrl": "https://www.nist.gov/pml/sensor-science/cryogenic-technology",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "tardigrade-cryptobiosis"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "invertebrates",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Tardigrades can enter an extreme dormant state called anhydrobiosis when they lose most of their water.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "biology",
+        "tags": [
+          "tardigrades",
+          "survival"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Natural History Museum — Tardigrades",
+        "sourceUrl": "https://www.nhm.ac.uk/discover/what-are-tardigrades.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "tardigrade-space-survival"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "invertebrates",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Some tardigrades have survived exposure to the vacuum of space when in a dehydrated, dormant state.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "biology",
+        "tags": [
+          "tardigrades",
+          "survival"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Natural History Museum — What Are Tardigrades?",
+        "sourceUrl": "https://www.nhm.ac.uk/discover/what-are-tardigrades.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "taste-smell-flavor"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "human-anatomy-and-physiology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Much of what people experience as food flavor depends on the sense of smell.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "human-body",
+        "tags": [
+          "senses",
+          "food"
+        ],
+        "difficulty": "easy"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NIDCD — Smell Disorders",
+        "sourceUrl": "https://www.nidcd.nih.gov/health/smell-disorders",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "titan-atmosphere-main-gas"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "The main gas in Titan’s atmosphere is nitrogen, as it is in Earth’s atmosphere.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moons",
+          "atmospheres"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Titan Facts",
+        "sourceUrl": "https://science.nasa.gov/saturn/moons/titan/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "titan-dunes"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "identification",
+        "underlyingClaimSummary": "Vast dark dunes on Titan are concentrated mainly around its equatorial regions.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "moons",
+          "landforms"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Titan Facts",
+        "sourceUrl": "https://science.nasa.gov/saturn/moons/titan/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "uranus-21-year-winter"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "orbits-and-rotation",
+        "questionType": "measurement-or-count",
+        "underlyingClaimSummary": "Because of Uranus’s extreme axial tilt, part of the planet can experience a dark winter lasting about 21 Earth years.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "uranus",
+          "seasons"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Uranus Facts",
+        "sourceUrl": "https://science.nasa.gov/uranus/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "uranus-moon-names"
+      },
+      "editorialClassification": {
+        "topicId": "space-astronomy",
+        "subtopicId": "solar-system-objects",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "Unlike most planetary moons named after classical mythology, Uranus’s moons are named for characters from Shakespeare and Alexander Pope.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "space",
+        "tags": [
+          "uranus",
+          "astronomy-history"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NASA Science — Uranus Facts",
+        "sourceUrl": "https://science.nasa.gov/uranus/facts/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "venus-flytrap-digestive-enzymes"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "plants-and-classification",
+        "questionType": "chronology",
+        "underlyingClaimSummary": "After trapping suitable prey, a Venus flytrap releases digestive enzymes.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "plants",
+        "tags": [
+          "carnivorous-plants",
+          "digestion"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "North Carolina State Extension — Venus Flytrap",
+        "sourceUrl": "https://plants.ces.ncsu.edu/plants/dionaea-muscipula/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "viking-sunstone-evidence"
+      },
+      "editorialClassification": {
+        "topicId": "history-civilizations",
+        "subtopicId": "world-history-and-events",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "A proposed Viking navigation aid called a sunstone may have helped locate the Sun under cloudy skies using light polarization.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "history",
+        "tags": [
+          "vikings",
+          "navigation"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Museum of Denmark — The Sunstone",
+        "sourceUrl": "https://en.natmus.dk/historical-knowledge/denmark/prehistoric-period-until-1050-ad/the-viking-age/the-sunstone/",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "volcanic-bomb-rounded"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "classification",
+        "underlyingClaimSummary": "A large blob of molten lava that is hurled out and solidifies in the air is called a volcanic bomb.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "volcanoes",
+          "rocks"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "USGS — Volcano Hazards Program Glossary",
+        "sourceUrl": "https://www.usgs.gov/programs/VHP/volcano-hazards-program-glossary",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "volcanic-lightning-ash"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "atmosphere",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Lightning can occur in volcanic plumes when ash particles collide and become electrically charged.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "volcanoes",
+          "atmosphere"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "USGS — Volcanic Lightning",
+        "sourceUrl": "https://www.usgs.gov/programs/VHP/volcanic-lightning",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "volcano-lava-tube"
+      },
+      "editorialClassification": {
+        "topicId": "earth-environment",
+        "subtopicId": "geology",
+        "questionType": "identification",
+        "underlyingClaimSummary": "A tunnel left behind when the surface of a lava flow solidifies while molten lava continues flowing underneath is a lava tube.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "earth",
+        "tags": [
+          "volcanoes",
+          "landforms"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Park Service — Lava Tubes",
+        "sourceUrl": "https://www.nps.gov/subjects/caves/lava-tubes.htm",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "vulture-stomach-acid"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "cause-or-mechanism",
+        "underlyingClaimSummary": "Vultures can safely consume carrion partly because their digestive systems tolerate many pathogens and highly acidic stomach conditions.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "vultures",
+          "adaptation"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Smithsonian National Zoo — Vultures",
+        "sourceUrl": "https://nationalzoo.si.edu/animals/vulture",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "whale-falls-deep-sea"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "marine-life",
+        "questionType": "classification",
+        "underlyingClaimSummary": "When a whale carcass sinks and becomes a long-lasting deep-sea food source, it is called a whale fall.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "ocean",
+        "tags": [
+          "deep-sea",
+          "food-web"
+        ],
+        "difficulty": "medium"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "NOAA Ocean Exploration — Whale Falls",
+        "sourceUrl": "https://oceanexplorer.noaa.gov/facts/whale-fall.html",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "wood-frog-freezing"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "reptiles-and-amphibians",
+        "questionType": "behavior-or-process",
+        "underlyingClaimSummary": "Wood frogs can survive winter with much of the water in their bodies frozen, entering a state of suspended animation.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "frogs",
+          "survival"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "National Park Service — Wood Frog",
+        "sourceUrl": "https://www.nps.gov/articles/000/wood-frog.htm",
+        "claimVerification": "not-assessed-by-this-ledger",
+        "claimSourceSupport": "not-assessed-by-this-ledger",
+        "rightsOrReuse": "unknown"
+      }
+    },
+    {
+      "legacyIdentity": {
+        "gameId": "fact-or-cap",
+        "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+        "questionId": "woodpecker-tongue-skull"
+      },
+      "editorialClassification": {
+        "topicId": "life-sciences",
+        "subtopicId": "birds",
+        "questionType": "identification",
+        "underlyingClaimSummary": "A woodpecker’s tongue-supporting hyoid apparatus wraps around the back of the skull in many species.",
+        "status": "provisional-editorial-classification",
+        "uncertaintyNote": null,
+        "repetitionReview": {
+          "outcome": "no-known-overlap",
+          "note": "Reviewed against the current published General bank and candidate batch; this provisional note does not assert factual verification."
+        }
+      },
+      "legacyMetadata": {
+        "category": "animals",
+        "tags": [
+          "woodpeckers",
+          "anatomy"
+        ],
+        "difficulty": "hard"
+      },
+      "sourceReview": {
+        "attributionMetadataPresent": true,
+        "sourceName": "Cornell Lab of Ornithology — Woodpeckers",
+        "sourceUrl": "https://www.allaboutbirds.org/guide/Downy_Woodpecker/overview",
         "claimVerification": "not-assessed-by-this-ledger",
         "claimSourceSupport": "not-assessed-by-this-ledger",
         "rightsOrReuse": "unknown"

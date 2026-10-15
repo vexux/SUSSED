@@ -22,8 +22,8 @@ test("loads all migrated JSON content packs with existing answer and source data
     const { questions: loaded } = loadQuestionPacks(
         path.join(fakeAnswerDirectory, "content")
     );
-    assert.equal(loaded.length, 672);
-    assert.equal(questions.length, 672);
+    assert.equal(loaded.length, 810);
+    assert.equal(questions.length, 810);
     assert.equal(new Set(loaded.map(({ id }) => id)).size, loaded.length);
     assert.equal(
         loaded.find(({ id }) => id === "wombat-cubes").correctCompletion,
@@ -46,12 +46,17 @@ test("loads all migrated JSON content packs with existing answer and source data
             "general-expansion-batch-002-reviewed-2026-10-15",
             "general-expansion-recovery-2026-10",
             "general-research-pilot-2026-10-15",
-            "general-expansion-batch-001-500-reviewed-2026-10-15"
+            "general-expansion-batch-001-500-reviewed-2026-10-15",
+            "general-expansion-batch-001-recovery-reviewed-2026-10-15"
         ])
     );
     assert.equal(
         loaded.filter(({ contentPackId }) => contentPackId === "general-expansion-batch-001-500-reviewed-2026-10-15").length,
         483
+    );
+    assert.equal(
+        loaded.filter(({ contentPackId }) => contentPackId === "general-expansion-batch-001-recovery-reviewed-2026-10-15").length,
+        138
     );
     assert.equal(
         loaded.filter(({ contentPackId }) => contentPackId === "general-expansion-batch-002-reviewed-2026-10-15").length,

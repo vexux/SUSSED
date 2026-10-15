@@ -1,0 +1,1799 @@
+{
+  "contentPackId": "general-expansion-batch-001-recovery-reviewed-2026-10-15",
+  "questions": [
+    {
+      "id": "titan-atmosphere-main-gas",
+      "text": "The main gas in Titan’s atmosphere is ____, as it is in Earth’s atmosphere.",
+      "correctCompletion": "nitrogen",
+      "sourceName": "NASA Science — Titan Facts",
+      "sourceUrl": "https://science.nasa.gov/saturn/moons/titan/facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "moons",
+        "atmospheres"
+      ]
+    },
+    {
+      "id": "titan-dunes",
+      "text": "Vast dark dunes on Titan are concentrated mainly around its ____ regions.",
+      "correctCompletion": "equatorial",
+      "sourceName": "NASA Science — Titan Facts",
+      "sourceUrl": "https://science.nasa.gov/saturn/moons/titan/facts/",
+      "category": "space",
+      "difficulty": "hard",
+      "tags": [
+        "moons",
+        "landforms"
+      ]
+    },
+    {
+      "id": "europa-atmosphere",
+      "text": "Europa has a very thin atmosphere composed largely of ____.",
+      "correctCompletion": "oxygen",
+      "sourceName": "NASA Science — Europa Facts",
+      "sourceUrl": "https://science.nasa.gov/jupiter/jupiter-moons/europa/europa-facts/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "moons",
+        "atmospheres"
+      ]
+    },
+    {
+      "id": "enceladus-ocean-plumes",
+      "text": "Saturn’s moon Enceladus sprays water vapor and ice particles from an ocean beneath its icy ____.",
+      "correctCompletion": "crust",
+      "sourceName": "NASA Science — Our Solar System’s Most Marvelous Moons",
+      "sourceUrl": "https://science.nasa.gov/solar-system/moons/10-things-about-our-solar-systems-most-marvelous-moons/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "moons",
+        "plumes"
+      ]
+    },
+    {
+      "id": "charon-discovery-accident",
+      "text": "Astronomer James Christy noticed Pluto’s image looked elongated while he was refining Pluto’s ____ around the Sun.",
+      "correctCompletion": "orbit",
+      "sourceName": "NASA Science — Calling All Pluto Lovers",
+      "sourceUrl": "https://science.nasa.gov/solar-system/dwarf-planets/pluto/10-things-calling-all-pluto-lovers/",
+      "category": "space",
+      "difficulty": "hard",
+      "tags": [
+        "astronomy-history",
+        "charon"
+      ]
+    },
+    {
+      "id": "phobos-stickney-crater",
+      "text": "The most prominent feature on Mars’s moon Phobos is the large ____ Crater.",
+      "correctCompletion": "Stickney",
+      "sourceName": "NASA Science — Craters We Love",
+      "sourceUrl": "https://science.nasa.gov/solar-system/10-things-greatest-hits-craters-we-love/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "moons",
+        "craters"
+      ]
+    },
+    {
+      "id": "ceres-ice-volcanoes",
+      "text": "The dwarf planet Ceres shows signs of active geology, including ice ____.",
+      "correctCompletion": "volcanoes",
+      "sourceName": "NASA Science — What’s That Space Rock?",
+      "sourceUrl": "https://science.nasa.gov/solar-system/10-things-whats-that-space-rock/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "dwarf-planets",
+        "geology"
+      ]
+    },
+    {
+      "id": "uranus-21-year-winter",
+      "text": "Because of Uranus’s extreme axial tilt, part of the planet can experience a dark winter lasting about ____ Earth years.",
+      "correctCompletion": "21",
+      "sourceName": "NASA Science — Uranus Facts",
+      "sourceUrl": "https://science.nasa.gov/uranus/facts/",
+      "category": "space",
+      "difficulty": "hard",
+      "tags": [
+        "uranus",
+        "seasons"
+      ]
+    },
+    {
+      "id": "uranus-moon-names",
+      "text": "Unlike most planetary moons named after classical mythology, Uranus’s moons are named for characters from Shakespeare and Alexander ____.",
+      "correctCompletion": "Pope",
+      "sourceName": "NASA Science — Uranus Facts",
+      "sourceUrl": "https://science.nasa.gov/uranus/facts/",
+      "category": "space",
+      "difficulty": "hard",
+      "tags": [
+        "uranus",
+        "astronomy-history"
+      ]
+    },
+    {
+      "id": "saturn-megastorm-frequency",
+      "text": "NASA describes a giant storm on Saturn as occurring roughly every 20 to 30 Earth ____.",
+      "correctCompletion": "years",
+      "sourceName": "NASA Science — Planetary Atmospheres",
+      "sourceUrl": "https://science.nasa.gov/solar-system/10-things-planetary-atmospheres/",
+      "category": "space",
+      "difficulty": "medium",
+      "tags": [
+        "saturn",
+        "weather"
+      ]
+    },
+    {
+      "id": "jupiter-cloud-layers",
+      "text": "NASA describes Jupiter’s clouds as having three main layers involving ammonia, ammonium hydrosulfide, and ____.",
+      "correctCompletion": "water",
+      "sourceName": "NASA Science — Planetary Atmospheres",
+      "sourceUrl": "https://science.nasa.gov/solar-system/10-things-planetary-atmospheres/",
+      "category": "space",
+      "difficulty": "hard",
+      "tags": [
+        "jupiter",
+        "atmospheres"
+      ]
+    },
+    {
+      "id": "porcupine-quill-count",
+      "text": "A North American porcupine is covered with roughly ____ quills.",
+      "correctCompletion": "30,000",
+      "sourceName": "Smithsonian National Zoo — 11 Fascinating Facts About North American Porcupines",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/news/11-fascinating-facts-about-north-american-porcupines",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "porcupines",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "porcupine-swimming",
+      "text": "Despite their spines, North American porcupines are capable of climbing trees and ____.",
+      "correctCompletion": "swimming",
+      "sourceName": "Smithsonian National Zoo — North American Porcupine",
+      "sourceUrl": "https://www.nationalzoo.si.edu/animals/north-american-porcupine",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "porcupines",
+        "behavior"
+      ]
+    },
+    {
+      "id": "caecilian-milk-like-fluid",
+      "text": "Some caecilian mothers also feed their young a milk-like ____.",
+      "correctCompletion": "fluid",
+      "sourceName": "Smithsonian National Zoo — 7 Spooktacular Animal Facts",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/news/7-spooktacular-animal-facts-halloween",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "amphibians",
+        "parenting"
+      ]
+    },
+    {
+      "id": "cuban-crocodile-land-speed",
+      "text": "Cuban crocodiles are unusually agile on land partly because they have long, sturdy legs and reduced webbing between their ____.",
+      "correctCompletion": "toes",
+      "sourceName": "Smithsonian National Zoo — 8 Fascinating Facts About the Cuban Crocodile",
+      "sourceUrl": "https://www.nationalzoo.si.edu/animals/news/8-fascinating-facts-about-cuban-crocodile-rare-caribbean-predator",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "crocodiles",
+        "locomotion"
+      ]
+    },
+    {
+      "id": "panda-cub-eyes",
+      "text": "Giant panda cubs usually do not open their eyes until they are about six to eight ____ old.",
+      "correctCompletion": "weeks",
+      "sourceName": "Smithsonian National Zoo — Giant Panda",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/giant-panda",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "pandas",
+        "development"
+      ]
+    },
+    {
+      "id": "panda-cub-mother-years",
+      "text": "A giant panda cub may stay with its mother for up to ____ years before leaving.",
+      "correctCompletion": "three",
+      "sourceName": "Smithsonian National Zoo — Giant Panda",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/giant-panda",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "pandas",
+        "parenting"
+      ]
+    },
+    {
+      "id": "crocodile-heart-valve",
+      "text": "Crocodilians have a special heart structure that allows blood flow to be redirected through a connection called the foramen of ____.",
+      "correctCompletion": "Panizza",
+      "sourceName": "Smithsonian National Zoo — Reptile Discovery Center",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/reptile-discovery-center",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "crocodiles",
+        "physiology"
+      ]
+    },
+    {
+      "id": "marine-snow-flakes-centimeters",
+      "text": "Some marine-snow flakes grow to several ____ across as they sink.",
+      "correctCompletion": "centimeters",
+      "sourceName": "NOAA Ocean Service — What Is Marine Snow?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/marinesnow.html",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "deep-sea",
+        "marine-snow"
+      ]
+    },
+    {
+      "id": "deep-ocean-ooze-coverage",
+      "text": "NOAA notes that smooth, muddy ooze covers about three-quarters of the deep-ocean ____.",
+      "correctCompletion": "floor",
+      "sourceName": "NOAA Ocean Service — What Is Marine Snow?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/marinesnow.html",
+      "category": "ocean",
+      "difficulty": "hard",
+      "tags": [
+        "seafloor",
+        "sediment"
+      ]
+    },
+    {
+      "id": "deep-sea-ooze-accumulation",
+      "text": "The deep-ocean ooze described by NOAA can accumulate as much as six metres every million ____.",
+      "correctCompletion": "years",
+      "sourceName": "NOAA Ocean Service — What Is Marine Snow?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/marinesnow.html",
+      "category": "ocean",
+      "difficulty": "hard",
+      "tags": [
+        "seafloor",
+        "sediment"
+      ]
+    },
+    {
+      "id": "hydrothermal-vents-black-smokers",
+      "text": "Some deep-sea hydrothermal vents emit dark mineral-rich plumes nicknamed ____ smokers.",
+      "correctCompletion": "black",
+      "sourceName": "NOAA Ocean Exploration — Hydrothermal Vents",
+      "sourceUrl": "https://oceanexplorer.noaa.gov/facts/vents.html",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "vents",
+        "geology"
+      ]
+    },
+    {
+      "id": "deep-sea-pressure-extreme",
+      "text": "At the deepest parts of the ocean, pressure can exceed 1,000 times the pressure at the sea ____.",
+      "correctCompletion": "surface",
+      "sourceName": "NOAA Ocean Exploration — Deep Ocean",
+      "sourceUrl": "https://oceanexplorer.noaa.gov/facts/deep-ocean.html",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "deep-sea",
+        "pressure"
+      ]
+    },
+    {
+      "id": "anglerfish-lure-bacteria",
+      "text": "In some deep-sea anglerfish, the glowing lure is powered by symbiotic light-producing ____.",
+      "correctCompletion": "bacteria",
+      "sourceName": "NOAA Ocean Exploration — Bioluminescence",
+      "sourceUrl": "https://oceanexplorer.noaa.gov/facts/bioluminescence.html",
+      "category": "ocean",
+      "difficulty": "hard",
+      "tags": [
+        "deep-sea",
+        "bioluminescence"
+      ]
+    },
+    {
+      "id": "hydrothermal-vents-seawater-rock",
+      "text": "Hydrothermal vent fluids form when seawater circulates through hot oceanic ____.",
+      "correctCompletion": "crust",
+      "sourceName": "NOAA Ocean Exploration — Hydrothermal Vents",
+      "sourceUrl": "https://oceanexplorer.noaa.gov/facts/vents.html",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "vents",
+        "geology"
+      ]
+    },
+    {
+      "id": "ocean-sound-travel",
+      "text": "Sound generally travels faster through seawater than through the ____ at ordinary surface conditions.",
+      "correctCompletion": "air",
+      "sourceName": "NOAA Ocean Service — How Does Sound Travel in the Ocean?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/sound.html",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "sound",
+        "physics"
+      ]
+    },
+    {
+      "id": "whale-falls-deep-sea",
+      "text": "When a whale carcass sinks and becomes a long-lasting deep-sea food source, it is called a whale ____.",
+      "correctCompletion": "fall",
+      "sourceName": "NOAA Ocean Exploration — Whale Falls",
+      "sourceUrl": "https://oceanexplorer.noaa.gov/facts/whale-fall.html",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "deep-sea",
+        "food-web"
+      ]
+    },
+    {
+      "id": "deep-sea-brine-pools",
+      "text": "Extremely salty underwater pools can be so dense that they form a distinct boundary with surrounding seawater, called a brine ____.",
+      "correctCompletion": "pool",
+      "sourceName": "NOAA Ocean Exploration — Brine Pools",
+      "sourceUrl": "https://oceanexplorer.noaa.gov/facts/brine-pools.html",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "deep-sea",
+        "salinity"
+      ]
+    },
+    {
+      "id": "deep-sea-brine-oxygen",
+      "text": "Some deep-sea brine pools are so harsh that their water can be anoxic, meaning it contains almost no dissolved ____.",
+      "correctCompletion": "oxygen",
+      "sourceName": "NOAA Ocean Exploration — Brine Pools",
+      "sourceUrl": "https://oceanexplorer.noaa.gov/facts/brine-pools.html",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "deep-sea",
+        "chemistry"
+      ]
+    },
+    {
+      "id": "coral-reef-animal-colony",
+      "text": "A coral colony is made up of many tiny animals called coral ____.",
+      "correctCompletion": "polyps",
+      "sourceName": "NOAA Ocean Service — What Are Corals?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/coral.html",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "corals",
+        "biology"
+      ]
+    },
+    {
+      "id": "coral-night-feeding",
+      "text": "Many corals extend their tentacles to feed more actively at ____.",
+      "correctCompletion": "night",
+      "sourceName": "NOAA Ocean Service — What Are Corals?",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/coral.html",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "corals",
+        "feeding"
+      ]
+    },
+    {
+      "id": "sea-cucumber-defense-organs",
+      "text": "Some sea cucumbers defend themselves by expelling sticky internal organs called Cuvierian ____.",
+      "correctCompletion": "tubules",
+      "sourceName": "Smithsonian Ocean — Sea Cucumbers",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sea-cucumbers",
+      "category": "ocean",
+      "difficulty": "hard",
+      "tags": [
+        "echinoderms",
+        "defense"
+      ]
+    },
+    {
+      "id": "sea-star-regrow-body",
+      "text": "Some sea stars can regenerate lost arms, and certain species can regenerate much of the ____ from an arm.",
+      "correctCompletion": "body",
+      "sourceName": "Smithsonian Ocean — Sea Stars",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sea-stars",
+      "category": "ocean",
+      "difficulty": "hard",
+      "tags": [
+        "echinoderms",
+        "regeneration"
+      ]
+    },
+    {
+      "id": "mimic-octopus-imitates",
+      "text": "The mimic octopus can change its posture and movement to imitate other marine ____.",
+      "correctCompletion": "animals",
+      "sourceName": "Smithsonian Ocean — Mimic Octopus",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/mimic-octopus",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "octopus",
+        "camouflage"
+      ]
+    },
+    {
+      "id": "manta-ray-filter-feeding",
+      "text": "Manta rays feed by filtering tiny organisms from the ____.",
+      "correctCompletion": "water",
+      "sourceName": "NOAA Fisheries — Giant Manta Ray",
+      "sourceUrl": "https://www.fisheries.noaa.gov/species/giant-manta-ray",
+      "category": "ocean",
+      "difficulty": "easy",
+      "tags": [
+        "rays",
+        "feeding"
+      ]
+    },
+    {
+      "id": "fulgurite-lightning-sand",
+      "text": "When lightning melts sand into natural glassy tubes, the formations are called ____.",
+      "correctCompletion": "fulgurites",
+      "sourceName": "USGS — Volcanic Glasses, Their Origins and Alteration Processes",
+      "sourceUrl": "https://www.usgs.gov/publications/volcanic-glasses-their-origins-and-alteration-processes",
+      "category": "earth",
+      "difficulty": "hard",
+      "tags": [
+        "lightning",
+        "geology"
+      ]
+    },
+    {
+      "id": "obsidian-volcanic-glass",
+      "text": "Obsidian is natural glass formed when lava cools so rapidly that crystals have little time to ____.",
+      "correctCompletion": "grow",
+      "sourceName": "USGS — Volcanic Glasses, Their Origins and Alteration Processes",
+      "sourceUrl": "https://www.usgs.gov/publications/volcanic-glasses-their-origins-and-alteration-processes",
+      "category": "earth",
+      "difficulty": "medium",
+      "tags": [
+        "volcanoes",
+        "minerals"
+      ]
+    },
+    {
+      "id": "rhyolite-glass-viscosity",
+      "text": "High-silica rhyolitic magma can form thick bodies of volcanic glass partly because it is very ____.",
+      "correctCompletion": "viscous",
+      "sourceName": "USGS — Volcanic Glasses, Their Origins and Alteration Processes",
+      "sourceUrl": "https://www.usgs.gov/publications/volcanic-glasses-their-origins-and-alteration-processes",
+      "category": "earth",
+      "difficulty": "hard",
+      "tags": [
+        "volcanoes",
+        "geology"
+      ]
+    },
+    {
+      "id": "basalt-glass-palagonite",
+      "text": "Basaltic volcanic glass altered by seawater can develop a layer called ____.",
+      "correctCompletion": "palagonite",
+      "sourceName": "USGS — Volcanic Glasses, Their Origins and Alteration Processes",
+      "sourceUrl": "https://www.usgs.gov/publications/volcanic-glasses-their-origins-and-alteration-processes",
+      "category": "earth",
+      "difficulty": "hard",
+      "tags": [
+        "volcanoes",
+        "geochemistry"
+      ]
+    },
+    {
+      "id": "volcanic-lightning-ash",
+      "text": "Lightning can occur in volcanic plumes when ash particles collide and become electrically ____.",
+      "correctCompletion": "charged",
+      "sourceName": "USGS — Volcanic Lightning",
+      "sourceUrl": "https://www.usgs.gov/programs/VHP/volcanic-lightning",
+      "category": "earth",
+      "difficulty": "medium",
+      "tags": [
+        "volcanoes",
+        "atmosphere"
+      ]
+    },
+    {
+      "id": "earthquake-liquefaction-saturated",
+      "text": "During liquefaction, water-saturated loose sediment can temporarily behave more like a ____.",
+      "correctCompletion": "liquid",
+      "sourceName": "USGS — Liquefaction",
+      "sourceUrl": "https://www.usgs.gov/programs/earthquake-hazards/liquefaction",
+      "category": "earth",
+      "difficulty": "medium",
+      "tags": [
+        "earthquakes",
+        "soil"
+      ]
+    },
+    {
+      "id": "earthquake-sand-boils",
+      "text": "When liquefaction forces water and sand to the surface, the deposits can form features called sand ____.",
+      "correctCompletion": "boils",
+      "sourceName": "USGS — Liquefaction",
+      "sourceUrl": "https://www.usgs.gov/programs/earthquake-hazards/liquefaction",
+      "category": "earth",
+      "difficulty": "hard",
+      "tags": [
+        "earthquakes",
+        "soil"
+      ]
+    },
+    {
+      "id": "columnar-joints-basalt",
+      "text": "Some cooling lava forms striking polygonal columns as the rock contracts and fractures into ____ joints.",
+      "correctCompletion": "columnar",
+      "sourceName": "USGS — Columnar Jointing",
+      "sourceUrl": "https://www.usgs.gov/observatories/cascades-volcano-observatory/science/columnar-jointing",
+      "category": "earth",
+      "difficulty": "medium",
+      "tags": [
+        "volcanoes",
+        "landforms"
+      ]
+    },
+    {
+      "id": "desert-varnish-rock",
+      "text": "The dark coating found on many desert rocks is commonly called desert ____.",
+      "correctCompletion": "varnish",
+      "sourceName": "USGS — Desert Varnish",
+      "sourceUrl": "https://www.usgs.gov/centers/geosciences-and-environmental-change-science-center/science/desert-varnish",
+      "category": "earth",
+      "difficulty": "hard",
+      "tags": [
+        "deserts",
+        "geochemistry"
+      ]
+    },
+    {
+      "id": "fossil-amber-resin",
+      "text": "Amber is fossilized tree ____, and it can preserve small organisms trapped long ago.",
+      "correctCompletion": "resin",
+      "sourceName": "Smithsonian National Museum of Natural History — Amber",
+      "sourceUrl": "https://naturalhistory.si.edu/education/teaching-resources/fossils/amber",
+      "category": "earth",
+      "difficulty": "easy",
+      "tags": [
+        "fossils",
+        "preservation"
+      ]
+    },
+    {
+      "id": "shark-teeth-fossil-common",
+      "text": "Shark teeth are common fossils partly because teeth are harder and preserve more readily than much of a shark’s ____ skeleton.",
+      "correctCompletion": "cartilaginous",
+      "sourceName": "Natural History Museum — Shark Teeth",
+      "sourceUrl": "https://www.nhm.ac.uk/discover/shark-teeth.html",
+      "category": "earth",
+      "difficulty": "hard",
+      "tags": [
+        "fossils",
+        "sharks"
+      ]
+    },
+    {
+      "id": "volcanic-bomb-rounded",
+      "text": "A large blob of molten lava that is hurled out and solidifies in the air is called a volcanic ____.",
+      "correctCompletion": "bomb",
+      "sourceName": "USGS — Volcano Hazards Program Glossary",
+      "sourceUrl": "https://www.usgs.gov/programs/VHP/volcano-hazards-program-glossary",
+      "category": "earth",
+      "difficulty": "medium",
+      "tags": [
+        "volcanoes",
+        "rocks"
+      ]
+    },
+    {
+      "id": "volcano-lava-tube",
+      "text": "A tunnel left behind when the surface of a lava flow solidifies while molten lava continues flowing underneath is a lava ____.",
+      "correctCompletion": "tube",
+      "sourceName": "National Park Service — Lava Tubes",
+      "sourceUrl": "https://www.nps.gov/subjects/caves/lava-tubes.htm",
+      "category": "earth",
+      "difficulty": "medium",
+      "tags": [
+        "volcanoes",
+        "landforms"
+      ]
+    },
+    {
+      "id": "venus-flytrap-digestive-enzymes",
+      "text": "After trapping suitable prey, a Venus flytrap releases digestive ____.",
+      "correctCompletion": "enzymes",
+      "sourceName": "North Carolina State Extension — Venus Flytrap",
+      "sourceUrl": "https://plants.ces.ncsu.edu/plants/dionaea-muscipula/",
+      "category": "plants",
+      "difficulty": "medium",
+      "tags": [
+        "carnivorous-plants",
+        "digestion"
+      ]
+    },
+    {
+      "id": "pitcher-plant-drowning-pool",
+      "text": "Many pitcher plants trap prey in a deep cavity filled with digestive ____.",
+      "correctCompletion": "fluid",
+      "sourceName": "Royal Botanic Gardens Kew — Carnivorous Plants",
+      "sourceUrl": "https://www.kew.org/read-and-watch/carnivorous-plants",
+      "category": "plants",
+      "difficulty": "medium",
+      "tags": [
+        "carnivorous-plants",
+        "adaptation"
+      ]
+    },
+    {
+      "id": "orchid-bee-pollination",
+      "text": "Some orchids mimic female insects in appearance or scent to attract males that transfer their ____.",
+      "correctCompletion": "pollen",
+      "sourceName": "Royal Botanic Gardens Kew — Orchids and Pollination",
+      "sourceUrl": "https://www.kew.org/read-and-watch/orchids-and-pollination",
+      "category": "plants",
+      "difficulty": "hard",
+      "tags": [
+        "orchids",
+        "pollination"
+      ]
+    },
+    {
+      "id": "corpse-flower-odor",
+      "text": "The corpse flower’s powerful smell resembles rotting ____ and attracts carrion-seeking pollinators.",
+      "correctCompletion": "flesh",
+      "sourceName": "Chicago Botanic Garden — Corpse Flower",
+      "sourceUrl": "https://www.chicagobotanic.org/plantinfo/corpse_flower",
+      "category": "plants",
+      "difficulty": "easy",
+      "tags": [
+        "corpse-flower",
+        "pollination"
+      ]
+    },
+    {
+      "id": "bamboo-flowering-synchrony",
+      "text": "Some bamboo species flower in synchrony across large areas after long intervals, a phenomenon called gregarious ____.",
+      "correctCompletion": "flowering",
+      "sourceName": "Royal Botanic Gardens Kew — Bamboo",
+      "sourceUrl": "https://www.kew.org/read-and-watch/bamboo",
+      "category": "plants",
+      "difficulty": "hard",
+      "tags": [
+        "bamboo",
+        "plant-cycles"
+      ]
+    },
+    {
+      "id": "mimosa-leaves-fold-touch",
+      "text": "The sensitive plant Mimosa pudica folds its leaflets when touched, a response called ____.",
+      "correctCompletion": "thigmonasty",
+      "sourceName": "Royal Botanic Gardens Kew — Sensitive Plant",
+      "sourceUrl": "https://www.kew.org/read-and-watch/sensitive-plant",
+      "category": "plants",
+      "difficulty": "hard",
+      "tags": [
+        "plant-movement",
+        "behavior"
+      ]
+    },
+    {
+      "id": "sunflower-young-tracking",
+      "text": "Young sunflower heads track the Sun across the sky through a movement called ____.",
+      "correctCompletion": "heliotropism",
+      "sourceName": "University of California Berkeley — Sunflowers",
+      "sourceUrl": "https://news.berkeley.edu/2016/08/05/sunflowers-track-the-sun/",
+      "category": "plants",
+      "difficulty": "hard",
+      "tags": [
+        "sunflowers",
+        "plant-movement"
+      ]
+    },
+    {
+      "id": "fungus-largest-organism",
+      "text": "A famous genetically connected honey fungus in Oregon spreads across a forest through underground fungal ____.",
+      "correctCompletion": "mycelium",
+      "sourceName": "US Forest Service — Armillaria Root Disease",
+      "sourceUrl": "https://www.fs.usda.gov/foresthealth/protecting-forest/forest-health-monitoring/armillaria.shtml",
+      "category": "plants",
+      "difficulty": "hard",
+      "tags": [
+        "fungi",
+        "organisms"
+      ]
+    },
+    {
+      "id": "tardigrade-cryptobiosis",
+      "text": "Tardigrades can enter an extreme dormant state called anhydrobiosis when they lose most of their ____.",
+      "correctCompletion": "water",
+      "sourceName": "Natural History Museum — Tardigrades",
+      "sourceUrl": "https://www.nhm.ac.uk/discover/what-are-tardigrades.html",
+      "category": "biology",
+      "difficulty": "medium",
+      "tags": [
+        "tardigrades",
+        "survival"
+      ]
+    },
+    {
+      "id": "axolotl-neoteny",
+      "text": "Axolotls can reproduce while retaining larval features, a condition called ____.",
+      "correctCompletion": "neoteny",
+      "sourceName": "Smithsonian's National Zoo — Axolotl",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/axolotl",
+      "category": "biology",
+      "difficulty": "hard",
+      "tags": [
+        "axolotl",
+        "development"
+      ]
+    },
+    {
+      "id": "immortal-jellyfish-reversion",
+      "text": "Turritopsis dohrnii can revert from its adult stage to an earlier life stage, a process often described as cellular ____.",
+      "correctCompletion": "transdifferentiation",
+      "sourceName": "Smithsonian Ocean — Immortal Jellyfish",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/immortal-jellyfish",
+      "category": "biology",
+      "difficulty": "hard",
+      "tags": [
+        "jellyfish",
+        "life-cycle"
+      ]
+    },
+    {
+      "id": "fungus-ant-zombie",
+      "text": "Some parasitic Ophiocordyceps fungi manipulate the behavior of infected ____.",
+      "correctCompletion": "ants",
+      "sourceName": "Natural History Museum — Zombie Ant Fungus",
+      "sourceUrl": "https://www.nhm.ac.uk/discover/zombie-ant-fungus.html",
+      "category": "biology",
+      "difficulty": "medium",
+      "tags": [
+        "fungi",
+        "parasites"
+      ]
+    },
+    {
+      "id": "cuckoo-egg-mimicry",
+      "text": "Some brood-parasitic cuckoos lay eggs that mimic the appearance of their host’s ____.",
+      "correctCompletion": "eggs",
+      "sourceName": "Cornell Lab of Ornithology — Brood Parasitism",
+      "sourceUrl": "https://www.allaboutbirds.org/news/why-do-cuckoos-lay-their-eggs-in-other-birds-nests/",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "birds",
+        "parasitism"
+      ]
+    },
+    {
+      "id": "parrotfish-sand-production",
+      "text": "Parrotfish produce much of their reef sand by grinding coral rock and excreting it as fine ____.",
+      "correctCompletion": "sand",
+      "sourceName": "NOAA Ocean Service — Parrotfish",
+      "sourceUrl": "https://oceanservice.noaa.gov/facts/parrotfish.html",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "fish",
+        "reef-ecology"
+      ]
+    },
+    {
+      "id": "wood-frog-freezing",
+      "text": "Wood frogs can survive winter with much of the water in their bodies frozen, entering a state of suspended ____.",
+      "correctCompletion": "animation",
+      "sourceName": "National Park Service — Wood Frog",
+      "sourceUrl": "https://www.nps.gov/articles/000/wood-frog.htm",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "frogs",
+        "survival"
+      ]
+    },
+    {
+      "id": "electric-eel-electric-organs",
+      "text": "Electric eels generate powerful shocks using specialized electric ____.",
+      "correctCompletion": "organs",
+      "sourceName": "Smithsonian National Zoo — Electric Eel",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/electric-eel",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "fish",
+        "electricity"
+      ]
+    },
+    {
+      "id": "bombardier-beetle-hot-spray",
+      "text": "Bombardier beetles defend themselves by ejecting a hot chemical spray produced by a reaction in their ____.",
+      "correctCompletion": "abdomen",
+      "sourceName": "Natural History Museum — Bombardier Beetles",
+      "sourceUrl": "https://www.nhm.ac.uk/discover/bombardier-beetles.html",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "insects",
+        "defense"
+      ]
+    },
+    {
+      "id": "pistol-shrimp-cavitation",
+      "text": "A snapping pistol shrimp’s claw can create a collapsing bubble through a process called ____.",
+      "correctCompletion": "cavitation",
+      "sourceName": "Smithsonian Ocean — Pistol Shrimp",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/pistol-shrimp",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "shrimp",
+        "physics"
+      ]
+    },
+    {
+      "id": "cuttlefish-color-changing",
+      "text": "Cuttlefish change skin patterns using specialized pigment cells called ____.",
+      "correctCompletion": "chromatophores",
+      "sourceName": "Smithsonian Ocean — Cuttlefish",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/cuttlefish",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "cuttlefish",
+        "camouflage"
+      ]
+    },
+    {
+      "id": "stomach-lining-mucus",
+      "text": "The stomach protects itself from its own acid with a mucus-rich protective ____.",
+      "correctCompletion": "barrier",
+      "sourceName": "NIDDK — Your Digestive System & How It Works",
+      "sourceUrl": "https://www.niddk.nih.gov/health-information/digestive-diseases/digestive-system-how-it-works",
+      "category": "human-body",
+      "difficulty": "medium",
+      "tags": [
+        "digestion",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "skin-largest-organ",
+      "text": "The skin is the body’s largest ____.",
+      "correctCompletion": "organ",
+      "sourceName": "NIH MedlinePlus — Skin",
+      "sourceUrl": "https://medlineplus.gov/skinconditions.html",
+      "category": "human-body",
+      "difficulty": "easy",
+      "tags": [
+        "skin",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "brain-pain-itself",
+      "text": "The brain tissue itself lacks pain receptors, although surrounding structures can generate head ____.",
+      "correctCompletion": "pain",
+      "sourceName": "Harvard Health — Pain in the Brain",
+      "sourceUrl": "https://www.health.harvard.edu/mind-and-mood/what-causes-headaches",
+      "category": "human-body",
+      "difficulty": "medium",
+      "tags": [
+        "brain",
+        "physiology"
+      ]
+    },
+    {
+      "id": "cornea-no-blood-vessels",
+      "text": "The clear cornea at the front of the eye contains no blood ____.",
+      "correctCompletion": "vessels",
+      "sourceName": "National Eye Institute — How the Eye Works",
+      "sourceUrl": "https://www.nei.nih.gov/learn-about-eye-health/healthy-vision/how-eyes-work",
+      "category": "human-body",
+      "difficulty": "medium",
+      "tags": [
+        "eye",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "taste-smell-flavor",
+      "text": "Much of what people experience as food flavor depends on the sense of ____.",
+      "correctCompletion": "smell",
+      "sourceName": "NIDCD — Smell Disorders",
+      "sourceUrl": "https://www.nidcd.nih.gov/health/smell-disorders",
+      "category": "human-body",
+      "difficulty": "easy",
+      "tags": [
+        "senses",
+        "food"
+      ]
+    },
+    {
+      "id": "ear-bones-smallest",
+      "text": "The three tiny bones of the middle ear include the malleus, incus, and ____.",
+      "correctCompletion": "stapes",
+      "sourceName": "NIDCD — How Do We Hear?",
+      "sourceUrl": "https://www.nidcd.nih.gov/health/how-do-we-hear",
+      "category": "human-body",
+      "difficulty": "medium",
+      "tags": [
+        "hearing",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "eye-blind-spot-optic-nerve",
+      "text": "The normal blind spot occurs where the optic nerve exits the ____.",
+      "correctCompletion": "retina",
+      "sourceName": "National Eye Institute — How the Eye Works",
+      "sourceUrl": "https://www.nei.nih.gov/learn-about-eye-health/healthy-vision/how-eyes-work",
+      "category": "human-body",
+      "difficulty": "medium",
+      "tags": [
+        "vision",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "fingerprints-before-birth",
+      "text": "Human fingerprints begin forming before ____.",
+      "correctCompletion": "birth",
+      "sourceName": "NIH MedlinePlus — Genetics",
+      "sourceUrl": "https://medlineplus.gov/genetics/understanding/traits/fingerprints/",
+      "category": "human-body",
+      "difficulty": "easy",
+      "tags": [
+        "skin",
+        "development"
+      ]
+    },
+    {
+      "id": "liver-regeneration",
+      "text": "The liver can regrow much of its lost mass through a process of ____.",
+      "correctCompletion": "regeneration",
+      "sourceName": "NIDDK — Liver Disease",
+      "sourceUrl": "https://www.niddk.nih.gov/health-information/liver-disease",
+      "category": "human-body",
+      "difficulty": "medium",
+      "tags": [
+        "liver",
+        "physiology"
+      ]
+    },
+    {
+      "id": "red-blood-cell-no-nucleus",
+      "text": "Mature human red blood cells lack a cell ____.",
+      "correctCompletion": "nucleus",
+      "sourceName": "NIH MedlinePlus — Blood",
+      "sourceUrl": "https://medlineplus.gov/blood.html",
+      "category": "human-body",
+      "difficulty": "easy",
+      "tags": [
+        "blood",
+        "cells"
+      ]
+    },
+    {
+      "id": "bones-baby-count",
+      "text": "Babies are born with more bones than adults because some bones later ____.",
+      "correctCompletion": "fuse",
+      "sourceName": "NIH MedlinePlus — Bones, Joints and Muscles",
+      "sourceUrl": "https://medlineplus.gov/bonesjointsandmuscles.html",
+      "category": "human-body",
+      "difficulty": "easy",
+      "tags": [
+        "skeleton",
+        "development"
+      ]
+    },
+    {
+      "id": "stapes-vibrates-hearing",
+      "text": "The smallest bone in the human body, the stapes, transmits sound vibrations in the ____ ear.",
+      "correctCompletion": "middle",
+      "sourceName": "NIDCD — How Do We Hear?",
+      "sourceUrl": "https://www.nidcd.nih.gov/health/how-do-we-hear",
+      "category": "human-body",
+      "difficulty": "medium",
+      "tags": [
+        "hearing",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "goosebumps-vestigial",
+      "text": "Goosebumps are produced by tiny muscles attached to hair follicles, a response that can raise body ____.",
+      "correctCompletion": "hairs",
+      "sourceName": "Cleveland Clinic — Goosebumps",
+      "sourceUrl": "https://health.clevelandclinic.org/goosebumps",
+      "category": "human-body",
+      "difficulty": "medium",
+      "tags": [
+        "skin",
+        "evolution"
+      ]
+    },
+    {
+      "id": "sneeze-eyes-closed-myth",
+      "text": "It is possible to sneeze with your eyes open; the reflex does not make eyelid closure absolutely ____.",
+      "correctCompletion": "necessary",
+      "sourceName": "Cleveland Clinic — Sneezing",
+      "sourceUrl": "https://health.clevelandclinic.org/why-do-we-sneeze",
+      "category": "human-body",
+      "difficulty": "medium",
+      "tags": [
+        "reflexes",
+        "myths"
+      ]
+    },
+    {
+      "id": "nitinol-memory-metal",
+      "text": "A nickel-titanium alloy known for returning to a remembered shape is commonly called ____ metal.",
+      "correctCompletion": "memory",
+      "sourceName": "NASA — Shape Memory Alloys",
+      "sourceUrl": "https://www.nasa.gov/centers-and-facilities/ames/shape-memory-alloys/",
+      "category": "technology",
+      "difficulty": "medium",
+      "tags": [
+        "materials",
+        "alloys"
+      ]
+    },
+    {
+      "id": "aerogel-mostly-air",
+      "text": "Silica aerogel is an extremely light solid whose volume is mostly ____.",
+      "correctCompletion": "air",
+      "sourceName": "NASA — Aerogel",
+      "sourceUrl": "https://www.jpl.nasa.gov/edu/learn/project/aerogel/",
+      "category": "physics",
+      "difficulty": "medium",
+      "tags": [
+        "materials",
+        "aerogel"
+      ]
+    },
+    {
+      "id": "non-newtonian-cornstarch",
+      "text": "A cornstarch-and-water mixture that stiffens under sudden force is an example of a non-Newtonian ____.",
+      "correctCompletion": "fluid",
+      "sourceName": "Science Buddies — Non-Newtonian Fluids",
+      "sourceUrl": "https://www.sciencebuddies.org/science-fair-projects/project-ideas/Phys_p012/physics/non-newtonian-fluids",
+      "category": "physics",
+      "difficulty": "medium",
+      "tags": [
+        "fluids",
+        "materials"
+      ]
+    },
+    {
+      "id": "shape-memory-metal-temperature",
+      "text": "Shape-memory alloys can return toward a trained shape when their temperature changes through a transformation ____.",
+      "correctCompletion": "range",
+      "sourceName": "NASA — Shape Memory Alloys",
+      "sourceUrl": "https://www.nasa.gov/centers-and-facilities/ames/shape-memory-alloys/",
+      "category": "technology",
+      "difficulty": "hard",
+      "tags": [
+        "materials",
+        "engineering"
+      ]
+    },
+    {
+      "id": "liquid-nitrogen-boiling",
+      "text": "At standard atmospheric pressure, liquid nitrogen boils at about minus 196 degrees ____.",
+      "correctCompletion": "Celsius",
+      "sourceName": "NIST Chemistry WebBook — Nitrogen",
+      "sourceUrl": "https://webbook.nist.gov/cgi/cbook.cgi?ID=C7727379&Mask=4",
+      "category": "chemistry",
+      "difficulty": "medium",
+      "tags": [
+        "nitrogen",
+        "temperature"
+      ]
+    },
+    {
+      "id": "dry-ice-sublimation",
+      "text": "At ordinary atmospheric pressure, solid carbon dioxide changes directly into gas by ____.",
+      "correctCompletion": "sublimation",
+      "sourceName": "Royal Society of Chemistry — Carbon",
+      "sourceUrl": "https://periodic-table.rsc.org/element/6/carbon",
+      "category": "chemistry",
+      "difficulty": "medium",
+      "tags": [
+        "carbon-dioxide",
+        "states-of-matter"
+      ]
+    },
+    {
+      "id": "superfluid-helium-creep",
+      "text": "Liquid helium cooled below its lambda point becomes a superfluid with essentially zero viscosity and can exhibit unusual ____ behavior.",
+      "correctCompletion": "flow",
+      "sourceName": "NIST — Superfluid Helium",
+      "sourceUrl": "https://www.nist.gov/pml/sensor-science/cryogenic-technology",
+      "category": "physics",
+      "difficulty": "hard",
+      "tags": [
+        "quantum",
+        "fluids"
+      ]
+    },
+    {
+      "id": "shape-of-water-meniscus",
+      "text": "Water in a clean narrow glass tube can climb against gravity through capillary ____.",
+      "correctCompletion": "action",
+      "sourceName": "USGS Water Science School — Capillary Action",
+      "sourceUrl": "https://www.usgs.gov/special-topics/water-science-school/science/capillary-action",
+      "category": "physics",
+      "difficulty": "medium",
+      "tags": [
+        "fluids",
+        "surfaces"
+      ]
+    },
+    {
+      "id": "magnetic-levitation-superconductor",
+      "text": "A superconductor can expel magnetic fields through the ____ effect.",
+      "correctCompletion": "Meissner",
+      "sourceName": "NIST — Superconductivity",
+      "sourceUrl": "https://www.nist.gov/pml/superconductivity",
+      "category": "physics",
+      "difficulty": "hard",
+      "tags": [
+        "superconductivity",
+        "magnetism"
+      ]
+    },
+    {
+      "id": "medieval-bestiarum-animal-morals",
+      "text": "Medieval bestiaries often described animals as moral or religious ____, not merely as biological specimens.",
+      "correctCompletion": "symbols",
+      "sourceName": "The British Library — Medieval Bestiaries",
+      "sourceUrl": "https://www.bl.uk/medieval-english-french-manuscripts/articles/medieval-bestiaries",
+      "category": "culture",
+      "difficulty": "hard",
+      "tags": [
+        "books",
+        "medieval"
+      ]
+    },
+    {
+      "id": "ancient-egypt-cat-mummification",
+      "text": "Among the animals mummified in ancient Egypt, one reptile was a ____.",
+      "correctCompletion": "crocodile",
+      "sourceName": "The British Museum — Animal Mummies",
+      "sourceUrl": "https://www.britishmuseum.org/collection/galleries/egyptian-sculpture/animal-mummies",
+      "category": "history",
+      "difficulty": "medium",
+      "tags": [
+        "ancient-egypt",
+        "mummies"
+      ]
+    },
+    {
+      "id": "viking-sunstone-evidence",
+      "text": "A proposed Viking navigation aid called a sunstone may have helped locate the Sun under cloudy skies using light ____.",
+      "correctCompletion": "polarization",
+      "sourceName": "National Museum of Denmark — The Sunstone",
+      "sourceUrl": "https://en.natmus.dk/historical-knowledge/denmark/prehistoric-period-until-1050-ad/the-viking-age/the-sunstone/",
+      "category": "history",
+      "difficulty": "hard",
+      "tags": [
+        "vikings",
+        "navigation"
+      ]
+    },
+    {
+      "id": "ancient-roman-concrete-seawater",
+      "text": "Some ancient Roman marine concrete became more durable over time as seawater reacted with volcanic ash to form new ____ minerals.",
+      "correctCompletion": "crystalline",
+      "sourceName": "University of Utah — Roman Concrete",
+      "sourceUrl": "https://www.science.utah.edu/roman-concrete/",
+      "category": "history",
+      "difficulty": "hard",
+      "tags": [
+        "engineering",
+        "rome"
+      ]
+    },
+    {
+      "id": "chinese-shadow-puppetry-leather",
+      "text": "Traditional Chinese shadow puppets were often made from thin treated animal ____.",
+      "correctCompletion": "hide",
+      "sourceName": "UNESCO — Chinese Shadow Puppetry",
+      "sourceUrl": "https://ich.unesco.org/en/RL/chinese-shadow-puppetry-00421",
+      "category": "culture",
+      "difficulty": "medium",
+      "tags": [
+        "theatre",
+        "china"
+      ]
+    },
+    {
+      "id": "mummy-board-cartonnage",
+      "text": "Ancient Egyptian mummy cases could be made from a papier-mâché-like material called ____.",
+      "correctCompletion": "cartonnage",
+      "sourceName": "The British Museum — Cartonnage",
+      "sourceUrl": "https://www.britishmuseum.org/collection/term/x22411",
+      "category": "history",
+      "difficulty": "hard",
+      "tags": [
+        "ancient-egypt",
+        "materials"
+      ]
+    },
+    {
+      "id": "tardigrade-space-survival",
+      "text": "Some tardigrades have survived exposure to the vacuum of space when in a dehydrated, dormant ____.",
+      "correctCompletion": "state",
+      "sourceName": "Natural History Museum — What Are Tardigrades?",
+      "sourceUrl": "https://www.nhm.ac.uk/discover/what-are-tardigrades.html",
+      "category": "biology",
+      "difficulty": "medium",
+      "tags": [
+        "tardigrades",
+        "survival"
+      ]
+    },
+    {
+      "id": "cuttlefish-w-shaped-pupil",
+      "text": "Many cuttlefish have distinctive W-shaped ____.",
+      "correctCompletion": "pupils",
+      "sourceName": "Smithsonian Ocean — Cuttlefish",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/cuttlefish",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "cuttlefish",
+        "vision"
+      ]
+    },
+    {
+      "id": "nudibranch-color-warning",
+      "text": "Many nudibranchs use bright colors to warn predators that they are unpalatable or chemically ____.",
+      "correctCompletion": "defended",
+      "sourceName": "Smithsonian Ocean — Nudibranchs",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/nudibranchs",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "nudibranchs",
+        "warning-coloration"
+      ]
+    },
+    {
+      "id": "sea-star-eyespots",
+      "text": "Many sea stars have light-sensitive eyespots near the tips of their ____.",
+      "correctCompletion": "arms",
+      "sourceName": "Smithsonian Ocean — Sea Stars",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sea-stars",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "echinoderms",
+        "senses"
+      ]
+    },
+    {
+      "id": "sea-cucumber-evisceration",
+      "text": "The defense in which a sea cucumber expels internal organs is called ____.",
+      "correctCompletion": "evisceration",
+      "sourceName": "Smithsonian Ocean — Sea Cucumbers",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sea-cucumbers",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "sea-cucumbers",
+        "defense"
+      ]
+    },
+    {
+      "id": "crocodile-stone-swallowing",
+      "text": "Some crocodilians swallow stones, known as gastroliths, which may help with digestion or ____.",
+      "correctCompletion": "buoyancy",
+      "sourceName": "Smithsonian National Zoo — Reptile Discovery Center",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/reptile-discovery-center",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "crocodiles",
+        "behavior"
+      ]
+    },
+    {
+      "id": "owl-head-rotation",
+      "text": "Owls can rotate their heads far around because specialized neck anatomy helps preserve blood flow to the ____.",
+      "correctCompletion": "brain",
+      "sourceName": "Smithsonian National Zoo — Owl",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/owl",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "owls",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "flamingo-one-leg-standing",
+      "text": "Flamingos can stand on one leg for long periods, and research suggests the posture can reduce muscular effort and help conserve ____.",
+      "correctCompletion": "energy",
+      "sourceName": "Emory University — Why Flamingos Stand on One Leg",
+      "sourceUrl": "https://news.emory.edu/stories/2017/05/esc_flamingo/index.html",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "flamingos",
+        "behavior"
+      ]
+    },
+    {
+      "id": "echidna-four-headed-organ",
+      "text": "Male echidnas have a four-headed ____, although only some heads are used at a time during mating.",
+      "correctCompletion": "penis",
+      "sourceName": "Australian Museum — Echidna",
+      "sourceUrl": "https://australian.museum/learn/animals/mammals/echidna/",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "echidnas",
+        "reproduction"
+      ]
+    },
+    {
+      "id": "kangaroo-three-vaginas",
+      "text": "Female kangaroos have three vaginal canals: two for sperm transport and a central canal used for ____.",
+      "correctCompletion": "birth",
+      "sourceName": "Australian Museum — Kangaroo",
+      "sourceUrl": "https://australian.museum/learn/animals/mammals/red-kangaroo/",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "marsupials",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "owl-pellets-indigestible",
+      "text": "Owls often regurgitate compact pellets containing fur, feathers, and bones that they cannot ____.",
+      "correctCompletion": "digest",
+      "sourceName": "Cornell Lab of Ornithology — Owl Pellets",
+      "sourceUrl": "https://www.allaboutbirds.org/news/what-is-an-owl-pellet/",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "owls",
+        "feeding"
+      ]
+    },
+    {
+      "id": "vulture-stomach-acid",
+      "text": "Vultures can safely consume carrion partly because their digestive systems tolerate many pathogens and highly acidic stomach ____.",
+      "correctCompletion": "conditions",
+      "sourceName": "Smithsonian National Zoo — Vultures",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/vulture",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "vultures",
+        "adaptation"
+      ]
+    },
+    {
+      "id": "honeybadger-snake-venom",
+      "text": "Honey badgers have shown notable resistance to some snake ____, though they are not completely immune.",
+      "correctCompletion": "venoms",
+      "sourceName": "National Geographic — Honey Badger",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/honey-badger",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "honey-badgers",
+        "defense"
+      ]
+    },
+    {
+      "id": "woodpecker-tongue-skull",
+      "text": "A woodpecker’s tongue-supporting hyoid apparatus wraps around the back of the skull in many ____.",
+      "correctCompletion": "species",
+      "sourceName": "Cornell Lab of Ornithology — Woodpeckers",
+      "sourceUrl": "https://www.allaboutbirds.org/guide/Downy_Woodpecker/overview",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "woodpeckers",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "reindeer-ultraviolet-vision",
+      "text": "Reindeer can perceive ultraviolet light, which can make some objects stand out against snowy ____.",
+      "correctCompletion": "backgrounds",
+      "sourceName": "University College London — Reindeer See in UV",
+      "sourceUrl": "https://www.ucl.ac.uk/news/2011/may/reindeer-see-ultraviolet-light",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "reindeer",
+        "vision"
+      ]
+    },
+    {
+      "id": "arctic-fox-seasonal-coat",
+      "text": "The Arctic fox changes coat color seasonally, with many populations becoming white in winter for ____.",
+      "correctCompletion": "camouflage",
+      "sourceName": "National Geographic — Arctic Fox",
+      "sourceUrl": "https://www.nationalgeographic.com/animals/mammals/facts/arctic-fox",
+      "category": "animals",
+      "difficulty": "easy",
+      "tags": [
+        "arctic-fox",
+        "adaptation"
+      ]
+    },
+    {
+      "id": "fiddler-crab-claw-display",
+      "text": "Male fiddler crabs use their oversized claw in courtship displays and territorial ____.",
+      "correctCompletion": "contests",
+      "sourceName": "Smithsonian Ocean — Fiddler Crabs",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/fiddler-crabs",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "crabs",
+        "behavior"
+      ]
+    },
+    {
+      "id": "mudskipper-land-movement",
+      "text": "Mudskippers can move across exposed mud using their pectoral fins and can breathe air while out of ____.",
+      "correctCompletion": "water",
+      "sourceName": "Smithsonian Ocean — Mudskippers",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/fish/mudskippers",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "fish",
+        "adaptation"
+      ]
+    },
+    {
+      "id": "archerfish-water-jet",
+      "text": "Archerfish knock insects off vegetation by shooting a precise jet of ____.",
+      "correctCompletion": "water",
+      "sourceName": "Smithsonian Ocean — Archerfish",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/fish/archerfish",
+      "category": "animals",
+      "difficulty": "easy",
+      "tags": [
+        "fish",
+        "hunting"
+      ]
+    },
+    {
+      "id": "parrotfish-sleep-mucus-cocoon",
+      "text": "Some parrotfish sleep inside a transparent mucus ____ that may help mask their scent.",
+      "correctCompletion": "cocoon",
+      "sourceName": "Smithsonian Ocean — Parrotfish",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/fish/parrotfish",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "fish",
+        "sleep"
+      ]
+    },
+    {
+      "id": "frog-eye-swallow",
+      "text": "Some frogs pull their eyes downward to help push food toward the ____ while swallowing.",
+      "correctCompletion": "throat",
+      "sourceName": "Scientific American — Why Frogs Close Their Eyes When Swallowing",
+      "sourceUrl": "https://www.scientificamerican.com/article/why-frogs-close-their-eyes-when-swallowing/",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "frogs",
+        "feeding"
+      ]
+    },
+    {
+      "id": "gecko-toe-setae",
+      "text": "Gecko feet cling to surfaces using microscopic hairs called ____.",
+      "correctCompletion": "setae",
+      "sourceName": "Smithsonian National Zoo — Gecko",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/gecko",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "geckos",
+        "adhesion"
+      ]
+    },
+    {
+      "id": "gecko-adhesion-van-der-waals",
+      "text": "Gecko toe adhesion depends largely on weak intermolecular attractions known as van der ____ forces.",
+      "correctCompletion": "Waals",
+      "sourceName": "Smithsonian National Zoo — Gecko",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/gecko",
+      "category": "physics",
+      "difficulty": "hard",
+      "tags": [
+        "geckos",
+        "materials"
+      ]
+    },
+    {
+      "id": "mole-star-nose-touch",
+      "text": "The star-nosed mole uses its distinctive facial tentacles to detect prey through extremely sensitive ____.",
+      "correctCompletion": "touch",
+      "sourceName": "Smithsonian National Zoo — Star-Nosed Mole",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/star-nosed-mole",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "moles",
+        "senses"
+      ]
+    },
+    {
+      "id": "naked-mole-rat-pain-acid",
+      "text": "Naked mole-rats show unusual tolerance to some forms of acid-induced ____.",
+      "correctCompletion": "pain",
+      "sourceName": "Smithsonian National Zoo — Naked Mole-Rat",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/naked-mole-rat",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "mole-rats",
+        "physiology"
+      ]
+    },
+    {
+      "id": "camel-nostril-closure",
+      "text": "Camels can close their nostrils to keep blowing ____ out.",
+      "correctCompletion": "sand",
+      "sourceName": "Smithsonian National Zoo — Camel",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/camel",
+      "category": "animals",
+      "difficulty": "easy",
+      "tags": [
+        "camels",
+        "adaptation"
+      ]
+    },
+    {
+      "id": "fossa-madagascar-predator",
+      "text": "The fossa, Madagascar’s largest native mammalian predator, is related to the ____ family.",
+      "correctCompletion": "mongoose",
+      "sourceName": "Duke Lemur Center — Fossa",
+      "sourceUrl": "https://lemur.duke.edu/discover/meet-the-lemurs/fossa/",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "madagascar",
+        "carnivores"
+      ]
+    },
+    {
+      "id": "capybara-webbed-feet",
+      "text": "Capybaras have partially webbed feet that help them move through ____.",
+      "correctCompletion": "water",
+      "sourceName": "Smithsonian National Zoo — Capybara",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/capybara",
+      "category": "animals",
+      "difficulty": "easy",
+      "tags": [
+        "capybaras",
+        "adaptation"
+      ]
+    },
+    {
+      "id": "kangaroo-rat-water-metabolism",
+      "text": "Kangaroo rats can obtain much of the water they need from the metabolism of dry ____.",
+      "correctCompletion": "seeds",
+      "sourceName": "Smithsonian National Zoo — Kangaroo Rat",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/kangaroo-rat",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "desert-animals",
+        "physiology"
+      ]
+    },
+    {
+      "id": "panda-newborn-size",
+      "text": "A newborn giant panda is pink, nearly hairless, and about the size of a stick of ____.",
+      "correctCompletion": "butter",
+      "sourceName": "Smithsonian National Zoo — Giant Panda",
+      "sourceUrl": "https://nationalzoo.si.edu/animals/giant-panda",
+      "category": "animals",
+      "difficulty": "easy",
+      "tags": [
+        "pandas",
+        "reproduction"
+      ]
+    },
+    {
+      "id": "moon-rust-earth-oxygen",
+      "text": "Scientists have found evidence of hematite on the Moon, a form of iron oxide commonly called ____.",
+      "correctCompletion": "rust",
+      "sourceName": "NASA — Moon Rust",
+      "sourceUrl": "https://www.nasa.gov/solar-system/nasas-moon-rust-mystery/",
+      "category": "space",
+      "difficulty": "hard",
+      "tags": [
+        "moon",
+        "chemistry"
+      ]
+    },
+    {
+      "id": "antarctic-blood-falls-iron",
+      "text": "The red color of Antarctica’s Blood Falls comes from iron-rich salty water that oxidizes when it reaches the ____.",
+      "correctCompletion": "air",
+      "sourceName": "National Science Foundation — Blood Falls",
+      "sourceUrl": "https://www.nsf.gov/news/special_reports/science_nation/bloodfalls.jsp",
+      "category": "earth",
+      "difficulty": "medium",
+      "tags": [
+        "antarctica",
+        "chemistry"
+      ]
+    },
+    {
+      "id": "mushroom-fairy-rings",
+      "text": "A circular growth pattern of mushrooms is commonly called a fairy ____.",
+      "correctCompletion": "ring",
+      "sourceName": "Natural History Museum — Fairy Rings",
+      "sourceUrl": "https://www.nhm.ac.uk/discover/fairy-rings.html",
+      "category": "plants",
+      "difficulty": "easy",
+      "tags": [
+        "fungi",
+        "patterns"
+      ]
+    },
+    {
+      "id": "shark-skin-dermal-denticles",
+      "text": "Shark skin is covered in tiny tooth-like scales called dermal ____.",
+      "correctCompletion": "denticles",
+      "sourceName": "Smithsonian Ocean — Sharks",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/sharks-rays/sharks",
+      "category": "animals",
+      "difficulty": "medium",
+      "tags": [
+        "sharks",
+        "skin"
+      ]
+    },
+    {
+      "id": "earth-lightning-sprites",
+      "text": "Brief red flashes above thunderstorms, occurring high in the atmosphere, are called ____.",
+      "correctCompletion": "sprites",
+      "sourceName": "NASA — Sprites and Elves",
+      "sourceUrl": "https://science.nasa.gov/earth/earth-observatory/",
+      "category": "earth",
+      "difficulty": "hard",
+      "tags": [
+        "lightning",
+        "atmosphere"
+      ]
+    },
+    {
+      "id": "fungus-glowing-wood",
+      "text": "Some fungi emit visible light through a process called fungal ____.",
+      "correctCompletion": "bioluminescence",
+      "sourceName": "Natural History Museum — Glowing Fungi",
+      "sourceUrl": "https://www.nhm.ac.uk/discover/bioluminescent-fungi.html",
+      "category": "biology",
+      "difficulty": "medium",
+      "tags": [
+        "fungi",
+        "light"
+      ]
+    },
+    {
+      "id": "ant-medicine-resin",
+      "text": "Some ants collect plant resins with antimicrobial properties and incorporate them into their ____.",
+      "correctCompletion": "nests",
+      "sourceName": "Smithsonian Magazine — Ants and Medicine",
+      "sourceUrl": "https://www.smithsonianmag.com/science-nature/ants-use-antimicrobial-resins-to-protect-their-colonies-180948342/",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "ants",
+        "behavior"
+      ]
+    },
+    {
+      "id": "sponge-water-filter",
+      "text": "Sponges move water through their bodies using beating cells called ____.",
+      "correctCompletion": "choanocytes",
+      "sourceName": "Smithsonian Ocean — Sponges",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sponges",
+      "category": "ocean",
+      "difficulty": "hard",
+      "tags": [
+        "sponges",
+        "feeding"
+      ]
+    },
+    {
+      "id": "sea-urchin-teeth-lantern",
+      "text": "A sea urchin’s five-toothed feeding apparatus is called Aristotle’s ____.",
+      "correctCompletion": "lantern",
+      "sourceName": "Smithsonian Ocean — Sea Urchins",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/invertebrates/sea-urchins",
+      "category": "ocean",
+      "difficulty": "hard",
+      "tags": [
+        "echinoderms",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "mudskipper-blink",
+      "text": "Mudskippers can keep their eyes moist by rolling them into a socket-like area and blinking with a skin ____.",
+      "correctCompletion": "fold",
+      "sourceName": "Smithsonian Ocean — Mudskippers",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/fish/mudskippers",
+      "category": "animals",
+      "difficulty": "hard",
+      "tags": [
+        "fish",
+        "adaptation"
+      ]
+    },
+    {
+      "id": "geoduck-long-siphon",
+      "text": "The large clam called a geoduck has a long neck-like siphon that can extend well beyond its ____.",
+      "correctCompletion": "shell",
+      "sourceName": "Washington Department of Fish and Wildlife — Geoduck",
+      "sourceUrl": "https://wdfw.wa.gov/fishing/shellfishing-regulations/geoduck",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "clams",
+        "anatomy"
+      ]
+    },
+    {
+      "id": "pufferfish-sand-circles",
+      "text": "Male white-spotted pufferfish create elaborate circular patterns in seafloor sand to attract ____.",
+      "correctCompletion": "mates",
+      "sourceName": "Smithsonian Ocean — Pufferfish",
+      "sourceUrl": "https://ocean.si.edu/ocean-life/fish/pufferfish",
+      "category": "ocean",
+      "difficulty": "medium",
+      "tags": [
+        "fish",
+        "courtship"
+      ]
+    }
+  ]
+}
