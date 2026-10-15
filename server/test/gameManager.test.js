@@ -166,7 +166,7 @@ test("both registered identities share the same engine and use isolated question
     assert.equal(factOrCapAnime.calculateRoundResults, fakeAnswer.calculateRoundResults);
     assert.equal(factOrCapAnime.supportedPlayers.min, 2);
     assert.equal(Object.hasOwn(factOrCapAnime.supportedPlayers, "max"), false);
-    assert.equal(animeQuestions.length, 469);
+    assert.equal(animeQuestions.length, 510);
     assert.equal(questions.length, 810);
     assert.equal(
         questions.some(({ id }) => animeQuestions.some((animeQuestion) => animeQuestion.id === id)),

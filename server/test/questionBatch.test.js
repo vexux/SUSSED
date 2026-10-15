@@ -52,7 +52,7 @@ function writeBatch(inputPath, questions, contentPackId = "candidate-pack") {
 test("registered question libraries contain the expected valid question counts", () => {
     for (const [gameId, directory] of Object.entries(LIBRARIES)) {
         const result = loadQuestionPacks(directory);
-        const expectedCount = gameId === "fact-or-cap-anime" ? 469 : 810;
+        const expectedCount = gameId === "fact-or-cap-anime" ? 510 : 810;
         assert.equal(result.errors.length, 0, `${gameId} should have no validation errors`);
         assert.equal(result.warnings.length, 0, `${gameId} should have no duplicate-content warnings`);
         assert.equal(
