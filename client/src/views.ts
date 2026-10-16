@@ -384,6 +384,175 @@ function renderGame(
   }
 }
 
+function getRenderScope(state: AppState): string {
+  if (state.currentView !== "game" || !state.game) {
+    return state.currentView === "lobby" && state.lobby
+      ? `lobby:${state.lobby.roomCode}`
+      : state.currentView;
+  }
+
+  const gameState = state.game.state;
+  if (!gameState || typeof gameState !== "object") {
+    return `game:${state.game.sessionId}:${state.game.gameId}`;
+  }
+  const value = gameState as Record<string, unknown>;
+  const phase = typeof value.phase === "string" ? value.phase : "unknown";
+  const round = typeof value.roundId === "string"
+    ? value.roundId
+    : typeof value.currentRound === "number"
+      ? String(value.currentRound)
+      : "unknown";
+  return `game:${state.game.sessionId}:${state.game.gameId}:${phase}:${round}`;
+}
+
+function isTextEntry(element: Element | null): element is HTMLInputElement | HTMLTextAreaElement {
+  if (!element) return false;
+  const tagName = element.tagName.toUpperCase();
+  if (tagName === "TEXTAREA") return true;
+  if (tagName !== "INPUT") return false;
+  return ["text", "search", "url", "tel", "email", "password", "number"].includes(
+    (element as HTMLInputElement).type,
+  );
+}
+
+function findById(root: ParentNode, id: string): HTMLElement | null {
+  for (const element of Array.from(root.children) as HTMLElement[]) {
+    if (element.id === id) return element;
+    const nested = findById(element, id);
+    if (nested) return nested;
+  }
+  return null;
+}
+
+function findScreenScope(element: Element): string | null {
+  let current: Element | null = element;
+  while (current && !current.classList.contains("app-screen")) {
+    current = current.parentElement;
+  }
+  return current ? (current as HTMLElement).dataset.renderScope ?? null : null;
+}
+
+function getPath(root: HTMLElement, target: HTMLElement): HTMLElement[] | null {
+  const path: HTMLElement[] = [target];
+  let current = target;
+  while (current !== root) {
+    const parent: HTMLElement | null = current.parentElement;
+    if (!parent) return null;
+    path.unshift(parent);
+    current = parent;
+  }
+  return path;
+}
+
+function syncAttributes(current: HTMLElement, next: HTMLElement, preserveValue: boolean): void {
+  const readAttributes = (element: HTMLElement): Array<[string, string]> => {
+    const attributes = element.attributes as NamedNodeMap | Record<string, string>;
+    return typeof attributes.length === "number"
+      ? Array.from(attributes as NamedNodeMap, ({ name, value }) => [name, value])
+      : Object.entries(attributes as Record<string, string>);
+  };
+  const nextAttributes = new Map(readAttributes(next));
+  for (const [name] of readAttributes(current)) {
+    if (!(preserveValue && name === "value") && !nextAttributes.has(name)) {
+      current.removeAttribute(name);
+    }
+  }
+  for (const [name, value] of nextAttributes) {
+    if (!(preserveValue && name === "value") && current.getAttribute(name) !== value) {
+      current.setAttribute(name, value);
+    }
+  }
+  current.className = next.className;
+  current.id = next.id;
+  for (const property of [
+    "type", "name", "placeholder", "autocomplete", "maxLength", "required",
+    "disabled", "readOnly", "checked", "selectedIndex",
+  ] as const) {
+    if (property in next) {
+      (current as unknown as Record<string, unknown>)[property] =
+        (next as unknown as Record<string, unknown>)[property];
+    }
+  }
+}
+
+function preserveTextEntryPath(
+  current: HTMLElement,
+  next: HTMLElement,
+  currentPath: HTMLElement[],
+  nextPath: HTMLElement[],
+  depth = 0,
+): void {
+  const isTarget = depth === currentPath.length - 1;
+  syncAttributes(current, next, isTarget);
+  if (isTarget) return;
+
+  const currentPathChild = currentPath[depth + 1];
+  const nextPathChild = nextPath[depth + 1];
+  const nextChildren = Array.from(next.children) as HTMLElement[];
+  const nextPathIndex = nextChildren.indexOf(nextPathChild);
+
+  // Keep the ancestor leading to the active input attached. Replace only its
+  // siblings, so a live update cannot detach the focused control from the DOM.
+  for (const child of Array.from(current.children)) {
+    if (child !== currentPathChild) child.remove();
+  }
+  for (let index = 0; index < nextPathIndex; index += 1) {
+    current.insertBefore(nextChildren[index], currentPathChild);
+  }
+  for (let index = nextPathIndex + 1; index < nextChildren.length; index += 1) {
+    current.append(nextChildren[index]);
+  }
+  preserveTextEntryPath(
+    currentPathChild,
+    nextPathChild,
+    currentPath,
+    nextPath,
+    depth + 1,
+  );
+}
+
+function renderPreservingActiveTextEntry(root: HTMLElement, next: HTMLElement): boolean {
+  const active = root.ownerDocument.activeElement;
+  if (!isTextEntry(active) || !root.contains(active) || !active.id) return false;
+
+  const candidate = findById(next, active.id);
+  if (!isTextEntry(candidate) || candidate.type !== active.type) return false;
+  const scope = findScreenScope(active);
+  if (!scope || findScreenScope(candidate) !== scope) return false;
+
+  const currentShell = root.firstElementChild as HTMLElement | null;
+  if (!currentShell) return false;
+  const currentPath = getPath(currentShell, active);
+  const nextPath = getPath(next, candidate);
+  if (
+    !currentPath ||
+    !nextPath ||
+    currentPath.length !== nextPath.length ||
+    currentPath.some((element, index) => element.tagName !== nextPath[index].tagName)
+  ) {
+    return false;
+  }
+
+  const selection = "selectionStart" in active && "selectionEnd" in active
+    ? {
+      start: active.selectionStart,
+      end: active.selectionEnd,
+      direction: active.selectionDirection,
+    }
+    : null;
+  preserveTextEntryPath(currentShell, next, currentPath, nextPath);
+  if (
+    selection &&
+    root.ownerDocument.activeElement === active &&
+    typeof active.setSelectionRange === "function" &&
+    selection.start !== null &&
+    selection.end !== null
+  ) {
+    active.setSelectionRange(selection.start, selection.end, selection.direction ?? undefined);
+  }
+  return true;
+}
+
 export function renderApp(
   root: HTMLElement,
   state: AppState,
@@ -393,14 +562,20 @@ export function renderApp(
 ): void {
   const shell = createElement("main", "app-shell");
   shell.append(createHeader(state));
-  shell.append(
+  const screen =
     state.currentView === "starting"
       ? renderStarting(state)
       : state.currentView === "game"
         ? renderGame(state, actions, fakeAnswerSubmission, bruhWtfSubmission)
         : state.currentView === "lobby"
         ? renderLobby(state, actions)
-        : renderHome(state, actions),
-  );
-  root.replaceChildren(shell);
+        : renderHome(state, actions);
+  screen.dataset.renderScope = getRenderScope(state);
+  shell.append(screen);
+  // Client invariant: same-scope updates must leave active text entry attached.
+  // The shared renderer preserves that control without calling focus; phase,
+  // round, session, and view changes use the normal replacement path.
+  if (!renderPreservingActiveTextEntry(root, shell)) {
+    root.replaceChildren(shell);
+  }
 }
