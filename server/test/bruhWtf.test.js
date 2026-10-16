@@ -563,3 +563,44 @@ test("Bruh voting retains an explicit leaver's answer and vote and broadcasts re
         assert.equal(result.state.playerCount, 2);
     }
 });
+
+test("Bruh disconnect during voting preserves a submitted unvoted answer and the last active vote publishes results", async (context) => {
+    const { host, guest, third, created, sessionId, roundId } = await startBruhVoting(context);
+    const thirdId = third.id;
+    const hostState = gameManager.getPublicGameState(created.roomCode, host.id).state;
+    const thirdAnswer = hostState.options.find(({ completion }) => completion === "Third answer");
+    assert.ok(thirdAnswer);
+    assert.equal((await emitWithAck(host, "bruh-wtf:vote", { sessionId, roundId, optionId: thirdAnswer.id })).voted, true);
+
+    const updates = [host, guest].map((client) => waitForGameState(client, (state) =>
+        state.sessionId === sessionId && state.state.phase === "voting" && state.state.playerCount === 2));
+    const disconnected = new Promise((resolve) => third.once("disconnect", resolve));
+    third.disconnect();
+    await disconnected;
+    const [hostUpdate, guestUpdate] = await Promise.all(updates);
+    for (const update of [hostUpdate, guestUpdate]) {
+        assert.equal(update.state.voteCount, 1);
+        assert.deepEqual(update.state.voteProgress.map(({ playerId, voted }) => ({ playerId, voted })), [
+            { playerId: host.id, voted: true },
+            { playerId: guest.id, voted: false }
+        ]);
+        assert.ok(update.state.options.some(({ completion }) => completion === "Third answer"));
+    }
+    assert.equal(roomManager.getPlayerRoom(thirdId), null);
+    assert.throws(() => gameManager.getPublicGameState(created.roomCode, thirdId), { code: "NOT_A_GAME_PLAYER" });
+
+    const results = [host, guest].map((client) => waitForGameState(client, (state) =>
+        state.sessionId === sessionId && state.state.phase === "results"));
+    const guestState = gameManager.getPublicGameState(created.roomCode, guest.id).state;
+    const hostAnswer = guestState.options.find(({ completion }) => completion === "Host answer");
+    assert.ok(hostAnswer);
+    assert.equal((await emitWithAck(guest, "bruh-wtf:vote", { sessionId, roundId, optionId: hostAnswer.id })).voted, true);
+    for (const result of await Promise.all(results)) {
+        const departedAnswer = result.state.results.answers.find(({ authorId }) => authorId === thirdId);
+        assert.ok(departedAnswer, JSON.stringify(result.state.results.answers));
+        assert.equal(departedAnswer.completion, "Third answer");
+        assert.equal(departedAnswer.voteCount, 1);
+        assert.deepEqual(departedAnswer.voterNames, ["Host"]);
+        assert.equal(result.state.playerCount, 2);
+    }
+});

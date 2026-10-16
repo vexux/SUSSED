@@ -5,7 +5,31 @@ const gameRegistry = require("../gameRegistry");
 const fakeAnswer = require("../games/fake-answer/game");
 const anime = require("../games/fake-answer/anime");
 const questionBank = require("../games/fake-answer/questionBank");
+const fakeAnswerSocketHandlers = require("../games/fake-answer/socketHandlers");
 const bruh = require("../games/bruh-wtf/game");
+
+function captureSubmissionCallback(io, roomCode, sessionId, roundId, gameId = "fact-or-cap") {
+    const scheduled = [];
+    const originalSetTimeout = global.setTimeout;
+    global.setTimeout = (callback, delay, ...args) => {
+        assert.equal(delay, 1500);
+        scheduled.push(() => callback(...args));
+        return { unref() {} };
+    };
+    try {
+        fakeAnswerSocketHandlers.scheduleSubmissionPhase(
+            io,
+            roomCode,
+            sessionId,
+            roundId,
+            gameId
+        );
+    } finally {
+        global.setTimeout = originalSetTimeout;
+    }
+    assert.equal(scheduled.length, 1);
+    return scheduled[0];
+}
 
 const players = ["a", "b", "c"].map((id) => ({ id, name: id.toUpperCase() }));
 const fakeGames = [fakeAnswer, anime];
@@ -96,6 +120,273 @@ test("last unsubmitted departure advances Fact-or-Cap through reveal and Bruh di
     assert.equal(state.results.answers.some(({ authorId }) => authorId === "c"), false);
 });
 
+test("a submitted leaver keeps their answer but receives no fabricated vote or score", () => {
+    for (const game of fakeGames) {
+        const state = readyFakeForVoting(game);
+        const optionFor = (authorId) => state.options.find((option) => option.authorId === authorId);
+        game.handleAction(state, "vote", "b", optionFor("c").id);
+        game.removeParticipant(state, "c");
+        assert.equal(state.submissions.get("c"), "answer c");
+        assert.equal(state.votes.has("c"), false);
+        game.handleAction(state, "vote", "a", optionFor("b").id);
+        game.handleAction(state, "publish-results");
+
+        const departed = state.results.players.find(({ playerId }) => playerId === "c");
+        const answer = state.results.options.find(({ authorId }) => authorId === "c");
+        assert.equal(departed.submittedCompletion, "answer c");
+        assert.equal(departed.voteOptionId, null);
+        assert.equal(departed.voteCompletion, null);
+        assert.equal(departed.voteCorrect, null);
+        assert.equal(departed.roundPoints, 1);
+        assert.equal(answer.completion, "answer c");
+        assert.deepEqual(answer.voters.map(({ playerId }) => playerId), ["b"]);
+        assert.equal(state.statistics.get("c").fakeVotesReceived, 1);
+    }
+
+    const state = readyBruhForVoting();
+    const optionFor = (authorId) => state.options.find(({ authorId: owner }) => owner === authorId);
+    bruh.handleAction(state, "vote", "b", optionFor("c").id);
+    bruh.removeParticipant(state, "c");
+    assert.equal(state.submittedAnswers.get("c"), "answer c");
+    assert.equal(state.votes.has("c"), false);
+    bruh.handleAction(state, "vote", "a", optionFor("b").id);
+    bruh.handleAction(state, "publish-results");
+    const answer = state.results.answers.find(({ authorId }) => authorId === "c");
+    assert.equal(answer.completion, "answer c");
+    assert.equal(answer.voteCount, 1);
+    assert.deepEqual(answer.voterNames, ["B"]);
+    assert.equal(state.scores.get("c"), 1);
+});
+
+test("departed players cannot act in a later round and a final-round departure cannot advance", () => {
+    for (const game of fakeGames) {
+        const state = game.start(game.createInitialState(players, { roundCount: 5 }), questionBank.selectQuestions);
+        const staleRoundId = state.roundId;
+        game.handleAction(state, "open-submissions");
+        game.handleAction(state, "submit-completion", "a", "answer a");
+        game.handleAction(state, "submit-completion", "b", "answer b");
+        game.removeParticipant(state, "c");
+        game.handleAction(state, "begin-voting");
+        const correct = state.options.find(({ correct: isCorrect }) => isCorrect);
+        game.handleAction(state, "vote", "a", correct.id);
+        game.handleAction(state, "vote", "b", correct.id);
+        game.handleAction(state, "publish-results");
+        game.handleAction(state, "continue", "a");
+        game.handleAction(state, "continue", "b");
+
+        assert.equal(state.phase, "question");
+        assert.throws(() => game.handleAction(state, "open-submissions", null, { roundId: staleRoundId }), { code: "ROUND_MISMATCH" });
+        assert.equal(state.phase, "question");
+        game.handleAction(state, "open-submissions");
+        assert.throws(() => game.handleAction(state, "submit-completion", "c", "late answer"), { code: "NOT_A_GAME_PLAYER" });
+        game.handleAction(state, "submit-completion", "a", "round two a");
+        game.handleAction(state, "submit-completion", "b", "round two b");
+        game.handleAction(state, "begin-voting");
+        assert.throws(() => game.handleAction(state, "vote", "c", state.options[0].id), { code: "NOT_A_GAME_PLAYER" });
+        for (const playerId of ["a", "b"]) game.handleAction(state, "vote", playerId, state.options.find(({ correct: isCorrect }) => isCorrect).id);
+        game.handleAction(state, "publish-results");
+        assert.throws(() => game.handleAction(state, "continue", "c"), { code: "NOT_A_GAME_PLAYER" });
+        assert.deepEqual(state.roundParticipants.map(({ id }) => id), ["a", "b"]);
+    }
+
+    const state = bruh.start(bruh.createInitialState(players, { roundCount: 5 }));
+    for (const player of players) bruh.handleAction(state, "submit-answer", player.id, `answer ${player.id}`);
+    bruh.removeParticipant(state, "c");
+    for (const player of state.participants) {
+        bruh.handleAction(state, "vote", player.id, state.options.find(({ authorId }) => authorId !== player.id).id);
+    }
+    bruh.handleAction(state, "publish-results");
+    bruh.handleAction(state, "continue", "a");
+    bruh.handleAction(state, "continue", "b");
+    assert.throws(() => bruh.handleAction(state, "submit-answer", "c", "late answer"), { code: "NOT_A_GAME_PLAYER" });
+    bruh.handleAction(state, "submit-answer", "a", "round two a");
+    bruh.handleAction(state, "submit-answer", "b", "round two b");
+    assert.throws(() => bruh.handleAction(state, "vote", "c", state.options[0].id), { code: "NOT_A_GAME_PLAYER" });
+    for (const player of state.participants) {
+        bruh.handleAction(state, "vote", player.id, state.options.find(({ authorId }) => authorId !== player.id).id);
+    }
+    bruh.handleAction(state, "publish-results");
+    assert.throws(() => bruh.handleAction(state, "continue", "c"), { code: "NOT_A_GAME_PLAYER" });
+    assert.deepEqual(state.roundParticipants.map(({ id }) => id), ["a", "b"]);
+
+    for (const game of fakeGames) {
+        const finalState = game.start(game.createInitialState(players, { roundCount: 5 }), questionBank.selectQuestions);
+        for (let round = 1; round <= finalState.totalRounds; round += 1) {
+            game.handleAction(finalState, "open-submissions");
+            for (const player of finalState.participants) game.handleAction(finalState, "submit-completion", player.id, `final ${round} ${player.id}`);
+            game.handleAction(finalState, "begin-voting");
+            const correct = finalState.options.find(({ correct: isCorrect }) => isCorrect);
+            for (const player of finalState.participants) game.handleAction(finalState, "vote", player.id, correct.id);
+            game.handleAction(finalState, "publish-results");
+            if (round < finalState.totalRounds) {
+                for (const player of [...finalState.participants]) game.handleAction(finalState, "continue", player.id);
+            }
+        }
+        const removal = game.removeParticipant(finalState, "c");
+        assert.equal(removal.advancedRound, false);
+        assert.equal(finalState.phase, "results");
+        assert.equal(finalState.currentRound, finalState.totalRounds);
+        assert.ok(finalState.results);
+    }
+
+    const finalBruh = bruh.start(bruh.createInitialState(players, { roundCount: 5 }));
+    for (let round = 1; round <= finalBruh.totalRounds; round += 1) {
+        for (const player of finalBruh.participants) bruh.handleAction(finalBruh, "submit-answer", player.id, `final ${round} ${player.id}`);
+        for (const player of finalBruh.participants) bruh.handleAction(finalBruh, "vote", player.id, finalBruh.options.find(({ authorId }) => authorId !== player.id).id);
+        bruh.handleAction(finalBruh, "publish-results");
+        if (round < finalBruh.totalRounds) {
+            for (const player of [...finalBruh.participants]) bruh.handleAction(finalBruh, "continue", player.id);
+        }
+    }
+    assert.equal(bruh.removeParticipant(finalBruh, "c").advancedRound, false);
+    assert.equal(finalBruh.phase, "results");
+    assert.equal(finalBruh.currentRound, finalBruh.totalRounds);
+});
+
+test("departure before the final Continue keeps readiness valid and advances once after the last active player responds", () => {
+    for (const game of fakeGames) {
+        const state = readyFakeForVoting(game);
+        finishFakeRound(state, game);
+        const previousScores = [...state.scores];
+        game.removeParticipant(state, "c");
+        assert.deepEqual([...state.continueReady], []);
+        assert.throws(() => game.handleAction(state, "continue", "c"), { code: "NOT_A_GAME_PLAYER" });
+        assert.equal(game.handleAction(state, "continue", "a").advanced, false);
+        const finalContinue = game.handleAction(state, "continue", "b");
+        assert.equal(finalContinue.advanced, true);
+        assert.equal(state.currentRound, 2);
+        assert.deepEqual(state.roundParticipants.map(({ id }) => id), ["a", "b"]);
+        assert.deepEqual([...state.scores], previousScores);
+    }
+
+    const state = readyBruhForVoting();
+    for (const player of players) {
+        const option = state.options.find(({ authorId }) => authorId !== player.id);
+        bruh.handleAction(state, "vote", player.id, option.id);
+    }
+    bruh.handleAction(state, "publish-results");
+    const previousScores = [...state.scores];
+    bruh.removeParticipant(state, "c");
+    assert.deepEqual([...state.continueReady], []);
+    assert.throws(() => bruh.handleAction(state, "continue", "c"), { code: "NOT_A_GAME_PLAYER" });
+    assert.equal(bruh.handleAction(state, "continue", "a").advanced, false);
+    assert.equal(bruh.handleAction(state, "continue", "b").advanced, true);
+    assert.equal(state.currentRound, 2);
+    assert.deepEqual(state.roundParticipants.map(({ id }) => id), ["a", "b"]);
+    assert.deepEqual([...state.scores], previousScores);
+});
+
+test("two departures while readiness changes do not advance the next round more than once", () => {
+    const fivePlayers = [...players, { id: "d", name: "D" }, { id: "e", name: "E" }];
+    for (const game of fakeGames) {
+        const state = readyFakeForVoting(game, fivePlayers);
+        finishFakeRound(state, game);
+        assert.equal(game.handleAction(state, "continue", "a").advanced, false);
+        assert.equal(game.handleAction(state, "continue", "b").advanced, false);
+        assert.equal(game.removeParticipant(state, "d").advancedRound, false);
+        assert.equal(game.handleAction(state, "continue", "c").advanced, false);
+        const secondDeparture = game.removeParticipant(state, "e");
+        assert.equal(secondDeparture.advancedRound, true);
+        assert.equal(state.currentRound, 2);
+        assert.equal(state.phase, "question");
+        assert.deepEqual(state.roundParticipants.map(({ id }) => id), ["a", "b", "c"]);
+        assert.equal(game.removeParticipant(state, "e").advancedRound, false);
+    }
+
+    const state = readyBruhForVoting(fivePlayers);
+    for (const player of fivePlayers) {
+        bruh.handleAction(state, "vote", player.id, state.options.find(({ authorId }) => authorId !== player.id).id);
+    }
+    bruh.handleAction(state, "publish-results");
+    assert.equal(bruh.handleAction(state, "continue", "a").advanced, false);
+    assert.equal(bruh.handleAction(state, "continue", "b").advanced, false);
+    assert.equal(bruh.removeParticipant(state, "d").advancedRound, false);
+    assert.equal(bruh.handleAction(state, "continue", "c").advanced, false);
+    assert.equal(bruh.removeParticipant(state, "e").advancedRound, true);
+    assert.equal(state.currentRound, 2);
+    assert.equal(state.phase, "answer-submission");
+    assert.deepEqual(state.roundParticipants.map(({ id }) => id), ["a", "b", "c"]);
+    assert.equal(bruh.removeParticipant(state, "e").advancedRound, false);
+});
+
+test("scheduled submission callbacks are single-use and cannot mutate later rounds, replacement sessions, or cleaned games", (context) => {
+    const roomCode = "STALE-SUBMISSION-CALLBACK";
+    const room = { code: roomCode, status: "starting", selectedRoundCount: 5, players };
+    const started = gameManager.startGame(room, "fact-or-cap");
+    context.after(() => gameManager.removeGame(roomCode, started.sessionId));
+    const sessionId = started.sessionId;
+    const previousRoundId = started.state.roundId;
+
+    gameManager.performGameAction(roomCode, "fact-or-cap", null, "open-submissions", { roundId: previousRoundId }, undefined, sessionId);
+    for (const player of players) {
+        gameManager.performGameAction(roomCode, "fact-or-cap", player.id, "submit-completion", `answer ${player.id}`, player.id, sessionId);
+    }
+    gameManager.performGameAction(roomCode, "fact-or-cap", null, "begin-voting", undefined, undefined, sessionId);
+    for (const player of players) {
+        const ownState = gameManager.getPublicGameState(roomCode, player.id);
+        const option = ownState.state.options.find(({ isOwnAnswer }) => !isOwnAnswer);
+        assert.ok(option);
+        gameManager.performGameAction(roomCode, "fact-or-cap", player.id, "vote", option.id, player.id, sessionId);
+    }
+    gameManager.performGameAction(roomCode, "fact-or-cap", null, "publish-results", undefined, undefined, sessionId);
+    for (const player of players) gameManager.performGameAction(roomCode, "fact-or-cap", player.id, "continue", undefined, player.id, sessionId);
+    const nextRound = gameManager.getPublicGameState(roomCode, players[0].id);
+    assert.equal(nextRound.state.phase, "question");
+    assert.notEqual(nextRound.state.roundId, previousRoundId);
+
+    const broadcasts = [];
+    const io = { to: () => ({ emit: (...args) => broadcasts.push(args) }) };
+    const staleRoundCallback = captureSubmissionCallback(io, roomCode, sessionId, previousRoundId);
+    const currentCallback = captureSubmissionCallback(io, roomCode, sessionId, nextRound.state.roundId);
+    const duplicateCallback = captureSubmissionCallback(io, roomCode, sessionId, nextRound.state.roundId);
+
+    staleRoundCallback();
+    assert.deepEqual(broadcasts, []);
+    currentCallback();
+    duplicateCallback();
+
+    const afterCallbacks = gameManager.getPublicGameState(roomCode, players[0].id);
+    assert.equal(afterCallbacks.state.phase, "answer-submission");
+    assert.equal(afterCallbacks.sessionId, sessionId);
+    assert.equal(afterCallbacks.state.roundId, nextRound.state.roundId);
+    assert.equal(broadcasts.length, 1, "only the first callback may broadcast the phase transition");
+
+    const replacementRoom = {
+        code: roomCode,
+        status: "starting",
+        selectedRoundCount: 5,
+        players
+    };
+    gameManager.removeGame(roomCode, sessionId);
+    const replacement = gameManager.startGame(replacementRoom, "fact-or-cap");
+    context.after(() => gameManager.removeGame(roomCode, replacement.sessionId));
+    const replacementCallback = captureSubmissionCallback(
+        io,
+        roomCode,
+        sessionId,
+        replacement.state.roundId
+    );
+    replacementCallback();
+    assert.equal(gameManager.getPublicGameState(roomCode, players[0].id).sessionId, replacement.sessionId);
+    assert.equal(gameManager.getPublicGameState(roomCode, players[0].id).state.phase, "question");
+    assert.equal(broadcasts.length, 1);
+
+    const cleanedRoomCode = `${roomCode}-CLEANED`;
+    const cleanedRoom = { ...replacementRoom, code: cleanedRoomCode };
+    const cleaned = gameManager.startGame(cleanedRoom, "fact-or-cap");
+    const cleanupCallback = captureSubmissionCallback(
+        io,
+        cleanedRoomCode,
+        cleaned.sessionId,
+        cleaned.state.roundId
+    );
+    assert.equal(gameManager.removeGame(cleanedRoomCode, cleaned.sessionId), true);
+    cleanupCallback();
+    assert.throws(() => gameManager.getPublicGameState(cleanedRoomCode, players[0].id), {
+        code: "GAME_NOT_ACTIVE"
+    });
+});
+
 test("Fact-or-Cap variants preserve departed answers and votes and score the round exactly once", () => {
     for (const game of fakeGames) {
         const state = readyFakeForVoting(game);
@@ -183,6 +474,44 @@ test("departure while waiting for publication reconciles once and publication ca
     assert.throws(() => bruh.handleAction(state, "publish-results"), { code: "RESULTS_ALREADY_PUBLISHED" });
     assert.equal(JSON.stringify(state.results), resultJson);
     assert.equal(JSON.stringify([...state.scores]), scoreJson);
+});
+
+test("two departures immediately around results publication preserve the one published snapshot", () => {
+    const fourPlayers = [...players, { id: "d", name: "D" }];
+    for (const game of fakeGames) {
+        const state = readyFakeForVoting(game, fourPlayers);
+        const correct = state.options.find(({ correct: isCorrect }) => isCorrect);
+        for (const player of fourPlayers) game.handleAction(state, "vote", player.id, correct.id);
+        assert.equal(state.phase, "waiting-for-results");
+        game.removeParticipant(state, "d");
+        assert.equal(state.phase, "results");
+        const results = JSON.stringify(state.results);
+        const scores = JSON.stringify([...state.scores]);
+        const statistics = JSON.stringify([...state.statistics]);
+        game.removeParticipant(state, "c");
+        assert.equal(state.phase, "results");
+        assert.equal(JSON.stringify(state.results), results);
+        assert.equal(JSON.stringify([...state.scores]), scores);
+        assert.equal(JSON.stringify([...state.statistics]), statistics);
+        assert.equal(state.results.players.length, 4);
+        assert.deepEqual(state.participants.map(({ id }) => id), ["a", "b"]);
+    }
+
+    const state = readyBruhForVoting(fourPlayers);
+    for (const player of fourPlayers) {
+        bruh.handleAction(state, "vote", player.id, state.options.find(({ authorId }) => authorId !== player.id).id);
+    }
+    assert.equal(state.phase, "waiting-for-results");
+    bruh.removeParticipant(state, "d");
+    assert.equal(state.phase, "results");
+    const results = JSON.stringify(state.results);
+    const scores = JSON.stringify([...state.scores]);
+    bruh.removeParticipant(state, "c");
+    assert.equal(state.phase, "results");
+    assert.equal(JSON.stringify(state.results), results);
+    assert.equal(JSON.stringify([...state.scores]), scores);
+    assert.equal(state.results.answers.length, 4);
+    assert.deepEqual(state.participants.map(({ id }) => id), ["a", "b"]);
 });
 
 test("published results, scores, and statistics remain immutable after a player leaves", () => {
