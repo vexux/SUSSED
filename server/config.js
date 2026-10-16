@@ -1,7 +1,6 @@
 const DEFAULT_PORT = 3000;
 const KNOWN_CLIENT_ORIGINS = Object.freeze([
     "https://getsussed.vercel.app",
-    "https://sussed-sigma.vercel.app",
 ]);
 const configuredPort = process.env.PORT;
 
