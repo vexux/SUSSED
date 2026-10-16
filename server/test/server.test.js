@@ -1123,6 +1123,112 @@ test("explicit leave during a game preserves the same session for remaining play
     assert.equal(gameManager.getPublicGameState(game.roomCode, game.players[1].id).sessionId, sessionId);
 });
 
+test("Fact-or-Cap and Anime preserve current-round votes and answers across an explicit voting departure", async (context) => {
+    const harness = await createHarness(context);
+    for (const gameId of ["fact-or-cap", "fact-or-cap-anime"]) {
+        const game = await startFakeAnswer(harness, { playerCount: 3, gameId });
+        const clients = [game.host, ...game.players];
+        const leaverId = game.host.id;
+        const initial = game.gameState;
+        for (let index = 0; index < clients.length; index += 1) {
+            assert.equal((await emitWithAck(clients[index], "fake-answer:submit", withRoundId(initial, {
+                completion: `departure ${gameId} answer ${index}`
+            }))).error, undefined);
+        }
+
+        const hostVoting = gameManager.getPublicGameState(game.roomCode, game.host.id);
+        const guestAnswer = hostVoting.state.options.find(({ completion }) => completion === `departure ${gameId} answer 1`);
+        assert.ok(guestAnswer);
+        assert.equal((await emitWithAck(game.host, "fake-answer:vote", withRoundId(hostVoting, {
+            optionId: guestAnswer.id
+        }))).voted, true);
+
+        const departures = game.players.map((client) => waitForGameState(client, (state) =>
+            state.sessionId === hostVoting.sessionId && state.state.phase === "voting" && state.state.playerCount === 2
+        ));
+        if (gameId === "fact-or-cap") {
+            assert.deepEqual(await emitWithAck(game.host, "leave-room"), { left: true });
+            const serverSocket = harness.io.sockets.sockets.get(leaverId);
+            const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
+            game.host.disconnect();
+            await disconnected;
+        } else {
+            const serverSocket = harness.io.sockets.sockets.get(game.host.id);
+            const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
+            game.host.disconnect();
+            await disconnected;
+        }
+        const remainingStates = await Promise.all(departures);
+        for (const state of remainingStates) {
+            assert.equal(state.state.voteCount, 0);
+            assert.deepEqual(state.state.voteProgress.map(({ playerId, voted }) => ({ playerId, voted })),
+                game.players.map(({ id }) => ({ playerId: id, voted: false })));
+            assert.ok(state.state.options.some(({ completion, isOwnAnswer }) =>
+                completion === `departure ${gameId} answer 0` && !isOwnAnswer
+            ));
+        }
+
+        const resultsEvents = game.players.map((client) => waitForGameState(client, (state) =>
+            state.sessionId === hostVoting.sessionId && state.state.phase === "results"
+        ));
+        for (const client of game.players) {
+            const own = gameManager.getPublicGameState(game.roomCode, client.id);
+            const option = own.state.options.find(({ isOwnAnswer }) => !isOwnAnswer);
+            assert.equal((await emitWithAck(client, "fake-answer:vote", withRoundId(own, {
+                optionId: option.id
+            }))).error, undefined);
+        }
+        for (const result of await Promise.all(resultsEvents)) {
+            assert.equal(result.state.phase, "results");
+            assert.equal(result.state.playerCount, 2);
+            const preserved = result.state.results.options.find(({ authorId }) => authorId === leaverId);
+            assert.ok(preserved, JSON.stringify({ gameId, hostId: leaverId, results: result.state.results.options }));
+            assert.equal(preserved.completion, `departure ${gameId} answer 0`);
+            const guestResult = result.state.results.options.find(({ authorId }) => authorId === game.players[0].id);
+            assert.ok(guestResult.voters.some(({ name }) => name === "Host"));
+        }
+    }
+});
+
+test("Fact-or-Cap reconciles a completed submission phase after the last unsubmitted player disconnects", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, { playerCount: 3, gameId: "fact-or-cap" });
+    const [host, guest, leaver] = [game.host, ...game.players];
+    const initial = game.gameState;
+    for (const [client, completion] of [[host, "submitted host"], [guest, "submitted guest"]]) {
+        assert.equal((await emitWithAck(client, "fake-answer:submit", withRoundId(initial, { completion }))).error, undefined);
+    }
+    const phases = [[], []];
+    const listeners = [host, guest].map((client, index) => {
+        const listener = (state) => phases[index].push(state.state.phase);
+        client.on("game-state", listener);
+        return () => client.off("game-state", listener);
+    });
+    const reconciled = [host, guest].map((client) => waitForGameState(client, (state) =>
+        state.sessionId === initial.sessionId && state.state.phase === "voting" && state.state.playerCount === 2
+    ));
+    assert.deepEqual(await emitWithAck(leaver, "leave-room"), { left: true });
+    const states = await Promise.all(reconciled);
+    listeners.forEach((stop) => stop());
+    for (const phaseList of phases) {
+        assert.deepEqual(phaseList, ["voting"]);
+    }
+    assert.ok(states.every(({ state }) => state.options.length === 3));
+    assert.ok(states.every(({ state }) => state.options.some(({ completion }) => completion === "submitted guest")));
+    assert.ok(states.every(({ state }) => state.options.some(({ completion }) => completion === "submitted host")));
+    assert.equal(roomManager.getPlayerRoom(leaver.id), null);
+    assert.throws(() => gameManager.getPublicGameState(game.roomCode, leaver.id), { code: "NOT_A_GAME_PLAYER" });
+
+    const results = [host, guest].map((client) => waitForGameState(client, (state) =>
+        state.sessionId === initial.sessionId && state.state.phase === "results"));
+    for (const client of [host, guest]) {
+        const current = gameManager.getPublicGameState(game.roomCode, client.id);
+        const option = current.state.options.find(({ isOwnAnswer }) => !isOwnAnswer);
+        await emitWithAck(client, "fake-answer:vote", withRoundId(current, { optionId: option.id }));
+    }
+    assert.ok((await Promise.all(results)).every(({ state }) => state.playerCount === 2 && state.phase === "results"));
+});
+
 test("host leaving migrates host to the earliest remaining player", async (context) => {
     const harness = await createHarness(context);
     const host = await harness.connect();

@@ -41,6 +41,7 @@ class FakeElement {
 function createResults(overrides = {}) {
   const results = {
     correctCompletion: "the real completion",
+    roundPlayerCount: 2,
     options: [
       {
         id: "fake-option",
@@ -385,6 +386,21 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
     assert.match(singleWinner.text, /Player Two/u);
     assert.doesNotMatch(singleWinner.text, /Player One/u);
     assert.deepEqual(singleScreen.children[2].children.map((row) => row.children[0].textContent), ["#1", "#2"]);
+
+    const departureState = createFinalPublicState(false);
+    departureState.playerCount = 2;
+    departureState.results.roundPlayerCount = 3;
+    departureState.results.players.push({
+      playerId: "departed-player", name: "Departed Player", submittedCompletion: "kept answer",
+      voteOptionId: null, voteCompletion: null, voteCorrect: null,
+      correctVotePoints: 0, bluffPoints: 1, roundPoints: 1, totalScore: 1,
+    });
+    departureState.results.standings.push({
+      playerId: "departed-player", name: "Departed Player", totalScore: 1, rank: 3,
+    });
+    const departureScreen = renderFinal("Fact or Cap", departureState);
+    assert.match(departureScreen.text, /Departed Player/u);
+    assert.match(departureScreen.text, /1 point/u);
 
     let returnCalls = 0;
     const hostScreen = renderFinal("Fact or Cap", tieState, createFinalView(), () => { returnCalls += 1; });

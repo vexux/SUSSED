@@ -138,6 +138,27 @@ async function startBruhResults(context, { roundCount = 5 } = {}) {
     return { clients, host, guest, third, created, sessionId, roundId };
 }
 
+async function startBruhVoting(context) {
+    const harness = await createSocketHarness(context);
+    const clients = await Promise.all([harness.connect(), harness.connect(), harness.connect()]);
+    const [host, guest, third] = clients;
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.rooms.add(created.roomCode);
+    await emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "Guest" });
+    await emitWithAck(third, "join-room", { roomCode: created.roomCode, playerName: "Third" });
+    await emitWithAck(guest, "set-ready", { isReady: true });
+    await emitWithAck(third, "set-ready", { isReady: true });
+    await emitWithAck(host, "select-game", { gameId: "bruh-wtf" });
+    const started = await new Promise((resolve) => host.emit("start-game", resolve));
+    assert.equal(started.error, undefined, JSON.stringify(started));
+    const { sessionId, state } = started.game;
+    const { roundId } = state;
+    for (const [client, answer] of [[host, "Host answer"], [guest, "Guest answer"], [third, "Third answer"]]) {
+        assert.equal((await emitWithAck(client, "bruh-wtf:submit", { sessionId, roundId, answer })).submitted, true);
+    }
+    return { harness, host, guest, third, clients, created, sessionId, roundId };
+}
+
 test("Bruh wtf? is registered with its own game implementation and protocol", () => {
     assert.equal(gameRegistry.get("bruh-wtf"), bruhWtf);
     assert.equal(bruhWtf.displayName, "Bruh wtf?");
@@ -494,4 +515,51 @@ test("Bruh results preserve a disconnected answer author's published history", a
     assert.equal((await emitWithAck(guest, "bruh-wtf:vote", {
         sessionId, roundId, optionId: "already-published-option"
     })).error.code, "VOTING_NOT_OPEN");
+});
+
+test("Bruh voting retains an explicit leaver's answer and vote and broadcasts reconciled progress", async (context) => {
+    const { host, guest, third, clients, created, sessionId, roundId } = await startBruhVoting(context);
+    const hostState = gameManager.getPublicGameState(created.roomCode, host.id).state;
+    const hostVoteOption = hostState.options.find(({ completion }) => completion === "Guest answer");
+    assert.ok(hostVoteOption);
+    assert.equal((await emitWithAck(host, "bruh-wtf:vote", { sessionId, roundId, optionId: hostVoteOption.id })).voted, true);
+
+    const guestPhases = recordGameStatePhases(guest);
+    const guestUpdate = waitForGameState(guest, (state) => state.sessionId === sessionId &&
+        state.state.phase === "voting" && state.state.playerCount === 2);
+    const thirdUpdate = waitForGameState(third, (state) => state.sessionId === sessionId &&
+        state.state.phase === "voting" && state.state.playerCount === 2);
+    assert.deepEqual(await new Promise((resolve) => host.emit("leave-room", resolve)), { left: true });
+    const [updatedGuest, updatedThird] = await Promise.all([guestUpdate, thirdUpdate]);
+    guestPhases.stop();
+    assert.ok(guestPhases.phases.length >= 1);
+    assert.ok(guestPhases.phases.every((phase) => phase === "voting"));
+    for (const update of [updatedGuest, updatedThird]) {
+        assert.deepEqual(update.players.map(({ id }) => id).sort(), [guest.id, third.id].sort());
+        assert.equal(update.state.voteCount, 0);
+        assert.deepEqual(update.state.voteProgress.map(({ playerId, voted }) => ({ playerId, voted })), [
+            { playerId: guest.id, voted: false },
+            { playerId: third.id, voted: false }
+        ]);
+        assert.ok(update.state.options.some(({ completion, isOwnAnswer }) => completion === "Host answer" && !isOwnAnswer));
+    }
+
+    const resultEvents = [guest, third].map((client) => waitForGameState(client, (state) =>
+        state.sessionId === sessionId && state.state.phase === "results"));
+    const guestOption = gameManager.getPublicGameState(created.roomCode, guest.id).state.options
+        .find(({ completion }) => completion === "Host answer");
+    const thirdOption = gameManager.getPublicGameState(created.roomCode, third.id).state.options
+        .find(({ completion }) => completion === "Guest answer");
+    assert.equal((await emitWithAck(guest, "bruh-wtf:vote", { sessionId, roundId, optionId: guestOption.id })).voted, true);
+    assert.equal((await emitWithAck(third, "bruh-wtf:vote", { sessionId, roundId, optionId: thirdOption.id })).voted, true);
+    for (const result of await Promise.all(resultEvents)) {
+        const hostAnswer = result.state.results.answers.find(({ authorId }) => authorId === host.id);
+        const guestAnswer = result.state.results.answers.find(({ authorId }) => authorId === guest.id);
+        assert.equal(hostAnswer.completion, "Host answer");
+        assert.equal(hostAnswer.voteCount, 1);
+        assert.deepEqual(hostAnswer.voterNames, ["Guest"]);
+        assert.equal(guestAnswer.voteCount, 2);
+        assert.deepEqual(guestAnswer.voterNames.sort(), ["Host", "Third"].sort());
+        assert.equal(result.state.playerCount, 2);
+    }
 });

@@ -49,6 +49,9 @@ function createInitialState(players, { roundCount = DEFAULT_ROUND_COUNT } = {}) 
         currentRound: 0,
         totalRounds: roundCount,
         participants: players.map(({ id, name }) => ({ id, name })),
+        // A departure changes future eligibility, not the identities attached
+        // to answers and votes already recorded in this round.
+        roundParticipants: players.map(({ id, name }) => ({ id, name })),
         questionOrder: shuffle(eligible).slice(0, roundCount),
         currentQuestion: null,
         resolvedPrompt: null,
@@ -69,6 +72,7 @@ function openRound(state, roundIndex) {
         throw new BruhWtfError("QUESTION_POOL_EXHAUSTED", "No unused prompt is available.");
     }
     state.currentRound = roundIndex + 1;
+    state.roundParticipants = state.participants.map(({ id, name }) => ({ id, name }));
     state.currentQuestion = question;
     state.resolvedPrompt = resolvePrompt(question, state.participants);
     state.roundId = randomUUID();
@@ -84,6 +88,20 @@ function openRound(state, roundIndex) {
 function start(state) {
     openRound(state, 0);
     return state;
+}
+
+function allActiveParticipantsSubmitted(state) {
+    return state.participants.every(({ id }) => state.submissionProgress.get(id) === true);
+}
+
+function allActiveParticipantsVoted(state) {
+    return state.participants.every(({ id }) => state.votes.has(id));
+}
+
+function createVotingOptions(state) {
+    state.options = shuffle([...state.submittedAnswers].map(([id, completion]) => ({
+        id: randomUUID(), authorId: id, completion
+    })));
 }
 
 function submitAnswer(state, playerId, answer) {
@@ -106,15 +124,15 @@ function submitAnswer(state, playerId, answer) {
     }
     state.submittedAnswers.set(playerId, answer.trim());
     state.submissionProgress.set(playerId, true);
-    if (state.submittedAnswers.size === state.participants.length) {
-        state.options = shuffle(state.participants.map(({ id }) => ({
-            id: randomUUID(),
-            authorId: id,
-            completion: state.submittedAnswers.get(id)
-        })));
+    if (allActiveParticipantsSubmitted(state)) {
+        createVotingOptions(state);
         state.phase = "voting";
     }
-    return { submitted: true, submissionCount: state.submittedAnswers.size, playerCount: state.participants.length };
+    return {
+        submitted: true,
+        submissionCount: state.participants.filter(({ id }) => state.submissionProgress.get(id) === true).length,
+        playerCount: state.participants.length
+    };
 }
 
 function vote(state, playerId, optionId) {
@@ -135,10 +153,14 @@ function vote(state, playerId, optionId) {
         throw new BruhWtfError("OWN_ANSWER_NOT_ALLOWED", "You cannot vote for your own answer.");
     }
     state.votes.set(playerId, optionId);
-    if (state.votes.size === state.participants.length) {
+    if (allActiveParticipantsVoted(state)) {
         state.phase = "waiting-for-results";
     }
-    return { voted: true, voteCount: state.votes.size, playerCount: state.participants.length };
+    return {
+        voted: true,
+        voteCount: state.participants.filter(({ id }) => state.votes.has(id)).length,
+        playerCount: state.participants.length
+    };
 }
 
 function leaderboard(state) {
@@ -160,7 +182,7 @@ function publishResults(state) {
     if (state.phase === "results") {
         throw new BruhWtfError("RESULTS_ALREADY_PUBLISHED", "This round's results have already been published.");
     }
-    if (state.phase !== "waiting-for-results" || state.votes.size !== state.participants.length) {
+    if (state.phase !== "waiting-for-results" || !allActiveParticipantsVoted(state)) {
         throw new BruhWtfError("VOTES_NOT_COMPLETE", "Results are not ready until all players have voted.");
     }
     const voteCounts = new Map(state.options.map(({ id }) => [id, 0]));
@@ -169,7 +191,7 @@ function publishResults(state) {
         voteCounts.set(optionId, voteCounts.get(optionId) + 1);
         voterIdsByOption.get(optionId).push(voterId);
     }
-    const playerById = new Map(state.participants.map((player) => [player.id, player]));
+    const playerById = new Map((state.roundParticipants ?? state.participants).map((player) => [player.id, player]));
     const answers = state.options.map((option) => {
         const count = voteCounts.get(option.id);
         state.scores.set(option.authorId, state.scores.get(option.authorId) + count);
@@ -225,22 +247,12 @@ function continueRound(state, playerId) {
 function removeParticipant(state, playerId) {
     const participantIndex = state.participants.findIndex(({ id }) => id === playerId);
     if (participantIndex === -1) return { removed: false, advancedRound: false };
+    // Resolve the only file-backed input before mutating session state so a
+    // content-loading error cannot strand room and game membership out of sync.
+    const allQuestions = questionLibrary.loadQuestionPacks();
     const wasPublished = state.phase === "results";
     state.participants.splice(participantIndex, 1);
-    state.submittedAnswers.delete(playerId);
-    state.submissionProgress.delete(playerId);
-    state.scores.delete(playerId);
     state.continueReady.delete(playerId);
-
-    if (!wasPublished) {
-        const removedOptionIds = new Set(state.options
-            .filter(({ authorId }) => authorId === playerId)
-            .map(({ id }) => id));
-        state.options = state.options.filter(({ authorId }) => authorId !== playerId);
-        for (const [voterId, optionId] of state.votes) {
-            if (voterId === playerId || removedOptionIds.has(optionId)) state.votes.delete(voterId);
-        }
-    }
 
     const currentAndPast = state.questionOrder.slice(0, state.currentRound);
     const usedIds = new Set(currentAndPast.map(({ id }) => id));
@@ -248,7 +260,7 @@ function removeParticipant(state, playerId) {
         .filter(({ id, requiredPlayers }) => requiredPlayers <= state.participants.length && !usedIds.has(id));
     for (const { id } of future) usedIds.add(id);
     const futureTarget = state.totalRounds - state.currentRound;
-    const replacements = shuffle(questionLibrary.loadQuestionPacks().filter(({ id, requiredPlayers }) =>
+    const replacements = shuffle(allQuestions.filter(({ id, requiredPlayers }) =>
         requiredPlayers <= state.participants.length && !usedIds.has(id)
     ));
     while (future.length < futureTarget && replacements.length) {
@@ -260,17 +272,12 @@ function removeParticipant(state, playerId) {
     state.totalRounds = state.currentRound + future.length;
 
     let advancedRound = false;
-    if (!wasPublished && state.phase === "answer-submission" && state.submittedAnswers.size === state.participants.length) {
-        state.options = shuffle(state.participants.map(({ id }) => ({
-            id: randomUUID(), authorId: id, completion: state.submittedAnswers.get(id)
-        })));
+    if (!wasPublished && state.phase === "answer-submission" && allActiveParticipantsSubmitted(state)) {
+        createVotingOptions(state);
         state.phase = "voting";
     }
-    if (!wasPublished && state.phase === "voting" && state.votes.size === state.participants.length) {
+    if (!wasPublished && state.phase === "voting" && allActiveParticipantsVoted(state)) {
         state.phase = "waiting-for-results";
-    }
-    if (!wasPublished && state.phase === "waiting-for-results" && state.votes.size < state.participants.length) {
-        state.phase = "voting";
     }
     if (state.phase === "waiting-for-results") publishResults(state);
 
@@ -304,7 +311,7 @@ function createPublicState(state, viewerId) {
     if (state.phase === "answer-submission") {
         return {
             ...base,
-            submissionCount: state.submittedAnswers.size,
+            submissionCount: state.participants.filter(({ id }) => state.submissionProgress.get(id) === true).length,
             submissionProgress: state.participants.map(({ id, name }) => ({
                 playerId: id,
                 name,
@@ -315,7 +322,7 @@ function createPublicState(state, viewerId) {
     if (state.phase === "voting") {
         return {
             ...base,
-            voteCount: state.votes.size,
+            voteCount: state.participants.filter(({ id }) => state.votes.has(id)).length,
             voteProgress: state.participants.map(({ id, name }) => ({ playerId: id, name, voted: state.votes.has(id) })),
             options: state.options
                 .map(({ id, completion, authorId }) => ({
@@ -328,7 +335,7 @@ function createPublicState(state, viewerId) {
     if (state.phase === "waiting-for-results") {
         return {
             ...base,
-            voteCount: state.votes.size,
+            voteCount: state.participants.filter(({ id }) => state.votes.has(id)).length,
             voteProgress: state.participants.map(({ id, name }) => ({ playerId: id, name, voted: state.votes.has(id) }))
         };
     }
