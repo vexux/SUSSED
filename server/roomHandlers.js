@@ -59,6 +59,20 @@ async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
         roomManager.recoverRoomToLobby(updatedRoom);
         broadcastLobby(io, updatedRoom);
     } else if (departure?.removed) {
+        if (departure.needsVoting && departure.gameId.startsWith("fact-or-cap")) {
+            // Fact-or-Cap intentionally routes completed submissions through
+            // its reveal phase before voting. Reconcile that phase before the
+            // departure broadcast so clients never receive an obsolete reveal.
+            gameManager.performGameAction(
+                room.code,
+                departure.gameId,
+                null,
+                "begin-voting",
+                undefined,
+                undefined,
+                departure.sessionId
+            );
+        }
         for (const player of departure.players) {
             io.to(player.id).emit("game-state", gameManager.getPublicGameState(room.code, player.id));
         }

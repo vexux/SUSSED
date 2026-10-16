@@ -33,10 +33,10 @@ export interface FakeAnswerResultOption {
 export interface FakeAnswerResultPlayer {
   playerId: string;
   name: string;
-  submittedCompletion: string;
-  voteOptionId: string;
-  voteCompletion: string;
-  voteCorrect: boolean;
+  submittedCompletion: string | null;
+  voteOptionId: string | null;
+  voteCompletion: string | null;
+  voteCorrect: boolean | null;
   correctVotePoints: number;
   bluffPoints: number;
   roundPoints: number;
@@ -63,6 +63,7 @@ export interface FakeAnswerFinalStatistics {
 
 export interface FakeAnswerResults {
   correctCompletion: string;
+  roundPlayerCount: number;
   options: FakeAnswerResultOption[];
   players: FakeAnswerResultPlayer[];
   standings: FakeAnswerStanding[];
@@ -315,8 +316,11 @@ export function isFakeAnswerPublicState(
       typeof value.playerCount === "number" &&
       typeof value.isFinalRound === "boolean" &&
       typeof value.results.correctCompletion === "string" &&
+      typeof value.results.roundPlayerCount === "number" &&
+      value.results.roundPlayerCount >= value.playerCount &&
       Array.isArray(value.results.options) &&
-      value.results.options.length === value.playerCount + 1 &&
+      value.results.options.length >= 2 &&
+      value.results.options.length <= value.results.roundPlayerCount + 1 &&
       value.results.options.every(
         (option) =>
           isRecord(option) &&
@@ -342,23 +346,23 @@ export function isFakeAnswerPublicState(
         (option) => isRecord(option) && option.isCorrect === true,
       ).length === 1 &&
       Array.isArray(value.results.players) &&
-      value.results.players.length === value.playerCount &&
+      value.results.players.length === value.results.roundPlayerCount &&
       value.results.players.every(
         (player) =>
           isRecord(player) &&
           typeof player.playerId === "string" &&
           typeof player.name === "string" &&
-          typeof player.submittedCompletion === "string" &&
-          typeof player.voteOptionId === "string" &&
-          typeof player.voteCompletion === "string" &&
-          typeof player.voteCorrect === "boolean" &&
+          (typeof player.submittedCompletion === "string" || player.submittedCompletion === null) &&
+          (typeof player.voteOptionId === "string" || player.voteOptionId === null) &&
+          (typeof player.voteCompletion === "string" || player.voteCompletion === null) &&
+          (typeof player.voteCorrect === "boolean" || player.voteCorrect === null) &&
           typeof player.correctVotePoints === "number" &&
           typeof player.bluffPoints === "number" &&
           typeof player.roundPoints === "number" &&
           typeof player.totalScore === "number",
       ) &&
       Array.isArray(value.results.standings) &&
-      value.results.standings.length === value.playerCount &&
+      value.results.standings.length >= value.results.roundPlayerCount &&
       value.results.standings.every(
         (standing) =>
           isRecord(standing) &&
