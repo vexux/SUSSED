@@ -318,16 +318,53 @@ export function createStandingsList(
 }
 
 export interface HistoricalRoundView {
+  gameName: string;
   round: number;
   prompt: string;
-  answers: Array<{
-    completion: string;
-    authorName: string;
-    voterNames: string[];
-    voteCount: number;
-    pointsEarned: number;
+  sections: Array<{
+    heading: string;
+    voterPrefix?: string;
+    noVotesText?: string;
+    formatAnswer?: (answer: string) => string;
+    answers: Array<{
+      completion: string;
+      authorName: string | null;
+      voterNames: string[];
+      voteCount: number;
+      isCorrect?: boolean;
+    }>;
   }>;
-  scores: Array<{ name: string; pointsEarned: number; totalScore: number }>;
+  standings: PresentationStanding[];
+  roundPointsByPlayer: Map<string, number>;
+}
+
+function isHistoricalRoundView(value: unknown): value is HistoricalRoundView {
+  if (typeof value !== "object" || value === null) return false;
+  const round = value as Partial<HistoricalRoundView>;
+  return typeof round.gameName === "string" &&
+    Number.isInteger(round.round) &&
+    typeof round.prompt === "string" &&
+    Array.isArray(round.sections) &&
+    round.sections.every((section) =>
+      typeof section.heading === "string" &&
+      Array.isArray(section.answers) &&
+      section.answers.every((answer) =>
+        typeof answer.completion === "string" &&
+        (answer.authorName === null || typeof answer.authorName === "string") &&
+        Array.isArray(answer.voterNames) &&
+        answer.voterNames.every((name) => typeof name === "string") &&
+        Number.isInteger(answer.voteCount),
+      ),
+    ) &&
+    Array.isArray(round.standings) &&
+    round.standings.every((standing) =>
+      typeof standing.playerId === "string" &&
+      typeof standing.name === "string" &&
+      Number.isInteger(standing.rank) &&
+      Number.isFinite(standing.totalScore),
+    ) &&
+    round.roundPointsByPlayer instanceof Map &&
+    [...round.roundPointsByPlayer.values()].every((points) => Number.isFinite(points));
 }
 
 export function createRoundHistorySection(
@@ -346,38 +383,48 @@ export function createRoundHistorySection(
   toggle.setAttribute("aria-expanded", String(isOpen));
   toggle.addEventListener("click", onToggle);
   section.append(toggle);
-  if (!isOpen || history.length === 0) return section;
+  const safeHistory = Array.isArray(history) ? history.filter(isHistoricalRoundView) : [];
+  if (!isOpen || safeHistory.length === 0) return section;
 
-  const page = Math.max(0, Math.min(history.length - 1, currentPage < 0 ? history.length - 1 : currentPage));
-  const round = history[page];
+  const requestedPage = Number.isInteger(currentPage) ? currentPage : -1;
+  const page = Math.max(0, Math.min(safeHistory.length - 1, requestedPage < 0 ? safeHistory.length - 1 : requestedPage));
+  const round = safeHistory[page];
+  const game = document.createElement("p");
+  game.className = "screen-description";
+  game.textContent = round.gameName;
   const heading = document.createElement("h2");
   heading.className = "results-section-heading";
   heading.textContent = `Round ${round.round} results`;
   const prompt = document.createElement("p");
-  prompt.className = "screen-description history-prompt";
+  prompt.className = "question-text history-prompt";
   prompt.textContent = round.prompt;
-  const answers = document.createElement("ul");
-  answers.className = "result-card-list history-answer-list";
-  for (const answer of round.answers) {
-    const item = document.createElement("li");
-    item.className = "result-card";
-    item.append(
-      document.createElement("strong"),
-      document.createTextNode(""),
-    );
-    item.firstElementChild!.textContent = `${answer.authorName}: ${answer.completion}`;
-    const details = document.createElement("p");
-    details.textContent = `${answer.voteCount} ${answer.voteCount === 1 ? "vote" : "votes"} · ${answer.pointsEarned >= 0 ? "+" : ""}${answer.pointsEarned} points · ${answer.voterNames.length ? `Voted by: ${answer.voterNames.join(", ")}` : "No votes"}`;
-    item.append(details);
-    answers.append(item);
+  const content: HTMLElement[] = [game, heading, prompt];
+  for (const answerSection of round.sections) {
+    const answerHeading = document.createElement("h3");
+    answerHeading.className = "results-section-heading";
+    answerHeading.textContent = answerSection.heading;
+    const answers = document.createElement("ul");
+    answers.className = "result-card-list history-answer-list";
+    for (const answer of answerSection.answers) {
+      answers.append(createAnswerResultCard({
+        completion: answer.completion,
+        authorName: answer.authorName,
+        voterNames: answer.voterNames,
+        voteCount: answer.voteCount,
+        isCorrect: answer.isCorrect,
+        formatAnswer: answerSection.formatAnswer,
+        voterPrefix: answerSection.voterPrefix,
+        noVotesText: answerSection.noVotesText,
+      }));
+    }
+    content.push(answerHeading, answers);
   }
-  const scores = document.createElement("ul");
-  scores.className = "history-score-list";
-  for (const score of round.scores) {
-    const item = document.createElement("li");
-    item.textContent = `${score.name}: ${score.pointsEarned >= 0 ? "+" : ""}${score.pointsEarned} this round · ${score.totalScore} total`;
-    scores.append(item);
-  }
+  const leaderboardHeading = document.createElement("h3");
+  leaderboardHeading.className = "results-section-heading";
+  leaderboardHeading.textContent = "Current leaderboard";
+  const leaderboard = createStandingsList(round.standings, {
+    roundPointsByPlayer: round.roundPointsByPlayer,
+  });
   const pagination = document.createElement("nav");
   pagination.className = "history-pagination";
   pagination.setAttribute("aria-label", "Round results pages");
@@ -390,7 +437,7 @@ export function createRoundHistorySection(
   previous.addEventListener("click", () => onPageChange(page - 1));
   const pages = document.createElement("div");
   pages.className = "history-page-numbers";
-  history.forEach((entry, index) => {
+  safeHistory.forEach((entry, index) => {
     const button = document.createElement("button");
     button.className = `history-page${page === index ? " selected" : ""}`;
     button.type = "button";
@@ -405,10 +452,10 @@ export function createRoundHistorySection(
   next.type = "button";
   next.textContent = "→";
   next.setAttribute("aria-label", "Next round");
-  next.disabled = page === history.length - 1;
+  next.disabled = page === safeHistory.length - 1;
   next.addEventListener("click", () => onPageChange(page + 1));
   pagination.append(previous, pages, next);
-  section.append(heading, prompt, answers, scores, pagination);
+  section.append(...content, leaderboardHeading, leaderboard, pagination);
   return section;
 }
 

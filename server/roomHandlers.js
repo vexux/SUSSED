@@ -25,10 +25,14 @@ function getOperationError(error) {
     return { code: "INTERNAL_ERROR", message: "The room operation could not be completed." };
 }
 
-function broadcastLobby(io, room) {
+function broadcastLobby(io, room, { resultsSessionId = null } = {}) {
     const lobby = roomManager.createLobbyState(room);
-    for (const player of roomManager.getLobbyParticipants(room)) {
-        io.to(player.id).emit("lobby-state", lobby);
+    const recipients = new Set(roomManager.getLobbyParticipants(room).map(({ id }) => id));
+    if (resultsSessionId) {
+        for (const id of roomManager.getResultsViewers(room, resultsSessionId)) recipients.add(id);
+    }
+    for (const playerId of recipients) {
+        io.to(playerId).emit("lobby-state", lobby);
     }
 }
 
@@ -353,7 +357,9 @@ function registerRoomHandlers(io, socket) {
             const room = roomManager.validateReturnToLobby(socket.id);
             const snapshot = gameManager.retireFinishedGame(room.code, payload.sessionId);
             const lobbyRoom = roomManager.returnToLobby(socket.id, payload.sessionId, snapshot);
-            broadcastLobby(io, lobbyRoom);
+            // Results viewers need the authoritative room update to know the
+            // host has returned, while retaining their local finished snapshot.
+            broadcastLobby(io, lobbyRoom, { resultsSessionId: payload.sessionId });
             acknowledge({ returned: true });
         } catch (error) {
             const operationError = getOperationError(error);

@@ -28,6 +28,7 @@ export interface AppActions {
   onVoteFakeAnswer(optionId: string): void;
   onContinueFakeAnswer(): void;
   onReturnToLobby(): void;
+  onReturnFromResults(): void;
   onAskResultsViewersToReturn(): void;
   onDismissResultsReminder(): void;
   onAcceptResultsReminder(): void;
@@ -241,15 +242,14 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     const item = createElement("li", "player-card");
     const name = createElement("span", "player-name", player.name);
     item.append(name);
-    if (player.isHost) {
-      item.append(createElement("span", "host-badge", "Host"));
-    }
     item.append(
-      createElement(
-        "span",
-        player.isInGame ? "in-game-badge" : player.isReady ? "ready-badge" : "not-ready-badge",
-        player.isInGame ? "In-game" : player.isReady ? "Ready" : "Not ready",
-      ),
+      player.isHost
+        ? createElement("span", "host-badge", "Host")
+        : createElement(
+            "span",
+            player.isInGame ? "in-game-badge" : player.isReady ? "ready-badge" : "not-ready-badge",
+            player.isInGame ? "In-game" : player.isReady ? "Ready" : "Not ready",
+          ),
     );
     if (player.id === state.localPlayerId) {
       item.classList.add("local-player");
@@ -297,7 +297,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   screen.append(roundsField);
 
   const lobbyActions = createElement("div", "button-group lobby-actions");
-  if (lobby.status === "lobby") {
+  if (lobby.status === "lobby" && !isHost) {
     lobbyActions.append(readyButton);
   }
 
@@ -308,8 +308,13 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     startButton.addEventListener("click", actions.onStartGame);
     lobbyActions.append(startButton);
     if (lobby.reminderSessionId && lobby.status === "lobby") {
-      const reminderButton = createElement("button", "secondary-button", "Ask everyone to return to lobby");
+      const reminderButton = createElement("button", "secondary-button reminder-button", "Ask everyone to return to lobby");
       reminderButton.type = "button";
+      reminderButton.disabled = state.isSendingResultsReminder;
+      reminderButton.setAttribute("aria-busy", String(state.isSendingResultsReminder));
+      reminderButton.textContent = state.isSendingResultsReminder
+        ? "Sending reminder…"
+        : "Ask everyone to return to lobby";
       reminderButton.addEventListener("click", actions.onAskResultsViewersToReturn);
       lobbyActions.append(reminderButton);
     }
@@ -319,6 +324,11 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   screen.append(lobbyActions);
   if (state.isBusy) {
     screen.append(createElement("p", "status-message", "Updating room…"));
+  }
+  if (state.resultsReminderFeedback) {
+    const feedback = createElement("p", "status-message reminder-feedback", state.resultsReminderFeedback);
+    feedback.setAttribute("role", "status");
+    screen.append(feedback);
   }
   const error = createErrorMessage(state.errorMessage);
   if (error) {
@@ -372,6 +382,7 @@ function renderGame(
         actions.onDismissRoundFeedback,
         actions.onToggleResultsHistory,
         actions.onResultsHistoryPage,
+        actions.onReturnFromResults,
       );
     case "bruh-wtf":
       return renderBruhWtfGame(
@@ -387,6 +398,7 @@ function renderGame(
         game.status === "finished",
         actions.onToggleResultsHistory,
         actions.onResultsHistoryPage,
+        actions.onReturnFromResults,
       );
     default: {
       const screen = createElement("section", "app-screen starting-screen");

@@ -36,6 +36,7 @@ interface RoomOperationResponse {
   lobby?: LobbyState;
   left?: boolean;
   returned?: boolean;
+  sent?: number;
   selectedGameId?: string;
   selectedRoundCount?: 5 | 7 | 10;
   error?: {
@@ -67,6 +68,7 @@ let fakeAnswerReturnToLobbyError: string | null = null;
 let allRoundHistoryOpen = false;
 let allRoundHistoryPage = -1;
 let fakeAnswerFeedbackDismissedIdentity: string | null = null;
+let resultsReminderFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
 let bruhAnswerDraft = "";
 let bruhIsSubmitting = false;
 let bruhSubmitError: string | null = null;
@@ -104,6 +106,24 @@ function resetFakeAnswerViewState(): void {
   bruhContinueError = null;
 }
 
+function clearResultsReminderFeedback(): void {
+  if (resultsReminderFeedbackTimeout) {
+    clearTimeout(resultsReminderFeedbackTimeout);
+    resultsReminderFeedbackTimeout = null;
+  }
+  state.resultsReminderFeedback = null;
+}
+
+function showResultsReminderFeedback(message: string): void {
+  clearResultsReminderFeedback();
+  state.resultsReminderFeedback = message;
+  resultsReminderFeedbackTimeout = setTimeout(() => {
+    state.resultsReminderFeedback = null;
+    resultsReminderFeedbackTimeout = null;
+    render();
+  }, 3500);
+}
+
 function render(): void {
   renderApp(appRoot, state, actions, {
     hasSubmitted: fakeAnswerHasSubmitted,
@@ -121,6 +141,9 @@ function render(): void {
       state.lobby?.players.some(
         (player) => player.id === state.localPlayerId && player.isHost,
       ) ?? false,
+    isResultsViewer: state.lobby?.players.some(
+      (player) => player.id === state.localPlayerId && player.isInGame,
+    ) ?? false,
     isReturningToLobby: fakeAnswerIsReturningToLobby,
     returnToLobbyError: fakeAnswerReturnToLobbyError,
     isRoundFeedbackDismissed:
@@ -145,6 +168,9 @@ function render(): void {
     continueError: bruhContinueError,
     isHost: state.lobby?.players.some(
       (player) => player.id === state.localPlayerId && player.isHost,
+    ) ?? false,
+    isResultsViewer: state.lobby?.players.some(
+      (player) => player.id === state.localPlayerId && player.isInGame,
     ) ?? false,
     isReturningToLobby: fakeAnswerIsReturningToLobby,
     returnToLobbyError: fakeAnswerReturnToLobbyError,
@@ -223,7 +249,11 @@ function applyLobbyState(lobby: LobbyState): void {
     return;
   }
 
-  if (lobby.status === "lobby" || (lobby.status === "starting" && localPlayer.isInGame === false && state.game?.status === "finished")) {
+  const remainsOnFinishedResults =
+    state.currentView === "game" &&
+    state.game?.status === "finished" &&
+    localPlayer.isInGame;
+  if ((lobby.status === "lobby" && !remainsOnFinishedResults) || (lobby.status === "starting" && localPlayer.isInGame === false && state.game?.status === "finished")) {
     if (state.game) {
       retiredGameSessionIds.add(state.game.sessionId);
     }
@@ -232,11 +262,13 @@ function applyLobbyState(lobby: LobbyState): void {
   }
   state.resultsReminderSessionId = null;
   state.currentView =
-    lobby.status === "lobby"
-      ? "lobby"
-      : state.game
-        ? "game"
-        : "starting";
+    remainsOnFinishedResults
+      ? "game"
+      : lobby.status === "lobby"
+        ? "lobby"
+        : state.game
+          ? "game"
+          : "starting";
   state.roomCode = lobby.roomCode;
   state.localPlayerId = localPlayer.id;
   state.playerName = localPlayer.name;
@@ -480,6 +512,8 @@ const actions: AppActions = {
       state.localPlayerId = null;
       state.lobby = null;
       state.game = null;
+      state.isSendingResultsReminder = false;
+      clearResultsReminderFeedback();
       resetFakeAnswerViewState();
       state.isBusy = false;
       state.errorMessage = null;
@@ -804,6 +838,34 @@ const actions: AppActions = {
       },
     );
   },
+  onReturnFromResults() {
+    const sessionId = state.game?.sessionId;
+    if (!sessionId || fakeAnswerIsReturningToLobby) return;
+    fakeAnswerReturnToLobbyError = null;
+    fakeAnswerIsReturningToLobby = true;
+    render();
+    socket.timeout(5000).emit(
+      "return-from-results",
+      { sessionId },
+      (error: Error | null, response?: RoomOperationResponse) => {
+        if (state.game?.sessionId !== sessionId) return;
+        if (error || !response) {
+          fakeAnswerIsReturningToLobby = false;
+          fakeAnswerReturnToLobbyError = "The server did not respond. Please try again.";
+        } else if (response.error) {
+          fakeAnswerIsReturningToLobby = false;
+          fakeAnswerReturnToLobbyError = response.error.message;
+        } else if (!response.returned) {
+          fakeAnswerIsReturningToLobby = false;
+          fakeAnswerReturnToLobbyError = "The room could not be returned to its current state.";
+        } else {
+          // Keep duplicate clicks disabled until the authoritative lobby state arrives.
+          fakeAnswerReturnToLobbyError = null;
+        }
+        render();
+      },
+    );
+  },
   onToggleResultsHistory() {
     allRoundHistoryOpen = !allRoundHistoryOpen;
     if (allRoundHistoryOpen) allRoundHistoryPage = -1;
@@ -815,14 +877,35 @@ const actions: AppActions = {
   },
   onAskResultsViewersToReturn() {
     const sessionId = state.lobby?.reminderSessionId;
-    if (!sessionId) return;
-    emitRoomOperation("ask-results-viewers-to-return", { sessionId }, (response) => {
-      if (response.error) {
-        state.errorCode = response.error.code;
-        state.errorMessage = response.error.message;
+    if (!sessionId || state.isSendingResultsReminder) return;
+    state.errorCode = null;
+    state.errorMessage = null;
+    clearResultsReminderFeedback();
+    state.isSendingResultsReminder = true;
+    render();
+    socket.timeout(5000).emit(
+      "ask-results-viewers-to-return",
+      { sessionId },
+      (error: Error | null, response?: RoomOperationResponse) => {
+        state.isSendingResultsReminder = false;
+        if (error || !response) {
+          state.errorCode = "SERVER_TIMEOUT";
+          state.errorMessage = "The server did not respond. Please try again.";
+        } else if (response.error) {
+          state.errorCode = response.error.code;
+          state.errorMessage = response.error.message;
+        } else if (typeof response.sent === "number") {
+          const feedback = response.sent === 0
+            ? "Everyone has returned."
+            : `Reminder sent to ${response.sent} ${response.sent === 1 ? "player" : "players"}.`;
+          showResultsReminderFeedback(feedback);
+        } else {
+          state.errorCode = "INVALID_RESPONSE";
+          state.errorMessage = "The reminder result was unclear. Please try again.";
+        }
         render();
-      }
-    });
+      },
+    );
   },
   onDismissResultsReminder() {
     state.resultsReminderSessionId = null;
@@ -905,6 +988,8 @@ socket.on("disconnect", () => {
   state.localPlayerId = null;
   state.lobby = null;
   state.game = null;
+  state.isSendingResultsReminder = false;
+  clearResultsReminderFeedback();
   resetFakeAnswerViewState();
   state.isBusy = false;
   state.errorMessage = "Connection lost. Reconnect to create or join a room.";

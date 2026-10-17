@@ -196,6 +196,7 @@ export interface FakeAnswerViewState {
   isContinuing: boolean;
   continueError: string | null;
   isHost: boolean;
+  isResultsViewer?: boolean;
   isReturningToLobby: boolean;
   returnToLobbyError: string | null;
   isRoundFeedbackDismissed: boolean;
@@ -576,10 +577,12 @@ function appendRoundFeedback(
 function createFinalResultsScreen(
   publicState: FakeAnswerPublicState,
   submission: FakeAnswerViewState,
+  gameDisplayName: string,
   onReturnToLobby: () => void,
   onDismissFeedback: () => void,
   onToggleHistory: () => void,
   onHistoryPage: (page: number) => void,
+  onReturnFromResults: () => void,
 ): HTMLElement {
   const screen = document.createElement("section");
   screen.className = "app-screen question-screen final-results-screen";
@@ -626,18 +629,28 @@ function createFinalResultsScreen(
   const history = (results.roundHistory ?? [
     { ...results, round: publicState.currentRound, prompt: publicState.prompt?.text ?? "" },
   ]).map((round) => {
-    const pointsByAuthor = new Map(round.players.map(({ playerId, bluffPoints }) => [playerId, bluffPoints]));
+    const { realOption, fakeOptions } = getRevealAnswerGroups(round.options);
     return {
+      gameName: gameDisplayName,
       round: round.round,
       prompt: round.prompt,
-      answers: round.options.map((option) => ({
-        completion: option.completion,
-        authorName: option.authorName ?? "Correct answer",
-        voterNames: option.voters.map(({ name }) => name),
-        voteCount: option.voters.length,
-        pointsEarned: option.authorId ? pointsByAuthor.get(option.authorId) ?? 0 : 0,
-      })),
-      scores: round.players.map(({ name, roundPoints, totalScore }) => ({ name, pointsEarned: roundPoints, totalScore })),
+      sections: [
+        { heading: "Correct Answer", voterPrefix: "Chosen by", noVotesText: "No one chose this answer.", formatAnswer: formatAnswerForDisplay, answers: realOption ? [{
+          completion: realOption.completion,
+          authorName: null,
+          voterNames: realOption.voters.map(({ name }) => name),
+          voteCount: realOption.voters.length,
+          isCorrect: true,
+        }] : [] },
+        { heading: "Bluff answers", voterPrefix: "Chosen by", noVotesText: "No one chose this answer.", formatAnswer: formatAnswerForDisplay, answers: fakeOptions.map((option) => ({
+          completion: option.completion,
+          authorName: option.authorName,
+          voterNames: option.voters.map(({ name }) => name),
+          voteCount: option.voters.length,
+        })) },
+      ],
+      standings: round.standings,
+      roundPointsByPlayer: new Map(round.players.map(({ playerId, roundPoints }) => [playerId, roundPoints])),
     };
   });
   screen.append(createRoundHistorySection(
@@ -661,6 +674,14 @@ function createFinalResultsScreen(
       ? "Returning to lobby…"
       : "Return to lobby";
     returnButton.addEventListener("click", onReturnToLobby);
+    screen.append(returnButton);
+  } else if (submission.isResultsViewer) {
+    const returnButton = document.createElement("button");
+    returnButton.className = "primary-button";
+    returnButton.type = "button";
+    returnButton.disabled = submission.isReturningToLobby;
+    returnButton.textContent = submission.isReturningToLobby ? "Returning to lobby…" : "Return to Lobby";
+    returnButton.addEventListener("click", onReturnFromResults);
     screen.append(returnButton);
   } else {
     const waiting = document.createElement("p");
@@ -693,6 +714,7 @@ export function renderFakeAnswerGame(
   onDismissFeedback: () => void = () => {},
   onToggleHistory: () => void = () => {},
   onHistoryPage: (page: number) => void = () => {},
+  onReturnFromResults: () => void = () => {},
 ): HTMLElement {
   const screen = document.createElement("section");
   screen.className = "app-screen question-screen";
@@ -713,10 +735,12 @@ export function renderFakeAnswerGame(
     return createFinalResultsScreen(
       publicState,
       submission,
+      gameDisplayName,
       onReturnToLobby,
       onDismissFeedback,
       onToggleHistory,
       onHistoryPage,
+      onReturnFromResults,
     );
   }
 
