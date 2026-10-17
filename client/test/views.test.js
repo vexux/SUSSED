@@ -303,6 +303,54 @@ test("landing page selects a tagline once and keeps its form interactions usable
   });
 });
 
+test("results viewers remain marked in-game and can accept or dismiss host return reminders", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "lobby";
+    state.connectionStatus = "connected";
+    state.localPlayerId = "host";
+    state.roomCode = "ABCD";
+    state.lobby = {
+      roomCode: "ABCD", revision: 3, playerCount: 1, readinessStatus: "insufficient-players",
+      status: "lobby", selectedGameId: "fact-or-cap", selectedRoundCount: 5,
+      reminderSessionId: "finished-session",
+      selectedGame: { id: "fact-or-cap", displayName: "Fact or Cap", description: "Game", minPlayers: 2 },
+      availableGames: [],
+      players: [
+        { id: "host", name: "Host", isHost: true, isReady: false, isInGame: false },
+        { id: "viewer", name: "Viewer", isHost: false, isReady: false, isInGame: true },
+      ],
+    };
+    const calls = [];
+    const actions = new Proxy({}, { get: (_target, name) => () => calls.push(name) });
+    const root = new FakeElement("root");
+    renderApp(root, state, actions, {}, {});
+    assert.match(root.text, /1 player in lobby/u);
+    assert.match(root.text, /Viewer.*In-game/u);
+    const ready = root.query((element) => element.tagName === "button" && element.textContent === "Ready");
+    assert.equal(ready.disabled, false);
+    const reminder = root.query((element) => element.textContent === "Ask everyone to return to lobby");
+    assert.ok(reminder);
+    reminder.dispatch("click");
+    assert.equal(calls.includes("onAskResultsViewersToReturn"), true);
+
+    state.localPlayerId = "viewer";
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Ready").disabled, true);
+    assert.equal(root.query((element) => element.textContent === "Ask everyone to return to lobby"), null);
+
+    state.currentView = "game";
+    state.resultsReminderSessionId = "finished-session";
+    renderApp(root, state, actions, {}, {});
+    assert.match(root.text, /The host is waiting in the lobby\./u);
+    assert.match(root.text, /Return to Lobby\?/u);
+    root.query((element) => element.textContent === "Wait").dispatch("click");
+    root.query((element) => element.textContent === "OK").dispatch("click");
+    assert.equal(calls.includes("onDismissResultsReminder"), true);
+    assert.equal(calls.includes("onAcceptResultsReminder"), true);
+  });
+});
+
 test("duplicate-name feedback is shown by the name field and can be cleared for retry", () => {
   withFakeDocument(() => {
     const state = createInitialAppState();

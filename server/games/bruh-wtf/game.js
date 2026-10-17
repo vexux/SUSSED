@@ -61,6 +61,7 @@ function createInitialState(players, { roundCount = DEFAULT_ROUND_COUNT } = {}) 
         votes: new Map(),
         scores: new Map(players.map(({ id }) => [id, 0])),
         continueReady: new Set(),
+        roundHistory: [],
         results: null,
         roundId: null
     };
@@ -209,16 +210,17 @@ function publishResults(state) {
     state.results = {
         prompt: state.resolvedPrompt,
         answers,
-        roundScores: state.participants.map(({ id, name }) => ({
+        roundScores: (state.roundParticipants ?? state.participants).map(({ id, name }) => ({
             playerId: id,
             name,
-            pointsEarned: answers.find(({ authorId }) => authorId === id).pointsAwarded
+            pointsEarned: answers.find(({ authorId }) => authorId === id)?.pointsAwarded ?? 0
         })),
         leaderboard: leaderboardState,
         ...(state.currentRound === state.totalRounds
             ? { winners: leaderboardState.filter(({ score }) => score === highScore).map(({ playerId, name }) => ({ playerId, name })) }
             : {})
     };
+    state.roundHistory.push({ round: state.currentRound, ...state.results });
     state.phase = "results";
     return { published: true, currentRound: state.currentRound };
 }
@@ -350,6 +352,9 @@ function createPublicState(state, viewerId) {
             continueProgress: state.participants.map(({ id, name }) => ({ playerId: id, name, ready: state.continueReady.has(id) })),
             results: {
                 ...state.results,
+                ...(state.currentRound === state.totalRounds
+                    ? { roundHistory: state.roundHistory.map((round) => ({ ...round })) }
+                    : {}),
                 activeLeaderboard,
                 activeWinners: activeLeaderboard
                     .filter(({ score }) => score === highestScore)

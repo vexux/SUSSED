@@ -26,7 +26,10 @@ function getOperationError(error) {
 }
 
 function broadcastLobby(io, room) {
-    io.to(room.code).emit("lobby-state", roomManager.createLobbyState(room));
+    const lobby = roomManager.createLobbyState(room);
+    for (const player of roomManager.getLobbyParticipants(room)) {
+        io.to(player.id).emit("lobby-state", lobby);
+    }
 }
 
 async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
@@ -299,16 +302,16 @@ function registerRoomHandlers(io, socket) {
         let startingRoom;
         try {
             const room = roomManager.validateRoomStart(socket.id);
-            const selectedGame = gameManager.validateGameStart(room, room.selectedGameId);
+            const eligibleRoom = roomManager.createGameStartRoom(room);
+            const selectedGame = gameManager.validateGameStart(eligibleRoom, room.selectedGameId);
             startingRoom = roomManager.startRoom(socket.id);
             const lobby = roomManager.createLobbyState(startingRoom);
-            const game = gameManager.startGame(startingRoom, startingRoom.selectedGameId);
-            io.to(startingRoom.code).emit("game-starting", {
-                roomCode: startingRoom.code,
-                lobby,
-                game
-            });
-            io.to(startingRoom.code).emit("game-state", game);
+            const gameRoom = roomManager.createGameStartRoom(startingRoom);
+            const game = gameManager.startGame(gameRoom, startingRoom.selectedGameId);
+            for (const player of game.players) {
+                io.to(player.id).emit("game-starting", { roomCode: startingRoom.code, lobby, game });
+                io.to(player.id).emit("game-state", gameManager.getPublicGameState(startingRoom.code, player.id));
+            }
             if (selectedGame.socketProtocol === "fake-answer") {
                 fakeAnswerSocketHandlers.scheduleSubmissionPhase(
                     io,
@@ -348,10 +351,50 @@ function registerRoomHandlers(io, socket) {
                 return;
             }
             const room = roomManager.validateReturnToLobby(socket.id);
-            gameManager.retireFinishedGame(room.code, payload.sessionId);
-            const lobbyRoom = roomManager.returnToLobby(socket.id);
+            const snapshot = gameManager.retireFinishedGame(room.code, payload.sessionId);
+            const lobbyRoom = roomManager.returnToLobby(socket.id, payload.sessionId, snapshot);
             broadcastLobby(io, lobbyRoom);
             acknowledge({ returned: true });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
+    });
+
+    socket.on("ask-results-viewers-to-return", (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) return;
+        if (!isRecord(payload) || Object.keys(payload).length !== 1 || typeof payload.sessionId !== "string") {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "A finished sessionId is required.");
+            return;
+        }
+        const room = roomManager.getPlayerRoom(socket.id);
+        if (!room) return acknowledgeError(acknowledge, "NOT_IN_ROOM", "You are not in a room.");
+        if (room.hostId !== socket.id) return acknowledgeError(acknowledge, "NOT_HOST", "Only the host can send this reminder.");
+        const match = roomManager.getFinishedMatch(room, payload.sessionId);
+        if (!match || room.reminderSessionId !== payload.sessionId) {
+            return acknowledgeError(acknowledge, "SESSION_MISMATCH", "Those completed results are no longer available.");
+        }
+        const viewers = roomManager.getResultsViewers(room, payload.sessionId);
+        for (const playerId of viewers) {
+            io.to(playerId).emit("results-return-reminder", { sessionId: payload.sessionId });
+        }
+        acknowledge({ sent: viewers.length });
+    });
+
+    socket.on("return-from-results", (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) return;
+        if (!isRecord(payload) || Object.keys(payload).length !== 1 || typeof payload.sessionId !== "string") {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "A finished sessionId is required.");
+            return;
+        }
+        try {
+            const room = roomManager.returnResultsViewer(socket.id, payload.sessionId);
+            if (room.status === "lobby") {
+                broadcastLobby(io, room);
+            } else {
+                io.to(socket.id).emit("lobby-state", roomManager.createLobbyState(room));
+            }
+            acknowledge({ returned: true, status: room.status });
         } catch (error) {
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);

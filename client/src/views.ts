@@ -28,7 +28,12 @@ export interface AppActions {
   onVoteFakeAnswer(optionId: string): void;
   onContinueFakeAnswer(): void;
   onReturnToLobby(): void;
+  onAskResultsViewersToReturn(): void;
+  onDismissResultsReminder(): void;
+  onAcceptResultsReminder(): void;
   onDismissRoundFeedback(): void;
+  onToggleResultsHistory(): void;
+  onResultsHistoryPage(page: number): void;
 }
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
@@ -242,8 +247,8 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     item.append(
       createElement(
         "span",
-        player.isReady ? "ready-badge" : "not-ready-badge",
-        player.isReady ? "Ready" : "Not ready",
+        player.isInGame ? "in-game-badge" : player.isReady ? "ready-badge" : "not-ready-badge",
+        player.isInGame ? "In-game" : player.isReady ? "Ready" : "Not ready",
       ),
     );
     if (player.id === state.localPlayerId) {
@@ -263,7 +268,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     localPlayer?.isReady ? "Mark not ready" : "Ready",
   );
   readyButton.type = "button";
-  readyButton.disabled = state.isBusy || lobby.status !== "lobby";
+  readyButton.disabled = state.isBusy || lobby.status !== "lobby" || localPlayer?.isInGame === true;
   readyButton.addEventListener("click", () => {
     actions.onSetReady(!localPlayer?.isReady);
   });
@@ -302,6 +307,12 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     startButton.disabled = state.isBusy || lobby.readinessStatus !== "ready";
     startButton.addEventListener("click", actions.onStartGame);
     lobbyActions.append(startButton);
+    if (lobby.reminderSessionId && lobby.status === "lobby") {
+      const reminderButton = createElement("button", "secondary-button", "Ask everyone to return to lobby");
+      reminderButton.type = "button";
+      reminderButton.addEventListener("click", actions.onAskResultsViewersToReturn);
+      lobbyActions.append(reminderButton);
+    }
   }
 
   lobbyActions.append(leaveButton);
@@ -359,6 +370,8 @@ function renderGame(
         game.displayName,
         game.status === "finished",
         actions.onDismissRoundFeedback,
+        actions.onToggleResultsHistory,
+        actions.onResultsHistoryPage,
       );
     case "bruh-wtf":
       return renderBruhWtfGame(
@@ -372,6 +385,8 @@ function renderGame(
         actions.onReturnToLobby,
         game.displayName,
         game.status === "finished",
+        actions.onToggleResultsHistory,
+        actions.onResultsHistoryPage,
       );
     default: {
       const screen = createElement("section", "app-screen starting-screen");
@@ -572,6 +587,27 @@ export function renderApp(
         : renderHome(state, actions);
   screen.dataset.renderScope = getRenderScope(state);
   shell.append(screen);
+  if (state.resultsReminderSessionId) {
+    const backdrop = createElement("div", "results-reminder-backdrop");
+    const dialog = createElement("section", "results-reminder-dialog");
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.append(
+      createElement("p", undefined, "The host is waiting in the lobby."),
+      createElement("h2", undefined, "Return to Lobby?"),
+    );
+    const actionsPanel = createElement("div", "button-group");
+    const waitButton = createElement("button", "secondary-button", "Wait");
+    waitButton.type = "button";
+    waitButton.addEventListener("click", actions.onDismissResultsReminder);
+    const okButton = createElement("button", "primary-button", "OK");
+    okButton.type = "button";
+    okButton.addEventListener("click", actions.onAcceptResultsReminder);
+    actionsPanel.append(waitButton, okButton);
+    dialog.append(actionsPanel);
+    backdrop.append(dialog);
+    shell.append(backdrop);
+  }
   // Client invariant: same-scope updates must leave active text entry attached.
   // The shared renderer preserves that control without calling focus; phase,
   // round, session, and view changes use the normal replacement path.

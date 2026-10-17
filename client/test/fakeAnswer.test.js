@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createAnswerResultCard, createStandingsList } from "../src/ui/gamePresentation.ts";
+import { createAnswerResultCard, createRoundHistorySection, createStandingsList } from "../src/ui/gamePresentation.ts";
 import {
   FINAL_STATISTIC_LABELS,
   VOTING_ROUND_HEADING,
@@ -33,6 +33,7 @@ class FakeElement {
   setAttribute(name, value) { this.attributes[name] = value; }
   dispatch(type, event = {}) { this.listeners[type]?.({ preventDefault() {}, stopPropagation() {}, ...event }); }
   get text() { return this.textContent + this.children.map((child) => child.text).join(""); }
+  get firstElementChild() { return this.children.find((child) => !child.isTextNode) ?? null; }
   query(predicate) {
     return this.children.find(predicate) ?? this.children.map((child) => child.query(predicate)).find(Boolean) ?? null;
   }
@@ -235,9 +236,9 @@ test("groups reveal answers by authoritative correctness rather than answer text
 test("shared game display labels use current voting and final-statistic terminology", () => {
   assert.equal(VOTING_ROUND_HEADING, "Voting Round");
   assert.deepEqual(FINAL_STATISTIC_LABELS, [
-    ["mostPlayersFooled", "Most players siked"],
-    ["gotFooledMost", "Got siked the most"],
-    ["mostCorrectAnswers", "Most correct answers"],
+    ["mostPlayersFooled", "Professional Liar"],
+    ["gotFooledMost", "Gullible Legend"],
+    ["mostCorrectAnswers", "The Nerd"],
   ]);
 });
 
@@ -372,7 +373,7 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
     assert.deepEqual(leaderboard.children.map((row) => row.children[0].textContent), ["#1", "#1"]);
     assert.equal(screen.children.indexOf(leaderboard), screen.children.indexOf(winnerCard) + 2);
     assert.doesNotMatch(screen.text, /Final results|Round 5 of 5|final prompt should not appear|Correct Answer|Bluff answers/u);
-    assert.equal(screen.query((node) => node.tagName === "button").textContent, "Return to lobby");
+    assert.equal(screen.query((node) => node.tagName === "button" && node.textContent === "Return to lobby").textContent, "Return to lobby");
 
     const animeScreen = renderFinal("Fact-or-Cap Anime", tieState);
     assert.equal(animeScreen.children[0].className, "final-winner-card");
@@ -404,17 +405,17 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
 
     let returnCalls = 0;
     const hostScreen = renderFinal("Fact or Cap", tieState, createFinalView(), () => { returnCalls += 1; });
-    hostScreen.query((node) => node.tagName === "button").dispatch("click");
+    hostScreen.query((node) => node.tagName === "button" && node.textContent === "Return to lobby").dispatch("click");
     assert.equal(returnCalls, 1);
 
     const returningScreen = renderFinal("Fact or Cap", tieState, createFinalView({ isReturningToLobby: true, returnToLobbyError: "Return failed" }));
-    const returning = returningScreen.query((node) => node.tagName === "button");
+    const returning = returningScreen.query((node) => node.tagName === "button" && node.textContent.includes("Returning to lobby"));
     assert.equal(returning.disabled, true);
     assert.match(returning.textContent, /Returning to lobby/u);
     assert.match(returningScreen.text, /Return failed/u);
 
     const nonHostScreen = renderFinal("Fact or Cap", tieState, createFinalView({ isHost: false }));
-    assert.equal(nonHostScreen.query((node) => node.tagName === "button"), null);
+    assert.equal(nonHostScreen.query((node) => node.tagName === "button" && node.textContent === "Return to lobby"), null);
     assert.match(nonHostScreen.text, /Waiting for the host/u);
   } finally {
     if (originalDocument === undefined) delete globalThis.document;
@@ -459,6 +460,52 @@ test("ordinary question and round-results screens retain their heading and round
     const roundResults = renderFakeAnswerGame(roundState, submission, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false, () => {});
     assert.equal(roundResults.query((node) => node.tagName === "h1").textContent, "Round results");
     assert.equal(roundResults.query((node) => node.className === "round-counter").textContent, "Round 4 of 5");
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
+test("all-round history opens on the final round and supports bounded page navigation", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createTextNode: (text) => {
+      const node = new FakeElement("#text");
+      node.isTextNode = true;
+      node.textContent = text;
+      return node;
+    },
+  };
+  try {
+    const history = [1, 2, 3].map((round) => ({
+      round,
+      prompt: `Prompt ${round}`,
+      answers: [{
+        completion: `Answer ${round}`, authorName: "Alex", voterNames: ["Sam"],
+        voteCount: 1, pointsEarned: 1,
+      }],
+      scores: [{ name: "Alex", pointsEarned: 1, totalScore: round }],
+    }));
+    let toggleCount = 0;
+    let selectedPage = null;
+    const section = createRoundHistorySection(history, -1, true, () => toggleCount++, (page) => { selectedPage = page; });
+    assert.match(section.text, /Round 3 results/u);
+    assert.match(section.text, /Prompt 3/u);
+    assert.match(section.text, /Alex: Answer 3/u);
+    assert.match(section.text, /Voted by: Sam/u);
+    assert.match(section.text, /Alex: \+1 this round · 3 total/u);
+    const previous = section.query((node) => node.attributes?.["aria-label"] === "Previous round");
+    const next = section.query((node) => node.attributes?.["aria-label"] === "Next round");
+    assert.equal(previous.disabled, false);
+    assert.equal(next.disabled, true);
+    previous.dispatch("click");
+    assert.equal(selectedPage, 1);
+    const pageOne = section.query((node) => node.attributes?.["aria-label"] === "Round 1");
+    pageOne.dispatch("click");
+    assert.equal(selectedPage, 0);
+    section.query((node) => node.textContent === "Hide All Round Results").dispatch("click");
+    assert.equal(toggleCount, 1);
   } finally {
     if (originalDocument === undefined) delete globalThis.document;
     else globalThis.document = originalDocument;

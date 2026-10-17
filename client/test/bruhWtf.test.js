@@ -286,7 +286,7 @@ test("Bruh final results omit round content and show tied winners, final leaderb
     assert.equal(root.queryAll((node) => node.className.split(" ").includes("result-card")).length, 3);
     const leaderboard = root.query((node) => node.tagName === "ol" && node.className.includes("final-leaderboard"));
     assert.deepEqual(leaderboard.children.map((row) => row.children[0].textContent), ["#1", "#1", "#3"]);
-    const returnButton = root.query((node) => node.tagName === "button");
+    const returnButton = root.query((node) => node.tagName === "button" && node.textContent === "Return to lobby");
     returnButton.dispatch("click");
     assert.equal(returnCalls, 1);
   });
@@ -309,13 +309,13 @@ test("Bruh final results preserve return loading/errors and non-host waiting sta
       isReturningToLobby: true, returnToLobbyError: "Return failed",
     };
     const host = renderBruhWtfGame(state, baseView, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true);
-    const button = host.query((node) => node.tagName === "button");
+    const button = host.query((node) => node.tagName === "button" && node.textContent.includes("Returning to lobby"));
     assert.equal(button.disabled, true);
     assert.match(button.textContent, /Returning to lobby/u);
     assert.match(host.text, /Return failed/u);
 
     const nonHost = renderBruhWtfGame(state, { ...baseView, isHost: false, isReturningToLobby: false, returnToLobbyError: null }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true);
-    assert.equal(nonHost.query((node) => node.tagName === "button"), null);
+    assert.equal(nonHost.query((node) => node.tagName === "button" && node.textContent === "Return to lobby"), null);
     assert.match(nonHost.text, /Waiting for the host/u);
   });
 });

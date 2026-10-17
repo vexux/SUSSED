@@ -43,6 +43,7 @@ function createInitialState(players, { roundCount = DEFAULT_ROUND_COUNT } = {}) 
         }])),
         scoredRounds: new Set(),
         continueReady: new Set(),
+        roundHistory: [],
         results: null
     };
 }
@@ -446,6 +447,11 @@ function publishResults(state) {
     state.scoredRounds.add(state.currentRound);
     state.continueReady = new Set();
     state.results = results;
+    state.roundHistory.push({
+        round: state.currentRound,
+        prompt: state.currentQuestion.text,
+        ...results
+    });
     state.phase = "results";
     return { published: true, currentRound: state.currentRound };
 }
@@ -609,7 +615,9 @@ function createPublicState(state, viewerId) {
             ...(state.currentRound === state.totalRounds
                 ? { finalStatistics: createFinalStatistics(state) }
                 : {}),
-            results: state.results
+            results: state.currentRound === state.totalRounds
+                ? { ...state.results, roundHistory: state.roundHistory.map((round) => ({ ...round })) }
+                : state.results
         };
     }
     return {

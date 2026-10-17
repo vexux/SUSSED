@@ -107,7 +107,7 @@ function registerSocketHandlers(io, socket) {
                 );
                 broadcastPlayerGameStates(io, room.code, result.gameState.players);
             } else {
-                io.to(room.code).emit("game-state", result.gameState);
+                broadcastPlayerGameStates(io, room.code, result.gameState.players);
             }
             acknowledge(result.result);
         } catch (error) {
@@ -247,7 +247,7 @@ function scheduleSubmissionPhase(io, roomCode, sessionId, roundId, gameId = "fac
                 undefined,
                 sessionId
             );
-            io.to(roomCode).emit("game-state", result.gameState);
+            broadcastPlayerGameStates(io, roomCode, result.gameState.players);
         } catch (error) {
             if (
                 error instanceof gameManager.GameSessionError &&

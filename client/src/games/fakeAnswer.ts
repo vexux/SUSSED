@@ -4,6 +4,7 @@ import {
   appendWinnerPresentation,
   createAnswerResultCard,
   createQuestionText,
+  createRoundHistorySection,
   createStandingsList,
   createSubmissionForm,
   createSubmissionProgress,
@@ -67,6 +68,7 @@ export interface FakeAnswerResults {
   options: FakeAnswerResultOption[];
   players: FakeAnswerResultPlayer[];
   standings: FakeAnswerStanding[];
+  roundHistory?: Array<FakeAnswerResults & { round: number; prompt: string }>;
 }
 
 export function getRevealAnswerGroups(options: FakeAnswerResultOption[]): {
@@ -85,9 +87,9 @@ export function formatRoundPoints(points: number): string {
 
 export const VOTING_ROUND_HEADING = "Voting Round";
 export const FINAL_STATISTIC_LABELS = [
-  ["mostPlayersFooled", "Most players siked"],
-  ["gotFooledMost", "Got siked the most"],
-  ["mostCorrectAnswers", "Most correct answers"],
+  ["mostPlayersFooled", "Professional Liar"],
+  ["gotFooledMost", "Gullible Legend"],
+  ["mostCorrectAnswers", "The Nerd"],
 ] as const;
 
 export function getPersonalRoundFeedback(
@@ -197,6 +199,8 @@ export interface FakeAnswerViewState {
   isReturningToLobby: boolean;
   returnToLobbyError: string | null;
   isRoundFeedbackDismissed: boolean;
+  historyOpen?: boolean;
+  historyPage?: number;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -574,6 +578,8 @@ function createFinalResultsScreen(
   submission: FakeAnswerViewState,
   onReturnToLobby: () => void,
   onDismissFeedback: () => void,
+  onToggleHistory: () => void,
+  onHistoryPage: (page: number) => void,
 ): HTMLElement {
   const screen = document.createElement("section");
   screen.className = "app-screen question-screen final-results-screen";
@@ -617,6 +623,31 @@ function createFinalResultsScreen(
   }
   screen.append(statisticsHeading, statistics);
 
+  const history = (results.roundHistory ?? [
+    { ...results, round: publicState.currentRound, prompt: publicState.prompt?.text ?? "" },
+  ]).map((round) => {
+    const pointsByAuthor = new Map(round.players.map(({ playerId, bluffPoints }) => [playerId, bluffPoints]));
+    return {
+      round: round.round,
+      prompt: round.prompt,
+      answers: round.options.map((option) => ({
+        completion: option.completion,
+        authorName: option.authorName ?? "Correct answer",
+        voterNames: option.voters.map(({ name }) => name),
+        voteCount: option.voters.length,
+        pointsEarned: option.authorId ? pointsByAuthor.get(option.authorId) ?? 0 : 0,
+      })),
+      scores: round.players.map(({ name, roundPoints, totalScore }) => ({ name, pointsEarned: roundPoints, totalScore })),
+    };
+  });
+  screen.append(createRoundHistorySection(
+    history,
+    submission.historyPage ?? -1,
+    submission.historyOpen === true,
+    onToggleHistory,
+    onHistoryPage,
+  ));
+
   const finished = document.createElement("p");
   finished.className = "status-message";
   finished.textContent = "The game is complete.";
@@ -659,7 +690,9 @@ export function renderFakeAnswerGame(
   onReturnToLobby: () => void,
   gameDisplayName: string,
   isSessionFinished: boolean,
-  onDismissFeedback: () => void,
+  onDismissFeedback: () => void = () => {},
+  onToggleHistory: () => void = () => {},
+  onHistoryPage: (page: number) => void = () => {},
 ): HTMLElement {
   const screen = document.createElement("section");
   screen.className = "app-screen question-screen";
@@ -682,6 +715,8 @@ export function renderFakeAnswerGame(
       submission,
       onReturnToLobby,
       onDismissFeedback,
+      onToggleHistory,
+      onHistoryPage,
     );
   }
 

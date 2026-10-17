@@ -405,6 +405,12 @@ test("three-player Bruh wtf? socket session completes rounds, preserves privacy,
     }
 
     assert.equal(gameManager.getPublicGameState(created.roomCode, host.id).status, "finished");
+    const finalState = gameManager.getPublicGameState(created.roomCode, host.id);
+    assert.equal(finalState.state.results.roundHistory.length, 5);
+    assert.deepEqual(finalState.state.results.roundHistory.map(({ round }) => round), [1, 2, 3, 4, 5]);
+    assert.ok(finalState.state.results.roundHistory.every(({ prompt, answers }) =>
+        typeof prompt === "string" && answers.length === 3
+    ));
     assert.deepEqual(await emitWithAck(host, "return-to-lobby", { sessionId }), { returned: true });
     assert.equal(roomManager.createLobbyState(roomManager.getRoom(created.roomCode)).selectedGameId, "bruh-wtf");
 });

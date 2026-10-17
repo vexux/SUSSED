@@ -1100,6 +1100,11 @@ test("final statistics aggregate completed votes, preserve ties, and reset for r
         assert.equal(finalState.status, "finished");
         assert.equal(finalState.state.currentRound, 5);
         assert.equal(Object.hasOwn(finalState.state, "continueProgress"), false);
+        assert.equal(finalState.state.results.roundHistory.length, 5);
+        assert.deepEqual(finalState.state.results.roundHistory.map(({ round }) => round), [1, 2, 3, 4, 5]);
+        assert.ok(finalState.state.results.roundHistory.every(({ prompt, options }) =>
+            typeof prompt === "string" && options.length >= 2
+        ));
         assert.deepEqual(finalState.state.finalStatistics, {
             mostPlayersFooled: {
                 playerIds: ["player-1"],
