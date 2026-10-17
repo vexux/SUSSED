@@ -330,6 +330,97 @@ button:focus-visible {
   font-weight: 600;
 }
 
+.in-game-badge {
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: #e2b8ff;
+  border: 1px solid #7954a1;
+  background: #30213e;
+}
+
+.all-round-history {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem auto;
+  max-width: 52rem;
+}
+
+.history-prompt {
+  margin: 0;
+}
+
+.history-answer-list,
+.history-score-list {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.history-answer-list .result-card {
+  display: block;
+}
+
+.history-answer-list .result-card p {
+  margin: 0.45rem 0 0;
+}
+
+.history-score-list {
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.history-score-list li {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #554b5e;
+  border-radius: 0.6rem;
+  background: #211b27;
+}
+
+.history-pagination,
+.history-page-numbers {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.history-page {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  border: 1px solid #554b5e;
+  border-radius: 0.5rem;
+  color: #f5f3f7;
+  background: #302737;
+}
+
+.history-page.selected {
+  color: #20152b;
+  background: #c084fc;
+  border-color: #c084fc;
+}
+
+.results-reminder-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(8 5 12 / 75%);
+}
+
+.results-reminder-dialog {
+  width: min(100%, 30rem);
+  padding: 1.5rem;
+  border: 1px solid #c084fc;
+  border-radius: 1rem;
+  background: #211b27;
+  box-shadow: 0 0 2rem rgb(190 130 255 / 18%);
+  text-align: center;
+}
+
 .not-ready-badge {
   color: #d1c7d7;
   background: #39313f;

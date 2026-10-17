@@ -64,6 +64,8 @@ let fakeAnswerIsContinuing = false;
 let fakeAnswerContinueError: string | null = null;
 let fakeAnswerIsReturningToLobby = false;
 let fakeAnswerReturnToLobbyError: string | null = null;
+let allRoundHistoryOpen = false;
+let allRoundHistoryPage = -1;
 let fakeAnswerFeedbackDismissedIdentity: string | null = null;
 let bruhAnswerDraft = "";
 let bruhIsSubmitting = false;
@@ -90,6 +92,8 @@ function resetFakeAnswerViewState(): void {
   fakeAnswerIsReturningToLobby = false;
   fakeAnswerReturnToLobbyError = null;
   fakeAnswerFeedbackDismissedIdentity = null;
+  allRoundHistoryOpen = false;
+  allRoundHistoryPage = -1;
   bruhAnswerDraft = "";
   bruhIsSubmitting = false;
   bruhSubmitError = null;
@@ -124,6 +128,8 @@ function render(): void {
       isFakeAnswerPublicState(state.game?.state) &&
       fakeAnswerFeedbackDismissedIdentity ===
         `${state.game?.sessionId}:${state.game.state.roundId}`,
+    historyOpen: allRoundHistoryOpen,
+    historyPage: allRoundHistoryPage,
   }, {
     currentPlayerId: state.localPlayerId,
     answerDraft: bruhAnswerDraft,
@@ -142,6 +148,8 @@ function render(): void {
     ) ?? false,
     isReturningToLobby: fakeAnswerIsReturningToLobby,
     returnToLobbyError: fakeAnswerReturnToLobbyError,
+    historyOpen: allRoundHistoryOpen,
+    historyPage: allRoundHistoryPage,
   });
   document.body.classList.toggle(
     "modal-open",
@@ -215,13 +223,14 @@ function applyLobbyState(lobby: LobbyState): void {
     return;
   }
 
-  if (lobby.status === "lobby") {
+  if (lobby.status === "lobby" || (lobby.status === "starting" && localPlayer.isInGame === false && state.game?.status === "finished")) {
     if (state.game) {
       retiredGameSessionIds.add(state.game.sessionId);
     }
     state.game = null;
     resetFakeAnswerViewState();
   }
+  state.resultsReminderSessionId = null;
   state.currentView =
     lobby.status === "lobby"
       ? "lobby"
@@ -790,6 +799,42 @@ const actions: AppActions = {
       },
     );
   },
+  onToggleResultsHistory() {
+    allRoundHistoryOpen = !allRoundHistoryOpen;
+    if (allRoundHistoryOpen) allRoundHistoryPage = -1;
+    render();
+  },
+  onResultsHistoryPage(page: number) {
+    allRoundHistoryPage = page;
+    render();
+  },
+  onAskResultsViewersToReturn() {
+    const sessionId = state.lobby?.reminderSessionId;
+    if (!sessionId) return;
+    emitRoomOperation("ask-results-viewers-to-return", { sessionId }, (response) => {
+      if (response.error) {
+        state.errorCode = response.error.code;
+        state.errorMessage = response.error.message;
+        render();
+      }
+    });
+  },
+  onDismissResultsReminder() {
+    state.resultsReminderSessionId = null;
+    render();
+  },
+  onAcceptResultsReminder() {
+    const sessionId = state.resultsReminderSessionId;
+    if (!sessionId) return;
+    emitRoomOperation("return-from-results", { sessionId }, (response) => {
+      if (response.error) {
+        state.resultsReminderSessionId = null;
+        state.errorCode = response.error.code;
+        state.errorMessage = response.error.message;
+        render();
+      }
+    });
+  },
   onDismissRoundFeedback() {
     if (
       isFakeAnswerPublicState(state.game?.state) &&
@@ -826,6 +871,12 @@ socket.on(
 
 socket.on("game-state", (game: GameSessionState) => {
   applyGameState(game);
+});
+
+socket.on("results-return-reminder", (payload: { sessionId: string }) => {
+  if (state.game?.sessionId !== payload.sessionId || state.currentView !== "game") return;
+  state.resultsReminderSessionId = payload.sessionId;
+  render();
 });
 
 let connectionWasLost = false;

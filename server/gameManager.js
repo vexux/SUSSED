@@ -210,8 +210,17 @@ function retireFinishedGame(roomCode, expectedSessionId) {
             "That request belongs to a different game session."
         );
     }
+    const snapshot = {
+        roomCode,
+        sessionId: session.sessionId,
+        gameId: session.gameId,
+        displayName: session.displayName,
+        status: session.status,
+        players: session.players.map(({ id, name }) => ({ id, name })),
+        state: session.implementation.createPublicState(session.privateState, null)
+    };
     sessions.delete(roomCode);
-    return true;
+    return snapshot;
 }
 
 function abortActiveGame(roomCode, expectedSessionId) {

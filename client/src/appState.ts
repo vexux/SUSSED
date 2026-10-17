@@ -7,6 +7,7 @@ export interface LobbyPlayer {
   name: string;
   isHost: boolean;
   isReady: boolean;
+  isInGame: boolean;
 }
 
 export interface LobbyState {
@@ -18,6 +19,7 @@ export interface LobbyState {
   selectedGameId: string;
   selectedRoundCount: 5 | 7 | 10;
   selectedGame: LobbyGame;
+  reminderSessionId: string | null;
   availableGames: LobbyGame[];
   players: LobbyPlayer[];
 }
@@ -57,6 +59,7 @@ export interface AppState {
   errorMessage: string | null;
   errorCode: string | null;
   isBusy: boolean;
+  resultsReminderSessionId: string | null;
 }
 
 export const LANDING_TAGLINES = [
@@ -103,5 +106,6 @@ export function createInitialAppState(): AppState {
     errorMessage: null,
     errorCode: null,
     isBusy: false,
+    resultsReminderSessionId: null,
   };
 }

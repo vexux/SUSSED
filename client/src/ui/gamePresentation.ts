@@ -317,6 +317,101 @@ export function createStandingsList(
   return list;
 }
 
+export interface HistoricalRoundView {
+  round: number;
+  prompt: string;
+  answers: Array<{
+    completion: string;
+    authorName: string;
+    voterNames: string[];
+    voteCount: number;
+    pointsEarned: number;
+  }>;
+  scores: Array<{ name: string; pointsEarned: number; totalScore: number }>;
+}
+
+export function createRoundHistorySection(
+  history: HistoricalRoundView[],
+  currentPage: number,
+  isOpen: boolean,
+  onToggle: () => void,
+  onPageChange: (page: number) => void,
+): HTMLElement {
+  const section = document.createElement("section");
+  section.className = "all-round-history";
+  const toggle = document.createElement("button");
+  toggle.className = "secondary-button";
+  toggle.type = "button";
+  toggle.textContent = isOpen ? "Hide All Round Results" : "All Round Results";
+  toggle.setAttribute("aria-expanded", String(isOpen));
+  toggle.addEventListener("click", onToggle);
+  section.append(toggle);
+  if (!isOpen || history.length === 0) return section;
+
+  const page = Math.max(0, Math.min(history.length - 1, currentPage < 0 ? history.length - 1 : currentPage));
+  const round = history[page];
+  const heading = document.createElement("h2");
+  heading.className = "results-section-heading";
+  heading.textContent = `Round ${round.round} results`;
+  const prompt = document.createElement("p");
+  prompt.className = "screen-description history-prompt";
+  prompt.textContent = round.prompt;
+  const answers = document.createElement("ul");
+  answers.className = "result-card-list history-answer-list";
+  for (const answer of round.answers) {
+    const item = document.createElement("li");
+    item.className = "result-card";
+    item.append(
+      document.createElement("strong"),
+      document.createTextNode(""),
+    );
+    item.firstElementChild!.textContent = `${answer.authorName}: ${answer.completion}`;
+    const details = document.createElement("p");
+    details.textContent = `${answer.voteCount} ${answer.voteCount === 1 ? "vote" : "votes"} · ${answer.pointsEarned >= 0 ? "+" : ""}${answer.pointsEarned} points · ${answer.voterNames.length ? `Voted by: ${answer.voterNames.join(", ")}` : "No votes"}`;
+    item.append(details);
+    answers.append(item);
+  }
+  const scores = document.createElement("ul");
+  scores.className = "history-score-list";
+  for (const score of round.scores) {
+    const item = document.createElement("li");
+    item.textContent = `${score.name}: ${score.pointsEarned >= 0 ? "+" : ""}${score.pointsEarned} this round · ${score.totalScore} total`;
+    scores.append(item);
+  }
+  const pagination = document.createElement("nav");
+  pagination.className = "history-pagination";
+  pagination.setAttribute("aria-label", "Round results pages");
+  const previous = document.createElement("button");
+  previous.className = "secondary-button";
+  previous.type = "button";
+  previous.textContent = "←";
+  previous.setAttribute("aria-label", "Previous round");
+  previous.disabled = page === 0;
+  previous.addEventListener("click", () => onPageChange(page - 1));
+  const pages = document.createElement("div");
+  pages.className = "history-page-numbers";
+  history.forEach((entry, index) => {
+    const button = document.createElement("button");
+    button.className = `history-page${page === index ? " selected" : ""}`;
+    button.type = "button";
+    button.textContent = String(entry.round);
+    button.setAttribute("aria-label", `Round ${entry.round}`);
+    button.setAttribute("aria-current", page === index ? "page" : "false");
+    button.addEventListener("click", () => onPageChange(index));
+    pages.append(button);
+  });
+  const next = document.createElement("button");
+  next.className = "secondary-button";
+  next.type = "button";
+  next.textContent = "→";
+  next.setAttribute("aria-label", "Next round");
+  next.disabled = page === history.length - 1;
+  next.addEventListener("click", () => onPageChange(page + 1));
+  pagination.append(previous, pages, next);
+  section.append(heading, prompt, answers, scores, pagination);
+  return section;
+}
+
 export function appendContinueReadiness(options: {
   screen: HTMLElement;
   readyCount: number;

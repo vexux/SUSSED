@@ -4,6 +4,7 @@ import {
   appendWinnerPresentation,
   createAnswerResultCard,
   createQuestionText,
+  createRoundHistorySection,
   createStandingsList,
   createStatusMessage,
   createSubmissionForm,
@@ -37,6 +38,13 @@ export interface BruhWtfPublicState {
     activeLeaderboard?: Array<{ playerId: string; name: string; score: number; rank: number }>;
     winners?: Array<{ playerId: string; name: string }>;
     activeWinners?: Array<{ playerId: string; name: string }>;
+    roundHistory?: Array<{
+      round: number;
+      prompt: string;
+      answers: Array<{ completion: string; authorId: string; authorName: string; voterNames: string[]; voteCount: number; pointsAwarded: number }>;
+      roundScores: Array<{ playerId: string; name: string; pointsEarned: number }>;
+      leaderboard: Array<{ playerId: string; name: string; score: number; rank: number }>;
+    }>;
   };
 }
 
@@ -54,6 +62,8 @@ export interface BruhWtfViewState {
   isHost: boolean;
   isReturningToLobby: boolean;
   returnToLobbyError: string | null;
+  historyOpen?: boolean;
+  historyPage?: number;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -148,6 +158,8 @@ export function renderBruhWtfGame(
   onReturnToLobby: () => void,
   gameDisplayName: string,
   isSessionFinished: boolean,
+  onToggleHistory: () => void = () => {},
+  onHistoryPage: (page: number) => void = () => {},
 ): HTMLElement {
   const screen = element("section", "app-screen question-screen");
   if (!isBruhWtfPublicState(value)) {
@@ -176,6 +188,32 @@ export function renderBruhWtfGame(
         rank,
       })), { className: "final-leaderboard" }),
     );
+    const history = (results.roundHistory ?? [{
+      round: state.currentRound,
+      prompt: results.prompt,
+      answers: results.answers,
+      roundScores: results.roundScores,
+      leaderboard: results.leaderboard,
+    }]).map((round) => {
+      const scores = new Map(round.roundScores.map(({ playerId, pointsEarned }) => [playerId, pointsEarned]));
+      return {
+        round: round.round,
+        prompt: round.prompt,
+        answers: round.answers.map((answer) => ({
+          completion: answer.completion,
+          authorName: answer.authorName,
+          voterNames: answer.voterNames,
+          voteCount: answer.voteCount,
+          pointsEarned: answer.pointsAwarded,
+        })),
+        scores: round.leaderboard.map(({ playerId, name, score }) => ({
+          name,
+          pointsEarned: scores.get(playerId) ?? 0,
+          totalScore: score,
+        })),
+      };
+    });
+    screen.append(createRoundHistorySection(history, view.historyPage ?? -1, view.historyOpen === true, onToggleHistory, onHistoryPage));
     if (isSessionFinished && view.isHost) {
       const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to lobby");
       returnButton.disabled = view.isReturningToLobby;

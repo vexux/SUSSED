@@ -335,7 +335,7 @@ test("scheduled submission callbacks are single-use and cannot mutate later roun
     assert.notEqual(nextRound.state.roundId, previousRoundId);
 
     const broadcasts = [];
-    const io = { to: () => ({ emit: (...args) => broadcasts.push(args) }) };
+    const io = { to: (playerId) => ({ emit: (...args) => broadcasts.push({ playerId, args }) }) };
     const staleRoundCallback = captureSubmissionCallback(io, roomCode, sessionId, previousRoundId);
     const currentCallback = captureSubmissionCallback(io, roomCode, sessionId, nextRound.state.roundId);
     const duplicateCallback = captureSubmissionCallback(io, roomCode, sessionId, nextRound.state.roundId);
@@ -349,7 +349,9 @@ test("scheduled submission callbacks are single-use and cannot mutate later roun
     assert.equal(afterCallbacks.state.phase, "answer-submission");
     assert.equal(afterCallbacks.sessionId, sessionId);
     assert.equal(afterCallbacks.state.roundId, nextRound.state.roundId);
-    assert.equal(broadcasts.length, 1, "only the first callback may broadcast the phase transition");
+    assert.equal(broadcasts.length, players.length, "only the first callback may broadcast the phase transition");
+    assert.deepEqual(broadcasts.map(({ playerId }) => playerId).sort(), players.map(({ id }) => id).sort());
+    assert.ok(broadcasts.every(({ args }) => args[0] === "game-state" && args[1].state.phase === "answer-submission"));
 
     const replacementRoom = {
         code: roomCode,
@@ -369,7 +371,7 @@ test("scheduled submission callbacks are single-use and cannot mutate later roun
     replacementCallback();
     assert.equal(gameManager.getPublicGameState(roomCode, players[0].id).sessionId, replacement.sessionId);
     assert.equal(gameManager.getPublicGameState(roomCode, players[0].id).state.phase, "question");
-    assert.equal(broadcasts.length, 1);
+    assert.equal(broadcasts.length, players.length);
 
     const cleanedRoomCode = `${roomCode}-CLEANED`;
     const cleanedRoom = { ...replacementRoom, code: cleanedRoomCode };

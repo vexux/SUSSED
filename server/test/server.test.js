@@ -581,6 +581,7 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
         "playerCount",
         "players",
         "readinessStatus",
+        "reminderSessionId",
         "revision",
         "roomCode",
         "selectedGame",
@@ -591,6 +592,7 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
     assert.deepEqual(Object.keys(response.lobby.players[0]).sort(), [
         "id",
         "isHost",
+        "isInGame",
         "isReady",
         "name",
     ]);
@@ -796,7 +798,7 @@ test("host can select Anime and complete a round through the shared socket game 
 test("Anime rematches retain the selected game and use only the Anime question bank", async (context) => {
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, {
-        playerCount: 2,
+        playerCount: 4,
         gameId: "fact-or-cap-anime"
     });
     const clients = [game.host, ...game.players];
@@ -839,15 +841,106 @@ test("Anime rematches retain the selected game and use only the Anime question b
     );
     const lobby = roomManager.createLobbyState(roomManager.getRoom(game.roomCode));
     assert.equal(lobby.selectedGameId, "fact-or-cap-anime");
+    assert.equal(lobby.playerCount, 1);
+    assert.ok(game.players.every(({ id }) => lobby.players.find((player) => player.id === id).isInGame));
+    const guestLobbyEvents = [];
+    game.players[0].on("lobby-state", (state) => guestLobbyEvents.push(state));
+    const reminder = new Promise((resolve) => game.players[1].once("results-return-reminder", resolve));
+    assert.deepEqual(await emitWithAck(game.host, "ask-results-viewers-to-return", {
+        sessionId: roundState.sessionId
+    }), { sent: 3 });
+    assert.deepEqual(await reminder, { sessionId: roundState.sessionId });
+    assert.equal((await emitWithAck(game.players[0], "set-ready", { isReady: true })).error.code, "PLAYER_VIEWING_RESULTS");
+    const returnedGuestLobbyEvent = waitForLobby(game.players[0]);
+    const hostLobbyUpdate = waitForLobby(game.host, (state) => state.playerCount === 2);
+    assert.deepEqual(await emitWithAck(game.players[0], "return-from-results", {
+        sessionId: roundState.sessionId
+    }), { returned: true, status: "lobby" });
+    const returnedLobby = await returnedGuestLobbyEvent;
+    assert.deepEqual(await hostLobbyUpdate, returnedLobby);
+    assert.equal(returnedLobby.playerCount, 2);
+    assert.equal(returnedLobby.players.find(({ id }) => id === game.players[0].id).isInGame, false);
     assert.equal(
         (await emitWithAck(game.players[0], "set-ready", { isReady: true })).isReady,
         true
     );
+    const staleViewerReminded = new Promise((resolve) => game.players[1].once("results-return-reminder", resolve));
+    assert.deepEqual(await emitWithAck(game.host, "ask-results-viewers-to-return", {
+        sessionId: roundState.sessionId
+    }), { sent: 2 });
+    assert.deepEqual(await staleViewerReminded, { sessionId: roundState.sessionId });
+    const staleViewerStates = [];
+    game.players[1].on("game-state", (state) => staleViewerStates.push(state));
+    const replayHost = waitForGameState(game.host, (state) => state.gameId === "fact-or-cap-anime");
+    const replayGuest = waitForGameState(game.players[0], (state) => state.gameId === "fact-or-cap-anime");
     const replay = await emitWithAck(game.host, "start-game");
     assert.equal(replay.starting, true);
     assert.equal(replay.game.gameId, "fact-or-cap-anime");
     assert.ok(animeQuestions.some(({ text }) => text === replay.game.state.prompt.text));
     assert.equal(questions.some(({ text }) => text === replay.game.state.prompt.text), false);
+    const [newHostState, newGuestState] = await Promise.all([replayHost, replayGuest]);
+    assert.equal(newHostState.sessionId, replay.game.sessionId);
+    assert.equal(newGuestState.sessionId, replay.game.sessionId);
+    assert.equal(staleViewerStates.length, 0);
+    assert.equal((await emitWithAck(game.players[1], "fake-answer:submit", {
+        completion: "stale viewer answer",
+        sessionId: replay.game.sessionId,
+        roundId: replay.game.state.roundId
+    })).error.code, "NOT_A_GAME_PLAYER");
+    const lateReturnLobbyEvent = waitForLobby(game.players[1]);
+    assert.deepEqual(await emitWithAck(game.players[1], "return-from-results", {
+        sessionId: roundState.sessionId
+    }), { returned: true, status: "starting" });
+    const lateReturnLobby = await lateReturnLobbyEvent;
+    assert.equal(lateReturnLobby.status, "starting");
+    assert.equal(lateReturnLobby.players.find(({ id }) => id === game.players[1].id).isInGame, false);
+    assert.equal(roomManager.getRoom(game.roomCode).reminderSessionId, roundState.sessionId);
+    assert.equal(guestLobbyEvents.length, 2);
+
+    const secondMatchSessionId = replay.game.sessionId;
+    let secondMatchRound = await waitForGameState(game.host, (state) =>
+        state.sessionId === secondMatchSessionId && state.state.phase === "answer-submission"
+    );
+    for (let round = 1; round <= 5; round += 1) {
+        const results = await completeSocketRound(game.host, [game.players[0]], secondMatchRound);
+        if (round === 5) break;
+        const nextStates = [game.host, game.players[0]].map((client) => waitForGameState(client, (state) =>
+            state.sessionId === secondMatchSessionId && state.state.phase === "answer-submission" && state.state.currentRound === round + 1
+        ));
+        for (let index = 0; index < 2; index += 1) {
+            const response = await emitWithAck([game.host, game.players[0]][index], "fake-answer:continue", withRoundId(results[index], {}));
+            assert.equal(response.advanced, index === 1);
+        }
+        secondMatchRound = (await Promise.all(nextStates))[0];
+    }
+    const finalSecondMatchLobby = waitForLobby(game.players[1], (state) => state.status === "lobby");
+    assert.deepEqual(await emitWithAck(game.host, "return-to-lobby", { sessionId: secondMatchSessionId }), { returned: true });
+    const finalLobbyForLateReturner = await finalSecondMatchLobby;
+    assert.equal(finalLobbyForLateReturner.playerCount, 2);
+    assert.equal(finalLobbyForLateReturner.players.find(({ id }) => id === game.players[1].id).isInGame, false);
+    assert.equal(finalLobbyForLateReturner.players.find(({ id }) => id === game.players[0].id).isInGame, true);
+    assert.equal(finalLobbyForLateReturner.players.find(({ id }) => id === game.players[2].id).isInGame, true);
+    const currentViewerReminder = new Promise((resolve) => game.players[0].once("results-return-reminder", resolve));
+    assert.deepEqual(await emitWithAck(game.host, "ask-results-viewers-to-return", { sessionId: secondMatchSessionId }), { sent: 1 });
+    await currentViewerReminder;
+    const currentViewerLobby = waitForLobby(game.host, (state) => state.playerCount === 3);
+    assert.deepEqual(await emitWithAck(game.players[0], "return-from-results", { sessionId: secondMatchSessionId }), {
+        returned: true,
+        status: "lobby"
+    });
+    await currentViewerLobby;
+    assert.equal(roomManager.getRoom(game.roomCode).reminderSessionId, roundState.sessionId);
+    const previousViewerReminder = new Promise((resolve) => game.players[2].once("results-return-reminder", resolve));
+    assert.deepEqual(await emitWithAck(game.host, "ask-results-viewers-to-return", { sessionId: roundState.sessionId }), { sent: 1 });
+    await previousViewerReminder;
+    const previousViewerLobby = waitForLobby(game.host, (state) => state.playerCount === 4);
+    assert.deepEqual(await emitWithAck(game.players[2], "return-from-results", { sessionId: roundState.sessionId }), {
+        returned: true,
+        status: "lobby"
+    });
+    await previousViewerLobby;
+    assert.equal(roomManager.getRoom(game.roomCode).reminderSessionId, null);
+    assert.equal(guestLobbyEvents.length, 4);
 });
 
 test("rejects invalid and non-host game selections without mutating the lobby", async (context) => {
@@ -1034,7 +1127,7 @@ test("leaving removes the player, broadcasts the update, and preserves the origi
     assert.deepEqual(response, { left: true });
     const updatedLobby = await updateEvent;
     assert.deepEqual(updatedLobby.players, [
-        { id: host.id, name: "Host", isHost: true, isReady: false },
+        { id: host.id, name: "Host", isHost: true, isReady: false, isInGame: false },
     ]);
     assert.equal(updatedLobby.playerCount, 1);
     assert.equal(roomManager.getPlayerRoom(guest.id), null);
@@ -1126,7 +1219,7 @@ test("disconnect removes a player and broadcasts the updated lobby", async (cont
     const lobby = await lobbyUpdate;
 
     assert.deepEqual(lobby.players, [
-        { id: host.id, name: "Host", isHost: true, isReady: false },
+        { id: host.id, name: "Host", isHost: true, isReady: false, isInGame: false },
     ]);
     assert.equal(roomManager.getPlayerRoom(guest.id), null);
     assert.equal(roomManager.getRoom(createResponse.roomCode).players.length, 1);
@@ -2531,7 +2624,6 @@ test("fake-answer honors a selected round count through completion, lobby return
         "GAME_NOT_ACTIVE"
     );
 
-    const nonHostLobby = waitForLobby(game.players[0], (lobby) => lobby.status === "lobby");
     const hostLobby = waitForLobby(game.host, (lobby) => lobby.status === "lobby");
     const returnResponses = await Promise.all([
         emitWithAck(game.host, "return-to-lobby", { sessionId: finalSessionId }),
@@ -2539,15 +2631,13 @@ test("fake-answer honors a selected round count through completion, lobby return
     ]);
     assert.deepEqual(returnResponses[0], { returned: true });
     assert.equal(returnResponses[1].error.code, "ROOM_NOT_IN_GAME");
-    const [hostLobbyState, nonHostLobbyState] = await Promise.all([
-        hostLobby,
-        nonHostLobby,
-    ]);
-    assert.deepEqual(hostLobbyState, nonHostLobbyState);
+    const hostLobbyState = await hostLobby;
     assert.equal(hostLobbyState.roomCode, game.roomCode);
     assert.equal(hostLobbyState.status, "lobby");
     assert.equal(hostLobbyState.selectedGameId, "fact-or-cap");
     assert.equal(hostLobbyState.selectedRoundCount, 7);
+    assert.equal(hostLobbyState.playerCount, 1);
+    assert.equal(hostLobbyState.players.find(({ id }) => id === game.players[0].id).isInGame, true);
     assert.deepEqual(
         hostLobbyState.players.map(({ id, isHost, isReady }) => ({
             id,
@@ -2567,10 +2657,17 @@ test("fake-answer honors a selected round count through completion, lobby return
         () => gameManager.getPublicGameState(game.roomCode, game.host.id),
         { code: "GAME_NOT_ACTIVE" }
     );
-    assert.equal(
-        (await emitWithAck(game.host, "start-game")).error.code,
-        "PLAYERS_NOT_READY"
-    );
+    assert.equal((await emitWithAck(game.players[0], "set-ready", { isReady: true })).error.code, "PLAYER_VIEWING_RESULTS");
+    assert.equal((await emitWithAck(game.host, "start-game")).error.code, "NOT_ENOUGH_PLAYERS");
+
+    const returnedGuestLobby = waitForLobby(game.players[0], (lobby) => lobby.status === "lobby");
+    assert.deepEqual(await emitWithAck(game.players[0], "return-from-results", { sessionId: finalSessionId }), {
+        returned: true,
+        status: "lobby"
+    });
+    const guestLobbyState = await returnedGuestLobby;
+    assert.equal(guestLobbyState.playerCount, 2);
+    assert.equal(guestLobbyState.players.find(({ id }) => id === game.players[0].id).isInGame, false);
 
     const readyLobby = waitForLobby(game.host, (lobby) =>
         lobby.players.every((player) => player.isReady || player.isHost)
