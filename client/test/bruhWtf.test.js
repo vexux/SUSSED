@@ -317,6 +317,18 @@ test("Bruh final results preserve return loading/errors and non-host waiting sta
     const nonHost = renderBruhWtfGame(state, { ...baseView, isHost: false, isReturningToLobby: false, returnToLobbyError: null }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true);
     assert.equal(nonHost.query((node) => node.tagName === "button" && node.textContent === "Return to lobby"), null);
     assert.match(nonHost.text, /Waiting for the host/u);
+
+    let returnCalls = 0;
+    const resultsViewer = renderBruhWtfGame(
+      state,
+      { ...baseView, isHost: false, isResultsViewer: true, isReturningToLobby: false, returnToLobbyError: null },
+      () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true,
+      undefined, undefined, () => { returnCalls += 1; },
+    );
+    const returnButton = resultsViewer.query((node) => node.tagName === "button" && node.textContent === "Return to Lobby");
+    assert.ok(returnButton);
+    returnButton.dispatch("click");
+    assert.equal(returnCalls, 1);
   });
 });
 
@@ -395,5 +407,40 @@ test("vote errors render as actionable alert feedback", () => {
     const alert = root.query((element) => element.attributes.role === "alert");
     assert.ok(alert);
     assert.equal(alert.textContent, "You cannot vote for your own answer.");
+  });
+});
+
+test("Bruh final results history uses the recorded round answers and standings", () => {
+  withFakeElements(() => {
+    const root = renderBruhWtfGame({
+      phase: "results", currentRound: 5, totalRounds: 5, roundId: "final", prompt: "Current prompt", playerCount: 2,
+      results: {
+        prompt: "Current prompt", answers: [], roundScores: [],
+        leaderboard: [{ playerId: "p1", name: "Alex", score: 6, rank: 1 }],
+        winners: [{ playerId: "p1", name: "Alex" }],
+        roundHistory: [{
+          round: 3,
+          prompt: "Recorded Bruh prompt",
+          answers: [{ completion: "A tiny parade", authorId: "p1", authorName: "Alex", voterNames: ["Sam"], voteCount: 1, pointsAwarded: 1 }],
+          roundScores: [{ playerId: "p1", name: "Alex", pointsEarned: 1 }],
+          leaderboard: [{ playerId: "p1", name: "Alex", score: 6, rank: 1 }],
+        }],
+      },
+    }, {
+      currentPlayerId: "p1", answerDraft: "", isSubmitting: false, submitError: null,
+      selectedOptionId: null, hasVoted: false, isVoting: false, voteError: null,
+      isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null, historyOpen: true,
+    }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true);
+
+    assert.match(root.text, /Bruh wtf\?/u);
+    assert.match(root.text, /Round 3/u);
+    assert.match(root.text, /Recorded Bruh prompt/u);
+    assert.match(root.text, /Alex\|A tiny parade/u);
+    assert.match(root.text, /Voted by: Sam/u);
+    assert.match(root.text, /1 vote/u);
+    assert.match(root.text, /Current leaderboard/u);
+    assert.match(root.text, /\+1/u);
+    assert.match(root.text, /6 points/u);
   });
 });

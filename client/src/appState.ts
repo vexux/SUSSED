@@ -60,6 +60,8 @@ export interface AppState {
   errorCode: string | null;
   isBusy: boolean;
   resultsReminderSessionId: string | null;
+  isSendingResultsReminder: boolean;
+  resultsReminderFeedback: string | null;
 }
 
 export const LANDING_TAGLINES = [
@@ -107,5 +109,7 @@ export function createInitialAppState(): AppState {
     errorCode: null,
     isBusy: false,
     resultsReminderSessionId: null,
+    isSendingResultsReminder: false,
+    resultsReminderFeedback: null,
   };
 }

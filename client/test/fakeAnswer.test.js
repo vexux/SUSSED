@@ -355,8 +355,8 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
   const originalDocument = globalThis.document;
   globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
   try {
-    const renderFinal = (gameName, state, view = createFinalView(), onReturn = () => {}) =>
-      renderFakeAnswerGame(state, view, () => {}, () => {}, () => {}, () => {}, onReturn, gameName, true, () => {});
+    const renderFinal = (gameName, state, view = createFinalView(), onReturn = () => {}, onReturnFromResults = () => {}) =>
+      renderFakeAnswerGame(state, view, () => {}, () => {}, () => {}, () => {}, onReturn, gameName, true, () => {}, undefined, undefined, onReturnFromResults);
 
     const tieState = createFinalPublicState(true);
     const screen = renderFinal("Fact or Cap", tieState);
@@ -417,6 +417,19 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
     const nonHostScreen = renderFinal("Fact or Cap", tieState, createFinalView({ isHost: false }));
     assert.equal(nonHostScreen.query((node) => node.tagName === "button" && node.textContent === "Return to lobby"), null);
     assert.match(nonHostScreen.text, /Waiting for the host/u);
+
+    let viewerReturnCalls = 0;
+    const viewerScreen = renderFinal(
+      "Fact or Cap",
+      tieState,
+      createFinalView({ isHost: false, isResultsViewer: true }),
+      () => {},
+      () => { viewerReturnCalls += 1; },
+    );
+    const viewerReturn = viewerScreen.query((node) => node.tagName === "button" && node.textContent === "Return to Lobby");
+    assert.ok(viewerReturn);
+    viewerReturn.dispatch("click");
+    assert.equal(viewerReturnCalls, 1);
   } finally {
     if (originalDocument === undefined) delete globalThis.document;
     else globalThis.document = originalDocument;
@@ -479,22 +492,34 @@ test("all-round history opens on the final round and supports bounded page navig
   };
   try {
     const history = [1, 2, 3].map((round) => ({
+      gameName: "Fact or Cap Anime",
       round,
       prompt: `Prompt ${round}`,
-      answers: [{
-        completion: `Answer ${round}`, authorName: "Alex", voterNames: ["Sam"],
-        voteCount: 1, pointsEarned: 1,
+      sections: [{
+        heading: "Bluff answers",
+        voterPrefix: "Chosen by",
+        answers: [{
+          completion: `Answer ${round}`, authorName: "Alex", voterNames: ["Sam"], voteCount: 1,
+        }],
       }],
-      scores: [{ name: "Alex", pointsEarned: 1, totalScore: round }],
+      standings: [{ playerId: "alex", name: "Alex", rank: 1, totalScore: round }],
+      roundPointsByPlayer: new Map([["alex", 1]]),
     }));
     let toggleCount = 0;
     let selectedPage = null;
     const section = createRoundHistorySection(history, -1, true, () => toggleCount++, (page) => { selectedPage = page; });
     assert.match(section.text, /Round 3 results/u);
     assert.match(section.text, /Prompt 3/u);
-    assert.match(section.text, /Alex: Answer 3/u);
-    assert.match(section.text, /Voted by: Sam/u);
-    assert.match(section.text, /Alex: \+1 this round · 3 total/u);
+    assert.match(section.text, /Fact or Cap Anime/u);
+    assert.match(section.text, /Alex/u);
+    assert.match(section.text, /Answer 3/u);
+    assert.match(section.text, /1 vote/u);
+    assert.match(section.text, /Chosen by: Sam/u);
+    assert.match(section.text, /Current leaderboard/u);
+    assert.match(section.text, /#1/u);
+    assert.match(section.text, /\+1/u);
+    assert.match(section.text, /3 points/u);
+    assert.equal(section.query((node) => node.textContent === "Continue"), null);
     const previous = section.query((node) => node.attributes?.["aria-label"] === "Previous round");
     const next = section.query((node) => node.attributes?.["aria-label"] === "Next round");
     assert.equal(previous.disabled, false);
@@ -506,6 +531,56 @@ test("all-round history opens on the final round and supports bounded page navig
     assert.equal(selectedPage, 0);
     section.query((node) => node.textContent === "Hide All Round Results").dispatch("click");
     assert.equal(toggleCount, 1);
+    const malformedHistory = createRoundHistorySection([{
+      gameName: "Fact or Cap",
+      round: 4,
+      prompt: "Must not be shown without a valid snapshot",
+      sections: [],
+      standings: [],
+      roundPointsByPlayer: null,
+    }], -1, true, () => {}, () => {});
+    assert.doesNotMatch(malformedHistory.text, /Must not be shown/u);
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
+test("Fact-or-Cap historical snapshots render their recorded answers, voters, and leaderboard", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  try {
+    const state = createFinalPublicState(false);
+    state.results.roundHistory = [{
+      ...createResults(),
+      round: 4,
+      prompt: "Recorded round prompt",
+      standings: [
+        { playerId: "player-2", name: "Player Two", totalScore: 6, rank: 1 },
+        { playerId: "player-1", name: "Player One", totalScore: 3, rank: 2 },
+      ],
+      players: createResults().players.map((player) => ({
+        ...player,
+        roundPoints: player.playerId === "player-2" ? 3 : 0,
+        totalScore: player.playerId === "player-2" ? 6 : 3,
+      })),
+    }];
+    const screen = renderFakeAnswerGame(
+      state,
+      createFinalView({ historyOpen: true }),
+      () => {}, () => {}, () => {}, () => {}, () => {},
+      "Fact-or-Cap Anime", true, () => {}, () => {}, () => {},
+    );
+    assert.match(screen.text, /Fact-or-Cap Anime/u);
+    assert.match(screen.text, /Round 4 results/u);
+    assert.match(screen.text, /Recorded round prompt/u);
+    assert.match(screen.text, /Correct Answer/u);
+    assert.match(screen.text, /Bluff answers/u);
+    assert.match(screen.text, /Chosen by: Player Two/u);
+    assert.match(screen.text, /Current leaderboard/u);
+    assert.match(screen.text, /\+3/u);
+    assert.match(screen.text, /6 points/u);
+    assert.doesNotMatch(screen.text, /Continue/u);
   } finally {
     if (originalDocument === undefined) delete globalThis.document;
     else globalThis.document = originalDocument;

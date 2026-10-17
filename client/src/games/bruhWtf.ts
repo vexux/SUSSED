@@ -60,6 +60,7 @@ export interface BruhWtfViewState {
   isContinuing: boolean;
   continueError: string | null;
   isHost: boolean;
+  isResultsViewer?: boolean;
   isReturningToLobby: boolean;
   returnToLobbyError: string | null;
   historyOpen?: boolean;
@@ -160,6 +161,7 @@ export function renderBruhWtfGame(
   isSessionFinished: boolean,
   onToggleHistory: () => void = () => {},
   onHistoryPage: (page: number) => void = () => {},
+  onReturnFromResults: () => void = () => {},
 ): HTMLElement {
   const screen = element("section", "app-screen question-screen");
   if (!isBruhWtfPublicState(value)) {
@@ -197,20 +199,27 @@ export function renderBruhWtfGame(
     }]).map((round) => {
       const scores = new Map(round.roundScores.map(({ playerId, pointsEarned }) => [playerId, pointsEarned]));
       return {
+        gameName: gameDisplayName,
         round: round.round,
         prompt: round.prompt,
-        answers: round.answers.map((answer) => ({
-          completion: answer.completion,
-          authorName: answer.authorName,
-          voterNames: answer.voterNames,
-          voteCount: answer.voteCount,
-          pointsEarned: answer.pointsAwarded,
-        })),
-        scores: round.leaderboard.map(({ playerId, name, score }) => ({
+        sections: [{
+          heading: "Answers",
+          voterPrefix: "Voted by",
+          noVotesText: "No votes",
+          answers: round.answers.map((answer) => ({
+            completion: answer.completion,
+            authorName: answer.authorName,
+            voterNames: answer.voterNames,
+            voteCount: answer.voteCount,
+          })),
+        }],
+        standings: round.leaderboard.map(({ playerId, name, score, rank }) => ({
+          playerId,
           name,
-          pointsEarned: scores.get(playerId) ?? 0,
           totalScore: score,
+          rank,
         })),
+        roundPointsByPlayer: scores,
       };
     });
     screen.append(createRoundHistorySection(history, view.historyPage ?? -1, view.historyOpen === true, onToggleHistory, onHistoryPage));
@@ -218,6 +227,12 @@ export function renderBruhWtfGame(
       const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to lobby");
       returnButton.disabled = view.isReturningToLobby;
       returnButton.addEventListener("click", onReturnToLobby);
+      screen.append(returnButton);
+    } else if (isSessionFinished && view.isResultsViewer) {
+      const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to Lobby");
+      returnButton.type = "button";
+      returnButton.disabled = view.isReturningToLobby;
+      returnButton.addEventListener("click", onReturnFromResults);
       screen.append(returnButton);
     } else if (isSessionFinished) {
       screen.append(createStatusMessage("Waiting for the host to return everyone to the lobby…"));

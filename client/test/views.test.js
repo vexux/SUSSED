@@ -327,14 +327,42 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     renderApp(root, state, actions, {}, {});
     assert.match(root.text, /1 player in lobby/u);
     assert.match(root.text, /Viewer.*In-game/u);
-    const ready = root.query((element) => element.tagName === "button" && element.textContent === "Ready");
-    assert.equal(ready.disabled, false);
+    const hostCard = root.query((element) => element.className.includes("player-card") && element.text.includes("Host"));
+    assert.equal(hostCard.children[1].textContent, "Host");
+    assert.equal(hostCard.children.some((element) => element.textContent === "Ready" || element.textContent === "Not ready"), false);
+    assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Ready"), null);
     const reminder = root.query((element) => element.textContent === "Ask everyone to return to lobby");
     assert.ok(reminder);
     reminder.dispatch("click");
     assert.equal(calls.includes("onAskResultsViewersToReturn"), true);
 
+    state.isSendingResultsReminder = true;
+    renderApp(root, state, actions, {}, {});
+    const sending = root.query((element) => element.textContent === "Sending reminder…");
+    assert.equal(sending.disabled, true);
+    assert.equal(sending.attributes["aria-busy"], "true");
+    state.isSendingResultsReminder = false;
+    state.resultsReminderFeedback = "Reminder sent to 1 player.";
+    renderApp(root, state, actions, {}, {});
+    assert.match(root.text, /Reminder sent to 1 player\./u);
+
+    state.lobby.playerCount = 2;
+    state.lobby.readinessStatus = "ready";
+    state.lobby.players[1].isInGame = false;
+    state.lobby.players[1].isReady = true;
+    renderApp(root, state, actions, {}, {});
+    const start = root.query((element) => element.tagName === "button" && element.textContent === "Start game");
+    assert.equal(start.disabled, false);
+    assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Ready"), null);
+
     state.localPlayerId = "viewer";
+    state.resultsReminderFeedback = null;
+    state.lobby.players[1].isReady = false;
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Ready").disabled, false);
+    state.lobby.players[1].isInGame = true;
+    state.lobby.playerCount = 1;
+    state.lobby.readinessStatus = "insufficient-players";
     renderApp(root, state, actions, {}, {});
     assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Ready").disabled, true);
     assert.equal(root.query((element) => element.textContent === "Ask everyone to return to lobby"), null);

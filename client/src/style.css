@@ -338,6 +338,16 @@ button:focus-visible {
   background: #30213e;
 }
 
+.reminder-button:active {
+  transform: translateY(1px);
+  filter: brightness(0.88);
+}
+
+.reminder-button[aria-busy="true"] {
+  cursor: progress;
+  opacity: 0.75;
+}
+
 .all-round-history {
   display: grid;
   gap: 1rem;

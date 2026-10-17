@@ -833,12 +833,20 @@ test("Anime rematches retain the selected game and use only the Anime question b
         roundState = (await Promise.all(nextSubmissionStates))[0];
     }
 
+    const resultViewerLobbyUpdates = Promise.all(game.players.map((player) =>
+        waitForLobby(player, (state) => state.status === "lobby" && state.players.find(({ id }) => id === player.id)?.isInGame)
+    ));
     assert.deepEqual(
         await emitWithAck(game.host, "return-to-lobby", {
             sessionId: roundState.sessionId
         }),
         { returned: true }
     );
+    const deliveredToResultsViewers = await resultViewerLobbyUpdates;
+    assert.equal(deliveredToResultsViewers.length, 3);
+    assert.ok(deliveredToResultsViewers.every(({ playerCount, players, status }) =>
+        status === "lobby" && playerCount === 1 && players.find(({ isHost }) => !isHost)?.isInGame
+    ));
     const lobby = roomManager.createLobbyState(roomManager.getRoom(game.roomCode));
     assert.equal(lobby.selectedGameId, "fact-or-cap-anime");
     assert.equal(lobby.playerCount, 1);
@@ -940,7 +948,9 @@ test("Anime rematches retain the selected game and use only the Anime question b
     });
     await previousViewerLobby;
     assert.equal(roomManager.getRoom(game.roomCode).reminderSessionId, null);
-    assert.equal(guestLobbyEvents.length, 4);
+    // The viewer also receives the host's return-to-lobby transition while
+    // remaining on the immutable results snapshot.
+    assert.equal(guestLobbyEvents.length, 5);
 });
 
 test("rejects invalid and non-host game selections without mutating the lobby", async (context) => {
@@ -1710,6 +1720,7 @@ test("host cannot start until all non-host players are ready", async (context) =
     await emitWithAck(guests[0], "set-ready", { isReady: true });
     await emitWithAck(guests[1], "set-ready", { isReady: true });
     await emitWithAck(guests[2], "set-ready", { isReady: true });
+    assert.equal(roomManager.getRoom(created.roomCode).players[0].isReady, false);
     const response = await emitWithAck(host, "start-game");
     assert.equal(response.starting, true);
     assert.equal(response.game.state.phase, "question");
