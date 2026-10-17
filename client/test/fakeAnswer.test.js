@@ -235,9 +235,9 @@ test("groups reveal answers by authoritative correctness rather than answer text
 test("shared game display labels use current voting and final-statistic terminology", () => {
   assert.equal(VOTING_ROUND_HEADING, "Voting Round");
   assert.deepEqual(FINAL_STATISTIC_LABELS, [
-    ["mostPlayersFooled", "Most players siked"],
-    ["gotFooledMost", "Got siked the most"],
-    ["mostCorrectAnswers", "Most correct answers"],
+    ["mostPlayersFooled", "Professional Liar"],
+    ["gotFooledMost", "Gullible Legend"],
+    ["mostCorrectAnswers", "The Nerd"],
   ]);
 });
 
