@@ -31,12 +31,15 @@ test("development fixtures remain valid under the version 1 canonical taxonomy",
     assert.equal(loadQuestionPacks(contentDirectory).filter(({ contentPackId }) => contentPackId === "bruh-wtf-development-fixtures").length, 11);
 });
 
-test("production batch loads automatically beside development fixtures", () => {
+test("production batches load automatically beside development fixtures", () => {
     const loaded = loadQuestionPacks(contentDirectory);
-    const production = loaded.filter(({ contentPackId }) => contentPackId === "bruh-wtf-production-batch-001");
-    assert.equal(production.length, 25);
-    assert.equal(loaded.length, 36);
-    assert.ok(production.every(({ id }) => id.startsWith("bruh-b001-")));
+    const batchOne = loaded.filter(({ contentPackId }) => contentPackId === "bruh-wtf-production-batch-001");
+    const batchTwo = loaded.filter(({ contentPackId }) => contentPackId === "bruh-wtf-production-batch-002");
+    assert.equal(batchOne.length, 25);
+    assert.equal(batchTwo.length, 50);
+    assert.equal(loaded.length, 86);
+    assert.ok(batchOne.every(({ id }) => id.startsWith("bruh-b001-")));
+    assert.ok(batchTwo.length > 0);
 });
 
 test("pack and question IDs, categories, tags, and nonempty question arrays are enforced", () => {
@@ -92,7 +95,7 @@ test("all-pack validation succeeds and is read-only", () => {
         createHash("sha256").update(fs.readFileSync(path.join(contentDirectory, file))).digest("hex")
     ]);
     assert.equal(run.status, 0, run.stderr);
-    assert.match(run.stdout, /Validated 2 Bruh wtf\? pack\(s\) and 36 question\(s\)/u);
+    assert.match(run.stdout, /Validated 3 Bruh wtf\? pack\(s\) and 86 question\(s\)/u);
     assert.deepEqual(after, before);
 });
 
@@ -135,4 +138,3 @@ test("all-pack CLI mode fails with filename and question ID for blocking errors"
     assert.equal(result, 1);
     assert.match(messages.join("\n"), /bad-pack\.json: question "bad-question" has unsupported category/u);
 });
-
