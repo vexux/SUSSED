@@ -35,11 +35,14 @@ test("production batches load automatically beside development fixtures", () => 
     const loaded = loadQuestionPacks(contentDirectory);
     const batchOne = loaded.filter(({ contentPackId }) => contentPackId === "bruh-wtf-production-batch-001");
     const batchTwo = loaded.filter(({ contentPackId }) => contentPackId === "bruh-wtf-production-batch-002");
+    const batchThree = loaded.filter(({ contentPackId }) => contentPackId === "bruh-wtf-production-batch-003");
     assert.equal(batchOne.length, 25);
     assert.equal(batchTwo.length, 50);
-    assert.equal(loaded.length, 86);
+    assert.equal(batchThree.length, 50);
+    assert.equal(loaded.length, 136);
     assert.ok(batchOne.every(({ id }) => id.startsWith("bruh-b001-")));
     assert.ok(batchTwo.length > 0);
+    assert.ok(batchThree.every(({ id }) => id.startsWith("bruh-b003-")));
 });
 
 test("pack and question IDs, categories, tags, and nonempty question arrays are enforced", () => {
@@ -95,7 +98,7 @@ test("all-pack validation succeeds and is read-only", () => {
         createHash("sha256").update(fs.readFileSync(path.join(contentDirectory, file))).digest("hex")
     ]);
     assert.equal(run.status, 0, run.stderr);
-    assert.match(run.stdout, /Validated 3 Bruh wtf\? pack\(s\) and 86 question\(s\)/u);
+    assert.match(run.stdout, /Validated 4 Bruh wtf\? pack\(s\) and 136 question\(s\)/u);
     assert.deepEqual(after, before);
 });
 
