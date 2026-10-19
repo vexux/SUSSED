@@ -675,7 +675,7 @@ function createFakeAnswerGame({ id, displayName, description, questionBank: bank
         id,
         displayName,
         description,
-        socketProtocol: "fake-answer",
+        socketProtocol: "fact-or-cap",
         supportedPlayers: Object.freeze({ min: 2 }),
         createInitialState,
         start(state) {

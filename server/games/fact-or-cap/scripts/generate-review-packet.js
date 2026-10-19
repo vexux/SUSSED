@@ -19,7 +19,7 @@ function main(args) {
     for (let index = 0; index < args.length; index += 1) {
         const flag = args[index];
         if (flag === "--help") {
-            console.log("Usage: node games/fake-answer/scripts/generate-review-packet.js [--candidates <plan.json>] [--canonical <content.json>] [--migration <manifest.json>] [--reviews <decisions.json>] [--source-review-findings <findings.json>] [--intended-use <id>]");
+            console.log("Usage: node games/fact-or-cap/scripts/generate-review-packet.js [--candidates <plan.json>] [--canonical <content.json>] [--migration <manifest.json>] [--reviews <decisions.json>] [--source-review-findings <findings.json>] [--intended-use <id>]");
             return 0;
         }
         const value = args[index + 1];

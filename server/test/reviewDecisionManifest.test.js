@@ -2,8 +2,8 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
-const { evaluateReadiness, validateDecisionManifest } = require("../games/fake-answer/reviewDecisionManifest");
-const { validateCanonicalContent } = require("../games/fake-answer/canonicalContent");
+const { evaluateReadiness, validateDecisionManifest } = require("../games/fact-or-cap/reviewDecisionManifest");
+const { validateCanonicalContent } = require("../games/fact-or-cap/canonicalContent");
 
 const fixtureDir = path.join(__dirname, "fixtures", "canonical-review");
 const canonicalFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, "synthetic-content.json"), "utf8"));

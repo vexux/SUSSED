@@ -2,14 +2,14 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
-const { validateCanonicalContent } = require("../games/fake-answer/canonicalContent");
-const { FACT_OR_CAP_FORMAT_ID, adaptFactOrCap } = require("../games/fake-answer/factOrCapAdapter");
+const { validateCanonicalContent } = require("../games/fact-or-cap/canonicalContent");
+const { FACT_OR_CAP_FORMAT_ID, adaptFactOrCap } = require("../games/fact-or-cap/factOrCapAdapter");
 
 const fixturePath = path.join(
     __dirname,
     "..",
     "games",
-    "fake-answer",
+    "fact-or-cap",
     "content-canonical",
     "pilot.json"
 );

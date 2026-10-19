@@ -10,7 +10,7 @@ const {
 
 const ROOT = path.resolve(__dirname, "..");
 const DEFAULT_LEDGER = path.join(ROOT, "research", "general-topic-ledger.json");
-const DEFAULT_CONTENT = path.join(ROOT, "content");
+const DEFAULT_CONTENT = path.join(ROOT, "content", "general");
 
 function parseArguments(args) {
     const options = { ledgerPath: DEFAULT_LEDGER, contentDirectory: DEFAULT_CONTENT, lowTopicThreshold: DEFAULT_LOW_TOPIC_THRESHOLD };
@@ -31,7 +31,7 @@ function parseArguments(args) {
 function main(args) {
     const options = parseArguments(args);
     if (options.help) {
-        process.stdout.write("Usage: node games/fake-answer/scripts/report-general-content-coverage.js [--ledger <ledger.json>] [--content-dir <packs-dir>] [--low-topic-threshold <non-negative-integer>]\n");
+        process.stdout.write("Usage: node games/fact-or-cap/scripts/report-general-content-coverage.js [--ledger <ledger.json>] [--content-dir <packs-dir>] [--low-topic-threshold <non-negative-integer>]\n");
         return 0;
     }
     let ledger;

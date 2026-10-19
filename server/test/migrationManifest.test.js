@@ -3,15 +3,15 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
-const animeQuestionBank = require("../games/fake-answer/animeQuestionBank");
-const { LEGACY_CONTENT_DIRECTORIES, validateMigrationManifest } = require("../games/fake-answer/migrationManifest");
-const generalQuestionBank = require("../games/fake-answer/questionBank");
+const animeQuestionBank = require("../games/fact-or-cap/animeQuestionBank");
+const { LEGACY_CONTENT_DIRECTORIES, validateMigrationManifest } = require("../games/fact-or-cap/migrationManifest");
+const generalQuestionBank = require("../games/fact-or-cap/questionBank");
 
 const pilotPath = path.join(
     __dirname,
     "..",
     "games",
-    "fake-answer",
+    "fact-or-cap",
     "content-canonical",
     "pilot.json"
 );

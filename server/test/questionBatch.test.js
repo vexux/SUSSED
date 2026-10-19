@@ -8,11 +8,11 @@ const {
     importBatch,
     inspectBatch,
     writeNewPackAtomically
-} = require("../games/fake-answer/scripts/manage-question-batch");
-const { loadQuestionPacks } = require("../games/fake-answer/questionLibrary");
+} = require("../games/fact-or-cap/scripts/manage-question-batch");
+const { loadQuestionPacks } = require("../games/fact-or-cap/questionLibrary");
 
-const GENERAL_DIR = path.resolve(__dirname, "../games/fake-answer/content");
-const ANIME_DIR = path.resolve(__dirname, "../games/fake-answer/content-anime");
+const GENERAL_DIR = path.resolve(__dirname, "../games/fact-or-cap/content/general");
+const ANIME_DIR = path.resolve(__dirname, "../games/fact-or-cap/content/anime");
 const LIBRARIES = {
     "fact-or-cap": GENERAL_DIR,
     "fact-or-cap-anime": ANIME_DIR

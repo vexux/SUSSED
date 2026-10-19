@@ -8,7 +8,7 @@ the legacy question packs. Page inspection date: 2026-10-11.
 ## Scope and method
 
 The three identities below were resolved using the offline review packet
-(`node server/games/fake-answer/scripts/generate-review-packet.js`) and checked
+(`node server/games/fact-or-cap/scripts/generate-review-packet.js`) and checked
 against the corresponding legacy JSON packs. The packet resolves identity by
 game, pack, and question ID. It labels the legacy source fields as attribution,
 not reviewed evidence. All three candidates are currently `unmapped`, have no
@@ -25,7 +25,7 @@ not itself establish truth, rights, or suitability for a particular use.
 
 - **Legacy identity:** `fact-or-cap` / `general-facts-batch-2026-10` /
   `saturn-ring-material`; pack file
-  `server/games/fake-answer/content/general-facts-batch-2026-10.json`.
+  `server/games/fact-or-cap/content/general-facts-batch-2026-10.json`.
 - **Legacy record:** prompt “Saturn's rings are made mostly of chunks of ____ and
   rock.”; completion `ice`; category `space`; tags `Saturn`, `rings`,
   `solar-system`; difficulty `easy`. Source attribution: “NASA — Saturn Facts”,
@@ -53,7 +53,7 @@ not itself establish truth, rights, or suitability for a particular use.
 ### `octopus-hearts`
 
 - **Legacy identity:** `fact-or-cap` / `wildlife` / `octopus-hearts`; pack file
-  `server/games/fake-answer/content/wildlife.json`.
+  `server/games/fact-or-cap/content/wildlife.json`.
 - **Legacy record:** prompt “An octopus has three hearts, and its blood is...”;
   completion `blue`; category `wildlife`; tags `marine-life`, `biology`;
   difficulty `easy`. Source attribution: “Encyclopaedia Britannica”,
@@ -86,7 +86,7 @@ not itself establish truth, rights, or suitability for a particular use.
 
 - **Legacy identity:** `fact-or-cap-anime` /
   `anime-facts-batch-2026-10` / `spy-family-anya-ability`; pack file
-  `server/games/fake-answer/content-anime/anime-facts-batch-2026-10.json`.
+  `server/games/fact-or-cap/content/anime/anime-facts-batch-2026-10.json`.
 - **Legacy record:** prompt “In SPY×FAMILY, adopted daughter Anya can read other
   people's ____.”; completion `minds`; category `characters`; tags
   `spy-x-family`, `Anya-Forger`, `ability`; difficulty `easy`. Source attribution:
@@ -142,10 +142,10 @@ an inferred link from source names or URLs.
 
 ## Files inspected
 
-- `server/games/fake-answer/content-canonical/review-shadow-batch.json`
-- `server/games/fake-answer/content-canonical/review-shadow-batch.md`
-- `server/games/fake-answer/content-canonical/README.md`
-- `server/games/fake-answer/reviewPacket.js`
-- `server/games/fake-answer/reviewDecisionManifest.js`
-- `server/games/fake-answer/canonicalContent.js`
+- `server/games/fact-or-cap/content-canonical/review-shadow-batch.json`
+- `server/games/fact-or-cap/content-canonical/review-shadow-batch.md`
+- `server/games/fact-or-cap/content-canonical/README.md`
+- `server/games/fact-or-cap/reviewPacket.js`
+- `server/games/fact-or-cap/reviewDecisionManifest.js`
+- `server/games/fact-or-cap/canonicalContent.js`
 - The three legacy pack files listed in the candidate sections above.

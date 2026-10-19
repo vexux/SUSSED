@@ -43,8 +43,8 @@ not mean the record is ready to publish.
 From the `server` directory:
 
 ```sh
-npm run validate:canonical -- games/fake-answer/content-canonical/content-migration-pilot.json
-npm run validate:migration -- games/fake-answer/content-canonical/content-migration-pilot-manifest.json games/fake-answer/content-canonical/content-migration-pilot.json
+npm run validate:canonical -- games/fact-or-cap/content-canonical/content-migration-pilot.json
+npm run validate:migration -- games/fact-or-cap/content-canonical/content-migration-pilot-manifest.json games/fact-or-cap/content-canonical/content-migration-pilot.json
 node --test test/contentMigrationPilot.test.js test/factOrCapAdapter.test.js
 ```
 

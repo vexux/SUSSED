@@ -1,0 +1,607 @@
+{
+  "formatVersion": 1,
+  "contentPackId": "bruh-wtf-production-batch-002",
+  "packType": "production",
+  "questions": [
+    {
+      "id": "bruh-b002-01-flirting-sandwich-opening",
+      "prompt": "What wildly overconfident opening line would {{player1}} use to flirt with someone clearly just trying to buy a sandwich?",
+      "requiredPlayers": 1,
+      "category": "social-flirting",
+      "tags": [
+        "target-one",
+        "tone-flirty",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-02-date-final-boss-red-flag",
+      "prompt": "What tiny, harmless thing would make {{player1}} decide a date has final-boss energy?",
+      "requiredPlayers": 1,
+      "category": "social-flirting",
+      "tags": [
+        "target-one",
+        "tone-flirty",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r12-houseplant-union",
+      "prompt": "A houseplant becomes {{player1}}'s union representative. What demand does it make before the next watering?",
+      "requiredPlayers": 1,
+      "category": "absurd-hypotheticals",
+      "tags": [
+        "target-one",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r13-pointless-club-test",
+      "prompt": "What completely pointless club would {{player1}} start, and what oddly specific membership test would applicants face?",
+      "requiredPlayers": 1,
+      "category": "creative-chaos",
+      "tags": [
+        "target-one",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-05-suspicious-first-date",
+      "prompt": "What bizarrely specific first-date activity would {{player1}} insist is romantic?",
+      "requiredPlayers": 1,
+      "category": "social-flirting",
+      "tags": [
+        "target-one",
+        "tone-flirty",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r01-sock-drawer-committee",
+      "prompt": "A tiny committee in {{player1}}'s sock drawer has reached a deadlock. What issue are they voting on?",
+      "requiredPlayers": 1,
+      "category": "absurd-hypotheticals",
+      "tags": [
+        "target-one",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r02-pharmacy-morale-director",
+      "prompt": "The pharmacy queue appoints {{player1}} its morale director. What unnecessary activity do they organize?",
+      "requiredPlayers": 1,
+      "category": "ordinary-life",
+      "tags": [
+        "target-one",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-08-phrase-before-worsening",
+      "prompt": "What phrase would {{player1}} say right before making a situation noticeably worse?",
+      "requiredPlayers": 1,
+      "category": "friend-roasts",
+      "tags": [
+        "target-one",
+        "tone-roast",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-09-banned-from-managing",
+      "prompt": "What would {{player1}} be banned from managing after one disastrous afternoon?",
+      "requiredPlayers": 1,
+      "category": "friend-roasts",
+      "tags": [
+        "target-one",
+        "tone-roast",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-10-ridiculous-debate-hill",
+      "prompt": "What is the most ridiculous hill {{player1}} would defend in a debate nobody wanted to have?",
+      "requiredPlayers": 1,
+      "category": "friend-roasts",
+      "tags": [
+        "target-one",
+        "tone-roast",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-11-nature-documentary-habit",
+      "prompt": "If {{player1}} had a documentary narrated by an overly serious nature presenter, what everyday habit would be studied?",
+      "requiredPlayers": 1,
+      "category": "pop-culture",
+      "tags": [
+        "target-one",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-12-inaccurate-autobiography-title",
+      "prompt": "What would the title of {{player1}}'s wildly inaccurate autobiography be?",
+      "requiredPlayers": 1,
+      "category": "pop-culture",
+      "tags": [
+        "target-one",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-13-misunderstood-reality-show",
+      "prompt": "What reality-show rule would {{player1}} misunderstand so confidently that the judges count it as an advantage?",
+      "requiredPlayers": 1,
+      "category": "pop-culture",
+      "tags": [
+        "target-one",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-14-thermostat-villain-monologue",
+      "prompt": "What would {{player1}}'s villain monologue be about if they could only control the office thermostat?",
+      "requiredPlayers": 1,
+      "category": "pop-culture",
+      "tags": [
+        "target-one",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-15-unnecessary-tuesday-spinoff",
+      "prompt": "What absurdly minor cliffhanger would end a streaming series about {{player1}}'s least interesting Tuesday?",
+      "requiredPlayers": 1,
+      "category": "pop-culture",
+      "tags": [
+        "target-one",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-16-pointless-law-minister",
+      "prompt": "The group appoints {{player1}} minister of a pointless new law. What is their first policy?",
+      "requiredPlayers": 1,
+      "category": "group-chaos",
+      "tags": [
+        "target-one",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r03-national-object-holiday",
+      "prompt": "What ordinary object would {{player1}} nominate for its own national holiday, and what custom would everyone follow?",
+      "requiredPlayers": 1,
+      "category": "creative-chaos",
+      "tags": [
+        "target-one",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r04-group-chat-rent-invoice",
+      "prompt": "The group chat starts charging rent for one thing it refuses to stop discussing. What topic does {{player1}} put on the invoice?",
+      "requiredPlayers": 1,
+      "category": "group-chaos",
+      "tags": [
+        "target-one",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r05-pizza-slice-audition",
+      "prompt": "The last slice of pizza demands an audition before choosing who gets to eat it. What skill does {{player1}} perform?",
+      "requiredPlayers": 1,
+      "category": "ordinary-life",
+      "tags": [
+        "target-one",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-20-life-ruining-entrance-sound",
+      "prompt": "If {{player1}} could trigger one sound effect whenever they entered a room, what sound would ruin their life fastest?",
+      "requiredPlayers": 1,
+      "category": "absurd-hypotheticals",
+      "tags": [
+        "target-one",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r06-suspicious-ordinary-object",
+      "prompt": "A detective finds {{player1}} holding a completely ordinary object at a suspiciously dramatic scene. What explanation do they give?",
+      "requiredPlayers": 1,
+      "category": "mystery",
+      "tags": [
+        "target-one",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-22-lie-hat-collection",
+      "prompt": "If every lie {{player1}} told turned into a tiny visible hat, what lie would create the worst hat collection?",
+      "requiredPlayers": 1,
+      "category": "absurd-hypotheticals",
+      "tags": [
+        "target-one",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-23-embarrassed-wizard-quest",
+      "prompt": "What unnecessary quest would a wizard assign {{player1}} because the wizard is too embarrassed to do it himself?",
+      "requiredPlayers": 1,
+      "category": "absurd-hypotheticals",
+      "tags": [
+        "target-one",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-24-phone-reviews-owner",
+      "prompt": "If {{player1}}'s phone could publish one anonymous review of its owner, what would it complain about?",
+      "requiredPlayers": 1,
+      "category": "technology",
+      "tags": [
+        "target-one",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r07-ignore-reminders-app",
+      "prompt": "What would {{player1}} name an app whose only feature is reminding people to ignore their reminders?",
+      "requiredPlayers": 1,
+      "category": "technology",
+      "tags": [
+        "target-one",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-26-ai-assistant-refusal",
+      "prompt": "What would {{player1}}'s AI assistant refuse to do after learning one inconvenient fact about their routine?",
+      "requiredPlayers": 1,
+      "category": "technology",
+      "tags": [
+        "target-one",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-27-late-night-grocery-dress-code",
+      "prompt": "What would {{player1}} claim is the official dress code for a grocery run at 11 p.m.?",
+      "requiredPlayers": 1,
+      "category": "ordinary-life",
+      "tags": [
+        "target-one",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-28-potluck-committee-food",
+      "prompt": "What would {{player1}} bring to a potluck that technically qualifies as food but starts a committee meeting?",
+      "requiredPlayers": 1,
+      "category": "ordinary-life",
+      "tags": [
+        "target-one",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-29-self-created-product-problem",
+      "prompt": "What product would {{player1}} invent to solve a problem caused by another product they invented?",
+      "requiredPlayers": 1,
+      "category": "creative-chaos",
+      "tags": [
+        "target-one",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r08-printer-impossible-kpi",
+      "prompt": "What impossible quarterly target would {{player1}} assign the office printer before approving its bonus?",
+      "requiredPlayers": 1,
+      "category": "work-life",
+      "tags": [
+        "target-one",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r14-weather-advice-booth",
+      "prompt": "{{player1}} and {{player2}} run an advice booth where every answer must sound like a weather forecast. What forecast do they give for a mildly awkward silence?",
+      "requiredPlayers": 2,
+      "category": "creative-chaos",
+      "tags": [
+        "target-pair",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-32-duo-romantic-autocorrect",
+      "prompt": "{{player1}} sends {{player2}} a romantic text, but autocorrect makes it sound like a formal complaint. What does it say?",
+      "requiredPlayers": 2,
+      "category": "social-flirting",
+      "tags": [
+        "target-pair",
+        "tone-flirty",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-33-duo-fake-habit-award",
+      "prompt": "What fake award would {{player1}} present to {{player2}} for a weirdly specific habit?",
+      "requiredPlayers": 2,
+      "category": "friend-roasts",
+      "tags": [
+        "target-pair",
+        "tone-roast",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-34-duo-brand-slogan-swap",
+      "prompt": "{{player1}} and {{player2}} swap personal brand slogans for a day. What slogan does each get stuck with?",
+      "requiredPlayers": 2,
+      "category": "friend-roasts",
+      "tags": [
+        "target-pair",
+        "tone-roast",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-35-duo-unqualified-buddy-movie",
+      "prompt": "{{player1}} and {{player2}} star in a buddy movie where neither is qualified for the mission. What is the title?",
+      "requiredPlayers": 2,
+      "category": "pop-culture",
+      "tags": [
+        "target-pair",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r09-line-waiting-holiday",
+      "prompt": "{{player1}} and {{player2}} invent a holiday that can only be celebrated while waiting in line. What is its tradition?",
+      "requiredPlayers": 2,
+      "category": "creative-chaos",
+      "tags": [
+        "target-pair",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-37-duo-pigeon-mayors",
+      "prompt": "{{player1}} and {{player2}} are co-mayors of a town run by pigeons. What law causes their first political scandal?",
+      "requiredPlayers": 2,
+      "category": "group-chaos",
+      "tags": [
+        "target-pair",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-38-duo-shadow-apartment",
+      "prompt": "{{player1}} and {{player2}} discover their shadows have been sharing an apartment. What is the neighbours' complaint?",
+      "requiredPlayers": 2,
+      "category": "absurd-hypotheticals",
+      "tags": [
+        "target-pair",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-39-duo-worse-app",
+      "prompt": "{{player1}} and {{player2}} build an app that solves one tiny inconvenience but creates a much worse one. What does it do?",
+      "requiredPlayers": 2,
+      "category": "technology",
+      "tags": [
+        "target-pair",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-40-duo-emotional-lost-found",
+      "prompt": "{{player1}} and {{player2}} open a lost-and-found for things people have misplaced emotionally. What gets claimed first?",
+      "requiredPlayers": 2,
+      "category": "ordinary-life",
+      "tags": [
+        "target-pair",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r15-laundromat-thunderstorm-negotiation",
+      "prompt": "{{player1}}, {{player2}}, and {{player3}} negotiate between a laundromat and a thunderstorm. What absurd compromise do they reach?",
+      "requiredPlayers": 3,
+      "category": "group-chaos",
+      "tags": [
+        "target-group",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r10-imaginary-pet-talent-show",
+      "prompt": "{{player1}}, {{player2}}, and {{player3}} judge a talent show for pets with imaginary skills. Which act gets a standing ovation?",
+      "requiredPlayers": 3,
+      "category": "competition",
+      "tags": [
+        "target-group",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-43-trio-no-magic-franchise-reboot",
+      "prompt": "{{player1}}, {{player2}}, and {{player3}} reboot a fantasy franchise as a workplace sitcom. What ordinary office problem becomes the season's central quest?",
+      "requiredPlayers": 3,
+      "category": "pop-culture",
+      "tags": [
+        "target-group",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-44-trio-moon-noise-complaint",
+      "prompt": "{{player1}}, {{player2}}, and {{player3}} negotiate with the moon after it files a noise complaint. What concession do they offer?",
+      "requiredPlayers": 3,
+      "category": "group-chaos",
+      "tags": [
+        "target-group",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-r11-missing-cloud-testimony",
+      "prompt": "{{player1}}, {{player2}}, and {{player3}} testify in court about a missing cloud. What detail makes their story fall apart?",
+      "requiredPlayers": 3,
+      "category": "mystery",
+      "tags": [
+        "target-group",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-46-trio-emotional-calendar-app",
+      "prompt": "{{player1}}, {{player2}}, and {{player3}} beta-test a calendar app that schedules feelings as meetings. What is the most cursed invite?",
+      "requiredPlayers": 3,
+      "category": "technology",
+      "tags": [
+        "target-group",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-47-quartet-microwave-ultimatum",
+      "prompt": "{{player1}}, {{player2}}, {{player3}}, and {{player4}} form a task force after the office microwave issues ultimatums. What is the official response?",
+      "requiredPlayers": 4,
+      "category": "group-chaos",
+      "tags": [
+        "target-group",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-48-quartet-luxury-useless-object",
+      "prompt": "{{player1}}, {{player2}}, {{player3}}, and {{player4}} create a luxury brand for an object worth less than a coin. What is its signature feature?",
+      "requiredPlayers": 4,
+      "category": "creative-chaos",
+      "tags": [
+        "target-group",
+        "tone-absurd",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-49-quartet-narrated-kingdom",
+      "prompt": "{{player1}}, {{player2}}, {{player3}}, and {{player4}} found a kingdom where everyone narrates their own actions. What law passes first?",
+      "requiredPlayers": 4,
+      "category": "fictional-worlds",
+      "tags": [
+        "target-group",
+        "tone-surreal",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    },
+    {
+      "id": "bruh-b002-50-quartet-unwanted-tasks-tournament",
+      "prompt": "{{player1}}, {{player2}}, {{player3}}, and {{player4}} enter a tournament of tasks nobody wants to do. What task becomes the final event?",
+      "requiredPlayers": 4,
+      "category": "competition",
+      "tags": [
+        "target-group",
+        "tone-chaotic",
+        "evergreen"
+      ],
+      "contentPackId": "bruh-wtf-production-batch-002"
+    }
+  ]
+}

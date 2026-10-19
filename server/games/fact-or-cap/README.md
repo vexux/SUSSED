@@ -4,8 +4,8 @@
 
 The registered game IDs are `fact-or-cap` and `fact-or-cap-anime`. Both IDs
 use the same submission, voting, scoring, reveal, round, and rematch engine.
-The general game reads packs only from `content/`; the Anime game reads packs
-only from `content-anime/`. Each bank has independent question selection history.
+The general game reads packs only from `content/general/`; the Anime game reads
+packs only from `content/anime/`. Each bank has independent question selection history.
 Each game variant has a curated library of playable, source-attributed
 questions. Rooms require at least two players and have no application-level
 player maximum. The host can choose 5, 7, or 10 rounds in the lobby; new rooms
@@ -15,6 +15,10 @@ Practical capacity still depends on available server memory, process resources,
 and Socket.IO transport capacity. Room codes also come from a finite code pool,
 which limits simultaneously active rooms independently of player count.
 
+The existing `fake-answer:*` Socket.IO event names are retained as wire
+compatibility identifiers. They do not identify the server directory or
+registered game IDs.
+
 The selected round count is stored in the authoritative room state, included in
 lobby broadcasts, and passed to the shared game engine at start. Only the host
 can change it, and the server accepts only 5, 7, or 10 using the current lobby
@@ -23,8 +27,8 @@ updated match settings.
 
 ## Question library
 
-General-game question content lives in JSON packs under `content/`; the Anime
-library lives separately under `content-anime/`. The shared engine reads each
+General-game question content lives in JSON packs under `content/general/`; the Anime
+library lives under `content/anime/`. The shared engine reads each
 validated library through its own question bank. Existing player-facing fields
 remain `id`, `text`, and `correctCompletion`. Source attribution
 (`sourceName`/`sourceUrl`) and optional `category`, `tags`, `difficulty`, and
@@ -32,11 +36,10 @@ remain `id`, `text`, and `correctCompletion`. Source attribution
 game-state projections.
 
 New candidate batches go in the shared, offline
-[`incoming/` folder](incoming/README.md), outside both runtime content
-directories. The runtime loads JSON only from `content/` and `content-anime/`;
-it never scans `incoming/`. The canonical/migration workflow in
-`content-canonical/` and Bruh wtf?'s separate prompt-pack workflow are not part
-of this importer.
+[`incoming/` folder](research/general-question-generation-guide.md#5-identity-format-and-incoming-workflow),
+outside both runtime content directories. The runtime loads JSON only from
+`content/general/` and `content/anime/`; it never scans `incoming/`. Bruh wtf?'
+uses a separate prompt-pack format and workflow.
 
 The incoming-batch instructions document the current legacy question format,
 stable ID and pack-ID conventions, read-only preview, explicit import, source
@@ -59,7 +62,7 @@ the only runtime content. New candidates stay in `incoming/` until reviewed
 and explicitly imported. Update the ledger only after accepted questions are
 present in published packs, then reconcile identity and pack membership
 against the inventory as described in the guide. The ledger does not replace
-the inventory, canonical records, or human source review, and it does not
+the inventory or human source review, and it does not
 establish factual accuracy, source support, or rights.
 Run `npm run report:general-content-coverage` from `server/` to reconcile its
 stable identities with published General packs and review provisional topic,
@@ -68,8 +71,16 @@ the configurable low-coverage threshold and interpretation of its warnings.
 After importing a reviewed General batch, prepare explicit provisional
 classifications and use `npm run update:general-topic-ledger` to preview, then
 `--apply` to atomically update the ledger. The maintenance workflow and
-recovery procedure for a forgotten ledger update are documented in the General
-guide and `incoming/README.md`.
+recovery procedure for a forgotten ledger update is documented in the General
+guide.
+
+The offline canonical schema, adapter, migration manifest, and review tools
+remain available under `content-canonical/` as an isolated migration and
+editorial experiment. They are not used by playable question banks or live
+gameplay. Use the `validate:canonical`, `validate:migration`,
+`report:content-readiness`, and `report:review-packet` scripts when working
+with those records. Structural results do not establish factual or rights
+approval.
 
 The game shuffles valid playable questions and selects the configured number of
 unique prompts per session (5, 7, or 10). If a session needs more prompts than

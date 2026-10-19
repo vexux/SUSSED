@@ -4,10 +4,10 @@ const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
-const { buildGeneralTopicLedgerUpdate, writeLedgerAtomically } = require("../games/fake-answer/generalTopicLedgerMaintenance");
-const { compareGeneralTopicLedger } = require("../games/fake-answer/generalTopicLedgerReport");
+const { buildGeneralTopicLedgerUpdate, writeLedgerAtomically } = require("../games/fact-or-cap/generalTopicLedgerMaintenance");
+const { compareGeneralTopicLedger } = require("../games/fact-or-cap/generalTopicLedgerReport");
 
-const CLI = path.resolve(__dirname, "../games/fake-answer/scripts/update-general-topic-ledger.js");
+const CLI = path.resolve(__dirname, "../games/fact-or-cap/scripts/update-general-topic-ledger.js");
 
 function setup(t) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "sussed-ledger-maintenance-"));

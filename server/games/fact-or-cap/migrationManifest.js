@@ -8,8 +8,8 @@ const { readPack, validateQuestionPack } = require("./questionLibrary");
 const MIGRATION_MANIFEST_VERSION = 1;
 const CONTENT_ROOT = path.join(__dirname);
 const LEGACY_CONTENT_DIRECTORIES = Object.freeze({
-    "fact-or-cap": path.join(CONTENT_ROOT, "content"),
-    "fact-or-cap-anime": path.join(CONTENT_ROOT, "content-anime")
+    "fact-or-cap": path.join(CONTENT_ROOT, "content", "general"),
+    "fact-or-cap-anime": path.join(CONTENT_ROOT, "content", "anime")
 });
 const LEGACY_GAME_IDS = new Set(Object.keys(LEGACY_CONTENT_DIRECTORIES));
 const MANIFEST_FIELDS = new Set(["schemaVersion", "entries"]);

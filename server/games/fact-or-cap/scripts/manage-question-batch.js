@@ -9,8 +9,8 @@ const {
 
 const CONTENT_ROOT = path.resolve(__dirname, "..");
 const TARGETS = Object.freeze({
-    "fact-or-cap": path.join(CONTENT_ROOT, "content"),
-    "fact-or-cap-anime": path.join(CONTENT_ROOT, "content-anime")
+    "fact-or-cap": path.join(CONTENT_ROOT, "content", "general"),
+    "fact-or-cap-anime": path.join(CONTENT_ROOT, "content", "anime")
 });
 
 function readPacks(directory, fileSystem = fs) {

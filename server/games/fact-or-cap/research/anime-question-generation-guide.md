@@ -28,6 +28,8 @@ franchises represented by accepted playable content.
 
 Plan a batch to avoid repeatedly using the same trivia format. Choose types that
 can be supported by good evidence; do not force every type into every batch.
+Vary the underlying fact patterns and the player experience, not just franchise
+names or question-type labels.
 Possible types include:
 
 - Bizarre, surprising, or counterintuitive facts.
@@ -122,7 +124,7 @@ or removing context.
 Before generating a batch:
 
 1. Read this guide, the franchise ledger, and every playable JSON pack under
-   `content-anime/`.
+   `content/anime/`.
 2. Build a working index of franchise IDs and aliases, question IDs, prompts,
    completions, and recurring formats.
 3. Note overrepresented franchise groups and question types, especially in
@@ -151,6 +153,8 @@ one format dominates. Do not add weak questions merely to reach a target count.
   reference material.
 - Check that the cited passage directly supports the actual wording and answer;
   a relevant franchise URL or source title is not enough.
+- Assess claim accuracy, source support, gameplay quality, and reuse rights as
+  separate questions; inspecting a source does not by itself establish all four.
 - If evidence is inaccessible or insufficient, locate better evidence or
   exclude the claim. Never fabricate citations or call unchecked content
   verified.
@@ -169,7 +173,7 @@ the schema. Include accessible questions alongside harder ones.
 From the `server/` directory, validate a candidate pack with:
 
 ```sh
-npm run validate:questions -- fact-or-cap-anime games/fake-answer/content-anime/<pack>.json
+npm run validate:questions -- fact-or-cap-anime games/fact-or-cap/content/anime/<pack>.json
 ```
 
 Preview a proposed batch against the anime bank before import:
@@ -182,5 +186,5 @@ Treat duplicate warnings as review signals: exact normalized prompt-and-answer
 matches do not detect every paraphrase, and structural validation does not
 replace editorial review of evidence, quality, or rights. Update the ledger only
 after accepted questions are in the playable packs, and keep both the guide and
-ledger under `research/`, outside `content-anime/` so the loader cannot mistake
+ledger under `research/`, outside `content/anime/` so the loader cannot mistake
 them for question packs.

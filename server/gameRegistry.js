@@ -1,5 +1,5 @@
-const factOrCap = require("./games/fake-answer/game");
-const factOrCapAnime = require("./games/fake-answer/anime");
+const factOrCap = require("./games/fact-or-cap/game");
+const factOrCapAnime = require("./games/fact-or-cap/anime");
 const bruhWtf = require("./games/bruh-wtf/game");
 
 const games = new Map([
