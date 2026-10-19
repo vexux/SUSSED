@@ -5,8 +5,11 @@ const path = require("node:path");
 const test = require("node:test");
 const { compareGeneralTopicLedger } = require("../games/fact-or-cap/generalTopicLedgerReport");
 const {
+    DEFAULT_PATHS,
     cleanupCandidate,
     cleanupEligibility,
+    cleanupFranchiseManifest,
+    cleanupFranchiseManifestEligibility,
     createReview,
     formatReview,
     makeAnimeLedgerUpdate,
@@ -18,6 +21,30 @@ const {
 function question(id, text = `A question about ${id} ____?`, completion = id) {
     return { id, text, correctCompletion: completion, category: "science", tags: ["fixture"], difficulty: "medium", sourceName: "Test source", sourceUrl: `https://example.test/${id}` };
 }
+
+test("default publication evidence is stored outside the repository", () => {
+    const researchDirectory = path.resolve(__dirname, "../games/fact-or-cap/research");
+    const relative = path.relative(researchDirectory, path.resolve(DEFAULT_PATHS.temporaryEvidenceDirectory));
+    assert.ok(relative.startsWith("..") || path.isAbsolute(relative));
+    assert.ok(path.resolve(DEFAULT_PATHS.temporaryEvidenceDirectory).startsWith(path.resolve(os.tmpdir())));
+});
+
+test("publication cannot recreate a report archive inside repository research", (t) => {
+    const data = setup(t);
+    const reviewed = data.review();
+    const approval = data.approvalFor(reviewed);
+    const archivePath = path.join(data.root, "research", "publication-reports", `${data.contentPackId}.json`);
+    assert.throws(() => publishBatch({
+        review: reviewed,
+        approval,
+        classificationManifest: data.classificationManifest,
+        paths: data.paths,
+        contentDirectories: data.contentDirectories,
+        receiptPath: archivePath
+    }), /Temporary publication receipt must be stored/);
+    assert.equal(fs.existsSync(path.dirname(archivePath)), false);
+    assert.equal(fs.existsSync(path.join(data.generalDirectory, `${data.contentPackId}.json`)), false);
+});
 
 function ledgerRecord(q, packId) {
     return {
@@ -52,12 +79,12 @@ function setup(t, { questions = [question("old-one"), question("old-two", "A sec
     const generalDirectory = path.join(root, "content", "general");
     const animeDirectory = path.join(root, "content", "anime");
     const incoming = path.join(root, "incoming");
-    const reports = path.join(root, "research", "publication-reports");
+    const temporaryEvidence = path.join(root, "temporary-evidence");
     const transactions = path.join(root, ".publication-recovery");
     fs.mkdirSync(generalDirectory, { recursive: true });
     fs.mkdirSync(animeDirectory, { recursive: true });
     fs.mkdirSync(incoming, { recursive: true });
-    fs.mkdirSync(reports, { recursive: true });
+    fs.mkdirSync(temporaryEvidence, { recursive: true });
     const generalPack = { contentPackId: "fixture-general", questions };
     fs.writeFileSync(path.join(generalDirectory, "fixture-general.json"), `${JSON.stringify(generalPack, null, 2)}\n`);
     const ledgerPath = path.join(root, "research", "general-topic-ledger.json");
@@ -76,7 +103,7 @@ function setup(t, { questions = [question("old-one"), question("old-two", "A sec
     const classificationPath = path.join(root, "classifications.json");
     fs.writeFileSync(classificationPath, `${JSON.stringify(classificationManifest, null, 2)}\n`);
     const franchisePath = path.join(root, "franchises.json");
-    const paths = { generalLedger: ledgerPath, animeLedger: animeLedgerPath, incomingDirectory: incoming, reportDirectory: reports, transactionDirectory: transactions };
+    const paths = { generalLedger: ledgerPath, animeLedger: animeLedgerPath, incomingDirectory: incoming, temporaryEvidenceDirectory: temporaryEvidence, transactionDirectory: transactions };
     const contentDirectories = { "fact-or-cap": generalDirectory, "fact-or-cap-anime": animeDirectory };
     const review = (changes = {}) => createReview({ target, inputPath, ...(target === "fact-or-cap" ? { classificationPath } : { franchisePath }), paths, contentDirectories, ...changes });
     const approvalFor = (currentReview, outcomes = {}) => ({
@@ -96,11 +123,11 @@ function setup(t, { questions = [question("old-one"), question("old-two", "A sec
         classificationManifest,
         paths,
         contentDirectories,
-        receiptPath: path.join(reports, `${contentPackId}.json`),
+        receiptPath: path.join(temporaryEvidence, `${contentPackId}.json`),
         ...extra
     });
     t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-    return { root, generalDirectory, animeDirectory, incoming, reports, transactions, ledgerPath, animeLedgerPath, inputPath, candidate, questions, contentPackId, classificationManifest, classificationPath, franchisePath, paths, contentDirectories, review, approvalFor, publish };
+    return { root, generalDirectory, animeDirectory, incoming, temporaryEvidence, transactions, ledgerPath, animeLedgerPath, inputPath, candidate, questions, contentPackId, classificationManifest, classificationPath, franchisePath, paths, contentDirectories, review, approvalFor, publish };
 }
 
 function replaceCandidate(data, candidate) {
@@ -259,7 +286,7 @@ test("Anime publication writes a pack and explicitly reconciled franchise ledger
         animeFranchiseManifest: manifest,
         paths: data.paths,
         contentDirectories: data.contentDirectories,
-        receiptPath: path.join(data.reports, `${data.contentPackId}.json`)
+        receiptPath: path.join(data.temporaryEvidence, `${data.contentPackId}.json`)
     });
     const ledger = JSON.parse(fs.readFileSync(data.animeLedgerPath, "utf8"));
     assert.deepEqual(result.pack.questions.map(({ id }) => id), ["new-one"]);
@@ -324,7 +351,7 @@ test("multi-file write failure removes the pack and preserves the original ledge
     const beforeLedger = fs.readFileSync(data.ledgerPath);
     let failed = false;
     const injected = new Proxy(fs, { get(target, property) { if (property === "renameSync") return (...args) => { if (!failed && args[1] === data.ledgerPath) { failed = true; throw new Error("simulated ledger replacement failure"); } return target.renameSync(...args); }; const value = Reflect.get(target, property); return typeof value === "function" ? value.bind(target) : value; } });
-    assert.throws(() => publishBatch({ review: reviewed, approval, classificationManifest: data.classificationManifest, paths: data.paths, contentDirectories: data.contentDirectories, receiptPath: path.join(data.reports, "fixture-new-pack.json"), fileSystem: injected }), /rolled back/);
+    assert.throws(() => publishBatch({ review: reviewed, approval, classificationManifest: data.classificationManifest, paths: data.paths, contentDirectories: data.contentDirectories, receiptPath: path.join(data.temporaryEvidence, "fixture-new-pack.json"), fileSystem: injected }), /rolled back/);
     assert.equal(fs.existsSync(path.join(data.generalDirectory, "fixture-new-pack.json")), false);
     assert.deepEqual(fs.readFileSync(data.ledgerPath), beforeLedger);
     assert.equal(fs.existsSync(path.join(data.transactions, "transaction.json")), false);
@@ -344,7 +371,7 @@ test("staging failure is journaled and leaves published targets untouched", (t) 
         const value = Reflect.get(target, property);
         return typeof value === "function" ? value.bind(target) : value;
     } });
-    assert.throws(() => publishBatch({ review: reviewed, approval, classificationManifest: data.classificationManifest, paths: data.paths, contentDirectories: data.contentDirectories, receiptPath: path.join(data.reports, "fixture-new-pack.json"), fileSystem: injected }), /rolled back/);
+    assert.throws(() => publishBatch({ review: reviewed, approval, classificationManifest: data.classificationManifest, paths: data.paths, contentDirectories: data.contentDirectories, receiptPath: path.join(data.temporaryEvidence, "fixture-new-pack.json"), fileSystem: injected }), /rolled back/);
     assert.equal(failed, true);
     assert.equal(fs.existsSync(path.join(data.generalDirectory, "fixture-new-pack.json")), false);
     assert.deepEqual(fs.readFileSync(data.ledgerPath), beforeLedger);
@@ -364,7 +391,7 @@ test("a durable committed publication is reported as committed if initial journa
         const value = Reflect.get(target, property);
         return typeof value === "function" ? value.bind(target) : value;
     } });
-    const result = publishBatch({ review: reviewed, approval, classificationManifest: data.classificationManifest, paths: data.paths, contentDirectories: data.contentDirectories, receiptPath: path.join(data.reports, "fixture-new-pack.json"), fileSystem: injected });
+    const result = publishBatch({ review: reviewed, approval, classificationManifest: data.classificationManifest, paths: data.paths, contentDirectories: data.contentDirectories, receiptPath: path.join(data.temporaryEvidence, "fixture-new-pack.json"), fileSystem: injected });
     assert.equal(failed, true);
     assert.deepEqual(result.pack.questions.map(({ id }) => id), ["new-one"]);
     assert.equal(fs.existsSync(path.join(data.generalDirectory, "fixture-new-pack.json")), true);
@@ -405,6 +432,9 @@ test("cleanup eligibility succeeds only after publication and explicit deletion 
     const deleted = cleanupCandidate({ inputPath: data.inputPath, reportPath: result.receiptPath, confirmPackId: data.contentPackId, paths: data.paths, contentDirectories: data.contentDirectories });
     assert.equal(deleted.contentPackId, data.contentPackId);
     assert.equal(fs.existsSync(data.inputPath), false);
+    assert.equal(deleted.deletedReceipt, true);
+    assert.equal(fs.existsSync(result.receiptPath), false);
+    assert.equal(fs.existsSync(data.temporaryEvidence), false);
 });
 
 test("cleanup is blocked when a candidate includes an explicitly excluded question", (t) => {
@@ -431,6 +461,62 @@ test("cleanup refuses candidates outside incoming and mismatched candidate bytes
     fs.copyFileSync(data.inputPath, outside);
     const outsideStatus = cleanupEligibility({ inputPath: outside, reportPath: result.receiptPath, paths: data.paths, contentDirectories: data.contentDirectories });
     assert.ok(outsideStatus.errors.some((item) => item.includes("limited to files inside")));
+});
+
+function makePublishedAnimeManifest(data, { manifestOverrides = {} } = {}) {
+    const contentPackId = "anime-bizarre-batch-009";
+    const franchiseId = "fixture-anime-series";
+    const pack = { contentPackId, questions: [question("anime-b009-fixture-one")] };
+    const manifest = {
+        manifestVersion: 1,
+        franchises: [{ franchiseId, displayName: "Fixture Anime Series", aliases: ["Fixture Series"] }],
+        entries: [{ questionId: pack.questions[0].id, franchiseId }],
+        ...manifestOverrides
+    };
+    const ledger = JSON.parse(fs.readFileSync(data.animeLedgerPath, "utf8"));
+    const update = makeAnimeLedgerUpdate(ledger, manifest, pack, []);
+    assert.equal(update.valid, true, update.errors.join("\n"));
+    fs.writeFileSync(path.join(data.animeDirectory, `${contentPackId}.json`), `${JSON.stringify(pack, null, 2)}\n`);
+    fs.writeFileSync(data.animeLedgerPath, `${JSON.stringify(update.updatedLedger, null, 2)}\n`);
+    const manifestPath = path.join(data.incoming, `${contentPackId}-franchises.json`);
+    fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    return { contentPackId, manifestPath, manifest };
+}
+
+test("franchise manifest cleanup requires exact published pack and reconciled ledger matches", (t) => {
+    const data = setup(t);
+    const { contentPackId, manifestPath } = makePublishedAnimeManifest(data);
+    const eligibility = cleanupFranchiseManifestEligibility({ manifestPath, paths: data.paths, contentDirectories: data.contentDirectories });
+    assert.equal(eligibility.eligible, true, eligibility.errors.join("\n"));
+    assert.throws(() => cleanupFranchiseManifest({ manifestPath, paths: data.paths, contentDirectories: data.contentDirectories }), /requires --confirm-delete/);
+    const result = cleanupFranchiseManifest({ manifestPath, confirmPackId: contentPackId, paths: data.paths, contentDirectories: data.contentDirectories });
+    assert.equal(result.contentPackId, contentPackId);
+    assert.equal(fs.existsSync(manifestPath), false);
+    assert.equal(fs.existsSync(path.join(data.animeDirectory, `${contentPackId}.json`)), true);
+    assert.equal(fs.existsSync(data.animeLedgerPath), true);
+});
+
+test("franchise manifest cleanup preserves files when assignments do not match the ledger", (t) => {
+    const data = setup(t);
+    const { contentPackId, manifestPath, manifest } = makePublishedAnimeManifest(data);
+    manifest.entries[0].franchiseId = "wrong-franchise";
+    fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    const eligibility = cleanupFranchiseManifestEligibility({ manifestPath, paths: data.paths, contentDirectories: data.contentDirectories });
+    assert.equal(eligibility.eligible, false);
+    assert.ok(eligibility.errors.some((item) => item.includes("does not match the reconciled ledger")));
+    assert.throws(() => cleanupFranchiseManifest({ manifestPath, confirmPackId: contentPackId, paths: data.paths, contentDirectories: data.contentDirectories }), /not eligible for cleanup/);
+    assert.equal(fs.existsSync(manifestPath), true);
+});
+
+test("franchise manifest cleanup is blocked until its matching candidate has been guardedly removed", (t) => {
+    const data = setup(t);
+    const { manifestPath, contentPackId } = makePublishedAnimeManifest(data);
+    const candidatePath = path.join(data.incoming, `${contentPackId}-candidate.json`);
+    fs.writeFileSync(candidatePath, "{}");
+    const eligibility = cleanupFranchiseManifestEligibility({ manifestPath, paths: data.paths, contentDirectories: data.contentDirectories });
+    assert.equal(eligibility.eligible, false);
+    assert.ok(eligibility.errors.some((item) => item.includes("candidate file must be removed by guarded publication cleanup")));
+    assert.equal(fs.existsSync(manifestPath), true);
 });
 
 test("report records every question disposition and source location for duplicate warnings", (t) => {
@@ -486,8 +572,8 @@ test("published Anime ledger reconciles merged franchise identity and pack filen
 
     assert.equal(result.valid, true, result.errors.join("\n"));
     assert.equal(result.errors.length, 0);
-    assert.equal(ledger.bankSnapshot.questionCount, 510);
-    assert.equal(ledger.bankSnapshot.contentPackCount, 8);
+    assert.equal(ledger.bankSnapshot.questionCount, 637);
+    assert.equal(ledger.bankSnapshot.contentPackCount, 11);
     const promisedNeverland = result.updatedLedger.franchises.filter(({ franchiseId }) => franchiseId === "promised-neverland");
     assert.equal(promisedNeverland.length, 1);
     assert.equal(promisedNeverland[0].questionCount, 2);

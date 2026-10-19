@@ -17,7 +17,9 @@ const DEFAULT_PATHS = Object.freeze({
     generalLedger: path.join(ROOT, "research", "general-topic-ledger.json"),
     animeLedger: path.join(ROOT, "research", "anime-franchise-ledger.json"),
     incomingDirectory: path.join(ROOT, "incoming"),
-    reportDirectory: path.join(ROOT, "research", "publication-reports"),
+    // Receipts are needed only between publication and guarded candidate
+    // cleanup. Keep them outside the repository; the workflow is not an archive.
+    temporaryEvidenceDirectory: path.join(os.tmpdir(), "sussed-content-publication", crypto.createHash("sha256").update(ROOT).digest("hex").slice(0, 16)),
     transactionDirectory: path.join(ROOT, ".publication-recovery")
 });
 const APPROVAL_VERSION = 1;
@@ -425,7 +427,7 @@ function recoverPublication({ paths = DEFAULT_PATHS, fileSystem = fs, contentDir
     const journal = readJson(filePath, "publication recovery journal", fileSystem).value;
     if (!isRecord(journal) || journal.version !== 1 || !["prepared", "committed"].includes(journal.status) || !Array.isArray(journal.files) || journal.files.length !== 3) throw new Error("Invalid publication recovery journal; manual recovery is required.");
     if (!isRecord(journal.ledgerBackup) || typeof journal.ledgerBackup.path !== "string" || !/^[a-f0-9]{64}$/u.test(journal.ledgerBackup.sha256 ?? "") || !isInside(paths.transactionDirectory, journal.ledgerBackup.path)) throw new Error("Invalid publication ledger backup record; manual recovery is required.");
-    const outputDirectories = [...Object.values(contentDirectories), paths.reportDirectory];
+    const outputDirectories = [...Object.values(contentDirectories), paths.temporaryEvidenceDirectory];
     const seenPaths = new Set();
     let replacementCount = 0;
     for (const item of journal.files) {
@@ -577,8 +579,8 @@ function publishBatch({ review, approval, classificationManifest, animeFranchise
     const ledgerBytes = Buffer.from(`${JSON.stringify(updatedLedger, null, 2)}\n`);
     const packBytes = Buffer.from(`${JSON.stringify(pack, null, 2)}\n`);
     const approvalHash = sha256(Buffer.from(JSON.stringify(approval)));
-    const receiptPath = path.resolve(requestedReceiptPath ?? path.join(paths.reportDirectory, `${review.report.contentPackId}.json`));
-    if (!isInside(paths.reportDirectory, receiptPath)) throw new Error(`Publication report must be stored under ${paths.reportDirectory}.`);
+    const receiptPath = path.resolve(requestedReceiptPath ?? path.join(paths.temporaryEvidenceDirectory, `${review.report.contentPackId}.json`));
+    if (!isInside(paths.temporaryEvidenceDirectory, receiptPath)) throw new Error(`Temporary publication receipt must be stored under ${paths.temporaryEvidenceDirectory}.`);
     if (fileSystem.existsSync(receiptPath)) throw new Error(`Publication receipt already exists: ${receiptPath}.`);
     const receipt = {
         reportVersion: REPORT_VERSION,
@@ -624,7 +626,7 @@ function cleanupEligibility({ inputPath, reportPath, paths = DEFAULT_PATHS, file
     const errors = [];
     const candidatePath = path.resolve(inputPath);
     if (!isInside(paths.incomingDirectory, candidatePath)) errors.push("Candidate cleanup is limited to files inside the Fact-or-Cap incoming directory.");
-    if (typeof reportPath !== "string" || !isInside(paths.reportDirectory, path.resolve(reportPath))) errors.push("Candidate cleanup requires a publication receipt inside the publication report directory.");
+    if (typeof reportPath !== "string" || !isInside(paths.temporaryEvidenceDirectory, path.resolve(reportPath))) errors.push("Candidate cleanup requires a receipt inside the temporary publication evidence directory.");
     let receipt;
     try { receipt = readJson(reportPath, "publication receipt", fileSystem).value; } catch (error) { errors.push(error.message); }
     if (!isRecord(receipt) || receipt.status !== "published" || receipt.reportVersion !== REPORT_VERSION) errors.push("A completed version-1 publication receipt is required.");
@@ -704,10 +706,153 @@ function cleanupCandidate(options) {
     if (!result.eligible) throw new Error(`Candidate is not eligible for cleanup:\n${result.errors.map((item) => `- ${item}`).join("\n")}`);
     if (options.confirmPackId !== result.receipt.contentPackId) throw new Error(`Cleanup requires --confirm-delete ${result.receipt.contentPackId}.`);
     const fileSystem = options.fileSystem ?? fs;
+    const paths = options.paths ?? DEFAULT_PATHS;
     const candidatePath = path.resolve(options.inputPath);
     if (sha256(fileSystem.readFileSync(candidatePath)) !== result.receipt.candidateSha256) throw new Error("Candidate changed during cleanup verification; retain it and review again.");
     fileSystem.unlinkSync(candidatePath);
-    return { deleted: path.resolve(options.inputPath), contentPackId: result.receipt.contentPackId };
+    let deletedReceipt = false;
+    try {
+        fileSystem.unlinkSync(path.resolve(options.reportPath));
+        deletedReceipt = true;
+        try { fileSystem.rmdirSync(paths.temporaryEvidenceDirectory); } catch {}
+    } catch {}
+    return { deleted: candidatePath, contentPackId: result.receipt.contentPackId, deletedReceipt };
+}
+
+function cleanupFranchiseManifestEligibility({ manifestPath, confirmPackId, paths = DEFAULT_PATHS, fileSystem = fs, contentDirectories = TARGETS }) {
+    const errors = [];
+    const manifestFile = path.resolve(manifestPath ?? "");
+    const fileName = path.basename(manifestFile);
+    const inferredPackId = fileName.endsWith("-franchises.json") ? fileName.slice(0, -"-franchises.json".length) : "";
+    const contentPackId = confirmPackId ?? inferredPackId;
+    const expectedManifestPath = path.resolve(paths.incomingDirectory, `${contentPackId}-franchises.json`);
+    if (!ID_PATTERN.test(contentPackId)) errors.push("A valid content pack ID is required to clean up a franchise manifest.");
+    if (manifestFile !== expectedManifestPath) errors.push("Franchise manifest cleanup is limited to the matching <contentPackId>-franchises.json file inside incoming.");
+    if (!Object.hasOwn(contentDirectories, "fact-or-cap-anime")) errors.push("Anime content directory is not configured.");
+    const candidatePath = path.resolve(paths.incomingDirectory, `${contentPackId}-candidate.json`);
+    if (fileSystem.existsSync(candidatePath)) errors.push("The matching candidate file must be removed by guarded publication cleanup before its franchise manifest.");
+    if (fileSystem.existsSync(path.join(paths.transactionDirectory, "transaction.json"))) errors.push("An unfinished publication transaction prevents franchise manifest cleanup.");
+    if (errors.length) return { eligible: false, errors: [...new Set(errors)], contentPackId };
+
+    let manifest;
+    let manifestBytes;
+    try {
+        if (fileSystem.lstatSync(manifestFile).isSymbolicLink()) errors.push("Franchise manifest cleanup does not follow symbolic links.");
+        ({ value: manifest, bytes: manifestBytes } = readJson(manifestFile, "Anime franchise manifest", fileSystem));
+    } catch (error) { errors.push(error.message); }
+    if (!isRecord(manifest) || manifest.manifestVersion !== 1 || !Array.isArray(manifest.entries) || !Array.isArray(manifest.franchises)) {
+        errors.push("Franchise manifest must use manifestVersion 1 with franchises and entries arrays.");
+    }
+    if (errors.length) return { eligible: false, errors: [...new Set(errors)], contentPackId };
+
+    const targetDirectory = contentDirectories["fact-or-cap-anime"];
+    const destination = path.resolve(targetDirectory, `${contentPackId}.json`);
+    let publishedPack;
+    try {
+        if (fileSystem.lstatSync(destination).isSymbolicLink()) errors.push("Published pack verification does not follow symbolic links.");
+        publishedPack = JSON.parse(fileSystem.readFileSync(destination, "utf8"));
+    } catch (error) { errors.push(`Published Anime pack is unavailable: ${error.message}`); }
+    if (!isRecord(publishedPack) || publishedPack.contentPackId !== contentPackId || !Array.isArray(publishedPack.questions)) {
+        errors.push(`Published Anime pack ${contentPackId} is missing or does not match the manifest filename.`);
+    }
+    if (publishedPack) errors.push(...validateQuestionPack(publishedPack, destination).errors.map((item) => `Published pack validation: ${item}`));
+
+    let loaded;
+    try {
+        loaded = loadPublished(targetDirectory, fileSystem);
+        errors.push(...loaded.errors.map((item) => `Published Anime library: ${item}`));
+        const matches = loaded.packs.filter((pack) => pack.contentPackId === contentPackId);
+        if (matches.length !== 1 || matches[0]?.fileName !== `${contentPackId}.json`) errors.push(`Published Anime pack identity ${contentPackId} is missing, duplicated, or has a mismatched filename.`);
+    } catch (error) { errors.push(`Unable to inspect published Anime library: ${error.message}`); }
+
+    let ledger;
+    try { ledger = readJson(paths.animeLedger, "Anime franchise ledger", fileSystem).value; }
+    catch (error) { errors.push(error.message); }
+    if (ledger && loaded && Array.isArray(ledger.franchises)) {
+        const reconciliation = makeAnimeLedgerUpdate(
+            ledger,
+            { manifestVersion: 1, franchises: [], entries: [] },
+            { contentPackId: "manifest-cleanup-reconciliation", questions: [] },
+            loaded.packs
+        );
+        if (!reconciliation.valid) errors.push(...reconciliation.errors.map((item) => `Anime ledger reconciliation: ${item}`));
+    }
+
+    if (manifest && Array.isArray(manifest.entries) && Array.isArray(manifest.franchises) && Array.isArray(publishedPack?.questions) && Array.isArray(ledger?.franchises)) {
+        const questions = publishedPack.questions;
+        const questionIds = new Set(questions.map(({ id }) => id));
+        const entryByQuestionId = new Map();
+        for (const [index, entry] of manifest.entries.entries()) {
+            if (!isRecord(entry) || !ID_PATTERN.test(entry.questionId ?? "") || !ID_PATTERN.test(entry.franchiseId ?? "")) {
+                errors.push(`Franchise manifest entry ${index + 1} has an invalid question or franchise ID.`);
+                continue;
+            }
+            if (entryByQuestionId.has(entry.questionId)) errors.push(`Franchise manifest repeats question ${entry.questionId}.`);
+            entryByQuestionId.set(entry.questionId, entry.franchiseId);
+            if (!questionIds.has(entry.questionId)) errors.push(`Franchise manifest refers to unpublished question ${entry.questionId}.`);
+        }
+        for (const questionId of questionIds) if (!entryByQuestionId.has(questionId)) errors.push(`Franchise manifest is missing published question ${questionId}.`);
+        if (entryByQuestionId.size !== questionIds.size) errors.push("Franchise manifest entries do not exactly match the published pack question set.");
+
+        const ledgerById = new Map(ledger.franchises.map((franchise) => [franchise.franchiseId, franchise]));
+        const ledgerAssignments = new Map();
+        for (const franchise of ledger.franchises) {
+            for (const row of franchise.packMemberships ?? []) {
+                if (row.contentPackId !== contentPackId) continue;
+                for (const questionId of row.questionIds ?? []) {
+                    if (ledgerAssignments.has(questionId)) errors.push(`Ledger has multiple franchise assignments for ${questionId} in ${contentPackId}.`);
+                    ledgerAssignments.set(questionId, franchise.franchiseId);
+                }
+            }
+        }
+        for (const [questionId, franchiseId] of entryByQuestionId) {
+            if (ledgerAssignments.get(questionId) !== franchiseId) errors.push(`Franchise manifest assignment for ${questionId} does not match the reconciled ledger.`);
+        }
+        if (ledgerAssignments.size !== questionIds.size) errors.push("Ledger membership does not exactly match the published pack question set.");
+
+        const definitions = new Map();
+        for (const [index, franchise] of manifest.franchises.entries()) {
+            if (!isRecord(franchise) || !ID_PATTERN.test(franchise.franchiseId ?? "") || typeof franchise.displayName !== "string" || !franchise.displayName.trim() || (franchise.aliases !== undefined && (!Array.isArray(franchise.aliases) || franchise.aliases.some((alias) => typeof alias !== "string" || !alias.trim())))) {
+                errors.push(`Franchise definition ${index + 1} is malformed.`);
+                continue;
+            }
+            if (definitions.has(franchise.franchiseId)) errors.push(`Franchise manifest repeats definition ${franchise.franchiseId}.`);
+            definitions.set(franchise.franchiseId, franchise);
+        }
+        const usedFranchiseIds = new Set(entryByQuestionId.values());
+        for (const [franchiseId, definition] of definitions) {
+            const existing = ledgerById.get(franchiseId);
+            if (!existing || existing.displayName !== definition.displayName.trim() || JSON.stringify([...(existing.aliases ?? [])].sort()) !== JSON.stringify([...(definition.aliases ?? [])].sort())) {
+                errors.push(`Franchise definition ${franchiseId} does not match the published ledger.`);
+            }
+            if (!usedFranchiseIds.has(franchiseId)) errors.push(`Franchise definition ${franchiseId} is unused by this batch.`);
+        }
+        for (const franchiseId of usedFranchiseIds) if (!ledgerById.has(franchiseId)) errors.push(`Published ledger is missing franchise ${franchiseId}.`);
+        for (const franchiseId of usedFranchiseIds) {
+            const franchise = ledgerById.get(franchiseId);
+            const appearedInEarlierPack = franchise?.packMemberships?.some((row) => row.contentPackId !== contentPackId) ?? false;
+            if (appearedInEarlierPack && definitions.has(franchiseId)) errors.push(`Franchise ${franchiseId} is already present in the ledger and must not be declared as new.`);
+            if (!appearedInEarlierPack && !definitions.has(franchiseId)) errors.push(`New franchise ${franchiseId} is missing its manifest definition.`);
+        }
+    }
+
+    return {
+        eligible: errors.length === 0,
+        errors: [...new Set(errors)],
+        contentPackId,
+        manifestPath: manifestFile,
+        manifestSha256: manifestBytes ? sha256(manifestBytes) : null
+    };
+}
+
+function cleanupFranchiseManifest({ manifestPath, confirmPackId, paths = DEFAULT_PATHS, fileSystem = fs, contentDirectories = TARGETS }) {
+    const result = cleanupFranchiseManifestEligibility({ manifestPath, confirmPackId, paths, fileSystem, contentDirectories });
+    if (!result.eligible) throw new Error(`Franchise manifest is not eligible for cleanup:\n${result.errors.map((item) => `- ${item}`).join("\n")}`);
+    if (confirmPackId !== result.contentPackId) throw new Error(`Cleanup requires --confirm-delete ${result.contentPackId}.`);
+    const manifestPathResolved = path.resolve(manifestPath);
+    if (sha256(fileSystem.readFileSync(manifestPathResolved)) !== result.manifestSha256) throw new Error("Franchise manifest changed during cleanup verification; retain it and review again.");
+    fileSystem.unlinkSync(manifestPathResolved);
+    return { deleted: manifestPathResolved, contentPackId: result.contentPackId };
 }
 
 function formatReview(report) {
@@ -743,6 +888,8 @@ module.exports = {
     applyTransaction,
     cleanupCandidate,
     cleanupEligibility,
+    cleanupFranchiseManifest,
+    cleanupFranchiseManifestEligibility,
     createReview,
     formatReview,
     makeAnimeLedgerUpdate,
