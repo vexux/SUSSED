@@ -16,7 +16,8 @@
     "report:general-content-coverage": "node games/fact-or-cap/scripts/report-general-content-coverage.js",
     "update:general-topic-ledger": "node games/fact-or-cap/scripts/update-general-topic-ledger.js",
     "questions:preview": "node games/fact-or-cap/scripts/manage-question-batch.js preview",
-    "questions:import": "node games/fact-or-cap/scripts/manage-question-batch.js import"
+    "questions:import": "node games/fact-or-cap/scripts/manage-question-batch.js import",
+    "questions:publication": "node games/fact-or-cap/scripts/manage-content-publication.js"
   },
   "keywords": [],
   "author": "",
