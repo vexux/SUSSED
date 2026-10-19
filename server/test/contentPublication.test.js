@@ -469,6 +469,35 @@ test("Anime ledger rejects stale or duplicate membership and ambiguous aliases",
     assert.ok(result.errors.some((item) => item.includes("ambiguous")));
 });
 
+test("published Anime ledger reconciles merged franchise identity and pack filenames", () => {
+    const contentDirectory = path.join(__dirname, "..", "games", "fact-or-cap", "content", "anime");
+    const researchDirectory = path.join(__dirname, "..", "games", "fact-or-cap", "research");
+    const ledger = JSON.parse(fs.readFileSync(path.join(researchDirectory, "anime-franchise-ledger.json"), "utf8"));
+    const existingPacks = fs.readdirSync(contentDirectory).filter((name) => name.endsWith(".json")).sort().map((fileName) => {
+        const pack = JSON.parse(fs.readFileSync(path.join(contentDirectory, fileName), "utf8"));
+        return { fileName, contentPackId: pack.contentPackId, questions: pack.questions };
+    });
+    const result = makeAnimeLedgerUpdate(
+        ledger,
+        { manifestVersion: 1, franchises: [], entries: [] },
+        { contentPackId: "anime-bizarre-batch-005", questions: [] },
+        existingPacks
+    );
+
+    assert.equal(result.valid, true, result.errors.join("\n"));
+    assert.equal(result.errors.length, 0);
+    assert.equal(ledger.bankSnapshot.questionCount, 510);
+    assert.equal(ledger.bankSnapshot.contentPackCount, 8);
+    const promisedNeverland = result.updatedLedger.franchises.filter(({ franchiseId }) => franchiseId === "promised-neverland");
+    assert.equal(promisedNeverland.length, 1);
+    assert.equal(promisedNeverland[0].questionCount, 2);
+    assert.deepEqual(promisedNeverland[0].packMemberships, [
+        { contentPackId: "anime-bizarre-batch-005", questionIds: ["anime-b005-promised-neverland-demons"] },
+        { contentPackId: "anime-facts-batch-2026-10", questionIds: ["promised-neverland-learning-ability"] }
+    ]);
+    assert.ok(existingPacks.every(({ fileName, contentPackId }) => path.basename(fileName, ".json") === contentPackId));
+});
+
 test("recovery command is harmless with no journal and report hashes use stable SHA-256", (t) => {
     const data = setup(t);
     assert.equal(recoverPublication({ paths: data.paths, contentDirectories: data.contentDirectories }).recovered, false);

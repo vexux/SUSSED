@@ -1979,12 +1979,18 @@
     {
       "franchiseId": "promised-neverland",
       "displayName": "The Promised Neverland",
-      "questionCount": 1,
+      "questionCount": 2,
       "packMemberships": [
         {
           "contentPackId": "anime-bizarre-batch-005",
           "questionIds": [
             "anime-b005-promised-neverland-demons"
+          ]
+        },
+        {
+          "contentPackId": "anime-facts-batch-2026-10",
+          "questionIds": [
+            "promised-neverland-learning-ability"
           ]
         }
       ],
@@ -2404,20 +2410,6 @@
           "questionIds": [
             "anime-b004-the-idolmster-01",
             "anime-b004-the-idolmster-03"
-          ]
-        }
-      ],
-      "aliases": []
-    },
-    {
-      "franchiseId": "the-promised-neverland",
-      "displayName": "The Promised Neverland",
-      "questionCount": 1,
-      "packMemberships": [
-        {
-          "contentPackId": "anime-facts-batch-2026-10",
-          "questionIds": [
-            "promised-neverland-learning-ability"
           ]
         }
       ],
