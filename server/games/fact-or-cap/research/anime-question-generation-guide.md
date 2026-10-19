@@ -122,7 +122,7 @@ or removing context.
 Before generating a batch:
 
 1. Read this guide, the franchise ledger, and every playable JSON pack under
-   `content-anime/`.
+   `content/anime/`.
 2. Build a working index of franchise IDs and aliases, question IDs, prompts,
    completions, and recurring formats.
 3. Note overrepresented franchise groups and question types, especially in
@@ -169,7 +169,7 @@ the schema. Include accessible questions alongside harder ones.
 From the `server/` directory, validate a candidate pack with:
 
 ```sh
-npm run validate:questions -- fact-or-cap-anime games/fake-answer/content-anime/<pack>.json
+npm run validate:questions -- fact-or-cap-anime games/fact-or-cap/content/anime/<pack>.json
 ```
 
 Preview a proposed batch against the anime bank before import:
@@ -182,5 +182,5 @@ Treat duplicate warnings as review signals: exact normalized prompt-and-answer
 matches do not detect every paraphrase, and structural validation does not
 replace editorial review of evidence, quality, or rights. Update the ledger only
 after accepted questions are in the playable packs, and keep both the guide and
-ledger under `research/`, outside `content-anime/` so the loader cannot mistake
+ledger under `research/`, outside `content/anime/` so the loader cannot mistake
 them for question packs.

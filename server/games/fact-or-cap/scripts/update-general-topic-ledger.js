@@ -6,10 +6,10 @@ const { buildGeneralTopicLedgerUpdate, writeLedgerAtomically } = require("../gen
 
 const ROOT = path.resolve(__dirname, "..");
 const DEFAULT_LEDGER = path.join(ROOT, "research", "general-topic-ledger.json");
-const DEFAULT_CONTENT = path.join(ROOT, "content");
+const DEFAULT_CONTENT = path.join(ROOT, "content", "general");
 const PROTECTED_CONTENT_DIRECTORIES = [
     DEFAULT_CONTENT,
-    path.join(ROOT, "content-anime"),
+    path.join(ROOT, "content", "anime"),
     path.join(ROOT, "content-canonical"),
     path.resolve(ROOT, "../bruh-wtf/content")
 ];
@@ -72,7 +72,7 @@ function formatUpdate(result, apply) {
 function main(args) {
     const options = parseArguments(args);
     if (options.help) {
-        process.stdout.write("Usage: node games/fake-answer/scripts/update-general-topic-ledger.js --classifications <manifest.json> [--ledger <ledger.json>] [--content-dir <packs-dir>] [--apply]\n");
+        process.stdout.write("Usage: node games/fact-or-cap/scripts/update-general-topic-ledger.js --classifications <manifest.json> [--ledger <ledger.json>] [--content-dir <packs-dir>] [--apply]\n");
         return 0;
     }
     assertLedgerDestination(options.ledgerPath, options.contentDirectory);

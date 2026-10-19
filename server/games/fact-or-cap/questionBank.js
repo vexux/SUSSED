@@ -80,7 +80,7 @@ function createQuestionBank(contentDirectory) {
     });
 }
 
-const defaultQuestionBank = createQuestionBank(path.join(__dirname, "content"));
+const defaultQuestionBank = createQuestionBank(path.join(__dirname, "content", "general"));
 
 module.exports = {
     ...defaultQuestionBank,

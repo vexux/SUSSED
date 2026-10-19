@@ -5,7 +5,7 @@ const path = require("node:path");
 const test = require("node:test");
 const { decodeUtf8, findTextIntegrityIssues } = require("../content/textIntegrity");
 const { validateQuestionPack: validateBruhPack } = require("../games/bruh-wtf/questionLibrary");
-const { readPack: readFactOrCapPack } = require("../games/fake-answer/questionLibrary");
+const { readPack: readFactOrCapPack } = require("../games/fact-or-cap/questionLibrary");
 
 test("text integrity accepts contractions, typographic punctuation, and ordinary question marks", () => {
     for (const text of [

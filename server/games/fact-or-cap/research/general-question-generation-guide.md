@@ -36,7 +36,11 @@ Current broad topics and useful subtopics include:
 These are broad, overlapping editorial labels. Choose the best fit for the
 claim itself and use a specific subtopic. Add or revise a subtopic when it
 improves planning; do not create a new label solely to make a used subject look
-unused.
+unused. Current expansion should balance strong life-science and space
+questions with opportunities in culture and society, technology and
+engineering, and physical sciences and mathematics. Treat this as a direction
+for finding worthwhile candidates, not a quota; evidence and playable quality
+take priority.
 
 ## 2. Vary fact and prompt types
 
@@ -103,11 +107,9 @@ Keep these questions distinct in editorial review:
 
 Source attribution, structural validity, and public accessibility do not prove
 factual correctness, source support, or permission to reuse. Rights remain
-unknown until separately assessed. The canonical content and review workflow
-offers structured claim, source, provenance, and use-specific decisions, but
-the current playable bank and its topic ledger do not link every legacy record
-to canonical claims or formal review decisions. Do not duplicate that model in
-this ledger or imply that the ledger supplies those decisions.
+unknown until separately assessed. The playable question format and topic
+ledger are not formal factual-verification or rights-review records; do not
+imply that a classification or successful validator supplies those decisions.
 
 ## 5. Identity, format, and incoming workflow
 
@@ -117,7 +119,7 @@ filename, tags, category, or displayed wording. Do not change an ID to evade a
 duplicate warning or reuse one for a different question.
 
 For each incoming batch, use the read-only preview and explicit import commands
-documented in `incoming/README.md`:
+below:
 
 1. Draft a JSON candidate in `incoming/`, outside runtime-loaded directories.
 2. Run `npm run questions:preview` for the intended game. It checks structure,
@@ -154,7 +156,7 @@ classifications and human-authored repetition notes are preserved; the tool
 does not retire records or resolve suspected overlaps.
 
 From `server/`, prepare a classification JSON file outside the runtime content
-directories, for example `games/fake-answer/incoming/general-batch-001-ledger.json`:
+directories, for example `games/fact-or-cap/incoming/general-batch-001-ledger.json`:
 
 ```json
 {
@@ -200,21 +202,24 @@ all errors and human overlap questions, then apply. If the updater reports
 stale records, a removed pack, or broader count drift, investigate that change
 instead of using maintenance to erase or conceal it.
 
-The complete required workflow from `server/` is:
+Before each batch, consult current topic coverage and repetition notes to choose
+candidate areas and fact patterns. Prefer variety in topic, source, claim type,
+and prompt structure, and do not extend a dense subject cluster without an
+editorial reason. The complete workflow from `server/` is:
 
 ```sh
 # 1. Preview a candidate (read-only).
-npm run questions:preview -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
+npm run questions:preview -- --target fact-or-cap --input games/fact-or-cap/incoming/general-batch-001.json
 
 # 2. Import only after evidence, editorial, and rights review.
-npm run questions:import -- --target fact-or-cap --input games/fake-answer/incoming/general-batch-001.json
+npm run questions:import -- --target fact-or-cap --input games/fact-or-cap/incoming/general-batch-001.json
 
 # 3. Validate the published pack.
-npm run validate:questions -- fact-or-cap games/fake-answer/content/<content-pack-id>.json
+npm run validate:questions -- fact-or-cap games/fact-or-cap/content/general/<content-pack-id>.json
 
 # 4. Prepare the classification manifest described above; preview, inspect, then explicitly apply.
-npm run update:general-topic-ledger -- --classifications games/fake-answer/incoming/general-batch-001-ledger.json
-npm run update:general-topic-ledger -- --classifications games/fake-answer/incoming/general-batch-001-ledger.json --apply
+npm run update:general-topic-ledger -- --classifications games/fact-or-cap/incoming/general-batch-001-ledger.json
+npm run update:general-topic-ledger -- --classifications games/fact-or-cap/incoming/general-batch-001-ledger.json --apply
 
 # 5. Reconcile coverage and inspect the inventory across both banks.
 npm run report:general-content-coverage

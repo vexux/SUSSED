@@ -7,20 +7,20 @@ const test = require("node:test");
 const {
     questions,
     selectQuestions,
-} = require("../games/fake-answer/questionBank");
-const { questions: animeQuestions } = require("../games/fake-answer/animeQuestionBank");
+} = require("../games/fact-or-cap/questionBank");
+const { questions: animeQuestions } = require("../games/fact-or-cap/animeQuestionBank");
 const {
     loadQuestionPacks,
     readPack,
     validateQuestionLibrary,
     validateQuestionPack,
-} = require("../games/fake-answer/questionLibrary");
+} = require("../games/fact-or-cap/questionLibrary");
 
-const fakeAnswerDirectory = path.join(__dirname, "..", "games", "fake-answer");
+const factOrCapDirectory = path.join(__dirname, "..", "games", "fact-or-cap");
 
-test("loads all migrated JSON content packs with existing answer and source data", () => {
+test("loads all General JSON content packs with existing answer and source data", () => {
     const { questions: loaded } = loadQuestionPacks(
-        path.join(fakeAnswerDirectory, "content")
+        path.join(factOrCapDirectory, "content", "general")
     );
     assert.equal(loaded.length, 810);
     assert.equal(questions.length, 810);
@@ -74,7 +74,7 @@ test("loads all migrated JSON content packs with existing answer and source data
 
 test("loads the expanded anime library through batch 006 with distinct IDs", () => {
     const { questions: loaded } = loadQuestionPacks(
-        path.join(fakeAnswerDirectory, "content-anime")
+        path.join(factOrCapDirectory, "content", "anime")
     );
     assert.equal(loaded.length, 510);
     assert.equal(animeQuestions.length, 510);
@@ -229,7 +229,7 @@ test("bulk validation reports library ID conflicts and duplicate candidates with
     const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "sussed-question-import-"));
     context.after(() => fs.rmSync(tempDirectory, { recursive: true, force: true }));
     const filePath = path.join(tempDirectory, "candidate.json");
-    const scriptPath = path.join(fakeAnswerDirectory, "scripts", "validate-question-pack.js");
+    const scriptPath = path.join(factOrCapDirectory, "scripts", "validate-question-pack.js");
     fs.writeFileSync(filePath, JSON.stringify({
         contentPackId: "candidate-pack",
         questions: [{
@@ -247,7 +247,7 @@ test("bulk validation reports library ID conflicts and duplicate candidates with
         const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "sussed-anime-import-"));
         context.after(() => fs.rmSync(tempDirectory, { recursive: true, force: true }));
         const filePath = path.join(tempDirectory, "candidate.json");
-        const scriptPath = path.join(fakeAnswerDirectory, "scripts", "validate-question-pack.js");
+        const scriptPath = path.join(factOrCapDirectory, "scripts", "validate-question-pack.js");
         fs.writeFileSync(filePath, JSON.stringify({
             questions: [{
                 id: "anime-new-entry",

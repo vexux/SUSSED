@@ -2,15 +2,15 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
-const { validateCanonicalContent } = require("../games/fake-answer/canonicalContent");
-const { adaptFactOrCap } = require("../games/fake-answer/factOrCapAdapter");
-const { validateMigrationManifest } = require("../games/fake-answer/migrationManifest");
+const { validateCanonicalContent } = require("../games/fact-or-cap/canonicalContent");
+const { adaptFactOrCap } = require("../games/fact-or-cap/factOrCapAdapter");
+const { validateMigrationManifest } = require("../games/fact-or-cap/migrationManifest");
 
 const contentPath = path.join(
     __dirname,
     "..",
     "games",
-    "fake-answer",
+    "fact-or-cap",
     "content-canonical",
     "content-migration-pilot.json"
 );
@@ -18,7 +18,7 @@ const manifestPath = path.join(
     __dirname,
     "..",
     "games",
-    "fake-answer",
+    "fact-or-cap",
     "content-canonical",
     "content-migration-pilot-manifest.json"
 );

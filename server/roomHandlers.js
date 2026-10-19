@@ -1,6 +1,6 @@
 const roomManager = require("./roomManager");
 const gameManager = require("./gameManager");
-const fakeAnswerSocketHandlers = require("./games/fake-answer/socketHandlers");
+const factOrCapSocketHandlers = require("./games/fact-or-cap/socketHandlers");
 const bruhWtfSocketHandlers = require("./games/bruh-wtf/socketHandlers");
 
 function isRecord(value) {
@@ -85,7 +85,7 @@ async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
         }
         if (departure.advancedRound && departure.gameId.startsWith("fact-or-cap")) {
             const current = gameManager.getPublicGameState(room.code, departure.players[0].id);
-            fakeAnswerSocketHandlers.scheduleSubmissionPhase(
+            factOrCapSocketHandlers.scheduleSubmissionPhase(
                 io,
                 room.code,
                 departure.sessionId,
@@ -104,7 +104,7 @@ function isAcknowledgement(value) {
 }
 
 function registerRoomHandlers(io, socket) {
-    fakeAnswerSocketHandlers.registerSocketHandlers(io, socket);
+    factOrCapSocketHandlers.registerSocketHandlers(io, socket);
     bruhWtfSocketHandlers.registerSocketHandlers(io, socket);
 
     socket.on("create-room", async (payload, acknowledge) => {
@@ -316,8 +316,8 @@ function registerRoomHandlers(io, socket) {
                 io.to(player.id).emit("game-starting", { roomCode: startingRoom.code, lobby, game });
                 io.to(player.id).emit("game-state", gameManager.getPublicGameState(startingRoom.code, player.id));
             }
-            if (selectedGame.socketProtocol === "fake-answer") {
-                fakeAnswerSocketHandlers.scheduleSubmissionPhase(
+            if (selectedGame.socketProtocol === "fact-or-cap") {
+                factOrCapSocketHandlers.scheduleSubmissionPhase(
                     io,
                     startingRoom.code,
                     game.sessionId,

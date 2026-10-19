@@ -1,6 +1,6 @@
 {
   "ledgerVersion": 1,
-  "purpose": "Authoritative inventory of franchises represented by accepted playable Anime questions. Derived by reconciling all JSON question packs under content-anime.",
+  "purpose": "Authoritative inventory of franchises represented by accepted playable Anime questions. Derived by reconciling all JSON question packs under content/anime.",
   "bankSnapshot": {
     "branch": "dev",
     "questionCount": 510,

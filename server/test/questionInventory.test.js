@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
-const { buildQuestionInventory, formatQuestionInventory } = require("../games/fake-answer/questionInventory");
+const { buildQuestionInventory, formatQuestionInventory } = require("../games/fact-or-cap/questionInventory");
 
 function question(id, text, completion, contentPackId) {
     return {

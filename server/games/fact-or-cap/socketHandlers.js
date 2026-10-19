@@ -22,7 +22,7 @@ function getOperationError(error) {
     console.error("Fake-answer operation failed:", error);
     return {
         code: "INTERNAL_ERROR",
-        message: "The fake-answer operation could not be completed."
+        message: "The Fact-or-Cap operation could not be completed."
     };
 }
 
@@ -262,7 +262,7 @@ function scheduleSubmissionPhase(io, roomCode, sessionId, roundId, gameId = "fac
                 return;
             }
             const operationError = getOperationError(error);
-            console.error("Could not open fake-answer submissions:", operationError.message);
+            console.error("Could not open Fact-or-Cap submissions:", operationError.message);
         }
     }, SUBMISSION_PHASE_DELAY_MS);
     timer.unref();

@@ -3,10 +3,10 @@ const test = require("node:test");
 const { io: createClient } = require("socket.io-client");
 const { port: defaultPort } = require("../config");
 const gameManager = require("../gameManager");
-const fakeAnswerGame = require("../games/fake-answer/game");
-const { questions } = require("../games/fake-answer/questionBank");
-const { questions: animeQuestions } = require("../games/fake-answer/animeQuestionBank");
-const fakeAnswerSocketHandlers = require("../games/fake-answer/socketHandlers");
+const factOrCapGame = require("../games/fact-or-cap/game");
+const { questions } = require("../games/fact-or-cap/questionBank");
+const { questions: animeQuestions } = require("../games/fact-or-cap/animeQuestionBank");
+const factOrCapSocketHandlers = require("../games/fact-or-cap/socketHandlers");
 const roomManager = require("../roomManager");
 const { startServer } = require("../server");
 
@@ -363,8 +363,8 @@ async function completeSocketRound(host, players, gameState) {
 
 function interceptScheduledSubmissionCallback() {
     const callbacks = [];
-    const originalScheduler = fakeAnswerSocketHandlers.scheduleSubmissionPhase;
-    fakeAnswerSocketHandlers.scheduleSubmissionPhase = (...schedulerArgs) => {
+    const originalScheduler = factOrCapSocketHandlers.scheduleSubmissionPhase;
+    factOrCapSocketHandlers.scheduleSubmissionPhase = (...schedulerArgs) => {
         const originalSetTimeout = global.setTimeout;
         global.setTimeout = (callback, delay, ...timerArgs) => {
             assert.equal(delay, 1500);
@@ -383,7 +383,7 @@ function interceptScheduledSubmissionCallback() {
     return {
         callbacks,
         restore() {
-            fakeAnswerSocketHandlers.scheduleSubmissionPhase = originalScheduler;
+            factOrCapSocketHandlers.scheduleSubmissionPhase = originalScheduler;
         }
     };
 }
@@ -1749,8 +1749,8 @@ test("failed game initialization rolls the room back and allows a clean retry", 
     const [guest] = await joinPlayers(harness, created.roomCode, 1);
     await emitWithAck(guest, "set-ready", { isReady: true });
 
-    const originalStart = fakeAnswerGame.start;
-    fakeAnswerGame.start = () => {
+    const originalStart = factOrCapGame.start;
+    factOrCapGame.start = () => {
         throw new Error("simulated question initialization failure");
     };
     try {
@@ -1765,7 +1765,7 @@ test("failed game initialization rolls the room back and allows a clean retry", 
             { code: "GAME_NOT_ACTIVE" }
         );
     } finally {
-        fakeAnswerGame.start = originalStart;
+        factOrCapGame.start = originalStart;
     }
 
     const retry = await emitWithAck(host, "start-game");
@@ -1941,7 +1941,7 @@ test("game selection is rejected after the room leaves the lobby", async (contex
     );
 });
 
-test("fake-answer opens submissions after the question state and rejects early submissions", async (context) => {
+test("Fact-or-Cap opens submissions after the question state and rejects early submissions", async (context) => {
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, { waitForSubmission: false });
 
@@ -1974,7 +1974,7 @@ test("submission, voting, and continuation waits remain active without inactivit
     const room = roomManager.getRoom(game.roomCode);
     assert.ok(room);
     const originalPlayers = room.players.map(({ id, isReady }) => ({ id, isReady }));
-    assert.equal(typeof fakeAnswerSocketHandlers.expireActionPhase, "undefined");
+    assert.equal(typeof factOrCapSocketHandlers.expireActionPhase, "undefined");
     assert.equal(room.status, "starting");
     assert.equal(
         gameManager.getPublicGameState(game.roomCode, game.host.id).state.phase,
@@ -2037,7 +2037,7 @@ test("submission, voting, and continuation waits remain active without inactivit
     );
 });
 
-test("fake-answer submissions broadcast safe progress and enter reveal after all players submit", async (context) => {
+test("Fact-or-Cap submissions broadcast safe progress and enter reveal after all players submit", async (context) => {
     const harness = await createHarness(context);
     const { host, players, gameState } = await startFakeAnswer(harness);
     const clients = [host, ...players];
@@ -2172,7 +2172,7 @@ test("fake-answer submissions broadcast safe progress and enter reveal after all
     }
 });
 
-test("two-player fake-answer reveal shows the own answer without revealing authors and voting reaches results", async (context) => {
+test("two-player Fact-or-Cap reveal shows the own answer without revealing authors and voting reaches results", async (context) => {
     const harness = await createHarness(context);
     const { host, players, questionState, gameState } = await startFakeAnswer(
         harness,
@@ -2445,7 +2445,7 @@ test("two-player fake-answer reveal shows the own answer without revealing autho
     assert.deepEqual(resultsStates[0].state.results, resultsStates[1].state.results);
 });
 
-test("fake-answer honors a selected round count through completion, lobby return, and replay", async (context) => {
+test("Fact-or-Cap honors a selected round count through completion, lobby return, and replay", async (context) => {
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, { playerCount: 2, roundCount: 7 });
     const clients = [game.host, ...game.players];
@@ -2773,7 +2773,7 @@ test("return-to-lobby is host-only and requires a finished game", async (context
     assert.equal(gameManager.getPublicGameState(game.roomCode, game.host.id).status, "active");
 });
 
-test("fake-answer rejects empty, long, duplicate, malformed, and impersonated submissions", async (context) => {
+test("Fact-or-Cap rejects empty, long, duplicate, malformed, and impersonated submissions", async (context) => {
     const harness = await createHarness(context);
     const { host, players, gameState } = await startFakeAnswer(harness);
     const question = questions.find(

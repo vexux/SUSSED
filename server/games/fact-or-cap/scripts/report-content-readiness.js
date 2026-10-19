@@ -14,7 +14,7 @@ function readJson(filePath, label) {
 
 function main(args) {
     if (args.length < 2 || args[0] === "--help") {
-        console.error("Usage: node games/fake-answer/scripts/report-content-readiness.js <review-manifest.json> <canonical.json> --intended-use <id> [--migration <manifest.json>] [--allowed-rights permitted,public-domain] [--require-legacy-parity]");
+        console.error("Usage: node games/fact-or-cap/scripts/report-content-readiness.js <review-manifest.json> <canonical.json> --intended-use <id> [--migration <manifest.json>] [--allowed-rights permitted,public-domain] [--require-legacy-parity]");
         return 2;
     }
     const [reviewPath, canonicalPath, ...flags] = args;

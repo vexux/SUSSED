@@ -32,7 +32,9 @@ if (!inputFile) {
         const allQuestions = [...generalQuestions, ...animeQuestions];
         const currentLibraryDirectory = path.resolve(
             __dirname,
-            gameId === "fact-or-cap-anime" ? "../content-anime" : "../content"
+            gameId === "fact-or-cap-anime"
+                ? "../content/anime"
+                : "../content/general"
         );
         const isCurrentLibraryPack = path.dirname(absolutePath) === currentLibraryDirectory;
         const otherLibraryQuestions = gameId === "fact-or-cap-anime"

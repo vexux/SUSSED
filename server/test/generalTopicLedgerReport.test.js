@@ -6,7 +6,7 @@ const test = require("node:test");
 const {
     compareGeneralTopicLedger,
     formatGeneralTopicLedgerReport
-} = require("../games/fake-answer/generalTopicLedgerReport");
+} = require("../games/fact-or-cap/generalTopicLedgerReport");
 
 function fixture(t) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "sussed-general-ledger-"));

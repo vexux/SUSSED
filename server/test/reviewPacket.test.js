@@ -2,12 +2,12 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
-const { generateReviewPacket, loadLegacyLibraries } = require("../games/fake-answer/reviewPacket");
-const { validateSourceReviewFindings } = require("../games/fake-answer/sourceReviewFindings");
+const { generateReviewPacket, loadLegacyLibraries } = require("../games/fact-or-cap/reviewPacket");
+const { validateSourceReviewFindings } = require("../games/fact-or-cap/sourceReviewFindings");
 
-const planPath = path.join(__dirname, "..", "games", "fake-answer", "content-canonical", "review-shadow-batch.json");
+const planPath = path.join(__dirname, "..", "games", "fact-or-cap", "content-canonical", "review-shadow-batch.json");
 const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
-const sourceReviewFindingsPath = path.join(__dirname, "..", "games", "fake-answer", "content-canonical", "source-review-findings-task-10.json");
+const sourceReviewFindingsPath = path.join(__dirname, "..", "games", "fact-or-cap", "content-canonical", "source-review-findings-task-10.json");
 const sourceReviewFindings = JSON.parse(fs.readFileSync(sourceReviewFindingsPath, "utf8"));
 const libraries = loadLegacyLibraries().libraries;
 const saturnCandidate = plan.items[0];

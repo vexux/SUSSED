@@ -2,14 +2,14 @@
 
 This directory is a separate, opt-in foundation for reusable, source-backed
 content. It is not loaded by the current Fact-or-Cap question banks. Existing
-playable packs under `content/` and `content-anime/` keep their current format
+playable packs under `content/general/` and `content/anime/` keep their current format
 and runtime behavior.
 
 Validate a canonical file with:
 
 ```sh
 cd server
-npm run validate:canonical -- games/fake-answer/content-canonical/pilot.json
+npm run validate:canonical -- games/fact-or-cap/content-canonical/pilot.json
 ```
 
 ## Document and records
@@ -143,7 +143,7 @@ Validate a manifest against the existing banks and one canonical document with:
 
 ```sh
 cd server
-npm run validate:migration -- games/fake-answer/content-canonical/migration-pilot.json games/fake-answer/content-canonical/pilot.json
+npm run validate:migration -- games/fact-or-cap/content-canonical/migration-pilot.json games/fact-or-cap/content-canonical/pilot.json
 ```
 
 The validator resolves each source reference within its stated game and
@@ -201,7 +201,7 @@ Run from `server`:
 
 ```sh
 npm run report:review-packet
-npm run report:review-packet -- --source-review-findings games/fake-answer/content-canonical/source-review-findings-task-10.json
+npm run report:review-packet -- --source-review-findings games/fact-or-cap/content-canonical/source-review-findings-task-10.json
 npm run report:review-packet -- --canonical <canonical.json> --migration <migration-manifest.json> --reviews <review-decisions.json> --intended-use <use-id>
 ```
 

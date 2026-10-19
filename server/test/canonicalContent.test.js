@@ -2,13 +2,13 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
-const { validateCanonicalContent } = require("../games/fake-answer/canonicalContent");
+const { validateCanonicalContent } = require("../games/fact-or-cap/canonicalContent");
 
 const fixturePath = path.join(
     __dirname,
     "..",
     "games",
-    "fake-answer",
+    "fact-or-cap",
     "content-canonical",
     "pilot.json"
 );

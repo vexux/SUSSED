@@ -2,10 +2,10 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const gameManager = require("../gameManager");
 const gameRegistry = require("../gameRegistry");
-const fakeAnswer = require("../games/fake-answer/game");
-const anime = require("../games/fake-answer/anime");
-const questionBank = require("../games/fake-answer/questionBank");
-const fakeAnswerSocketHandlers = require("../games/fake-answer/socketHandlers");
+const factOrCap = require("../games/fact-or-cap/game");
+const anime = require("../games/fact-or-cap/anime");
+const questionBank = require("../games/fact-or-cap/questionBank");
+const factOrCapSocketHandlers = require("../games/fact-or-cap/socketHandlers");
 const bruh = require("../games/bruh-wtf/game");
 
 function captureSubmissionCallback(io, roomCode, sessionId, roundId, gameId = "fact-or-cap") {
@@ -17,7 +17,7 @@ function captureSubmissionCallback(io, roomCode, sessionId, roundId, gameId = "f
         return { unref() {} };
     };
     try {
-        fakeAnswerSocketHandlers.scheduleSubmissionPhase(
+        factOrCapSocketHandlers.scheduleSubmissionPhase(
             io,
             roomCode,
             sessionId,
@@ -32,7 +32,7 @@ function captureSubmissionCallback(io, roomCode, sessionId, roundId, gameId = "f
 }
 
 const players = ["a", "b", "c"].map((id) => ({ id, name: id.toUpperCase() }));
-const fakeGames = [fakeAnswer, anime];
+const factOrCapGames = [factOrCap, anime];
 
 function readyFakeForVoting(game, roster = players) {
     const state = game.start(game.createInitialState(roster), questionBank.selectQuestions);
@@ -55,7 +55,7 @@ function readyBruhForVoting(roster = players) {
 }
 
 test("Fact-or-Cap and Anime preserve a submitted leaver's answer and reconcile remaining submissions", () => {
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = game.start(game.createInitialState(players), questionBank.selectQuestions);
         game.handleAction(state, "open-submissions");
         game.handleAction(state, "submit-completion", "a", "answer a");
@@ -81,7 +81,7 @@ test("Fact-or-Cap and Anime preserve a submitted leaver's answer and reconcile r
 });
 
 test("last unsubmitted departure advances Fact-or-Cap through reveal and Bruh directly to voting", () => {
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = game.start(game.createInitialState(players), questionBank.selectQuestions);
         game.handleAction(state, "open-submissions");
         game.handleAction(state, "submit-completion", "a", "answer a");
@@ -121,7 +121,7 @@ test("last unsubmitted departure advances Fact-or-Cap through reveal and Bruh di
 });
 
 test("a submitted leaver keeps their answer but receives no fabricated vote or score", () => {
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = readyFakeForVoting(game);
         const optionFor = (authorId) => state.options.find((option) => option.authorId === authorId);
         game.handleAction(state, "vote", "b", optionFor("c").id);
@@ -159,7 +159,7 @@ test("a submitted leaver keeps their answer but receives no fabricated vote or s
 });
 
 test("departed players cannot act in a later round and a final-round departure cannot advance", () => {
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = game.start(game.createInitialState(players, { roundCount: 5 }), questionBank.selectQuestions);
         const staleRoundId = state.roundId;
         game.handleAction(state, "open-submissions");
@@ -209,7 +209,7 @@ test("departed players cannot act in a later round and a final-round departure c
     assert.throws(() => bruh.handleAction(state, "continue", "c"), { code: "NOT_A_GAME_PLAYER" });
     assert.deepEqual(state.roundParticipants.map(({ id }) => id), ["a", "b"]);
 
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const finalState = game.start(game.createInitialState(players, { roundCount: 5 }), questionBank.selectQuestions);
         for (let round = 1; round <= finalState.totalRounds; round += 1) {
             game.handleAction(finalState, "open-submissions");
@@ -244,7 +244,7 @@ test("departed players cannot act in a later round and a final-round departure c
 });
 
 test("departure before the final Continue keeps readiness valid and advances once after the last active player responds", () => {
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = readyFakeForVoting(game);
         finishFakeRound(state, game);
         const previousScores = [...state.scores];
@@ -278,7 +278,7 @@ test("departure before the final Continue keeps readiness valid and advances onc
 
 test("two departures while readiness changes do not advance the next round more than once", () => {
     const fivePlayers = [...players, { id: "d", name: "D" }, { id: "e", name: "E" }];
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = readyFakeForVoting(game, fivePlayers);
         finishFakeRound(state, game);
         assert.equal(game.handleAction(state, "continue", "a").advanced, false);
@@ -390,7 +390,7 @@ test("scheduled submission callbacks are single-use and cannot mutate later roun
 });
 
 test("Fact-or-Cap variants preserve departed answers and votes and score the round exactly once", () => {
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = readyFakeForVoting(game);
         const optionFor = (authorId) => state.options.find((option) => option.authorId === authorId);
         const correct = state.options.find(({ correct }) => correct);
@@ -420,7 +420,7 @@ test("Fact-or-Cap variants preserve departed answers and votes and score the rou
 });
 
 test("departed unvoted players are no longer required; recorded votes settle results immediately", () => {
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = readyFakeForVoting(game);
         const optionFor = (authorId) => state.options.find((option) => option.authorId === authorId);
         game.handleAction(state, "vote", "a", optionFor("b").id);
@@ -448,7 +448,7 @@ test("departed unvoted players are no longer required; recorded votes settle res
 });
 
 test("departure while waiting for publication reconciles once and publication cannot score twice", () => {
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = readyFakeForVoting(game);
         const option = state.options.find(({ correct }) => correct);
         for (const player of players) game.handleAction(state, "vote", player.id, option.id);
@@ -480,7 +480,7 @@ test("departure while waiting for publication reconciles once and publication ca
 
 test("two departures immediately around results publication preserve the one published snapshot", () => {
     const fourPlayers = [...players, { id: "d", name: "D" }];
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = readyFakeForVoting(game, fourPlayers);
         const correct = state.options.find(({ correct: isCorrect }) => isCorrect);
         for (const player of fourPlayers) game.handleAction(state, "vote", player.id, correct.id);
@@ -517,7 +517,7 @@ test("two departures immediately around results publication preserve the one pub
 });
 
 test("published results, scores, and statistics remain immutable after a player leaves", () => {
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = readyFakeForVoting(game);
         finishFakeRound(state, game);
         const results = JSON.stringify(state.results);
@@ -550,7 +550,7 @@ test("published results, scores, and statistics remain immutable after a player 
 });
 
 test("departures during submission or voting preserve roster invariants across repeated removals", () => {
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = game.start(game.createInitialState(players), questionBank.selectQuestions);
         game.handleAction(state, "open-submissions");
         game.handleAction(state, "submit-completion", "a", "answer a");
@@ -578,7 +578,7 @@ test("departures during submission or voting preserve roster invariants across r
 
 test("multiple departures preserve votes and options while the remaining active voters finish", () => {
     const fourPlayers = [...players, { id: "d", name: "D" }];
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = readyFakeForVoting(game, fourPlayers);
         const optionFor = (authorId) => state.options.find(({ authorId: owner }) => owner === authorId);
         game.handleAction(state, "vote", "a", optionFor("c").id);
@@ -612,7 +612,7 @@ test("multiple departures preserve votes and options while the remaining active 
 
 test("multiple departed voters keep their votes while active voters finish the round", () => {
     const fourPlayers = [...players, { id: "d", name: "D" }];
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = readyFakeForVoting(game, fourPlayers);
         const optionFor = (authorId) => state.options.find(({ authorId: owner }) => owner === authorId);
         game.handleAction(state, "vote", "a", optionFor("b").id);
@@ -653,7 +653,7 @@ test("multiple departed voters keep their votes while active voters finish the r
 });
 
 test("all remaining players ready at departure advance exactly once with a fresh round roster", () => {
-    for (const game of fakeGames) {
+    for (const game of factOrCapGames) {
         const state = readyFakeForVoting(game);
         finishFakeRound(state, game);
         game.handleAction(state, "continue", "a");

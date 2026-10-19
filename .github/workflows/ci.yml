@@ -30,8 +30,8 @@ jobs:
 
       - name: Validate question content packs
         run: |
-          npm --prefix server run validate:questions -- fact-or-cap games/fake-answer/content/general-facts-batch-2026-10.json
-          npm --prefix server run validate:questions -- fact-or-cap-anime games/fake-answer/content-anime/anime-facts-batch-2026-10.json
+          npm --prefix server run validate:questions -- fact-or-cap games/fact-or-cap/content/general/general-facts-batch-2026-10.json
+          npm --prefix server run validate:questions -- fact-or-cap-anime games/fact-or-cap/content/anime/anime-facts-batch-2026-10.json
 
       - name: Type-check client
         run: npm --prefix client run typecheck
@@ -47,12 +47,12 @@ jobs:
           node --check server/roomHandlers.js
           node --check server/gameManager.js
           node --check server/gameRegistry.js
-          node --check server/games/fake-answer/game.js
-          node --check server/games/fake-answer/questionLibrary.js
-          node --check server/games/fake-answer/socketHandlers.js
-          node --check server/games/fake-answer/questionBank.js
-          node --check server/games/fake-answer/scripts/validate-question-pack.js
-          node --check server/games/fake-answer/scripts/manage-question-batch.js
+          node --check server/games/fact-or-cap/game.js
+          node --check server/games/fact-or-cap/questionLibrary.js
+          node --check server/games/fact-or-cap/socketHandlers.js
+          node --check server/games/fact-or-cap/questionBank.js
+          node --check server/games/fact-or-cap/scripts/validate-question-pack.js
+          node --check server/games/fact-or-cap/scripts/manage-question-batch.js
           node --check server/test/config.test.js
           node --check server/test/questionLibrary.test.js
           node --check server/test/questionBatch.test.js
