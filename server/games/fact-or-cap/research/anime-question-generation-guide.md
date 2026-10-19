@@ -28,6 +28,8 @@ franchises represented by accepted playable content.
 
 Plan a batch to avoid repeatedly using the same trivia format. Choose types that
 can be supported by good evidence; do not force every type into every batch.
+Vary the underlying fact patterns and the player experience, not just franchise
+names or question-type labels.
 Possible types include:
 
 - Bizarre, surprising, or counterintuitive facts.
@@ -151,6 +153,8 @@ one format dominates. Do not add weak questions merely to reach a target count.
   reference material.
 - Check that the cited passage directly supports the actual wording and answer;
   a relevant franchise URL or source title is not enough.
+- Assess claim accuracy, source support, gameplay quality, and reuse rights as
+  separate questions; inspecting a source does not by itself establish all four.
 - If evidence is inaccessible or insufficient, locate better evidence or
   exclude the claim. Never fabricate citations or call unchecked content
   verified.
