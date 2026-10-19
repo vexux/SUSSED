@@ -188,3 +188,8 @@ replace editorial review of evidence, quality, or rights. Update the ledger only
 after accepted questions are in the playable packs, and keep both the guide and
 ledger under `research/`, outside `content/anime/` so the loader cannot mistake
 them for question packs.
+
+Keep batch-specific review outputs and approval/source-audit working files
+temporary and outside the repository. Do not create a permanent publication
+report archive under `research/`; the publication CLI keeps its hash receipt in
+the operating system temp directory only until guarded candidate cleanup.

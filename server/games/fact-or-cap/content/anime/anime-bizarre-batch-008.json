@@ -1,0 +1,185 @@
+{
+  "contentPackId": "anime-bizarre-batch-008",
+  "questions": [
+    {
+      "id": "anime-b008-mechaude-previz-voices",
+      "text": "During Mecha-Ude previsualization, what does creator-director Okamoto do herself for the characters?",
+      "correctCompletion": "temporarily voices the characters",
+      "sourceName": "ANIPLUS Asia - Interview with Mecha-Ude Director Okamoto",
+      "sourceUrl": "https://www.aniplus-asia.com/news/mecha-ude-mechanical-arms-interview-with-director-okamoto/",
+      "category": "mecha-ude",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "mecha-ude",
+        "production-process"
+      ]
+    },
+    {
+      "id": "anime-b008-sasaki-java-sparrow",
+      "text": "Which bird had Sasaki and Peeps voice actor Aoi Yuki once kept as a pet? Producer Kosuke Arai said it helped her voice Peeps's chirping.",
+      "correctCompletion": "a Java sparrow",
+      "sourceName": "Anime Trending - Interview with Sasaki and Peeps Producer Kosuke Arai",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/04/16/interview-sasaki-and-peeps-producer-kosuke-arai-on-the-fantasy-animes-appeal",
+      "category": "sasaki-and-peeps",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "sasaki-and-peeps",
+        "voice-acting"
+      ]
+    },
+    {
+      "id": "anime-b008-saiki-nendo-unreadable",
+      "text": "In The Disastrous Life of Saiki K., which classmate acts without thinking and is therefore one of the few whose thoughts Saiki cannot read?",
+      "correctCompletion": "Riki Nendo",
+      "sourceName": "TV Tokyo - The Disastrous Life of Saiki K. Character Profiles",
+      "sourceUrl": "https://www.tv-tokyo.co.jp/anime/saikikusuo/chara/",
+      "category": "the-disastrous-life-of-saiki-k",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "the-disastrous-life-of-saiki-k",
+        "character-quirk"
+      ]
+    },
+    {
+      "id": "anime-b008-hozuki-100th-sports-day",
+      "text": "In Hozuki's Coolheadedness, which annual event has reached its 100th occurrence in Hell?",
+      "correctCompletion": "the Sports Day Festival",
+      "sourceName": "Apple TV - Hozuki's Coolheadedness, Episode 5",
+      "sourceUrl": "https://tv.apple.com/in/episode/the-instrumental-duo-of-the-mighty-rivals-mental-sports-day/umc.cmc.5ek43w4gjnplxwfssjxqzboy9",
+      "category": "hozukis-coolheadedness",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "hozukis-coolheadedness",
+        "absurd-worldbuilding"
+      ]
+    },
+    {
+      "id": "anime-b008-hozuki-low-speed-chase",
+      "text": "In Hozuki's Coolheadedness, a low-speed chase pits air taxis against what unlikely pursuers?",
+      "correctCompletion": "flying policemen",
+      "sourceName": "Apple TV - Hozuki's Coolheadedness, Episode 4",
+      "sourceUrl": "https://tv.apple.com/in/show/hozukis-coolheadedness/umc.cmc.4nfyqz095lcyy63xntr8z87e",
+      "category": "hozukis-coolheadedness",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "hozukis-coolheadedness",
+        "absurd-episode-event"
+      ]
+    },
+    {
+      "id": "anime-b008-tengoku-red-scene-trash",
+      "text": "A scene in Tengoku-Daimakyo Episode 3 was nearly lost after its director discarded it. What did director Hirotaka Mori spot it in before bringing it back?",
+      "correctCompletion": "a trash bin",
+      "sourceName": "Anime Trending - Tengoku-Daimakyo Director Interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/12/01/tengoku-daimakyo-director-highlights-creative-process-behind-hit-anime-series",
+      "category": "tengoku-daimakyo",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "tengoku-daimakyo",
+        "production-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b008-tengoku-grad-school",
+      "text": "Before applying for an assistant episode-director opening at Toei just out of curiosity, Hirotaka Mori had already been accepted to what?",
+      "correctCompletion": "graduate school",
+      "sourceName": "Anime Trending - Tengoku-Daimakyo Director Interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/12/01/tengoku-daimakyo-director-highlights-creative-process-behind-hit-anime-series",
+      "category": "tengoku-daimakyo",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "tengoku-daimakyo",
+        "career-detour"
+      ]
+    },
+    {
+      "id": "anime-b008-married-couple-three-chapters",
+      "text": "More Than a Married Couple, But Not Lovers creator Yuki Kanamaru said the manga was originally intended to last only how many chapters?",
+      "correctCompletion": "three chapters",
+      "sourceName": "Anime Trending - Interview with Yuki Kanamaru",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/10/08/interview-yuki-kanamaru-discusses-the-importance-of-love-in-more-than-a-married-couple-but-not-lovers",
+      "category": "more-than-a-married-couple-but-not-lovers",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "more-than-a-married-couple-but-not-lovers",
+        "manga-creation"
+      ]
+    },
+    {
+      "id": "anime-b008-married-couple-yakitate-influence",
+      "text": "Which cooking-themed manga did Yuki Kanamaru credit with teaching her about drawing manga?",
+      "correctCompletion": "Yakitate!! Japan",
+      "sourceName": "Anime Trending - Interview with Yuki Kanamaru",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/10/08/interview-yuki-kanamaru-discusses-the-importance-of-love-in-more-than-a-married-couple-but-not-lovers",
+      "category": "more-than-a-married-couple-but-not-lovers",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "more-than-a-married-couple-but-not-lovers",
+        "creator-influence"
+      ]
+    },
+    {
+      "id": "anime-b008-metallic-rouge-jazz-era",
+      "text": "Metallic Rouge's future-set soundtrack draws on jazz inspired by which decade?",
+      "correctCompletion": "the 1940s",
+      "sourceName": "Anime Trending - Metallic Rouge Staff Interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/04/16/metallic-rouge-creators-discuss-jazz-and-other-creative-inspirations-at-anime-nyc-2023-interview",
+      "category": "metallic-rouge",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "metallic-rouge",
+        "music-worldbuilding"
+      ]
+    },
+    {
+      "id": "anime-b008-nokotan-gym-explosion",
+      "text": "When My Deer Friend Nokotan voice actor Megumi Han described the chaos of the original material, what building did she say deer antlers blow up?",
+      "correctCompletion": "a gym",
+      "sourceName": "Anime Trending - Interview with My Deer Friend Nokotan Voice Cast",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/08/29/my-deer-friend-nokotan-anime-megumi-han-saki-fujita-interview",
+      "category": "my-deer-friend-nokotan",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "my-deer-friend-nokotan",
+        "absurd-canon-event"
+      ]
+    },
+    {
+      "id": "anime-b008-nokotan-voice-flubs",
+      "text": "During My Deer Friend Nokotan recording, Megumi Han tried so hard to make the manga creator laugh that what happened to her lines?",
+      "correctCompletion": "she flubbed them and spread the habit to the cast",
+      "sourceName": "Anime Trending - Interview with My Deer Friend Nokotan Voice Cast",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/08/29/my-deer-friend-nokotan-anime-megumi-han-saki-fujita-interview",
+      "category": "my-deer-friend-nokotan",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-008",
+        "my-deer-friend-nokotan",
+        "recording-anecdote"
+      ]
+    }
+  ]
+}

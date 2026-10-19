@@ -22,16 +22,17 @@ target, so the listing labels each candidate `unassigned`. Choose the target
 from its schema and review it explicitly; the command will not guess.
 
 Review one candidate against only its own registered bank. Choose `fact-or-cap`
-or `fact-or-cap-anime` explicitly:
+or `fact-or-cap-anime` explicitly. Review output is printed to the terminal; do
+not save permanent review reports in the repository:
 
 ```powershell
-npm run questions:publication -- review --target fact-or-cap --input games/fact-or-cap/incoming/general-candidate-001.json --classifications games/fact-or-cap/incoming/general-candidate-001-classifications.json --json --report games/fact-or-cap/research/publication-reports/general-candidate-001-review.json
+npm run questions:publication -- review --target fact-or-cap --input games/fact-or-cap/incoming/general-candidate-001.json --classifications $env:TEMP/general-candidate-001-classifications.json --json
 ```
 
 For Anime, supply the explicit franchise assignment manifest instead:
 
 ```powershell
-npm run questions:publication -- review --target fact-or-cap-anime --input games/fact-or-cap/incoming/anime-candidate-001.json --franchises games/fact-or-cap/incoming/anime-candidate-001-franchises.json --json --report games/fact-or-cap/research/publication-reports/anime-candidate-001-review.json
+npm run questions:publication -- review --target fact-or-cap-anime --input games/fact-or-cap/incoming/anime-candidate-001.json --franchises $env:TEMP/anime-candidate-001-franchises.json --json
 ```
 
 The General classification manifest is version 1 and uses the established
@@ -74,7 +75,7 @@ defines any new franchise; it does not infer a franchise from a display name:
 }
 ```
 
-Before approval, review all report blockers and warnings, each question’s
+Before approval, review all blockers and warnings printed by the command, each question’s
 duplicate matches, source metadata, classification/franchise assignments, and
 the current ledger reconciliation. The report does not inspect source pages,
 verify facts, or decide semantic equivalence. The editor must compare claims
@@ -111,9 +112,11 @@ npm run questions:preview -- fact-or-cap games/fact-or-cap/incoming/general-cand
 
 ## 3. Explicit approval and publication
 
-Create a separate approval JSON only after reviewing the report. Copy the
-candidate SHA-256 exactly from the report. Every candidate ID needs one
-decision. Allowed outcomes are:
+Create a temporary approval JSON outside the repository only after reviewing
+the terminal output. Copy the candidate SHA-256 exactly from that output. Keep
+approval, classification/franchise manifests, and source-audit working files
+outside the repository when practical; do not archive them under `research/`.
+Every candidate ID needs one decision. Allowed outcomes are:
 
 - `publish`: new ID with no normalized match.
 - `publish-distinct`: normalized match reviewed and determined to be distinct;
@@ -130,8 +133,8 @@ Example approval shape (replace all illustrative values):
   "approvalVersion": 1,
   "target": "fact-or-cap",
   "contentPackId": "general-candidate-001",
-  "candidateSha256": "COPY_FROM_REVIEW_REPORT",
-  "ledgerMetadataSha256": "COPY_FROM_REVIEW_REPORT",
+  "candidateSha256": "COPY_FROM_REVIEW_OUTPUT",
+  "ledgerMetadataSha256": "COPY_FROM_REVIEW_OUTPUT",
   "reviewerId": "editor-name",
   "approvedAt": "2026-10-19T12:00:00.000Z",
   "rationale": "Reviewed the complete candidate, source metadata, and duplicate report.",
@@ -144,19 +147,21 @@ Example approval shape (replace all illustrative values):
 Publication requires a valid approval and the relevant ledger metadata:
 
 ```powershell
-npm run questions:publication -- publish --target fact-or-cap --input games/fact-or-cap/incoming/general-candidate-001.json --classifications games/fact-or-cap/incoming/general-candidate-001-classifications.json --approval games/fact-or-cap/incoming/general-candidate-001-approval.json
+npm run questions:publication -- publish --target fact-or-cap --input games/fact-or-cap/incoming/general-candidate-001.json --classifications $env:TEMP/general-candidate-001-classifications.json --approval $env:TEMP/general-candidate-001-approval.json
 ```
 
 For Anime, replace `--classifications` with `--franchises` and use the Anime
-target. Publication creates a new pack named from `contentPackId`, updates only
-the corresponding ledger, and writes a JSON receipt under
-`games/fact-or-cap/research/publication-reports/`. Existing destination packs
-are never overwritten. After the write, General reconciliation or Anime
-membership reconciliation is checked before the transaction is considered
-complete. The receipt contains the full pre-publication review report,
-question-level decisions, candidate hash, published pack hash, and updated
-ledger hash. The optional `review --report` output is a separate, no-overwrite
-review snapshot and does not touch content, ledgers, or the candidate.
+target. Publication creates a new pack named from `contentPackId` and updates
+only the corresponding ledger. Existing destination packs are never
+overwritten. After the write, General reconciliation or Anime membership
+reconciliation is checked before the transaction is considered complete. A
+hash-bound receipt is kept temporarily under the operating system temp
+directory solely so guarded cleanup can verify the candidate, published pack,
+and current ledger. The CLI prints its path. The receipt is outside the
+repository and is deleted after successful guarded cleanup. Optional review
+snapshots (`--snapshot`) also go only to that temp directory; terminal output
+is sufficient for normal review. Do not create or retain a publication-report
+archive in the repository.
 
 For General, run the familiar inventory and coverage checks after publication:
 
@@ -194,23 +199,29 @@ Cleanup is a separate operation. First check eligibility; this does not delete
 anything:
 
 ```powershell
-npm run questions:publication -- cleanup --input games/fact-or-cap/incoming/general-candidate-001.json --report games/fact-or-cap/research/publication-reports/general-candidate-001.json
+$receipt = Read-Host "Temporary receipt path printed by publish"
+npm run questions:publication -- cleanup --input games/fact-or-cap/incoming/general-candidate-001.json --receipt $receipt
 ```
 
 Only if every question is accounted for as published or identical content
 already published, the candidate bytes match the receipt, the published pack
 and ledger still match their recorded hashes, and reconciliation passes, may
-the operator request deletion by repeating the exact pack ID:
+the operator request deletion by repeating the exact pack ID. Paste the
+temporary receipt path printed by `publish` when prompted:
 
 ```powershell
-npm run questions:publication -- cleanup --input games/fact-or-cap/incoming/general-candidate-001.json --report games/fact-or-cap/research/publication-reports/general-candidate-001.json --confirm-delete general-candidate-001
+$receipt = Read-Host "Temporary receipt path printed by publish"
+npm run questions:publication -- cleanup --input games/fact-or-cap/incoming/general-candidate-001.json --receipt $receipt --confirm-delete general-candidate-001
 ```
 
 An excluded question, any changed candidate or ledger, missing question, or
-unreconciled state blocks cleanup. The command is limited to files under the
-Fact-or-Cap incoming directory. Keep candidates with unresolved content; make
-and validate a reviewed split before considering cleanup.
+unreconciled state blocks cleanup. The command deletes only the candidate
+under the Fact-or-Cap incoming directory and, after verification, its
+temporary receipt. It does not archive review paperwork. Keep candidates with
+unresolved content; make and validate a reviewed split before considering
+cleanup.
 
-The report and approval record document operator decisions. Neither makes a
+The temporary receipt and approval input document operator decisions during
+the publication operation. Neither makes a
 claim factually true, establishes that a source supports it, or clears content
 for reuse. Those assessments remain separate editorial and rights-review work.

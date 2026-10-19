@@ -17,7 +17,9 @@ const DEFAULT_PATHS = Object.freeze({
     generalLedger: path.join(ROOT, "research", "general-topic-ledger.json"),
     animeLedger: path.join(ROOT, "research", "anime-franchise-ledger.json"),
     incomingDirectory: path.join(ROOT, "incoming"),
-    reportDirectory: path.join(ROOT, "research", "publication-reports"),
+    // Receipts are needed only between publication and guarded candidate
+    // cleanup. Keep them outside the repository; the workflow is not an archive.
+    temporaryEvidenceDirectory: path.join(os.tmpdir(), "sussed-content-publication", crypto.createHash("sha256").update(ROOT).digest("hex").slice(0, 16)),
     transactionDirectory: path.join(ROOT, ".publication-recovery")
 });
 const APPROVAL_VERSION = 1;
@@ -425,7 +427,7 @@ function recoverPublication({ paths = DEFAULT_PATHS, fileSystem = fs, contentDir
     const journal = readJson(filePath, "publication recovery journal", fileSystem).value;
     if (!isRecord(journal) || journal.version !== 1 || !["prepared", "committed"].includes(journal.status) || !Array.isArray(journal.files) || journal.files.length !== 3) throw new Error("Invalid publication recovery journal; manual recovery is required.");
     if (!isRecord(journal.ledgerBackup) || typeof journal.ledgerBackup.path !== "string" || !/^[a-f0-9]{64}$/u.test(journal.ledgerBackup.sha256 ?? "") || !isInside(paths.transactionDirectory, journal.ledgerBackup.path)) throw new Error("Invalid publication ledger backup record; manual recovery is required.");
-    const outputDirectories = [...Object.values(contentDirectories), paths.reportDirectory];
+    const outputDirectories = [...Object.values(contentDirectories), paths.temporaryEvidenceDirectory];
     const seenPaths = new Set();
     let replacementCount = 0;
     for (const item of journal.files) {
@@ -577,8 +579,8 @@ function publishBatch({ review, approval, classificationManifest, animeFranchise
     const ledgerBytes = Buffer.from(`${JSON.stringify(updatedLedger, null, 2)}\n`);
     const packBytes = Buffer.from(`${JSON.stringify(pack, null, 2)}\n`);
     const approvalHash = sha256(Buffer.from(JSON.stringify(approval)));
-    const receiptPath = path.resolve(requestedReceiptPath ?? path.join(paths.reportDirectory, `${review.report.contentPackId}.json`));
-    if (!isInside(paths.reportDirectory, receiptPath)) throw new Error(`Publication report must be stored under ${paths.reportDirectory}.`);
+    const receiptPath = path.resolve(requestedReceiptPath ?? path.join(paths.temporaryEvidenceDirectory, `${review.report.contentPackId}.json`));
+    if (!isInside(paths.temporaryEvidenceDirectory, receiptPath)) throw new Error(`Temporary publication receipt must be stored under ${paths.temporaryEvidenceDirectory}.`);
     if (fileSystem.existsSync(receiptPath)) throw new Error(`Publication receipt already exists: ${receiptPath}.`);
     const receipt = {
         reportVersion: REPORT_VERSION,
@@ -624,7 +626,7 @@ function cleanupEligibility({ inputPath, reportPath, paths = DEFAULT_PATHS, file
     const errors = [];
     const candidatePath = path.resolve(inputPath);
     if (!isInside(paths.incomingDirectory, candidatePath)) errors.push("Candidate cleanup is limited to files inside the Fact-or-Cap incoming directory.");
-    if (typeof reportPath !== "string" || !isInside(paths.reportDirectory, path.resolve(reportPath))) errors.push("Candidate cleanup requires a publication receipt inside the publication report directory.");
+    if (typeof reportPath !== "string" || !isInside(paths.temporaryEvidenceDirectory, path.resolve(reportPath))) errors.push("Candidate cleanup requires a receipt inside the temporary publication evidence directory.");
     let receipt;
     try { receipt = readJson(reportPath, "publication receipt", fileSystem).value; } catch (error) { errors.push(error.message); }
     if (!isRecord(receipt) || receipt.status !== "published" || receipt.reportVersion !== REPORT_VERSION) errors.push("A completed version-1 publication receipt is required.");
@@ -704,10 +706,17 @@ function cleanupCandidate(options) {
     if (!result.eligible) throw new Error(`Candidate is not eligible for cleanup:\n${result.errors.map((item) => `- ${item}`).join("\n")}`);
     if (options.confirmPackId !== result.receipt.contentPackId) throw new Error(`Cleanup requires --confirm-delete ${result.receipt.contentPackId}.`);
     const fileSystem = options.fileSystem ?? fs;
+    const paths = options.paths ?? DEFAULT_PATHS;
     const candidatePath = path.resolve(options.inputPath);
     if (sha256(fileSystem.readFileSync(candidatePath)) !== result.receipt.candidateSha256) throw new Error("Candidate changed during cleanup verification; retain it and review again.");
     fileSystem.unlinkSync(candidatePath);
-    return { deleted: path.resolve(options.inputPath), contentPackId: result.receipt.contentPackId };
+    let deletedReceipt = false;
+    try {
+        fileSystem.unlinkSync(path.resolve(options.reportPath));
+        deletedReceipt = true;
+        try { fileSystem.rmdirSync(paths.temporaryEvidenceDirectory); } catch {}
+    } catch {}
+    return { deleted: candidatePath, contentPackId: result.receipt.contentPackId, deletedReceipt };
 }
 
 function formatReview(report) {

@@ -137,6 +137,11 @@ below:
 Structural eligibility is not factual, legal, or publication approval. Import
 remains a separate explicit action.
 
+Keep batch-specific approvals, review output, and source-audit working files
+temporary and outside the repository. Do not create a permanent publication
+report archive under `research/`; the publication CLI keeps its hash receipt in
+the operating system temp directory only until guarded candidate cleanup.
+
 ## 6. Maintain the topic ledger
 
 Treat `general-topic-ledger.json` as a reconciliation-backed planning index.

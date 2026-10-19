@@ -3,8 +3,8 @@
   "purpose": "Authoritative inventory of franchises represented by accepted playable Anime questions. Derived by reconciling all JSON question packs under content/anime.",
   "bankSnapshot": {
     "branch": "dev",
-    "questionCount": 525,
-    "contentPackCount": 9
+    "questionCount": 537,
+    "contentPackCount": 10
   },
   "franchises": [
     {
@@ -1667,12 +1667,19 @@
     {
       "franchiseId": "my-deer-friend-nokotan",
       "displayName": "My Deer Friend Nokotan",
-      "questionCount": 1,
+      "questionCount": 3,
       "packMemberships": [
         {
           "contentPackId": "anime-bizarre-batch-006",
           "questionIds": [
             "anime-b006-nokotan-memes"
+          ]
+        },
+        {
+          "contentPackId": "anime-bizarre-batch-008",
+          "questionIds": [
+            "anime-b008-nokotan-gym-explosion",
+            "anime-b008-nokotan-voice-flubs"
           ]
         }
       ],
@@ -2865,6 +2872,107 @@
           "questionIds": [
             "anime-b007-hanakokun-mokke-ambition",
             "anime-b007-hanakokun-mokke-attack"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "hozukis-coolheadedness",
+      "displayName": "Hozuki's Coolheadedness",
+      "aliases": [],
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-008",
+          "questionIds": [
+            "anime-b008-hozuki-100th-sports-day",
+            "anime-b008-hozuki-low-speed-chase"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "mecha-ude",
+      "displayName": "Mecha-Ude: Mechanical Arms",
+      "aliases": [],
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-008",
+          "questionIds": [
+            "anime-b008-mechaude-previz-voices"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "metallic-rouge",
+      "displayName": "Metallic Rouge",
+      "aliases": [],
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-008",
+          "questionIds": [
+            "anime-b008-metallic-rouge-jazz-era"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "more-than-a-married-couple-but-not-lovers",
+      "displayName": "More Than a Married Couple, But Not Lovers",
+      "aliases": [],
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-008",
+          "questionIds": [
+            "anime-b008-married-couple-three-chapters",
+            "anime-b008-married-couple-yakitate-influence"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "sasaki-and-peeps",
+      "displayName": "Sasaki and Peeps",
+      "aliases": [],
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-008",
+          "questionIds": [
+            "anime-b008-sasaki-java-sparrow"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "tengoku-daimakyo",
+      "displayName": "Tengoku-Daimakyo",
+      "aliases": [],
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-008",
+          "questionIds": [
+            "anime-b008-tengoku-grad-school",
+            "anime-b008-tengoku-red-scene-trash"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "the-disastrous-life-of-saiki-k",
+      "displayName": "The Disastrous Life of Saiki K.",
+      "aliases": [],
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-008",
+          "questionIds": [
+            "anime-b008-saiki-nendo-unreadable"
           ]
         }
       ]
