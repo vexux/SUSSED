@@ -1,0 +1,1405 @@
+{
+  "contentPackId": "anime-bizarre-batch-009",
+  "questions": [
+    {
+      "id": "anime-b009-akudama-first-episode-draft",
+      "text": "Why is Akudama Drive?s first anime episode especially close to creator Kazutaka Kodaka?s initial draft?",
+      "correctCompletion": "he focused on the opening and character introductions while leaving the later story loose",
+      "sourceName": "Anime Corner - Interview with Akudama Drive creator Kazutaka Kodaka",
+      "sourceUrl": "https://animecorner.me/interview-akudama-drive-creator-kazutaka-kodaka/",
+      "category": "akudama-drive",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "storytelling-choice"
+      ]
+    },
+    {
+      "id": "anime-b009-akudama-original-train-heist",
+      "text": "What kind of heist did Akudama Drive?s earliest draft originally have the crew carry out?",
+      "correctCompletion": "an Ocean?s Eleven-style train attack",
+      "sourceName": "Anime Corner - Interview with Akudama Drive creator Kazutaka Kodaka",
+      "sourceUrl": "https://animecorner.me/interview-akudama-drive-creator-kazutaka-kodaka/",
+      "category": "akudama-drive",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "draft-history"
+      ]
+    },
+    {
+      "id": "anime-b009-akudama-reservoir-dogs",
+      "text": "Which crime film helped inspire Akudama Drive?s choice to use codenames instead of real names?",
+      "correctCompletion": "Reservoir Dogs",
+      "sourceName": "Anime Corner - Interview with Akudama Drive creator Kazutaka Kodaka",
+      "sourceUrl": "https://animecorner.me/interview-akudama-drive-creator-kazutaka-kodaka/",
+      "category": "akudama-drive",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-amagi-names",
+      "text": "What source did Gatoh draw on for many Amagi Brilliant Park character names?",
+      "correctCompletion": "artists listed in his CD music collection",
+      "sourceName": "Anime Corner - Interview with Amagi Brilliant Park creator Shoji Gatoh",
+      "sourceUrl": "https://animecorner.me/interview-amagi-brilliant-park-and-full-metal-panic-creator-shoji-gatoh/",
+      "category": "amagi-brilliant-park",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-process"
+      ]
+    },
+    {
+      "id": "anime-b009-amagi-toshimaen",
+      "text": "Which real, closed amusement park inspired Amagi Brilliant Park?",
+      "correctCompletion": "Toshimaen",
+      "sourceName": "Anime Corner - Interview with Amagi Brilliant Park creator Shoji Gatoh",
+      "sourceUrl": "https://animecorner.me/interview-amagi-brilliant-park-and-full-metal-panic-creator-shoji-gatoh/",
+      "category": "amagi-brilliant-park",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "setting-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-apothecary-flower-duality",
+      "text": "In the Apothecary Diaries anime?s visual symbolism, what contrast did the director associate with flowers?",
+      "correctCompletion": "they represent beauty but can also be poisonous",
+      "sourceName": "Anime Trending - The Apothecary Diaries director interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/08/06/the-apothecary-diaries-director-interview",
+      "category": "apothecary-diaries",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "worldbuilding"
+      ]
+    },
+    {
+      "id": "anime-b009-apothecary-palace",
+      "text": "What real-world entertainment district did the director say partly informed the palace setting?",
+      "correctCompletion": "a hanamachi",
+      "sourceName": "Anime Trending - The Apothecary Diaries director interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/08/06/the-apothecary-diaries-director-interview",
+      "category": "apothecary-diaries",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "setting-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-apothecary-wood-sorrel",
+      "text": "Which small plant did The Apothecary Diaries director compare Maomao to: small-looking but strong?",
+      "correctCompletion": "wood sorrel",
+      "sourceName": "Anime Trending - The Apothecary Diaries director interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/08/06/the-apothecary-diaries-director-interview",
+      "category": "apothecary-diaries",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "character-metaphor"
+      ]
+    },
+    {
+      "id": "anime-b009-bleach-character-stock",
+      "text": "When beginning a new Bleach story arc, how does Tite Kubo test which characters fit the story?",
+      "correctCompletion": "he draws a group from the characters he keeps in mind and sees who fits",
+      "sourceName": "VIZ - Interview with Tite Kubo",
+      "sourceUrl": "https://www.viz.com/blog/posts/interview-tite-kubo-318",
+      "category": "bleach",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-process"
+      ]
+    },
+    {
+      "id": "anime-b009-bleach-earliest-influence",
+      "text": "Which manga did Tite Kubo call his earliest influence, praising its yokai designs?",
+      "correctCompletion": "GeGeGe no Kitaro",
+      "sourceName": "VIZ - Interview with Tite Kubo",
+      "sourceUrl": "https://www.viz.com/blog/posts/interview-tite-kubo-318",
+      "category": "bleach",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-bleach-soundhound",
+      "text": "What phone app did Tite Kubo use while cruising around the city to identify songs he heard?",
+      "correctCompletion": "SoundHound",
+      "sourceName": "VIZ - Interview with Tite Kubo",
+      "sourceUrl": "https://www.viz.com/blog/posts/interview-tite-kubo-318",
+      "category": "bleach",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-bluebox-eh",
+      "text": "Which one-word response from Hina?s audition especially stood out to the Blue Box staff?",
+      "correctCompletion": "?Eh??",
+      "sourceName": "Anime Trending - Blue Box cast and editor interview",
+      "sourceUrl": "https://anitrendz.net/news/2024/10/01/interview-blue-box/",
+      "category": "blue-box",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "voice-acting"
+      ]
+    },
+    {
+      "id": "anime-b009-bluelock-frames",
+      "text": "About how many frames did Blue Lock chief animation director Tomoko Mori say one particularly demanding cut took?",
+      "correctCompletion": "about 2,000 frames",
+      "sourceName": "Anime Trending - Blue Lock chief animation directors interview",
+      "sourceUrl": "https://anitrendz.net/news/2024/05/27/interview-blue-lock-chief-animation-directors-tomoko-mori-and-kenji-tanabe-discuss-their-work-and-production-challenges/",
+      "category": "blue-lock",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "animation-process"
+      ]
+    },
+    {
+      "id": "anime-b009-bluelock-life-hp",
+      "text": "When a Blue Lock cut showed an emotionally draining moment, what game resources did chief animation director Tomoko Mori compare it to depleting?",
+      "correctCompletion": "a character?s life and HP",
+      "sourceName": "Anime Trending - Blue Lock chief animation directors interview",
+      "sourceUrl": "https://anitrendz.net/news/2024/05/27/interview-blue-lock-chief-animation-directors-tomoko-mori-and-kenji-tanabe-discuss-their-work-and-production-challenges/",
+      "category": "blue-lock",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "production-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-blueperiod-art-sports",
+      "text": "Blue Period creator Tsubasa Yamaguchi framed learning art through what familiar manga genre?s point of view?",
+      "correctCompletion": "a sportsmanship perspective",
+      "sourceName": "Anime Corner - Interview with Blue Period creator Tsubasa Yamaguchi",
+      "sourceUrl": "https://animecorner.me/interview-tsubasa-yamaguchi-author-of-blue-period/",
+      "category": "blue-period",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-blueperiod-commercial-brief",
+      "text": "What unusual instruction did Blue Period?s editor give Yamaguchi when she began the series?",
+      "correctCompletion": "draw a commercially successful manga",
+      "sourceName": "Anime Corner - Interview with Blue Period creator Tsubasa Yamaguchi",
+      "sourceUrl": "https://animecorner.me/interview-tsubasa-yamaguchi-author-of-blue-period/",
+      "category": "blue-period",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-blueperiod-store-observation",
+      "text": "Which two manga genres did Yamaguchi observe prominently displayed at her bookstore when planning Blue Period?",
+      "correctCompletion": "fantasy and sports",
+      "sourceName": "Anime Corner - Interview with Blue Period creator Tsubasa Yamaguchi",
+      "sourceUrl": "https://animecorner.me/interview-tsubasa-yamaguchi-author-of-blue-period/",
+      "category": "blue-period",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-centuria-slave-ship",
+      "text": "Which J. M. W. Turner painting inspired the starting image for Centuria?s first chapter?",
+      "correctCompletion": "The Slave Ship",
+      "sourceName": "MANGA Plus by SHUEISHA - Centuria creator interview",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1766/",
+      "category": "centuria",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-dandadan-color-spotlight",
+      "text": "In the DANDADAN anime, what visual treatment did the director assign to each distinctive yokai and alien?",
+      "correctCompletion": "a specific color that fills the screen when it appears",
+      "sourceName": "Anime Trending - DANDADAN director and producer interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/07/31/interview-dan-da-dans-director-and-producer-discuss-the-upcoming-animes-color-usage-and-biggest-appeal",
+      "category": "dandadan",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "adaptation-choice"
+      ]
+    },
+    {
+      "id": "anime-b009-dandadan-temperature",
+      "text": "What contrast in emotional ?temperature? did DANDADAN?s director say he wanted the anime to emphasize?",
+      "correctCompletion": "its shifts between romance, action, battles, and everyday life",
+      "sourceName": "Anime Trending - DANDADAN director and producer interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/07/31/interview-dan-da-dans-director-and-producer-discuss-the-upcoming-animes-color-usage-and-biggest-appeal",
+      "category": "dandadan",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "adaptation-choice"
+      ]
+    },
+    {
+      "id": "anime-b009-dandadan-yuasa",
+      "text": "Which director did DANDADAN?s director name as a model for his own work?",
+      "correctCompletion": "Masaaki Yuasa",
+      "sourceName": "Anime Trending - DANDADAN director and producer interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/07/31/interview-dan-da-dans-director-and-producer-discuss-the-upcoming-animes-color-usage-and-biggest-appeal",
+      "category": "dandadan",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-influence"
+      ]
+    },
+    {
+      "id": "anime-b009-fairytail-magnolia",
+      "text": "Which European city did Hiro Mashima use as a model for Magnolia?",
+      "correctCompletion": "Paris",
+      "sourceName": "Anime Trending - Fairy Tail: 100 Years Quest interview with Hiro Mashima",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/10/22/interview-fairy-tail-100-years-quest-with-hiro-mashima",
+      "category": "fairy-tail",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "setting-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-fairytail-parallel-universes",
+      "text": "What unusual worldbuilding idea did Fairy Tail creator Hiro Mashima say he enjoyed exploring alongside twin characters?",
+      "correctCompletion": "parallel universes",
+      "sourceName": "Anime Trending - Fairy Tail: 100 Years Quest interview with Hiro Mashima",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/10/22/interview-fairy-tail-100-years-quest-with-hiro-mashima",
+      "category": "fairy-tail",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "worldbuilding"
+      ]
+    },
+    {
+      "id": "anime-b009-fairytail-scarf-motion",
+      "text": "Why did Hiro Mashima give Natsu a scarf?",
+      "correctCompletion": "Natsu moves around a lot, and Mashima liked how the scarf moved with him",
+      "sourceName": "Anime Trending - Fairy Tail: 100 Years Quest interview with Hiro Mashima",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/10/22/interview-fairy-tail-100-years-quest-with-hiro-mashima",
+      "category": "fairy-tail",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "character-design"
+      ]
+    },
+    {
+      "id": "anime-b009-fireforce-ice",
+      "text": "In Fire Force, what apparently impossible substance did Atsushi Ohkubo say he found a way to make using fire without water?",
+      "correctCompletion": "ice",
+      "sourceName": "Anime Corner - Interview with Fire Force creator Atsushi Ohkubo",
+      "sourceUrl": "https://animecorner.me/interview-atsushi-ohkubo-on-creating-fire-force/",
+      "category": "fire-force",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "worldbuilding-design"
+      ]
+    },
+    {
+      "id": "anime-b009-fireforce-time",
+      "text": "What impossible effect did Ohkubo say he first wanted to achieve using fire?s powers while designing Fire Force?",
+      "correctCompletion": "stopping time",
+      "sourceName": "Anime Corner - Interview with Fire Force creator Atsushi Ohkubo",
+      "sourceUrl": "https://animecorner.me/interview-atsushi-ohkubo-on-creating-fire-force/",
+      "category": "fire-force",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "worldbuilding-design"
+      ]
+    },
+    {
+      "id": "anime-b009-fmp-one-shot",
+      "text": "What format was Full Metal Panic! before the publisher asked Shoji Gatoh to continue it?",
+      "correctCompletion": "a one-shot",
+      "sourceName": "Anime Corner - Interview with Full Metal Panic! creator Shoji Gatoh",
+      "sourceUrl": "https://animecorner.me/interview-amagi-brilliant-park-and-full-metal-panic-creator-shoji-gatoh/",
+      "category": "full-metal-panic",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "publication-history"
+      ]
+    },
+    {
+      "id": "anime-b009-fmp-stop",
+      "text": "After Full Metal Panic! Family began as a 25th-anniversary short story and the publisher kept asking for more, what did Shoji Gatoh eventually tell them?",
+      "correctCompletion": "?Now we should stop?",
+      "sourceName": "Anime Corner - Interview with Full Metal Panic! creator Shoji Gatoh",
+      "sourceUrl": "https://animecorner.me/interview-amagi-brilliant-park-and-full-metal-panic-creator-shoji-gatoh/",
+      "category": "full-metal-panic",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-fujimoto-handdrawn",
+      "text": "Which technique did the director insist on for Masatoshi?s jump-through-a-window scene?",
+      "correctCompletion": "hand-drawn animation only",
+      "sourceName": "Anime Trending - Interview about adapting Tatsuki Fujimoto 17-26",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/11/07/inside-tatsuki-fujimoto-17-26-directors-and-producer-on-adapting-the-chainsaw-man-creators-early-works",
+      "category": "tatsuki-fujimoto-17-26",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "animation-process"
+      ]
+    },
+    {
+      "id": "anime-b009-fujimoto-no-memory",
+      "text": "When the Love Is Blind adaptation director sent Tatsuki Fujimoto about 20 questions about his old one-shot, what did Fujimoto reply?",
+      "correctCompletion": "that he did not remember",
+      "sourceName": "Anime Trending - Interview about adapting Tatsuki Fujimoto 17-26",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/11/07/inside-tatsuki-fujimoto-17-26-directors-and-producer-on-adapting-the-chainsaw-man-creators-early-works",
+      "category": "tatsuki-fujimoto-17-26",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "adaptation-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-fujimoto-whale",
+      "text": "What did Love Is Blind director Nobuyuki Takeuchi add at the beginning and end of his adaptation?",
+      "correctCompletion": "a whale scene",
+      "sourceName": "Anime Trending - Interview about adapting Tatsuki Fujimoto 17-26",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/11/07/inside-tatsuki-fujimoto-17-26-directors-and-producer-on-adapting-the-chainsaw-man-creators-early-works",
+      "category": "tatsuki-fujimoto-17-26",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "adaptation-choice"
+      ]
+    },
+    {
+      "id": "anime-b009-gachiakuta-broken-pen",
+      "text": "What broken object sparked Kei Urana?s idea for Gachiakuta?s protagonist, someone who values things?",
+      "correctCompletion": "her favorite pen",
+      "sourceName": "Anime Corner - Kei Urana & Hideyoshi Andou press conference",
+      "sourceUrl": "https://animecorner.me/press-conference-kei-urana-hideyoshi-andou-at-lucca-comics-games-2025/",
+      "category": "gachiakuta",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-gachiakuta-weapon-first",
+      "text": "When designing a Gachiakuta character, what does Kei Urana usually choose first?",
+      "correctCompletion": "the character?s weapon",
+      "sourceName": "Anime Corner - Kei Urana & Hideyoshi Andou press conference",
+      "sourceUrl": "https://animecorner.me/press-conference-kei-urana-hideyoshi-andou-at-lucca-comics-games-2025/",
+      "category": "gachiakuta",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "character-design"
+      ]
+    },
+    {
+      "id": "anime-b009-gag-original-staff",
+      "text": "When Gag Manga Biyori returned after 15 years, what practical problem did director Akitaro Daichi mention about the original staff?",
+      "correctCompletion": "some of them were hard to reach",
+      "sourceName": "Anime Trending - Gag Manga Biyori director interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/02/10/gag-manga-biyori-director-akitaro-daichi-on-the-animes-return",
+      "category": "gag-manga-biyori",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "production-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-gag-prescoring",
+      "text": "In Gag Manga Biyori?s unusual ?pre-scoring? process, what is recorded before the animation is made?",
+      "correctCompletion": "the voice actors? lines",
+      "sourceName": "Anime Trending - Gag Manga Biyori director Akitaro Daichi interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/02/10/gag-manga-biyori-director-akitaro-daichi-on-the-animes-return",
+      "category": "gag-manga-biyori",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "production-oddity"
+      ]
+    },
+    {
+      "id": "anime-b009-gag-return-gap",
+      "text": "How many years had passed since the previous Gag Manga Biyori anime series when it returned?",
+      "correctCompletion": "15 years",
+      "sourceName": "Anime Trending - Gag Manga Biyori director interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/02/10/gag-manga-biyori-director-akitaro-daichi-on-the-animes-return",
+      "category": "gag-manga-biyori",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "franchise-history"
+      ]
+    },
+    {
+      "id": "anime-b009-gits-game-life",
+      "text": "In an interview about Ghost in the Shell creator Shirow Masamune?s wider body of work, which 1970 invention did he say inspired the framework for an overarching universe of his works?",
+      "correctCompletion": "The Game of Life",
+      "sourceName": "Ghost in the Shell Official Global Site - Interview with Shirow Masamune",
+      "sourceUrl": "https://theghostintheshell.jp/en/feature/interview01_1",
+      "category": "ghost-in-the-shell",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-gits-kobe",
+      "text": "Why did Masamune say he could not easily travel to Tokyo when an editor first approached him?",
+      "correctCompletion": "he had a day job and family responsibilities in Kobe",
+      "sourceName": "Ghost in the Shell Official Global Site - Interview with Shirow Masamune",
+      "sourceUrl": "https://theghostintheshell.jp/en/feature/interview01_1",
+      "category": "ghost-in-the-shell",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-hells-fujimoto-praise",
+      "text": "What might Yuji Kaku do after Tatsuki Fujimoto tells him he likes a character in Hell?s Paradise?",
+      "correctCompletion": "add that character more often to the story",
+      "sourceName": "Anime Trending - Hell?s Paradise creator Yuji Kaku and producer interview",
+      "sourceUrl": "https://anitrendz.net/news/2025/09/24/a-conflict-of-opposites-hells-paradise-manga-creator-yuji-kaku-producer-kirito-iwashita-break-down-the-animes-best-moments-its-core-characters/",
+      "category": "hells-paradise",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-hells-island-doctor",
+      "text": "Which famous novel did Hell?s Paradise creator Yuji Kaku cite as an inspiration for the island?",
+      "correctCompletion": "The Island of Dr. Moreau",
+      "sourceName": "Anime Trending - Hell?s Paradise creator and producer interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/09/24/a-conflict-of-opposites-hells-paradise-manga-creator-yuji-kaku-producer-kirito-iwashita-break-down-the-animes-best-moments-its-core-characters",
+      "category": "hells-paradise",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-ichi-layout-pages",
+      "text": "How many pages of panel layouts does Nishi say he draws for an Ichi the Witch chapter?",
+      "correctCompletion": "19 pages",
+      "sourceName": "MANGA Plus by SHUEISHA - Ichi the Witch creator interviews",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1766/",
+      "category": "ichi-the-witch",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "manga-process"
+      ]
+    },
+    {
+      "id": "anime-b009-ichi-magic-influences",
+      "text": "Which two childhood series influenced Osamu Nishi?s idea of magic as living beings that can become partners?",
+      "correctCompletion": "Cardcaptor Sakura and Pok?mon",
+      "sourceName": "MANGA Plus by SHUEISHA - Ichi the Witch creator interviews",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1766/",
+      "category": "ichi-the-witch",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-inuyashiki-bus-reference",
+      "text": "When Hiroya Oku could not fly a drone over a freeway for Inuyashiki reference footage, what vehicle did he charter to film from above?",
+      "correctCompletion": "a double-decker shuttle bus",
+      "sourceName": "Kodansha - Creator Spotlight interview with Hiroya Oku",
+      "sourceUrl": "https://kodansha.us/2017/11/27/creator-spotlight-interview-with-inuyashikis-hiroya-oku/",
+      "category": "inuyashiki",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "reference-research"
+      ]
+    },
+    {
+      "id": "anime-b009-inuyashiki-chapter1-days",
+      "text": "How long did Hiroya Oku say it took him to draw the scene where an unidentified object destroys Inuyashiki?s body?",
+      "correctCompletion": "about five days",
+      "sourceName": "Kodansha - Creator Spotlight interview with Hiroya Oku",
+      "sourceUrl": "https://kodansha.us/2017/11/27/creator-spotlight-interview-with-inuyashikis-hiroya-oku/",
+      "category": "inuyashiki",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "production-research"
+      ]
+    },
+    {
+      "id": "anime-b009-jaadugar-dust-wind",
+      "text": "What did Naoko Yamada say Mongolia?s strong spring winds helped her notice for Jaadugar?s scenes?",
+      "correctCompletion": "fires being blown around and dust swept into clouds",
+      "sourceName": "Anime Atelier - Interview with Naoko Yamada about Jaadugar",
+      "sourceUrl": "https://www.anime-atelier.com/interview-naoko-yamada-jaadugar/",
+      "category": "jaadugar",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "visual-worldbuilding"
+      ]
+    },
+    {
+      "id": "anime-b009-jaadugar-experts",
+      "text": "For Jaadugar?s historical setting, specialists in which two regions were consulted?",
+      "correctCompletion": "Mongolia and Persia",
+      "sourceName": "Anime Atelier - Interview with Naoko Yamada about Jaadugar",
+      "sourceUrl": "https://www.anime-atelier.com/interview-naoko-yamada-jaadugar/",
+      "category": "jaadugar",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "historical-research"
+      ]
+    },
+    {
+      "id": "anime-b009-jaadugar-mobile-network",
+      "text": "While researching Jaadugar in Mongolia, what did Naoko Yamada say she could not use at the nomadic family?s home?",
+      "correctCompletion": "a mobile network connection",
+      "sourceName": "Anime Atelier - Interview with Naoko Yamada about Jaadugar",
+      "sourceUrl": "https://www.anime-atelier.com/interview-naoko-yamada-jaadugar/",
+      "category": "jaadugar",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "research-detail"
+      ]
+    },
+    {
+      "id": "anime-b009-kagurabachi-print-bleed",
+      "text": "What printing problem worried the editor when Hokazono proposed an all-black character?",
+      "correctCompletion": "the ink might bleed and turn scenes completely black",
+      "sourceName": "MANGA Plus by SHUEISHA - Kagurabachi editor interview",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1290/",
+      "category": "kagurabachi",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "production-oddity"
+      ]
+    },
+    {
+      "id": "anime-b009-kagurabachi-sojo-duo",
+      "text": "Before the editor and creator reworked Sojo, what role had the character originally been designed to fill?",
+      "correctCompletion": "one half of a duo",
+      "sourceName": "MANGA Plus by SHUEISHA - Kagurabachi editor interview",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1290/",
+      "category": "kagurabachi",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "draft-history"
+      ]
+    },
+    {
+      "id": "anime-b009-kagurabachi-water-bill",
+      "text": "What household bill tends to rise when Kagurabachi creator Takeru Hokazono gets stuck while writing?",
+      "correctCompletion": "his water bill, because he takes showers",
+      "sourceName": "MANGA Plus by SHUEISHA - Kagurabachi editor interview",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1290/",
+      "category": "kagurabachi",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-kaiju8-story-revisions",
+      "text": "According to the Kaiju No. 8 editor, when do some story ideas get changed because they do not work as well as expected?",
+      "correctCompletion": "when they are drawn into manga",
+      "sourceName": "MANGA Plus by SHUEISHA - Kaiju No. 8 editor interview",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1272/",
+      "category": "kaiju-no-8",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creative-process"
+      ]
+    },
+    {
+      "id": "anime-b009-kaiju8-tron-muscles",
+      "text": "What 1980s film inspired the look of light shining through Kaiju No. 8?s muscles?",
+      "correctCompletion": "Tron",
+      "sourceName": "MANGA Plus by SHUEISHA - Kaiju No. 8 editor interview",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1272/",
+      "category": "kaiju-no-8",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "visual-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-kaiju8-two-directions",
+      "text": "Which two possible directions for Kafka did the Kaiju No. 8 editor say they considered at serialization?s start?",
+      "correctCompletion": "hiding his identity while living normally, or pursuing his dream after becoming a monster",
+      "sourceName": "MANGA Plus by SHUEISHA - Kaiju No. 8 editor interview",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1272/",
+      "category": "kaiju-no-8",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "abandoned-concept"
+      ]
+    },
+    {
+      "id": "anime-b009-kaijugirl-cute-cool",
+      "text": "What contrast does Aoki say she deliberately draws between Kuroe and Harugon?",
+      "correctCompletion": "Kuroe as cute and Harugon as cool",
+      "sourceName": "Anime Corner - Interview with Kaiju Girl Caramelise creator Spica Aoki",
+      "sourceUrl": "https://animecorner.me/interview-kaiju-girl-caramelise-creator-spica-aoki-on-the-mangas-unique-setting/",
+      "category": "kaiju-girl-caramelise",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "visual-character-design"
+      ]
+    },
+    {
+      "id": "anime-b009-kaijugirl-phone-reaction",
+      "text": "How did Kaiju Girl Caramelise creator Spica Aoki react when her editor called to tell her the series was getting an anime?",
+      "correctCompletion": "she made a lot of noise because she was so happy",
+      "sourceName": "Anime Corner - Interview with Kaiju Girl Caramelise creator Spica Aoki",
+      "sourceUrl": "https://animecorner.me/interview-kaiju-girl-caramelise-creator-spica-aoki-on-the-mangas-unique-setting/",
+      "category": "kaiju-girl-caramelise",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-kaijugirl-restaurant",
+      "text": "Where was Spica Aoki sitting when the idea for Kaiju Girl Caramelise came together?",
+      "correctCompletion": "at a restaurant beside Tokyo?s Sumida River",
+      "sourceName": "Anime Corner - Interview with Kaiju Girl Caramelise creator Spica Aoki",
+      "sourceUrl": "https://animecorner.me/interview-kaiju-girl-caramelise-creator-spica-aoki-on-the-mangas-unique-setting/",
+      "category": "kaiju-girl-caramelise",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-letsplay-bus-stop",
+      "text": "What specifically American location detail did the Let?s Play anime director look up while adapting the webtoon?",
+      "correctCompletion": "what an American bus stop should look like",
+      "sourceName": "Anime Trending - Let?s Play anime interview",
+      "sourceUrl": "https://anitrendz.net/news/2025/07/16/lets-play-interview/",
+      "category": "lets-play",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "adaptation-detail"
+      ]
+    },
+    {
+      "id": "anime-b009-letsplay-legitimacy",
+      "text": "What made Let?s Play creator Leeanne M. Krecic feel that the anime adaptation had become real?",
+      "correctCompletion": "hearing the characters speak Japanese",
+      "sourceName": "Anime Trending - Let?s Play anime interview",
+      "sourceUrl": "https://anitrendz.net/news/2025/07/16/lets-play-interview/",
+      "category": "lets-play",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "adaptation-reaction"
+      ]
+    },
+    {
+      "id": "anime-b009-letsplay-stream-research",
+      "text": "What did the Let?s Play anime director watch to understand the culture around the series? gaming content?",
+      "correctCompletion": "independent game streams",
+      "sourceName": "Anime Trending - Let?s Play anime interview",
+      "sourceUrl": "https://anitrendz.net/news/2025/07/16/lets-play-interview/",
+      "category": "lets-play",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "production-research"
+      ]
+    },
+    {
+      "id": "anime-b009-macross-smartphone-mech",
+      "text": "What kind of giant machines did Shoji Kawamori compare smartphones with when discussing their reach and influence?",
+      "correctCompletion": "giant robots such as Macross Valkyries",
+      "sourceName": "Nerd Reactor - Shoji Kawamori on smartphones and giant robots",
+      "sourceUrl": "https://nerdreactor.com/shoji-kawamori-on-smartphones-giant-robots-and-the-hidden-power-of-the-digital-age/",
+      "category": "macross",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "technology-comparison"
+      ]
+    },
+    {
+      "id": "anime-b009-magus-cookie-metaphor",
+      "text": "What dessert did Kore Yamazaki compare Chise to when describing how she built the character from other people?s difficult experiences?",
+      "correctCompletion": "a cookie",
+      "sourceName": "Anime Trending - The Ancient Magus? Bride creator and editor interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/04/22/interview-the-ancient-magus-brides-creator-and-editor-dive-into-its-mythological-aspects-and-success",
+      "category": "the-ancient-magus-bride",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-metaphor"
+      ]
+    },
+    {
+      "id": "anime-b009-magus-expression",
+      "text": "What does Yamazaki reportedly copy before drawing a character?s facial expression?",
+      "correctCompletion": "the expression herself",
+      "sourceName": "Anime Trending - The Ancient Magus? Bride creator and editor interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/04/22/interview-the-ancient-magus-brides-creator-and-editor-dive-into-its-mythological-aspects-and-success",
+      "category": "the-ancient-magus-bride",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "art-process"
+      ]
+    },
+    {
+      "id": "anime-b009-naruto-parent-inspiration",
+      "text": "What life change did Masashi Kishimoto say made him want to write about Naruto?s parents?",
+      "correctCompletion": "becoming a parent himself",
+      "sourceName": "VIZ - Interview with Naruto creator Masashi Kishimoto",
+      "sourceUrl": "https://www.viz.com/blog/posts/interview-masashi-kishimoto-59",
+      "category": "naruto",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-naruto-poop-wall",
+      "text": "What did Masashi Kishimoto draw on a wall with before he could even hold a pen?",
+      "correctCompletion": "his poop",
+      "sourceName": "VIZ - Interview with Naruto creator Masashi Kishimoto",
+      "sourceUrl": "https://www.viz.com/blog/posts/interview-masashi-kishimoto-59",
+      "category": "naruto",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-naruto-sad-music",
+      "text": "What kind of music did Kishimoto say could unintentionally make his manga drawings reflect a mood he did not intend?",
+      "correctCompletion": "a song with sad lyrics",
+      "sourceName": "VIZ - Interview with Naruto creator Masashi Kishimoto",
+      "sourceUrl": "https://www.viz.com/blog/posts/interview-masashi-kishimoto-59",
+      "category": "naruto",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-process"
+      ]
+    },
+    {
+      "id": "anime-b009-nokotan-antlers-first",
+      "text": "Before deciding the protagonist would be a deer, what feature did Oshioshio first imagine for the character?",
+      "correctCompletion": "antlers",
+      "sourceName": "Anime Corner - Interview with My Deer Friend Nokotan creator Oshioshio",
+      "sourceUrl": "https://animecorner.me/interview-my-deer-friend-nokotan-author-oshioshio/",
+      "category": "my-deer-friend-nokotan",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-nokotan-deer-cracker",
+      "text": "How did Oshioshio describe the taste of the deer crackers he tried on a school trip?",
+      "correctCompletion": "pretty tasteless and simple",
+      "sourceName": "Anime Corner - Interview with My Deer Friend Nokotan creator Oshioshio",
+      "sourceUrl": "https://animecorner.me/interview-my-deer-friend-nokotan-author-oshioshio/",
+      "category": "my-deer-friend-nokotan",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-nokotan-you-deer",
+      "text": "Which phrase did Nokotan creator Oshioshio contribute to the anime?s opening sequence?",
+      "correctCompletion": "?YOU DEER?",
+      "sourceName": "Anime Corner - Interview with My Deer Friend Nokotan creator Oshioshio",
+      "sourceUrl": "https://animecorner.me/interview-my-deer-friend-nokotan-author-oshioshio/",
+      "category": "my-deer-friend-nokotan",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "adaptation-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-onepiece-vicke",
+      "text": "Which childhood anime about a boy who wanted to become a Viking helped inspire Eiichiro Oda?s love of pirates?",
+      "correctCompletion": "Vicke the Little Viking",
+      "sourceName": "VIZ - Interview with Eiichiro Oda",
+      "sourceUrl": "https://www.viz.com/blog/posts/interview-eiichiro-oda-466",
+      "category": "one-piece",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-parasyte-foodchain",
+      "text": "What childhood viewing helped inspire Hitoshi Iwaaki to create Parasyte?",
+      "correctCompletion": "documentaries about food chains in nature",
+      "sourceName": "Kodansha - Creator Interview with Hitoshi Iwaaki about Parasyte",
+      "sourceUrl": "https://kodansha.us/2016/11/02/creator-interview-hitoshi-iwaaki-on-parasyte/",
+      "category": "parasyte",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-parasyte-left-hand",
+      "text": "If a parasite had to take one of Hitoshi Iwaaki?s hands, which side did he say would be slightly preferable, and why?",
+      "correctCompletion": "the left, because he is right-handed",
+      "sourceName": "Kodansha - Creator Interview with Hitoshi Iwaaki about Parasyte",
+      "sourceUrl": "https://kodansha.us/2016/11/02/creator-interview-hitoshi-iwaaki-on-parasyte/",
+      "category": "parasyte",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-parasyte-talking-tumor",
+      "text": "Which kinds of folkloric monsters did Iwaaki mention as possible inspiration for Migi?",
+      "correctCompletion": "a hand with eyes or a talking tumor",
+      "sourceName": "Kodansha - Creator Interview with Hitoshi Iwaaki about Parasyte",
+      "sourceUrl": "https://kodansha.us/2016/11/02/creator-interview-hitoshi-iwaaki-on-parasyte/",
+      "category": "parasyte",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "folklore-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-rooster-eastwood",
+      "text": "Which Clint Eastwood film did Sakuratani say may have influenced Rooster Fighter?",
+      "correctCompletion": "Gran Torino",
+      "sourceName": "Anime Corner - Interview with Rooster Fighter creator Shu Sakuratani",
+      "sourceUrl": "https://animecorner.me/interview-shu-sakuratani-rooster-fighter-manga-creator/",
+      "category": "rooster-fighter",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-rooster-faces",
+      "text": "What does Sakuratani enjoy drawing for Rooster Fighter?s NFT collection that he says is too absurd for the manga?",
+      "correctCompletion": "Keiji?s exaggerated faces",
+      "sourceName": "Anime Corner - Interview with Rooster Fighter creator Shu Sakuratani",
+      "sourceUrl": "https://animecorner.me/interview-shu-sakuratani-rooster-fighter-manga-creator/",
+      "category": "rooster-fighter",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-rooster-pet",
+      "text": "What kind of pet had Rooster Fighter creator Shu Sakuratani owned as a child?",
+      "correctCompletion": "a rooster",
+      "sourceName": "Anime Corner - Interview with Rooster Fighter creator Shu Sakuratani",
+      "sourceUrl": "https://animecorner.me/interview-shu-sakuratani-rooster-fighter-manga-creator/",
+      "category": "rooster-fighter",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-sakamoto-first-draft-kills",
+      "text": "In the first draft of SAKAMOTO DAYS, what did Sakamoto do that changed before serialization?",
+      "correctCompletion": "he killed people",
+      "sourceName": "MANGA Plus by SHUEISHA - SAKAMOTO DAYS editor interview",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1293/",
+      "category": "sakamoto-days",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "draft-history"
+      ]
+    },
+    {
+      "id": "anime-b009-sakamoto-handyman-draft",
+      "text": "What kind of requests was Sakamoto originally going to solve in the manga?s first episodic plan?",
+      "correctCompletion": "everyday problems brought to his shop",
+      "sourceName": "MANGA Plus by SHUEISHA - SAKAMOTO DAYS editor interview",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1293/",
+      "category": "sakamoto-days",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "draft-history"
+      ]
+    },
+    {
+      "id": "anime-b009-sakamoto-shin-gag",
+      "text": "Why did the editor say Shin was placed beside the reserved Sakamoto?",
+      "correctCompletion": "his mind-reading helps move the story along and enables the ?Don?t kill me in your mind!? gag",
+      "sourceName": "MANGA Plus by SHUEISHA - SAKAMOTO DAYS editor interview",
+      "sourceUrl": "https://mangaplus.shueisha.co.jp/web_pages/1293/",
+      "category": "sakamoto-days",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "character-design"
+      ]
+    },
+    {
+      "id": "anime-b009-sanda-audience",
+      "text": "How did Anime Expo audiences react differently from Japanese audiences to SANDA?s stabbing scene, according to its producer?",
+      "correctCompletion": "the US audience laughed while Japanese audiences took it seriously",
+      "sourceName": "Anime Trending - SANDA creator and anime staff interview",
+      "sourceUrl": "https://anitrendz.net/news/2025/09/02/sanda-interview/",
+      "category": "sanda",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "audience-reaction"
+      ]
+    },
+    {
+      "id": "anime-b009-sanda-birthrate",
+      "text": "What real-world Japanese demographic issue did producer Kohei Sakita connect to SANDA?s premise?",
+      "correctCompletion": "the declining birth rate",
+      "sourceName": "Anime Trending - SANDA creator and anime staff interview",
+      "sourceUrl": "https://anitrendz.net/news/2025/09/02/sanda-interview/",
+      "category": "sanda",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-inspiration"
+      ]
+    },
+    {
+      "id": "anime-b009-sanda-santa-powers",
+      "text": "What unusual transformation does SANDA?s young protagonist undergo?",
+      "correctCompletion": "he becomes a muscular adult Santa Claus",
+      "sourceName": "Anime Trending - SANDA creator and anime staff interview",
+      "sourceUrl": "https://anitrendz.net/news/2025/09/02/sanda-interview/",
+      "category": "sanda",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "bizarre-worldbuilding"
+      ]
+    },
+    {
+      "id": "anime-b009-sasaki-promo-cast",
+      "text": "Before casting the rest of Sasaki and Peeps? cast by audition, how had Tomokazu Sugita and Aoi Yuki already been cast?",
+      "correctCompletion": "they had voiced the light novel?s promotional video",
+      "sourceName": "Anime Trending - Sasaki and Peeps producer interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/04/16/interview-sasaki-and-peeps-producer-kosuke-arai-on-the-fantasy-animes-appeal",
+      "category": "sasaki-and-peeps",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "voice-acting"
+      ]
+    },
+    {
+      "id": "anime-b009-sasaki-thesis",
+      "text": "What did producer Kosuke Arai say each Sasaki and Peeps episode was built around?",
+      "correctCompletion": "a thesis or central focus",
+      "sourceName": "Anime Trending - Sasaki and Peeps producer interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/04/16/interview-sasaki-and-peeps-producer-kosuke-arai-on-the-fantasy-animes-appeal",
+      "category": "sasaki-and-peeps",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "episode-structure"
+      ]
+    },
+    {
+      "id": "anime-b009-sasaki-unpublished",
+      "text": "What had the Sasaki and Peeps producer read before he developed the project proposal?",
+      "correctCompletion": "the still-unpublished original novel",
+      "sourceName": "Anime Trending - Sasaki and Peeps producer interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2024/04/16/interview-sasaki-and-peeps-producer-kosuke-arai-on-the-fantasy-animes-appeal",
+      "category": "sasaki-and-peeps",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "production-origin"
+      ]
+    },
+    {
+      "id": "anime-b009-sign-affection-bed",
+      "text": "Where were the A Sign of Affection creators lying when they came up with sign language as a possible manga subject?",
+      "correctCompletion": "on a bed",
+      "sourceName": "Anime Corner - Interview with A Sign of Affection creators suu Morishita",
+      "sourceUrl": "https://animecorner.me/interview-mangaka-duo-suu-morishita-on-a-sign-of-affection/",
+      "category": "a-sign-of-affection",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-sign-affection-eyelines",
+      "text": "In A Sign of Affection, what visual detail did illustrator Nachiyan say is crucial because understanding sign language requires seeing the other person?",
+      "correctCompletion": "where a character is looking",
+      "sourceName": "Anime Corner - Interview with A Sign of Affection creators suu Morishita",
+      "sourceUrl": "https://animecorner.me/interview-mangaka-duo-suu-morishita-on-a-sign-of-affection/",
+      "category": "a-sign-of-affection",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "visual-storytelling"
+      ]
+    },
+    {
+      "id": "anime-b009-sign-affection-normal-life",
+      "text": "What did creator Makiro want readers to recognize about Yuki?s life with a disability?",
+      "correctCompletion": "that ordinary interests and everyday living are normal",
+      "sourceName": "Anime Corner - Interview with A Sign of Affection creators suu Morishita",
+      "sourceUrl": "https://animecorner.me/interview-mangaka-duo-suu-morishita-on-a-sign-of-affection/",
+      "category": "a-sign-of-affection",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "character-design"
+      ]
+    },
+    {
+      "id": "anime-b009-vinland-meme",
+      "text": "When did Yukimura say he learned that ?I have no enemies? had become an online meme?",
+      "correctCompletion": "when the interviewer told him",
+      "sourceName": "Anime Corner - Interview with Vinland Saga creator Makoto Yukimura",
+      "sourceUrl": "https://animecorner.me/interview-vinland-saga-creator-makoto-yukimura/",
+      "category": "vinland-saga",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-vinland-twenty-years",
+      "text": "After roughly how long did Makoto Yukimura say his original broad plan for Vinland Saga remained largely unchanged?",
+      "correctCompletion": "20 years",
+      "sourceName": "Anime Corner - Interview with Vinland Saga creator Makoto Yukimura",
+      "sourceUrl": "https://animecorner.me/interview-vinland-saga-creator-makoto-yukimura/",
+      "category": "vinland-saga",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "long-term-story-planning"
+      ]
+    },
+    {
+      "id": "anime-b009-witchhat-audiovisual",
+      "text": "Before drawing a scene for Witch Hat Atelier, what format does Kamome Shirahama try to imagine it in?",
+      "correctCompletion": "an audiovisual format",
+      "sourceName": "Anime Corner - Interview with Witch Hat Atelier author and anime staff",
+      "sourceUrl": "https://animecorner.me/interview-witch-hat-atelier-author-and-anime-staff-on-the-adaptation/",
+      "category": "witch-hat-atelier",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-process"
+      ]
+    },
+    {
+      "id": "anime-b009-witchhat-concept-years",
+      "text": "How long had Witch Hat Atelier creator Kamome Shirahama carried the manga?s initial concept in her head before beginning the project?",
+      "correctCompletion": "about six years",
+      "sourceName": "Anime Corner - Interview with Witch Hat Atelier author and anime staff",
+      "sourceUrl": "https://animecorner.me/interview-witch-hat-atelier-author-and-anime-staff-on-the-adaptation/",
+      "category": "witch-hat-atelier",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "production-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-witchhat-texture-advice",
+      "text": "When advising the Witch Hat Atelier anime team, what could creator Kamome Shirahama comment on besides props and backgrounds?",
+      "correctCompletion": "the texture or material something should have",
+      "sourceName": "Anime Corner - Interview with Witch Hat Atelier author and anime staff",
+      "sourceUrl": "https://animecorner.me/interview-witch-hat-atelier-author-and-anime-staff-on-the-adaptation/",
+      "category": "witch-hat-atelier",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "adaptation-process"
+      ]
+    },
+    {
+      "id": "anime-b009-witchwatch-salmon",
+      "text": "What unusual shade did the Witch Watch anime choose for Nico?s hair after comparing the cast?s colors?",
+      "correctCompletion": "salmon pink",
+      "sourceName": "Anime Trending - Interview with Witch Watch Director Hiroshi Ikehata",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/07/15/director-hiroshi-ikehata-on-the-magic-behind-witch-watchs-animation-and-humor",
+      "category": "witch-watch",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "adaptation-choice"
+      ]
+    },
+    {
+      "id": "anime-b009-witchwatch-toei-loan",
+      "text": "Which studio had to lend opening director Megumi Ishitani to Witch Watch?s production?",
+      "correctCompletion": "Toei Animation",
+      "sourceName": "Anime Trending - Interview with Witch Watch Director Hiroshi Ikehata",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/07/15/director-hiroshi-ikehata-on-the-magic-behind-witch-watchs-animation-and-humor",
+      "category": "witch-watch",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "production-anecdote"
+      ]
+    },
+    {
+      "id": "anime-b009-witchwatch-voice-order",
+      "text": "For the Witch Watch anime, what did the production finish before the voice actors recorded their lines?",
+      "correctCompletion": "the animation, so dialogue timing could be set first",
+      "sourceName": "Anime Trending - Interview with Witch Watch Director Hiroshi Ikehata",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/07/15/director-hiroshi-ikehata-on-the-magic-behind-witch-watchs-animation-and-humor",
+      "category": "witch-watch",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "adaptation-process"
+      ]
+    },
+    {
+      "id": "anime-b009-wotakoi-comedy-ratio",
+      "text": "How did Fujita divide Wotakoi?s balance of comedy, romance, and seriousness out of ten?",
+      "correctCompletion": "8 for comedy, 1.5 for romance, and 0.5 for seriousness",
+      "sourceName": "Anime Corner - Interview with Wotakoi creator Fujita",
+      "sourceUrl": "https://animecorner.me/interview-fujita-creator-of-wotakoi-love-is-hard-for-otaku/",
+      "category": "wotakoi",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-process"
+      ]
+    },
+    {
+      "id": "anime-b009-wotakoi-free-content",
+      "text": "When Wotakoi moved from free Pixiv posts toward print publication, what did Fujita add so the free story would not lose pages?",
+      "correctCompletion": "extra content available only in the books",
+      "sourceName": "Anime Corner - Interview with Wotakoi creator Fujita",
+      "sourceUrl": "https://animecorner.me/interview-fujita-creator-of-wotakoi-love-is-hard-for-otaku/",
+      "category": "wotakoi",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "adaptation-detail"
+      ]
+    },
+    {
+      "id": "anime-b009-wotakoi-pixiv",
+      "text": "Where did Wotakoi creator Fujita first post the experimental manga that eventually led to the series?",
+      "correctCompletion": "Pixiv",
+      "sourceName": "Anime Corner - Interview with Wotakoi creator Fujita",
+      "sourceUrl": "https://animecorner.me/interview-fujita-creator-of-wotakoi-love-is-hard-for-otaku/",
+      "category": "wotakoi",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "creator-origin"
+      ]
+    },
+    {
+      "id": "anime-b009-yourforma-alternative-present",
+      "text": "How did director Takaharu Ozaki characterize YOUR FORMA?s setting instead of calling it simply near-future?",
+      "correctCompletion": "an alternative present day",
+      "sourceName": "Anime Trending - YOUR FORMA director interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/06/23/your-forma-anime-director-on-how-the-matrix-westworld-inspired-the-visuals",
+      "category": "your-forma",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "worldbuilding"
+      ]
+    },
+    {
+      "id": "anime-b009-yourforma-brain-phone",
+      "text": "Where is the smartphone-like device in YOUR FORMA?s central premise located?",
+      "correctCompletion": "in the user?s brain",
+      "sourceName": "Anime Trending - YOUR FORMA director interview",
+      "sourceUrl": "https://www.anitrendz.com/news/2025/06/23/your-forma-anime-director-on-how-the-matrix-westworld-inspired-the-visuals",
+      "category": "your-forma",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-009",
+        "fictional-technology"
+      ]
+    }
+  ]
+}

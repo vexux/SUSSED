@@ -2,7 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { DEFAULT_PATHS, TARGETS, cleanupCandidate, cleanupEligibility, createReview, formatReview, publishBatch, recoverPublication } = require("../contentPublication");
+const { DEFAULT_PATHS, TARGETS, cleanupCandidate, cleanupEligibility, cleanupFranchiseManifest, cleanupFranchiseManifestEligibility, createReview, formatReview, publishBatch, recoverPublication } = require("../contentPublication");
 const { writeNewPackAtomically } = require("./manage-question-batch");
 
 function parse(args) {
@@ -18,7 +18,7 @@ function parse(args) {
     if (["review", "publish"].includes(options.command) && (!options.input || !options.target)) throw new Error(`${options.command} requires --target and --input.`);
     if (["review", "publish"].includes(options.command) && !Object.hasOwn(TARGETS, options.target)) throw new Error(`Unknown target. Use one of ${Object.keys(TARGETS).join(", ")}.`);
     if (options.command === "publish" && !options.approval) throw new Error("publish requires --approval <reviewed-approval.json>.");
-    if (options.command === "cleanup" && (!options.input || !options.report)) throw new Error("cleanup requires --input and --receipt.");
+    if (options.command === "cleanup" && (options.franchises ? (options.input || options.report) : (!options.input || !options.report))) throw new Error("cleanup requires either --input and --receipt, or --franchises for a published Anime franchise manifest.");
     return options;
 }
 
@@ -50,6 +50,17 @@ function main(args) {
         return 0;
     }
     if (options.command === "cleanup") {
+        if (options.franchises) {
+            const common = { manifestPath: options.franchises, ...(options.confirmDelete ? { confirmPackId: options.confirmDelete } : {}) };
+            if (!options.confirmDelete) {
+                const result = cleanupFranchiseManifestEligibility(common);
+                process.stdout.write(`${result.eligible ? "Eligible" : "Not eligible"} for cleanup: ${path.resolve(options.franchises)}${result.contentPackId ? ` (pack ${result.contentPackId})` : ""}\n${result.errors.map((item) => `- ${item}`).join("\n")}`.trimEnd() + "\n");
+                return result.eligible ? 0 : 1;
+            }
+            const result = cleanupFranchiseManifest({ ...common, confirmPackId: options.confirmDelete });
+            process.stdout.write(`Deleted verified franchise manifest ${result.deleted} after reconciliation of ${result.contentPackId}.\n`);
+            return 0;
+        }
         const common = { inputPath: options.input, reportPath: options.report };
         if (!options.confirmDelete) {
             const result = cleanupEligibility(common);

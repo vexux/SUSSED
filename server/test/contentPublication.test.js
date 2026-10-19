@@ -8,6 +8,8 @@ const {
     DEFAULT_PATHS,
     cleanupCandidate,
     cleanupEligibility,
+    cleanupFranchiseManifest,
+    cleanupFranchiseManifestEligibility,
     createReview,
     formatReview,
     makeAnimeLedgerUpdate,
@@ -461,6 +463,62 @@ test("cleanup refuses candidates outside incoming and mismatched candidate bytes
     assert.ok(outsideStatus.errors.some((item) => item.includes("limited to files inside")));
 });
 
+function makePublishedAnimeManifest(data, { manifestOverrides = {} } = {}) {
+    const contentPackId = "anime-bizarre-batch-009";
+    const franchiseId = "fixture-anime-series";
+    const pack = { contentPackId, questions: [question("anime-b009-fixture-one")] };
+    const manifest = {
+        manifestVersion: 1,
+        franchises: [{ franchiseId, displayName: "Fixture Anime Series", aliases: ["Fixture Series"] }],
+        entries: [{ questionId: pack.questions[0].id, franchiseId }],
+        ...manifestOverrides
+    };
+    const ledger = JSON.parse(fs.readFileSync(data.animeLedgerPath, "utf8"));
+    const update = makeAnimeLedgerUpdate(ledger, manifest, pack, []);
+    assert.equal(update.valid, true, update.errors.join("\n"));
+    fs.writeFileSync(path.join(data.animeDirectory, `${contentPackId}.json`), `${JSON.stringify(pack, null, 2)}\n`);
+    fs.writeFileSync(data.animeLedgerPath, `${JSON.stringify(update.updatedLedger, null, 2)}\n`);
+    const manifestPath = path.join(data.incoming, `${contentPackId}-franchises.json`);
+    fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    return { contentPackId, manifestPath, manifest };
+}
+
+test("franchise manifest cleanup requires exact published pack and reconciled ledger matches", (t) => {
+    const data = setup(t);
+    const { contentPackId, manifestPath } = makePublishedAnimeManifest(data);
+    const eligibility = cleanupFranchiseManifestEligibility({ manifestPath, paths: data.paths, contentDirectories: data.contentDirectories });
+    assert.equal(eligibility.eligible, true, eligibility.errors.join("\n"));
+    assert.throws(() => cleanupFranchiseManifest({ manifestPath, paths: data.paths, contentDirectories: data.contentDirectories }), /requires --confirm-delete/);
+    const result = cleanupFranchiseManifest({ manifestPath, confirmPackId: contentPackId, paths: data.paths, contentDirectories: data.contentDirectories });
+    assert.equal(result.contentPackId, contentPackId);
+    assert.equal(fs.existsSync(manifestPath), false);
+    assert.equal(fs.existsSync(path.join(data.animeDirectory, `${contentPackId}.json`)), true);
+    assert.equal(fs.existsSync(data.animeLedgerPath), true);
+});
+
+test("franchise manifest cleanup preserves files when assignments do not match the ledger", (t) => {
+    const data = setup(t);
+    const { contentPackId, manifestPath, manifest } = makePublishedAnimeManifest(data);
+    manifest.entries[0].franchiseId = "wrong-franchise";
+    fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    const eligibility = cleanupFranchiseManifestEligibility({ manifestPath, paths: data.paths, contentDirectories: data.contentDirectories });
+    assert.equal(eligibility.eligible, false);
+    assert.ok(eligibility.errors.some((item) => item.includes("does not match the reconciled ledger")));
+    assert.throws(() => cleanupFranchiseManifest({ manifestPath, confirmPackId: contentPackId, paths: data.paths, contentDirectories: data.contentDirectories }), /not eligible for cleanup/);
+    assert.equal(fs.existsSync(manifestPath), true);
+});
+
+test("franchise manifest cleanup is blocked until its matching candidate has been guardedly removed", (t) => {
+    const data = setup(t);
+    const { manifestPath, contentPackId } = makePublishedAnimeManifest(data);
+    const candidatePath = path.join(data.incoming, `${contentPackId}-candidate.json`);
+    fs.writeFileSync(candidatePath, "{}");
+    const eligibility = cleanupFranchiseManifestEligibility({ manifestPath, paths: data.paths, contentDirectories: data.contentDirectories });
+    assert.equal(eligibility.eligible, false);
+    assert.ok(eligibility.errors.some((item) => item.includes("candidate file must be removed by guarded publication cleanup")));
+    assert.equal(fs.existsSync(manifestPath), true);
+});
+
 test("report records every question disposition and source location for duplicate warnings", (t) => {
     const data = setup(t);
     replaceCandidate(data, { ...data.candidate, questions: [question("new-id", data.questions[0].text, data.questions[0].correctCompletion)] });
@@ -514,8 +572,8 @@ test("published Anime ledger reconciles merged franchise identity and pack filen
 
     assert.equal(result.valid, true, result.errors.join("\n"));
     assert.equal(result.errors.length, 0);
-    assert.equal(ledger.bankSnapshot.questionCount, 537);
-    assert.equal(ledger.bankSnapshot.contentPackCount, 10);
+    assert.equal(ledger.bankSnapshot.questionCount, 637);
+    assert.equal(ledger.bankSnapshot.contentPackCount, 11);
     const promisedNeverland = result.updatedLedger.franchises.filter(({ franchiseId }) => franchiseId === "promised-neverland");
     assert.equal(promisedNeverland.length, 1);
     assert.equal(promisedNeverland[0].questionCount, 2);

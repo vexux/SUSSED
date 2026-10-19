@@ -72,13 +72,13 @@ test("loads all General JSON content packs with existing answer and source data"
     );
 });
 
-test("loads the expanded anime library through batch 008 with distinct IDs", () => {
+test("loads the expanded anime library through batch 009 with distinct IDs", () => {
     const { questions: loaded } = loadQuestionPacks(
         path.join(factOrCapDirectory, "content", "anime")
     );
-    assert.equal(loaded.length, 537);
-    assert.equal(animeQuestions.length, 537);
-    assert.equal(new Set(loaded.map(({ id }) => id)).size, 537);
+    assert.equal(loaded.length, 637);
+    assert.equal(animeQuestions.length, 637);
+    assert.equal(new Set(loaded.map(({ id }) => id)).size, 637);
     assert.equal(
         loaded.filter(({ contentPackId }) => contentPackId === "anime-bizarre-batch-001").length,
         40
@@ -102,6 +102,10 @@ test("loads the expanded anime library through batch 008 with distinct IDs", () 
     assert.equal(
         loaded.filter(({ contentPackId }) => contentPackId === "anime-bizarre-batch-008").length,
         12
+    );
+    assert.equal(
+        loaded.filter(({ contentPackId }) => contentPackId === "anime-bizarre-batch-009").length,
+        100
     );
     assert.ok(loaded.some(({ difficulty }) => difficulty === "extremely-hard"));
     assert.ok(loaded.every(({ sourceName, sourceUrl, category, tags }) =>
