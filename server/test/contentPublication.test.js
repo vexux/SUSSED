@@ -486,8 +486,8 @@ test("published Anime ledger reconciles merged franchise identity and pack filen
 
     assert.equal(result.valid, true, result.errors.join("\n"));
     assert.equal(result.errors.length, 0);
-    assert.equal(ledger.bankSnapshot.questionCount, 510);
-    assert.equal(ledger.bankSnapshot.contentPackCount, 8);
+    assert.equal(ledger.bankSnapshot.questionCount, 525);
+    assert.equal(ledger.bankSnapshot.contentPackCount, 9);
     const promisedNeverland = result.updatedLedger.franchises.filter(({ franchiseId }) => franchiseId === "promised-neverland");
     assert.equal(promisedNeverland.length, 1);
     assert.equal(promisedNeverland[0].questionCount, 2);

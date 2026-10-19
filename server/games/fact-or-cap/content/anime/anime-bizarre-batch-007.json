@@ -1,0 +1,230 @@
+{
+  "contentPackId": "anime-bizarre-batch-007",
+  "questions": [
+    {
+      "id": "anime-b007-konosuba-darkness-delusions",
+      "text": "In KonoSuba, despite her cool knightly image, Darkness lists ____ as her special skill.",
+      "correctCompletion": "delusions",
+      "sourceName": "KonoSuba Season 3 — Official Character Profiles",
+      "sourceUrl": "https://konosuba.com/3rd/character/",
+      "category": "konosuba",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "konosuba",
+        "character-quirk"
+      ]
+    },
+    {
+      "id": "anime-b007-kill-la-kill-mankanshoku-doctor",
+      "text": "In KILL la KILL, Mako's father is an underground doctor whose profile jokes that he has reportedly ____ more people than he has saved.",
+      "correctCompletion": "killed",
+      "sourceName": "KILL la KILL — Official Mankanshoku Family Profile",
+      "sourceUrl": "https://www.kill-la-kill.jp/character/10.html",
+      "category": "kill-la-kill",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "kill-la-kill",
+        "dark-comedy"
+      ]
+    },
+    {
+      "id": "anime-b007-hinamatsuri-hitomi-bartender",
+      "text": "In Hinamatsuri, middle-schooler Hitomi works nights at Little Song as a ____.",
+      "correctCompletion": "bartender",
+      "sourceName": "Hinamatsuri — Official Character Profiles",
+      "sourceUrl": "https://hina-matsuri.net/",
+      "category": "hinamatsuri",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "hinamatsuri",
+        "double-life"
+      ]
+    },
+    {
+      "id": "anime-b007-hinamatsuri-mao-dolls",
+      "text": "In Hinamatsuri, Mao ends up alone on an uninhabited island and develops a habit of talking to her ____.",
+      "correctCompletion": "dolls",
+      "sourceName": "Hinamatsuri — Official Character Profiles",
+      "sourceUrl": "https://hina-matsuri.net/",
+      "category": "hinamatsuri",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "hinamatsuri",
+        "survival"
+      ]
+    },
+    {
+      "id": "anime-b007-vampire-draluc-dust",
+      "text": "In The Vampire Dies in No Time, even slight damage makes the supposedly immortal Draluc die and turn into ____.",
+      "correctCompletion": "dust",
+      "sourceName": "The Vampire Dies in No Time — Official Character Profile: Draluc",
+      "sourceUrl": "https://sugushinu-anime.jp/character/draluc/",
+      "category": "the-vampire-dies-in-no-time",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "the-vampire-dies-in-no-time",
+        "irony"
+      ]
+    },
+    {
+      "id": "anime-b007-mashle-doors",
+      "text": "In MASHLE, Mash can crush magic with muscle, yet his official profile lists a simple task as his weakness: ____.",
+      "correctCompletion": "opening and closing doors",
+      "sourceName": "MASHLE — Official English Character Profiles",
+      "sourceUrl": "https://mashleanime.com/character/",
+      "category": "mashle",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "mashle",
+        "irony"
+      ]
+    },
+    {
+      "id": "anime-b007-hanakokun-mokke-attack",
+      "text": "In Toilet-bound Hanako-kun, weak and timid Mokke gather in groups when they attack and then ____.",
+      "correctCompletion": "transform",
+      "sourceName": "Toilet-bound Hanako-kun — Official Character Profile: Mokke",
+      "sourceUrl": "https://www.tbs.co.jp/anime/hanakokun/1st/chara/chara04.html",
+      "category": "toilet-bound-hanako-kun",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "toilet-bound-hanako-kun",
+        "creature-behavior"
+      ]
+    },
+    {
+      "id": "anime-b007-hanakokun-mokke-ambition",
+      "text": "In After-School Hanako-kun, the Mokke plot to replace Hanako by becoming one of the school's ____.",
+      "correctCompletion": "Seven Mysteries",
+      "sourceName": "After-School Hanako-kun — Official Episode Story",
+      "sourceUrl": "https://www.tbs.co.jp/anime/hanakokun/story/story01.html",
+      "category": "toilet-bound-hanako-kun",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "toilet-bound-hanako-kun",
+        "plot-oddity"
+      ]
+    },
+    {
+      "id": "anime-b007-kakegurui-midari-roulette",
+      "text": "In Kakegurui, Midari finds risk so thrilling that she is willing to play ____ on herself.",
+      "correctCompletion": "Russian roulette",
+      "sourceName": "Kakegurui — Official Character Profiles",
+      "sourceUrl": "https://kakegurui-anime.com/1st/character/",
+      "category": "kakegurui",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "kakegurui",
+        "risk-taking"
+      ]
+    },
+    {
+      "id": "anime-b007-kakegurui-kirari-hierarchy",
+      "text": "In Kakegurui, Kirari created the academy's current ____, including the Pochi and Mike system.",
+      "correctCompletion": "hierarchy",
+      "sourceName": "Kakegurui — Official Character Profiles",
+      "sourceUrl": "https://kakegurui-anime.com/1st/character/",
+      "category": "kakegurui",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "kakegurui",
+        "social-system"
+      ]
+    },
+    {
+      "id": "anime-b007-villainess-mary-catarina",
+      "text": "In My Next Life as a Villainess, Mary's official profile says she reportedly plots to take Catarina far away and keep her all to ____.",
+      "correctCompletion": "herself",
+      "sourceName": "My Next Life as a Villainess — Official Character Profiles",
+      "sourceUrl": "https://hamehura-anime.com/1st/character/",
+      "category": "my-next-life-as-a-villainess",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "my-next-life-as-a-villainess",
+        "relationship-oddity"
+      ]
+    },
+    {
+      "id": "anime-b007-akiba-red-bats",
+      "text": "In Akiba Maid War, the official synopsis describes rival maid-cafe battles featuring menaces wielding red ____.",
+      "correctCompletion": "bats",
+      "sourceName": "P.A.WORKS — Official Akiba Maid War Series Page",
+      "sourceUrl": "https://www.pa-works.jp/works_en/akiba-maid-war/",
+      "category": "akiba-maid-war",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "akiba-maid-war",
+        "weapon"
+      ]
+    },
+    {
+      "id": "anime-b007-villain-dayoff-pandas",
+      "text": "In Mr. Villain's Day Off, despite his plan to conquer Earth, the General is especially fond of ____.",
+      "correctCompletion": "pandas",
+      "sourceName": "Nikkatsu — Official Mr. Villain's Day Off Sales Synopsis",
+      "sourceUrl": "https://intl.nikkatsu.com/sales/453.html",
+      "category": "mr-villains-day-off",
+      "difficulty": "easy",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "mr-villains-day-off",
+        "character-quirk"
+      ]
+    },
+    {
+      "id": "anime-b007-little-lies-chiyo-cuteness",
+      "text": "In The Little Lies We All Tell, cute things can make Chiyo pull all-nighters in pursuit of ____.",
+      "correctCompletion": "cuteness",
+      "sourceName": "Prime Video — The Little Lies We All Tell, Episode 2 synopsis",
+      "sourceUrl": "https://www.primevideo.com/-/id/detail/0M3U0O11LPM5EYVT4K8FIQMFUL?tr=in",
+      "category": "the-little-lies-we-all-tell",
+      "difficulty": "medium",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "the-little-lies-we-all-tell",
+        "character-quirk"
+      ]
+    },
+    {
+      "id": "anime-b007-little-lies-rikka-powers",
+      "text": "In The Little Lies We All Tell, Rikka's episode-three powers are described as only mildly threatening to ____.",
+      "correctCompletion": "the entire human race",
+      "sourceName": "Prime Video — The Little Lies We All Tell, Episode 3 synopsis",
+      "sourceUrl": "https://www.primevideo.com/-/id/detail/0M3U0O11LPM5EYVT4K8FIQMFUL?tr=in",
+      "category": "the-little-lies-we-all-tell",
+      "difficulty": "hard",
+      "tags": [
+        "balanced-surprise",
+        "batch-007",
+        "the-little-lies-we-all-tell",
+        "power-oddity"
+      ]
+    }
+  ]
+}

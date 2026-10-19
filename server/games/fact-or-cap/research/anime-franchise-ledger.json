@@ -3,8 +3,8 @@
   "purpose": "Authoritative inventory of franchises represented by accepted playable Anime questions. Derived by reconciling all JSON question packs under content/anime.",
   "bankSnapshot": {
     "branch": "dev",
-    "questionCount": 510,
-    "contentPackCount": 8
+    "questionCount": 525,
+    "contentPackCount": 9
   },
   "franchises": [
     {
@@ -2710,6 +2710,164 @@
         }
       ],
       "aliases": []
+    },
+    {
+      "franchiseId": "akiba-maid-war",
+      "displayName": "Akiba Maid War",
+      "aliases": [],
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-007",
+          "questionIds": [
+            "anime-b007-akiba-red-bats"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "hinamatsuri",
+      "displayName": "Hinamatsuri",
+      "aliases": [],
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-007",
+          "questionIds": [
+            "anime-b007-hinamatsuri-hitomi-bartender",
+            "anime-b007-hinamatsuri-mao-dolls"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "kakegurui",
+      "displayName": "Kakegurui",
+      "aliases": [],
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-007",
+          "questionIds": [
+            "anime-b007-kakegurui-kirari-hierarchy",
+            "anime-b007-kakegurui-midari-roulette"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "kill-la-kill",
+      "displayName": "KILL la KILL",
+      "aliases": [],
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-007",
+          "questionIds": [
+            "anime-b007-kill-la-kill-mankanshoku-doctor"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "konosuba",
+      "displayName": "KonoSuba",
+      "aliases": [],
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-007",
+          "questionIds": [
+            "anime-b007-konosuba-darkness-delusions"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "mashle",
+      "displayName": "MASHLE",
+      "aliases": [],
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-007",
+          "questionIds": [
+            "anime-b007-mashle-doors"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "mr-villains-day-off",
+      "displayName": "Mr. Villain's Day Off",
+      "aliases": [],
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-007",
+          "questionIds": [
+            "anime-b007-villain-dayoff-pandas"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "my-next-life-as-a-villainess",
+      "displayName": "My Next Life as a Villainess: All Routes Lead to Doom!",
+      "aliases": [],
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-007",
+          "questionIds": [
+            "anime-b007-villainess-mary-catarina"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "the-little-lies-we-all-tell",
+      "displayName": "The Little Lies We All Tell",
+      "aliases": [],
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-007",
+          "questionIds": [
+            "anime-b007-little-lies-chiyo-cuteness",
+            "anime-b007-little-lies-rikka-powers"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "the-vampire-dies-in-no-time",
+      "displayName": "The Vampire Dies in No Time",
+      "aliases": [],
+      "questionCount": 1,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-007",
+          "questionIds": [
+            "anime-b007-vampire-draluc-dust"
+          ]
+        }
+      ]
+    },
+    {
+      "franchiseId": "toilet-bound-hanako-kun",
+      "displayName": "Toilet-bound Hanako-kun",
+      "aliases": [],
+      "questionCount": 2,
+      "packMemberships": [
+        {
+          "contentPackId": "anime-bizarre-batch-007",
+          "questionIds": [
+            "anime-b007-hanakokun-mokke-ambition",
+            "anime-b007-hanakokun-mokke-attack"
+          ]
+        }
+      ]
     }
   ],
   "rulesForFutureBatches": [

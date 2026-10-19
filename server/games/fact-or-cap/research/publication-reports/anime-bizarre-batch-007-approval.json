@@ -1,0 +1,72 @@
+{
+  "approvalVersion": 1,
+  "target": "fact-or-cap-anime",
+  "contentPackId": "anime-bizarre-batch-007",
+  "candidateSha256": "4f4edfc579c817e07b2b5f88867b7a62845d8763d4b8f9cfccdaa16e34e0316a",
+  "ledgerMetadataSha256": "c500fa3b00b15d80e36c88fbc23fc82f91bb3b4a532068001ca00a5c0c126679",
+  "reviewerId": "Codex AI assistant",
+  "approvedAt": "2026-10-19T16:34:06.000Z",
+  "rationale": "Reviewed all 50 original questions and recorded the 15 retained and 35 removed dispositions in the retained source/editorial audit. The final 15 questions have direct claim-relevant source passages; unsupported, inaccessible, contradicted, repetitive, and low-payoff items were removed. This is a publication decision for the paraphrased questions only. Factual verification remains an editorial judgment and rights/reuse status is unknown; this record does not grant or claim permission.",
+  "decisions": [
+    {
+      "questionId": "anime-b007-konosuba-darkness-delusions",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-kill-la-kill-mankanshoku-doctor",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-hinamatsuri-hitomi-bartender",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-hinamatsuri-mao-dolls",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-vampire-draluc-dust",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-mashle-doors",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-hanakokun-mokke-attack",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-hanakokun-mokke-ambition",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-kakegurui-midari-roulette",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-kakegurui-kirari-hierarchy",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-villainess-mary-catarina",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-akiba-red-bats",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-villain-dayoff-pandas",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-little-lies-chiyo-cuteness",
+      "outcome": "publish"
+    },
+    {
+      "questionId": "anime-b007-little-lies-rikka-powers",
+      "outcome": "publish"
+    }
+  ]
+}

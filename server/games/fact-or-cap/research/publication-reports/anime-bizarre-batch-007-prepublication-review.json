@@ -1,0 +1,123 @@
+{
+  "reportVersion": 1,
+  "target": "fact-or-cap-anime",
+  "inputPath": "D:\\Projects\\SUSSED!\\server\\games\\fact-or-cap\\incoming\\anime-bizarre-batch-007-candidate.json",
+  "candidateSha256": "4f4edfc579c817e07b2b5f88867b7a62845d8763d4b8f9cfccdaa16e34e0316a",
+  "contentPackId": "anime-bizarre-batch-007",
+  "candidateQuestionCount": 15,
+  "newQuestionIds": [
+    "anime-b007-konosuba-darkness-delusions",
+    "anime-b007-kill-la-kill-mankanshoku-doctor",
+    "anime-b007-hinamatsuri-hitomi-bartender",
+    "anime-b007-hinamatsuri-mao-dolls",
+    "anime-b007-vampire-draluc-dust",
+    "anime-b007-mashle-doors",
+    "anime-b007-hanakokun-mokke-attack",
+    "anime-b007-hanakokun-mokke-ambition",
+    "anime-b007-kakegurui-midari-roulette",
+    "anime-b007-kakegurui-kirari-hierarchy",
+    "anime-b007-villainess-mary-catarina",
+    "anime-b007-akiba-red-bats",
+    "anime-b007-villain-dayoff-pandas",
+    "anime-b007-little-lies-chiyo-cuteness",
+    "anime-b007-little-lies-rikka-powers"
+  ],
+  "ledgerMetadataSha256": "c500fa3b00b15d80e36c88fbc23fc82f91bb3b4a532068001ca00a5c0c126679",
+  "exactDuplicates": [],
+  "sameIdIdentical": [],
+  "conflictingIds": [],
+  "normalizedDuplicates": [],
+  "duplicateIds": [],
+  "withinBatchDuplicates": [],
+  "invalidEntries": [],
+  "perQuestion": [
+    {
+      "questionId": "anime-b007-konosuba-darkness-delusions",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-kill-la-kill-mankanshoku-doctor",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-hinamatsuri-hitomi-bartender",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-hinamatsuri-mao-dolls",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-vampire-draluc-dust",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-mashle-doors",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-hanakokun-mokke-attack",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-hanakokun-mokke-ambition",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-kakegurui-midari-roulette",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-kakegurui-kirari-hierarchy",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-villainess-mary-catarina",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-akiba-red-bats",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-villain-dayoff-pandas",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-little-lies-chiyo-cuteness",
+      "idStatus": "new",
+      "duplicateMatches": []
+    },
+    {
+      "questionId": "anime-b007-little-lies-rikka-powers",
+      "idStatus": "new",
+      "duplicateMatches": []
+    }
+  ],
+  "semanticReview": {
+    "status": "not-automated",
+    "note": "No semantic similarity system is used. Human review is required for claim-level overlap; normalized matches are not semantic determinations."
+  },
+  "proposedDestination": "D:\\Projects\\SUSSED!\\server\\games\\fact-or-cap\\content\\anime\\anime-bizarre-batch-007.json",
+  "ledger": {
+    "status": "valid-current-snapshot",
+    "missingMetadataQuestionIds": [],
+    "errors": []
+  },
+  "blockers": [],
+  "warnings": [],
+  "publicationEligible": true
+}
