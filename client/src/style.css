@@ -386,6 +386,38 @@ select:focus:not(:focus-visible) {
   letter-spacing: 0.18em;
 }
 
+.lobby-room-code-panel {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  max-width: 100%;
+}
+
+.invitation-actions {
+  width: min(100%, 620px);
+  margin-bottom: var(--space-2);
+}
+
+.invitation-button {
+  min-height: 44px;
+  flex: 1 1 150px;
+}
+
+.invitation-message,
+.lobby-feedback {
+  max-width: min(100%, 620px);
+  margin: var(--space-3) auto;
+  line-height: 1.5;
+}
+
+.invitation-message {
+  color: var(--color-text-muted);
+}
+
+.lobby-feedback {
+  color: var(--color-success-text);
+}
+
 .player-count {
   margin: 8px 0;
   color: var(--color-text-muted);
@@ -468,6 +500,53 @@ select:focus:not(:focus-visible) {
   border-radius: 8px;
   background: var(--color-surface);
   text-align: left;
+  gap: var(--space-2);
+}
+
+.player-name {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+}
+
+.kick-player-button {
+  min-height: 44px;
+  flex: 0 0 auto;
+  padding-inline: 14px;
+}
+
+.kick-confirmation {
+  width: min(100%, 480px);
+  max-height: min(90vh, 36rem);
+  overflow-y: auto;
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-accent-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  box-shadow: 0 0 1.5rem rgb(var(--color-accent-rgb) / 12%);
+  text-align: center;
+}
+
+.kick-confirmation-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: max(var(--space-4), env(safe-area-inset-top)) max(var(--space-3), env(safe-area-inset-right)) max(var(--space-4), env(safe-area-inset-bottom)) max(var(--space-3), env(safe-area-inset-left));
+  background: var(--color-overlay);
+}
+
+.kick-confirmation h2 {
+  margin: 0;
+  color: var(--color-text-strong);
+}
+
+.kick-confirmation-actions > button {
+  min-height: 44px;
+  flex: 1 1 140px;
 }
 
 .player-card.local-player {
@@ -1374,6 +1453,29 @@ select:focus:not(:focus-visible) {
 
   .button-group > button {
     flex: 1 1 140px;
+  }
+
+  .lobby-room-code {
+    font-size: clamp(1.8rem, 12vw, 2.4rem);
+  }
+
+  .invitation-actions {
+    gap: var(--space-2);
+  }
+
+  .invitation-button {
+    flex-basis: 100%;
+  }
+
+  .player-card {
+    padding: 9px 10px;
+  }
+
+  .host-badge,
+  .ready-badge,
+  .not-ready-badge,
+  .in-game-badge {
+    flex: 0 0 auto;
   }
 
   .app-header {

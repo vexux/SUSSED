@@ -13,9 +13,17 @@ Create a Vercel project for this repository with:
 - **Output directory:** `dist`
 - **Environment variable:** `VITE_SERVER_URL`, set to the public URL of the
   Render Socket.IO service (for example, `https://your-service.onrender.com`).
+- **Optional environment variable:** `VITE_PUBLIC_APP_URL`, set to the public
+  frontend origin used in copied invitation links (for example,
+  `https://your-project.vercel.app`). Set an origin only, without a path or
+  query. If omitted, invitations use the current browser origin, which works
+  for production and Preview deployments without embedding a development URL.
 
 Set the variable for both Preview and Production environments as needed. Vite
 embeds it at build time, so trigger a new deployment after changing it.
+Set `VITE_PUBLIC_APP_URL` separately per deployment environment when links
+should point to a canonical frontend domain rather than the domain currently
+open in the browser.
 
 ## Render backend
 

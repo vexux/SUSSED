@@ -22,3 +22,16 @@ The server remains authoritative for room visibility, capacity, and join eligibi
 - `join-public-room` accepts `{ publicRoomId, playerName }` and acknowledges `{ lobby }` on success. The server rechecks that the referenced room is public, in the lobby, and has capacity at the instant the slot is reserved. Stale, private, started, full, or removed rooms return structured errors.
 
 The existing `join-room` `{ roomCode, playerName }` flow remains available for private rooms and also enforces capacity. Public listings are filtered by the server to rooms that are public, in the lobby, and below their effective capacity.
+
+## Host removal
+
+- `kick-player` accepts `{ targetPlayerId }` and acknowledges `{ kicked, playerId }` on success.
+- Only the current host can remove another player, and only while the room is in the lobby. Self-removal, non-host requests, stale targets, and malformed payloads return structured errors without changing membership.
+- The removed socket receives `removed-from-room` with `{ roomCode, reason: "kicked", message }`, then leaves the Socket.IO room. The server reconciles the removal through the same departure path used by leave/disconnect, so room state and public listings update together. Removed sockets no longer pass the room-membership checks used by game actions.
+- Kicked players are not persistently banned and may join again if normal room rules permit.
+
+## Invitations
+
+Invitations are frontend links to the existing single-page entry URL, in the form `/?code=ZING`. `code` is URL-encoded and contains only the room code. On page load, the client accepts one four-letter code and prefills the normal room-code field; it never joins automatically. The ordinary name and server-side join validation still apply. A malformed or duplicate code query is shown as an actionable error.
+
+Set `VITE_PUBLIC_APP_URL` to the public frontend origin for invitation generation when a canonical deployment origin is configured. If unset, the client uses the current page origin, which keeps Vercel preview deployments and local development on their own host. This does not affect `VITE_SERVER_URL` or backend CORS configuration.

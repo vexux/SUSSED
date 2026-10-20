@@ -11,6 +11,13 @@ import { socket } from "./socket";
 import { renderApp } from "./views";
 import type { AppActions } from "./views";
 import {
+  copyText,
+  createInvitationUrl,
+  normalizeInvitationCode,
+  parseInvitationCode,
+  shareOrCopyInvitation,
+} from "./invitations";
+import {
   isFakeAnswerPublicState,
   updateFakeAnswerProgress,
   updateFakeAnswerVoteProgress,
@@ -65,6 +72,13 @@ if (!app) {
 const appRoot: HTMLElement = app;
 
 const state = createInitialAppState();
+const invitationCode = parseInvitationCode(window.location.search);
+if (invitationCode.status === "valid") {
+  state.joinRoomCode = invitationCode.code;
+  state.invitationMessage = "Invitation code ready. Enter your name, then join the room.";
+} else if (invitationCode.status === "invalid") {
+  state.invitationMessage = "This invitation link has an invalid room code. You can enter a room code manually.";
+}
 state.connectionStatus = socket.connected ? "connected" : "connecting";
 document.documentElement.dataset.theme = state.theme;
 const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
@@ -195,7 +209,7 @@ function render(): void {
   });
   document.body.classList.toggle(
     "modal-open",
-    appRoot.querySelector(".round-feedback-backdrop") !== null,
+    appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop") !== null,
   );
 }
 
@@ -293,6 +307,58 @@ function emitRoomOperation(
   }
 }
 
+function fallbackCopy(text: string): boolean {
+  const field = document.createElement("textarea");
+  field.value = text;
+  field.setAttribute("aria-hidden", "true");
+  field.tabIndex = -1;
+  field.style.position = "fixed";
+  field.style.insetInlineStart = "-10000px";
+  document.body.append(field);
+  field.select();
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } finally {
+    field.remove();
+  }
+  return copied;
+}
+
+async function copyInvitationText(text: string): Promise<void> {
+  const clipboard = navigator.clipboard;
+  await copyText(text, {
+    writeText: clipboard ? (value) => clipboard.writeText(value) : undefined,
+    fallbackCopy,
+  });
+}
+
+function buildCurrentInvitationUrl(roomCode: string): string {
+  return createInvitationUrl(
+    roomCode,
+    window.location.href,
+    import.meta.env.VITE_PUBLIC_APP_URL,
+  );
+}
+
+function runInvitationAction(action: () => Promise<string>): void {
+  if (state.isBusy || state.isInvitationBusy || !state.lobby) return;
+  state.isInvitationBusy = true;
+  state.invitationFeedback = null;
+  state.errorMessage = null;
+  state.errorCode = null;
+  render();
+  void action().then((message) => {
+    state.invitationFeedback = message;
+  }).catch(() => {
+    state.errorMessage = "The invitation could not be copied or shared. Check browser permissions and try again.";
+    state.errorCode = "INVITATION_ACTION_FAILED";
+  }).finally(() => {
+    state.isInvitationBusy = false;
+    render();
+  });
+}
+
 function applyLobbyState(lobby: LobbyState): void {
   if (
     (state.roomCode !== null && lobby.roomCode !== state.roomCode) ||
@@ -330,6 +396,10 @@ function applyLobbyState(lobby: LobbyState): void {
   state.localPlayerId = localPlayer.id;
   state.playerName = localPlayer.name;
   state.lobby = lobby;
+  state.invitationMessage = null;
+  if (state.pendingKickPlayerId && !lobby.players.some(({ id }) => id === state.pendingKickPlayerId)) {
+    state.pendingKickPlayerId = null;
+  }
   state.availableGames = lobby.availableGames;
   state.pendingGameId = null;
   state.errorMessage = null;
@@ -516,6 +586,14 @@ const actions: AppActions = {
     state.errorMessage = null;
     state.errorCode = null;
   },
+  onRoomCodeChange(code) {
+    state.joinRoomCode = normalizeInvitationCode(code).slice(0, 4);
+    state.invitationMessage = null;
+    if (state.errorCode === "INVALID_ROOM_CODE") {
+      state.errorMessage = null;
+      state.errorCode = null;
+    }
+  },
   onCreateRoom() {
     state.currentView = "game-selection";
     state.pendingGameId = null;
@@ -616,13 +694,22 @@ const actions: AppActions = {
     render();
   },
   onJoinRoom(roomCode) {
+    const normalizedCode = normalizeInvitationCode(roomCode);
+    if (!/^[A-Z]{4}$/u.test(normalizedCode)) {
+      state.errorMessage = "Enter a four-letter room code.";
+      state.errorCode = "INVALID_ROOM_CODE";
+      render();
+      return;
+    }
+    state.joinRoomCode = normalizedCode;
+    state.invitationMessage = null;
     state.errorMessage = null;
     state.errorCode = null;
     state.isBusy = true;
     render();
     emitRoomOperation(
       "join-room",
-      { roomCode, playerName: state.playerName },
+      { roomCode: normalizedCode, playerName: state.playerName },
       (response) => {
         if (response.error) {
           showOperationError(response);
@@ -674,6 +761,85 @@ const actions: AppActions = {
       state.isBusy = false;
       if (response.lobby) applyLobbyState(response.lobby);
       else render();
+    });
+  },
+  onRequestKickPlayer(playerId) {
+    const localPlayer = state.lobby?.players.find(({ id }) => id === state.localPlayerId);
+    if (!state.lobby || state.lobby.status !== "lobby" || !localPlayer?.isHost || playerId === state.localPlayerId) return;
+    if (!state.lobby.players.some(({ id }) => id === playerId)) return;
+    state.pendingKickPlayerId = playerId;
+    state.kickFeedback = null;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+    appRoot.querySelector<HTMLButtonElement>("#kick-confirmation-cancel")?.focus();
+  },
+  onConfirmKickPlayer() {
+    const playerId = state.pendingKickPlayerId;
+    const lobby = state.lobby;
+    const localPlayer = lobby?.players.find(({ id }) => id === state.localPlayerId);
+    if (!playerId || !lobby || lobby.status !== "lobby" || !localPlayer?.isHost || state.isBusy) return;
+    const player = lobby.players.find(({ id }) => id === playerId);
+    if (!player || player.isHost) {
+      state.pendingKickPlayerId = null;
+      render();
+      return;
+    }
+    state.isBusy = true;
+    state.errorMessage = null;
+    state.kickFeedback = null;
+    render();
+    emitRoomOperation("kick-player", { targetPlayerId: playerId }, (response) => {
+      state.isBusy = false;
+      state.pendingKickPlayerId = null;
+      if (response.error) {
+        showOperationError(response);
+        return;
+      }
+      state.kickFeedback = `${player.name} was removed from the room.`;
+      render();
+    });
+  },
+  onCancelKickPlayer() {
+    if (state.isBusy) return;
+    const cancelledPlayerId = state.pendingKickPlayerId;
+    state.pendingKickPlayerId = null;
+    render();
+    const trigger = Array.from(appRoot.querySelectorAll<HTMLButtonElement>(".kick-player-button"))
+      .find((button) => button.dataset.playerId === cancelledPlayerId);
+    trigger?.focus();
+  },
+  onCopyRoomCode() {
+    const roomCode = state.lobby?.roomCode;
+    if (!roomCode) return;
+    runInvitationAction(async () => {
+      await copyInvitationText(roomCode);
+      return "Room code copied.";
+    });
+  },
+  onCopyInvitationLink() {
+    const roomCode = state.lobby?.roomCode;
+    if (!roomCode) return;
+    runInvitationAction(async () => {
+      await copyInvitationText(buildCurrentInvitationUrl(roomCode));
+      return "Invitation link copied.";
+    });
+  },
+  onShareInvitationLink() {
+    const roomCode = state.lobby?.roomCode;
+    if (!roomCode) return;
+    runInvitationAction(async () => {
+      const url = buildCurrentInvitationUrl(roomCode);
+      const result = await shareOrCopyInvitation(
+        { title: "Join my SUSSED! room", text: `Join my SUSSED! room with code ${roomCode}.`, url },
+        {
+          share: typeof navigator.share === "function"
+            ? (data) => navigator.share(data)
+            : undefined,
+          copy: copyInvitationText,
+        },
+      );
+      return result === "shared" ? "Invitation shared." : "Sharing was unavailable, so the invitation link was copied.";
     });
   },
   onSetReady(isReady) {
@@ -1094,6 +1260,24 @@ socket.on("public-rooms-updated", (payload: PublicRoomsResponse) => {
   if (state.currentView !== "public-rooms" || !Array.isArray(payload.rooms)) return;
   state.publicRooms = payload.rooms;
   state.publicRoomsError = null;
+  render();
+});
+
+socket.on("removed-from-room", (payload: { roomCode?: string; reason?: string; message?: string }) => {
+  if (!payload || payload.roomCode !== state.roomCode || payload.reason !== "kicked") return;
+  if (state.game) retiredGameSessionIds.add(state.game.sessionId);
+  state.currentView = "home";
+  state.roomCode = null;
+  state.localPlayerId = null;
+  state.lobby = null;
+  state.game = null;
+  state.pendingKickPlayerId = null;
+  state.invitationMessage = null;
+  state.isBusy = false;
+  state.isInvitationBusy = false;
+  state.errorMessage = payload.message ?? "The host removed you from this room.";
+  state.errorCode = "REMOVED_FROM_ROOM";
+  resetFakeAnswerViewState();
   render();
 });
 

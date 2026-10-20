@@ -681,6 +681,59 @@ test("public room browser lists only safe metadata, revalidates joins, and follo
     assert.equal(startedJoin.error.code, "ROOM_NOT_IN_LOBBY");
 });
 
+test("host can kick a lobby player through departure reconciliation; unauthorized and stale requests are rejected", async (context) => {
+    const harness = await createHarness(context);
+    const browser = await harness.connect();
+    await emitWithAck(browser, "subscribe-public-rooms", undefined);
+    const host = await harness.connect();
+    const stale = await harness.connect();
+    const target = await harness.connect();
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Host",
+        visibility: "public"
+    });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(stale, "join-room", { roomCode: created.roomCode, playerName: "Stale" });
+    await emitWithAck(target, "join-room", { roomCode: created.roomCode, playerName: "Target" });
+
+    assert.equal((await emitWithAck(target, "kick-player", { targetPlayerId: host.id })).error.code, "NOT_HOST");
+    assert.equal((await emitWithAck(host, "kick-player", { targetPlayerId: host.id })).error.code, "CANNOT_KICK_SELF");
+    assert.equal((await emitWithAck(host, "kick-player", { targetPlayerId: "missing-player" })).error.code, "TARGET_NOT_FOUND");
+    assert.equal((await emitWithAck(host, "kick-player", {})).error.code, "INVALID_REQUEST");
+
+    assert.deepEqual(await emitWithAck(stale, "leave-room", undefined), { left: true });
+    assert.equal((await emitWithAck(host, "kick-player", { targetPlayerId: stale.id })).error.code, "TARGET_NOT_FOUND");
+
+    const removedEvent = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error("removed-from-room event timed out")), 3000);
+        target.once("removed-from-room", (payload) => {
+            clearTimeout(timeout);
+            resolve(payload);
+        });
+    });
+    const lobbyUpdate = waitForLobby(host, (lobby) => lobby.playerCount === 1 && lobby.players.length === 1);
+    const publicUpdate = waitForPublicRooms(browser, (rooms) => rooms.length === 1 && rooms[0].playerCount === 1);
+    const kicked = await emitWithAck(host, "kick-player", { targetPlayerId: target.id });
+    assert.deepEqual(kicked, { kicked: true, playerId: target.id });
+    assert.deepEqual(await removedEvent, {
+        roomCode: created.roomCode,
+        reason: "kicked",
+        message: "The host removed you from this room."
+    });
+    const hostLobby = await lobbyUpdate;
+    assert.deepEqual(hostLobby.players.map(({ id }) => id), [host.id]);
+    assert.equal((await publicUpdate)[0].playerCount, 1);
+    assert.equal(roomManager.getPlayerRoom(target.id), null);
+    assert.deepEqual(roomManager.getRoom(created.roomCode).players.map(({ id }) => id), [host.id]);
+
+    assert.equal((await emitWithAck(target, "set-ready", { isReady: true })).error.code, "NOT_IN_ROOM");
+    assert.equal((await emitWithAck(target, "fake-answer:submit", {
+        sessionId: "stale-session",
+        roundId: "stale-round",
+        completion: "Late answer"
+    })).error.code, "NOT_IN_ROOM");
+});
+
 test("public-room updates follow host transfer and remove a room when its last player leaves", async (context) => {
     const harness = await createHarness(context);
     const browser = await harness.connect();

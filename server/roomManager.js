@@ -283,6 +283,17 @@ function setRoomVisibility(playerId, visibility) {
     return room;
 }
 
+function validatePlayerKick(hostId, targetPlayerId) {
+    const room = getPlayerRoom(hostId);
+    if (!room) throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
+    if (room.hostId !== hostId) throw new RoomError("NOT_HOST", "Only the host can remove a player.");
+    if (room.status !== "lobby") throw new RoomError("ROOM_NOT_IN_LOBBY", "Players can only be removed from the lobby.");
+    if (targetPlayerId === hostId) throw new RoomError("CANNOT_KICK_SELF", "The host cannot remove themselves.");
+    const target = room.players.find(({ id }) => id === targetPlayerId);
+    if (!target) throw new RoomError("TARGET_NOT_FOUND", "That player is no longer in this room.");
+    return { room, target };
+}
+
 function selectRoundCount(playerId, roundCount, expectedRevision) {
     const room = getPlayerRoom(playerId);
     if (!room) {
@@ -553,6 +564,7 @@ module.exports = {
     recoverRoomToLobby,
     selectGame,
     setRoomVisibility,
+    validatePlayerKick,
     selectRoundCount,
     setPlayerReady,
     startRoom,

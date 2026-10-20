@@ -99,6 +99,9 @@ export interface AppState {
   theme: ThemePreference;
   connectionStatus: ConnectionStatus;
   playerName: string;
+  joinRoomCode: string;
+  invitationMessage: string | null;
+  isInvitationBusy: boolean;
   landingTagline: string;
   localPlayerId: string | null;
   roomCode: string | null;
@@ -110,6 +113,9 @@ export interface AppState {
   availableGames: LobbyGame[];
   pendingGameId: string | null;
   pendingRoomVisibility: "public" | "private";
+  pendingKickPlayerId: string | null;
+  kickFeedback: string | null;
+  invitationFeedback: string | null;
   publicRooms: PublicRoom[];
   isLoadingPublicRooms: boolean;
   publicRoomsError: string | null;
@@ -155,6 +161,9 @@ export function createInitialAppState(): AppState {
     theme: readThemePreference(),
     connectionStatus: "connecting",
     playerName: "",
+    joinRoomCode: "",
+    invitationMessage: null,
+    isInvitationBusy: false,
     landingTagline: LANDING_TAGLINES[Math.floor(Math.random() * LANDING_TAGLINES.length)],
     localPlayerId: null,
     roomCode: null,
@@ -166,6 +175,9 @@ export function createInitialAppState(): AppState {
     availableGames: [],
     pendingGameId: null,
     pendingRoomVisibility: "private",
+    pendingKickPlayerId: null,
+    kickFeedback: null,
+    invitationFeedback: null,
     publicRooms: [],
     isLoadingPublicRooms: false,
     publicRoomsError: null,

@@ -10,6 +10,7 @@ import {
 
 export interface AppActions {
   onPlayerNameChange(name: string): void;
+  onRoomCodeChange(code: string): void;
   onCreateRoom(): void;
   onChooseGame(gameId: string): void;
   onChooseRoomVisibility(visibility: "public" | "private"): void;
@@ -23,6 +24,12 @@ export interface AppActions {
   onJoinRoom(roomCode: string): void;
   onLeaveRoom(): void;
   onSetRoomVisibility(visibility: "public" | "private"): void;
+  onRequestKickPlayer(playerId: string): void;
+  onConfirmKickPlayer(): void;
+  onCancelKickPlayer(): void;
+  onCopyRoomCode(): void;
+  onCopyInvitationLink(): void;
+  onShareInvitationLink(): void;
   onSetReady(isReady: boolean): void;
   onSelectGame(gameId: string): void;
   onSelectRoundCount(roundCount: 5 | 7 | 10, revision: number): void;
@@ -164,7 +171,13 @@ function renderHome(
   roomCodeInput.autocomplete = "off";
   roomCodeInput.maxLength = 4;
   roomCodeInput.placeholder = "CODE";
+  roomCodeInput.value = state.joinRoomCode;
+  roomCodeInput.required = true;
+  roomCodeInput.inputMode = "text";
   roomCodeInput.setAttribute("aria-label", "Room code");
+  roomCodeInput.addEventListener("input", () => {
+    actions.onRoomCodeChange(roomCodeInput.value);
+  });
 
   const joinButton = createElement("button", "secondary-button", "Join room");
   joinButton.type = "button";
@@ -182,6 +195,11 @@ function renderHome(
   const actionsPanel = createElement("div", "room-actions");
   actionsPanel.append(createPanel, joinPanel);
   screen.append(actionsPanel);
+  if (state.invitationMessage) {
+    const invitationMessage = createElement("p", "invitation-message", state.invitationMessage);
+    invitationMessage.setAttribute("role", state.joinRoomCode ? "status" : "alert");
+    screen.append(invitationMessage);
+  }
   const browseButton = createElement("button", "secondary-button browse-public-rooms", "Browse public rooms");
   browseButton.type = "button";
   browseButton.disabled = state.connectionStatus !== "connected" || state.isBusy;
@@ -362,6 +380,21 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   const heading = createElement("h1", undefined, "Lobby");
   const roomCode = createElement("p", "lobby-room-code", lobby.roomCode);
   roomCode.setAttribute("aria-label", `Room code ${lobby.roomCode}`);
+  const roomCodePanel = createElement("div", "lobby-room-code-panel");
+  roomCodePanel.append(roomCode);
+  const invitationActions = createElement("div", "button-group invitation-actions");
+  for (const [label, action] of [
+    ["Copy room code", actions.onCopyRoomCode],
+    ["Copy invite link", actions.onCopyInvitationLink],
+    ["Share invite", actions.onShareInvitationLink],
+  ] as const) {
+    const button = createElement("button", "secondary-button invitation-button", label);
+    button.type = "button";
+    button.disabled = state.isBusy || state.isInvitationBusy;
+    button.addEventListener("click", action);
+    invitationActions.append(button);
+  }
+  roomCodePanel.append(invitationActions);
   const playerCount = createElement(
     "p",
     "player-count",
@@ -471,6 +504,15 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     if (player.id === state.localPlayerId) {
       item.classList.add("local-player");
     }
+    if (isHost && lobby.status === "lobby" && !player.isHost) {
+      const kickButton = createElement("button", "secondary-button kick-player-button", "Remove");
+      kickButton.type = "button";
+      kickButton.disabled = state.isBusy;
+      kickButton.setAttribute("aria-label", `Remove ${player.name} from room`);
+      kickButton.dataset.playerId = player.id;
+      kickButton.addEventListener("click", () => actions.onRequestKickPlayer(player.id));
+      item.append(kickButton);
+    }
     playerList.append(item);
   }
 
@@ -490,7 +532,19 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     actions.onSetReady(!localPlayer?.isReady);
   });
 
-  screen.append(heading, roomCode, playerCount, gameSelection, visibilityField, readinessMessage, playerList);
+  screen.append(heading, roomCodePanel, playerCount, gameSelection, visibilityField, readinessMessage, playerList);
+  if (state.invitationFeedback) {
+    const feedback = createElement("p", "lobby-feedback", state.invitationFeedback);
+    feedback.setAttribute("role", "status");
+    screen.append(feedback);
+  }
+  if (state.kickFeedback) {
+    const feedback = createElement("p", "lobby-feedback", state.kickFeedback);
+    feedback.setAttribute("role", "status");
+    screen.append(feedback);
+  }
+  const invitationError = createErrorMessage(state.errorMessage);
+  if (invitationError) screen.append(invitationError);
 
   const roundsField = createElement("fieldset", "round-selector");
   roundsField.append(createElement("legend", "field-label", "Rounds"));
@@ -512,6 +566,56 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   }
   roundsField.append(roundOptions);
   screen.append(roundsField);
+
+  const kickTarget = lobby.players.find(({ id }) => id === state.pendingKickPlayerId && id !== state.localPlayerId);
+  if (isHost && lobby.status === "lobby" && kickTarget) {
+    const backdrop = createElement("div", "kick-confirmation-backdrop");
+    const dialog = createElement("section", "kick-confirmation");
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-labelledby", "kick-confirmation-title");
+    dialog.setAttribute("aria-describedby", "kick-confirmation-description");
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        actions.onCancelKickPlayer();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const controls = Array.from(dialog.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"));
+      if (controls.length === 0) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && dialog.ownerDocument.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && dialog.ownerDocument.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    });
+    const title = createElement("h2", undefined, "Remove player?");
+    title.id = "kick-confirmation-title";
+    const description = createElement("p", "screen-description", `Remove ${kickTarget.name} from this room? They may rejoin if they have the room code.`);
+    description.id = "kick-confirmation-description";
+    dialog.append(title, description);
+    const confirmationActions = createElement("div", "button-group kick-confirmation-actions");
+    const cancel = createElement("button", "secondary-button", "Cancel");
+    cancel.type = "button";
+    cancel.disabled = state.isBusy;
+    cancel.id = "kick-confirmation-cancel";
+    cancel.addEventListener("click", actions.onCancelKickPlayer);
+    const confirm = createElement("button", "primary-button", "Remove player");
+    confirm.type = "button";
+    confirm.disabled = state.isBusy;
+    confirm.id = "kick-confirmation-submit";
+    confirm.setAttribute("aria-busy", String(state.isBusy));
+    confirm.addEventListener("click", actions.onConfirmKickPlayer);
+    confirmationActions.append(cancel, confirm);
+    dialog.append(confirmationActions);
+    backdrop.append(dialog);
+    screen.append(backdrop);
+  }
 
   const lobbyActions = createElement("div", "button-group lobby-actions");
   if (lobby.status === "lobby" && !isHost) {

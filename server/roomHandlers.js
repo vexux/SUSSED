@@ -56,7 +56,7 @@ async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
     const updatedRoom = roomManager.removePlayer(socket.id);
     socket.data.roomCode = undefined;
     let leavePromise = Promise.resolve(null);
-    if (leaveSocket) {
+    if (leaveSocket && typeof socket.leave === "function") {
         try {
             leavePromise = Promise.resolve(socket.leave(room.code))
                 .then(() => null, (error) => getOperationError(error));
@@ -276,6 +276,50 @@ function registerRoomHandlers(io, socket) {
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
         }
+    });
+
+    socket.on("kick-player", async (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) return;
+        if (
+            !isRecord(payload) ||
+            Object.keys(payload).length !== 1 ||
+            typeof payload.targetPlayerId !== "string" ||
+            payload.targetPlayerId.length === 0
+        ) {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "A target player ID is required.");
+            return;
+        }
+
+        let target;
+        let room;
+        try {
+            ({ room, target } = roomManager.validatePlayerKick(socket.id, payload.targetPlayerId));
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+            return;
+        }
+
+        const targetSocket = io.sockets.sockets.get(target.id);
+        if (targetSocket) {
+            targetSocket.emit("removed-from-room", {
+                roomCode: room.code,
+                reason: "kicked",
+                message: "The host removed you from this room.",
+            });
+        }
+
+        // Use the same departure reconciliation as leave/disconnect so public
+        // discovery, host transfer, results viewers, and room cleanup stay in
+        // sync. A disconnected but not-yet-reconciled socket still loses room
+        // membership and game participation.
+        const departingSocket = targetSocket ?? { id: target.id, data: {} };
+        const result = await handlePlayerDeparture(io, departingSocket, { leaveSocket: true });
+        if (result?.leaveError) {
+            acknowledgeError(acknowledge, result.leaveError.code, result.leaveError.message);
+            return;
+        }
+        acknowledge({ kicked: true, playerId: target.id });
     });
 
     socket.on("leave-room", async (payload, acknowledge) => {

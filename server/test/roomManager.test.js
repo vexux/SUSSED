@@ -173,6 +173,23 @@ test("visibility defaults to private and only the host can change it in the lobb
     assert.throws(() => roomManager.setRoomVisibility(room.hostId, "private"), { code: "ROOM_NOT_IN_LOBBY" });
 });
 
+test("kick validation is host-only, lobby-only, rejects self and safely handles stale targets", (context) => {
+    const room = roomManager.createRoom("kick-host", "Host");
+    context.after(() => roomManager.removeRoom(room.code));
+    roomManager.joinRoom(room.code, "kick-guest", "Guest");
+
+    assert.equal(roomManager.validatePlayerKick("kick-host", "kick-guest").target.name, "Guest");
+    assert.throws(() => roomManager.validatePlayerKick("kick-guest", "kick-host"), { code: "NOT_HOST" });
+    assert.throws(() => roomManager.validatePlayerKick("kick-host", "kick-host"), { code: "CANNOT_KICK_SELF" });
+    assert.throws(() => roomManager.validatePlayerKick("kick-host", "stale-player"), { code: "TARGET_NOT_FOUND" });
+
+    roomManager.removePlayer("kick-guest");
+    assert.throws(() => roomManager.validatePlayerKick("kick-host", "kick-guest"), { code: "TARGET_NOT_FOUND" });
+    roomManager.joinRoom(room.code, "kick-guest-2", "Guest Two");
+    room.status = "starting";
+    assert.throws(() => roomManager.validatePlayerKick("kick-host", "kick-guest-2"), { code: "ROOM_NOT_IN_LOBBY" });
+});
+
 test("public discovery exposes opaque references only and public joins revalidate visibility and capacity", (context) => {
     const room = roomManager.createRoom("public-host", "Secret Host", undefined, "public");
     context.after(() => roomManager.removeRoom(room.code));

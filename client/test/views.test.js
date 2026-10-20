@@ -66,7 +66,7 @@ class FakeElement {
     this.selectionEnd = end;
     this.selectionDirection = direction;
   }
-  dispatch(type) { this.listeners[type]?.({ preventDefault() {}, stopPropagation() {} }); }
+  dispatch(type, extra = {}) { this.listeners[type]?.({ preventDefault() {}, stopPropagation() {}, ...extra }); }
   query(predicate) {
     if (predicate(this)) return this;
     for (const child of this.children) {
@@ -283,6 +283,7 @@ test("landing page selects a tagline once and keeps its form interactions usable
         onPlayerNameChange(name) { state.playerName = name; state.errorMessage = null; state.errorCode = null; calls.names.push(name); },
         onCreateRoom() { calls.create += 1; },
         onJoinRoom(code) { calls.join.push(code); },
+        onRoomCodeChange(code) { state.joinRoomCode = code.toUpperCase(); },
         onBrowsePublicRooms() { calls.browse = true; },
       };
       const root = new FakeElement("root");
@@ -312,6 +313,101 @@ test("landing page selects a tagline once and keeps its form interactions usable
     } finally {
       Math.random = originalRandom;
     }
+  });
+});
+
+test("invitation code is prefilled without automatically joining and remains editable", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.connectionStatus = "connected";
+    state.joinRoomCode = "ZING";
+    state.invitationMessage = "Invitation code ready. Enter your name, then join the room.";
+    let joins = 0;
+    const actions = {
+      onRoomCodeChange(code) { state.joinRoomCode = code.toUpperCase(); },
+      onJoinRoom() { joins += 1; },
+    };
+    const root = new FakeElement("root");
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.id === "room-code").value, "ZING");
+    assert.equal(root.query((element) => element.className.includes("invitation-message")).attributes.role, "status");
+    assert.equal(joins, 0);
+    const code = root.query((element) => element.id === "room-code");
+    code.value = "beam";
+    code.dispatch("input");
+    assert.equal(state.joinRoomCode, "BEAM");
+    code.selectionStart = 2;
+    code.selectionEnd = 2;
+    globalThis.document.activeElement = code;
+    state.errorMessage = "A room update arrived.";
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.id === "room-code"), code);
+    assert.equal(globalThis.document.activeElement, code);
+    assert.equal(code.value, "beam");
+    assert.equal(code.selectionStart, 2);
+    root.query((element) => element.textContent === "Join room").dispatch("click");
+    assert.equal(joins, 1);
+  });
+});
+
+test("malformed invitation information is announced and leaves manual joining available", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.connectionStatus = "connected";
+    state.invitationMessage = "This invitation link has an invalid room code. You can enter a room code manually.";
+    const root = new FakeElement("root");
+    renderApp(root, state, createActions(), {}, {});
+    assert.equal(root.query((element) => element.className.includes("invitation-message")).attributes.role, "alert");
+    assert.ok(root.query((element) => element.id === "room-code"));
+    assert.equal(root.query((element) => element.textContent === "Join room").disabled, false);
+  });
+});
+
+test("host lobby exposes invitation and confirmed kick actions, while guests have no kick controls", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "lobby";
+    state.localPlayerId = "host";
+    state.lobby = {
+      roomCode: "ZING", revision: 1, playerCount: 2, readinessStatus: "waiting-for-ready",
+      status: "lobby", visibility: "private", maxPlayers: 8, selectedGameId: "fact-or-cap", selectedRoundCount: 5,
+      reminderSessionId: null,
+      selectedGame: { id: "fact-or-cap", displayName: "Fact or Cap", description: "Game", minPlayers: 2, maxPlayers: 8 },
+      availableGames: [],
+      players: [
+        { id: "host", name: "Host", isHost: true, isReady: false, isInGame: false },
+        { id: "guest", name: "Guest", isHost: false, isReady: false, isInGame: false },
+      ],
+    };
+    const calls = [];
+    const actions = new Proxy({}, { get: (_target, name) => (...args) => calls.push([name, ...args]) });
+    const root = new FakeElement("root");
+    renderApp(root, state, actions, {}, {});
+    for (const label of ["Copy room code", "Copy invite link", "Share invite"]) {
+      root.query((element) => element.tagName === "button" && element.textContent === label).dispatch("click");
+    }
+    const guestKick = root.query((element) => element.getAttribute("aria-label") === "Remove Guest from room");
+    assert.ok(guestKick);
+    assert.equal(root.query((element) => element.getAttribute("aria-label") === "Remove Host from room"), null);
+    guestKick.dispatch("click");
+    assert.deepEqual(calls.map(([name]) => name), ["onCopyRoomCode", "onCopyInvitationLink", "onShareInvitationLink", "onRequestKickPlayer"]);
+    assert.equal(calls.at(-1)[1], "guest");
+
+    state.pendingKickPlayerId = "guest";
+    renderApp(root, state, actions, {}, {});
+    const dialog = root.query((element) => element.getAttribute("role") === "dialog");
+    assert.equal(dialog.attributes["aria-modal"], "true");
+    assert.equal(dialog.attributes["aria-describedby"], "kick-confirmation-description");
+    root.query((element) => element.textContent === "Cancel").dispatch("click");
+    dialog.dispatch("keydown", { key: "Escape" });
+    root.query((element) => element.textContent === "Remove player").dispatch("click");
+    assert.equal(calls.some(([name]) => name === "onCancelKickPlayer"), true);
+    assert.equal(calls.some(([name]) => name === "onConfirmKickPlayer"), true);
+
+    state.localPlayerId = "guest";
+    state.pendingKickPlayerId = null;
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.className.includes("kick-player-button")), null);
   });
 });
 
