@@ -11,6 +11,10 @@ import {
 export interface AppActions {
   onPlayerNameChange(name: string): void;
   onCreateRoom(): void;
+  onChooseGame(gameId: string): void;
+  onConfirmCreateRoom(gameId: string): void;
+  onBackToHome(): void;
+  onToggleTheme(): void;
   onJoinRoom(roomCode: string): void;
   onLeaveRoom(): void;
   onSetReady(isReady: boolean): void;
@@ -61,11 +65,23 @@ function createStatus(state: AppState): HTMLElement {
   return status;
 }
 
-function createHeader(state: AppState): HTMLElement {
+function createHeader(state: AppState, actions: AppActions): HTMLElement {
   const header = createElement("header", "app-header");
+  const brand = createElement("span", "brand", "SUSSED!");
+  const controls = createElement("div", "header-controls");
+  const themeButton = createElement(
+    "button",
+    "theme-toggle",
+    state.theme === "dark" ? "Light mode" : "Dark mode",
+  );
+  themeButton.type = "button";
+  themeButton.setAttribute("aria-label", `Switch to ${state.theme === "dark" ? "light" : "dark"} theme`);
+  themeButton.setAttribute("aria-pressed", String(state.theme === "light"));
+  themeButton.addEventListener("click", actions.onToggleTheme);
+  controls.append(createStatus(state), themeButton);
   header.append(
-    createElement("span", "brand", "SUSSED!"),
-    createStatus(state),
+    brand,
+    controls,
   );
   return header;
 }
@@ -84,7 +100,12 @@ function renderHome(
   actions: AppActions,
 ): HTMLElement {
   const screen = createElement("section", "app-screen home-screen");
-  const title = createElement("h1", undefined, "SUSSED!");
+  const title = createElement("h1", "landing-wordmark");
+  title.setAttribute("aria-label", "SUSSED!");
+  title.append(
+    createElement("span", undefined, "SUSSED"),
+    createElement("span", "wordmark-exclamation", "!"),
+  );
   const introduction = createElement(
     "p",
     "screen-description landing-tagline",
@@ -117,14 +138,16 @@ function renderHome(
     }
   }
 
-  const createButton = createElement("button", "primary-button", "Create room");
+  const createButton = createElement("button", "primary-button", "Create a room");
   createButton.type = "button";
-  createButton.disabled =
-    state.connectionStatus !== "connected" || state.isBusy;
+  createButton.disabled = state.connectionStatus !== "connected" || state.isBusy || state.availableGames.length === 0;
   createButton.addEventListener("click", actions.onCreateRoom);
 
   const createPanel = createElement("div", "action-panel");
-  createPanel.append(createButton);
+  createPanel.append(
+    createButton,
+    createElement("p", "helper-text", state.availableGames.length === 0 ? "Loading games…" : "Choose a game on the next screen."),
+  );
 
   const joinLabel = createElement("label", "field-label", "Room code");
   joinLabel.htmlFor = "room-code";
@@ -162,6 +185,76 @@ function renderHome(
   if (error) {
     screen.append(error);
   }
+  return screen;
+}
+
+function createGameCardArt(index: number): HTMLElement {
+  const art = createElement("div", `game-card-art game-card-art-${index % 3}`);
+  art.setAttribute("aria-hidden", "true");
+  art.append(
+    createElement("span", "game-art-orbit"),
+    createElement("span", "game-art-core"),
+    createElement("span", "game-art-spark game-art-spark-one"),
+    createElement("span", "game-art-spark game-art-spark-two"),
+  );
+  return art;
+}
+
+function renderGameSelection(state: AppState, actions: AppActions): HTMLElement {
+  const screen = createElement("section", "app-screen game-selection-screen");
+  screen.append(
+    createElement("p", "eyebrow", "MAKE IT A GAME NIGHT"),
+    createElement("h1", "selection-heading", "Choose your game"),
+    createElement("p", "screen-description", "Pick the kind of trouble you want to get into."),
+  );
+
+  const cards = createElement("div", "game-card-grid");
+  state.availableGames.forEach((game, index) => {
+    const card = createElement("article", `game-card${state.pendingGameId === game.id ? " selected" : ""}`);
+    card.dataset.gameId = game.id;
+    card.append(createGameCardArt(index));
+    const details = createElement("div", "game-card-details");
+    details.append(
+      createElement("h2", "game-card-title", game.displayName),
+      createElement("p", "game-card-description", game.description),
+      createElement(
+        "p",
+        "game-card-player-count",
+        game.maxPlayers === undefined
+          ? `${game.minPlayers}+ players`
+          : `${game.minPlayers}–${game.maxPlayers} players`,
+      ),
+    );
+    const playButton = createElement(
+      "button",
+      state.pendingGameId === game.id ? "secondary-button game-card-action" : "primary-button game-card-action",
+      state.pendingGameId === game.id ? "Selected" : "Play this game",
+    );
+    playButton.type = "button";
+    playButton.setAttribute("aria-pressed", String(state.pendingGameId === game.id));
+    playButton.addEventListener("click", () => actions.onChooseGame(game.id));
+    details.append(playButton);
+    card.append(details);
+    cards.append(card);
+  });
+  screen.append(cards);
+
+  const actionsPanel = createElement("div", "selection-actions");
+  const backButton = createElement("button", "text-button", "Back");
+  backButton.type = "button";
+  backButton.addEventListener("click", actions.onBackToHome);
+  const createButton = createElement("button", "primary-button create-selected-game", "Create room");
+  createButton.type = "button";
+  createButton.disabled = !state.pendingGameId || state.isBusy || state.connectionStatus !== "connected";
+  createButton.addEventListener("click", () => {
+    if (state.pendingGameId) actions.onConfirmCreateRoom(state.pendingGameId);
+  });
+  actionsPanel.append(backButton, createButton);
+  screen.append(actionsPanel);
+
+  if (state.isBusy) screen.append(createElement("p", "status-message", "Creating your room…"));
+  const error = createErrorMessage(state.errorMessage);
+  if (error) screen.append(error);
   return screen;
 }
 
@@ -586,15 +679,17 @@ export function renderApp(
   bruhWtfSubmission: BruhWtfViewState,
 ): void {
   const shell = createElement("main", "app-shell");
-  shell.append(createHeader(state));
+  shell.append(createHeader(state, actions));
   const screen =
     state.currentView === "starting"
       ? renderStarting(state)
       : state.currentView === "game"
         ? renderGame(state, actions, fakeAnswerSubmission, bruhWtfSubmission)
         : state.currentView === "lobby"
-        ? renderLobby(state, actions)
-        : renderHome(state, actions);
+          ? renderLobby(state, actions)
+          : state.currentView === "game-selection"
+            ? renderGameSelection(state, actions)
+            : renderHome(state, actions);
   screen.dataset.renderScope = getRenderScope(state);
   shell.append(screen);
   if (state.resultsReminderSessionId) {

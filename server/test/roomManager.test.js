@@ -33,6 +33,17 @@ test("creates rooms with unique codes and the creator as host and first player",
     }
 });
 
+test("creates a room with a registered selected game and rejects unknown game IDs", (context) => {
+    const room = roomManager.createRoom("selected-game-host", "Host", "fact-or-cap-anime");
+    context.after(() => roomManager.removeRoom(room.code));
+    assert.equal(room.selectedGameId, "fact-or-cap-anime");
+    assert.throws(
+        () => roomManager.createRoom("invalid-game-host", "Host", "not-a-game"),
+        { code: "GAME_NOT_FOUND" }
+    );
+    assert.equal(roomManager.getPlayerRoom("invalid-game-host"), null);
+});
+
 test("room-code pool is unique, four letters, and reports exhaustion without replacing rooms", (context) => {
     const rooms = [];
     context.after(() => {

@@ -1,7 +1,9 @@
 import "./style.css";
 import {
   createInitialAppState,
+  persistThemePreference,
   type GameSessionState,
+  type LobbyGame,
   type LobbyState,
 } from "./appState";
 import { socket } from "./socket";
@@ -45,6 +47,11 @@ interface RoomOperationResponse {
   };
 }
 
+interface GameListResponse {
+  games?: LobbyGame[];
+  error?: { code: string; message: string };
+}
+
 const app = document.querySelector<HTMLElement>("#app");
 if (!app) {
   throw new Error("The application root element was not found.");
@@ -53,6 +60,9 @@ const appRoot: HTMLElement = app;
 
 const state = createInitialAppState();
 state.connectionStatus = socket.connected ? "connected" : "connecting";
+document.documentElement.dataset.theme = state.theme;
+const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+if (themeColor) themeColor.content = state.theme === "dark" ? "#17131c" : "#f7f4fa";
 let fakeAnswerHasSubmitted = false;
 let fakeAnswerIsSubmitting = false;
 let fakeAnswerErrorMessage: string | null = null;
@@ -183,6 +193,18 @@ function render(): void {
   );
 }
 
+function requestAvailableGames(): void {
+  socket.timeout(5000).emit(
+    "list-games",
+    (error: Error | null, response?: GameListResponse) => {
+      if (error || !response || !Array.isArray(response.games)) return;
+      state.availableGames = response.games;
+      if (state.lobby) state.lobby.availableGames = response.games;
+      render();
+    },
+  );
+}
+
 function showOperationError(response: RoomOperationResponse): void {
   state.isBusy = false;
   state.errorCode = response.error?.code ?? null;
@@ -273,6 +295,8 @@ function applyLobbyState(lobby: LobbyState): void {
   state.localPlayerId = localPlayer.id;
   state.playerName = localPlayer.name;
   state.lobby = lobby;
+  state.availableGames = lobby.availableGames;
+  state.pendingGameId = null;
   state.errorMessage = null;
   state.errorCode = null;
   state.isBusy = false;
@@ -458,13 +482,28 @@ const actions: AppActions = {
     state.errorCode = null;
   },
   onCreateRoom() {
+    state.currentView = "game-selection";
+    state.pendingGameId = null;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+  },
+  onChooseGame(gameId) {
+    if (!state.availableGames.some((game) => game.id === gameId)) return;
+    state.pendingGameId = gameId;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+  },
+  onConfirmCreateRoom(gameId) {
+    if (gameId !== state.pendingGameId || !state.availableGames.some((game) => game.id === gameId)) return;
     state.errorMessage = null;
     state.errorCode = null;
     state.isBusy = true;
     render();
     emitRoomOperation(
       "create-room",
-      { playerName: state.playerName },
+      { playerName: state.playerName, gameId },
       (response) => {
         if (response.error) {
           showOperationError(response);
@@ -474,6 +513,20 @@ const actions: AppActions = {
         render();
       },
     );
+  },
+  onBackToHome() {
+    state.currentView = "home";
+    state.pendingGameId = null;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+  },
+  onToggleTheme() {
+    state.theme = state.theme === "dark" ? "light" : "dark";
+    persistThemePreference(state.theme);
+    document.documentElement.dataset.theme = state.theme;
+    if (themeColor) themeColor.content = state.theme === "dark" ? "#17131c" : "#f7f4fa";
+    render();
   },
   onJoinRoom(roomCode) {
     state.errorMessage = null;
@@ -973,6 +1026,7 @@ socket.on("connect", () => {
   connectionWasLost = false;
   hasConnectedOnce = true;
   render();
+  requestAvailableGames();
 });
 
 socket.on("disconnect", () => {
@@ -1002,3 +1056,4 @@ socket.on("connect_error", () => {
 });
 
 render();
+if (socket.connected) requestAvailableGames();

@@ -514,6 +514,36 @@ test("starts the server and keeps the legacy create-room acknowledgement", async
     assert.ok(serverSocket.rooms.has(response.roomCode));
 });
 
+test("lists registered games and creates a room with the requested game before its first lobby update", async (context) => {
+    const harness = await createHarness(context);
+    const client = await harness.connect();
+    const list = await emitWithAck(client, "list-games", undefined);
+    assert.deepEqual(list.games.map(({ id }) => id), [
+        "fact-or-cap",
+        "fact-or-cap-anime",
+        "bruh-wtf"
+    ]);
+
+    const firstLobby = waitForLobby(client);
+    const created = await emitWithAck(client, "create-room", {
+        playerName: "Anime Host",
+        gameId: "fact-or-cap-anime"
+    });
+    harness.trackRoom(created.roomCode);
+    const lobby = await firstLobby;
+    assert.equal(lobby.selectedGameId, "fact-or-cap-anime");
+    assert.equal(roomManager.getRoom(created.roomCode).selectedGameId, "fact-or-cap-anime");
+
+    const invalidClient = await harness.connect();
+    const rejected = await emitWithAck(invalidClient, "create-room", {
+        playerName: "Another Host",
+        gameId: "not-a-registered-game"
+    });
+    assert.equal(rejected.error.code, "GAME_NOT_FOUND");
+    assert.equal(roomManager.getPlayerRoom(invalidClient.id), null);
+    assert.equal(roomManager.getRoom(lobby.roomCode).selectedGameId, "fact-or-cap-anime");
+});
+
 test("serves a minimal HTTP health endpoint without exposing game state", async (context) => {
     const harness = await createHarness(context);
     const address = harness.io.httpServer.address();

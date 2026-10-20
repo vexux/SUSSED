@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createInitialAppState, LANDING_TAGLINES } from "../src/appState.ts";
+import {
+  createInitialAppState,
+  LANDING_TAGLINES,
+  persistThemePreference,
+  readThemePreference,
+  THEME_STORAGE_KEY,
+} from "../src/appState.ts";
 import { renderApp } from "../src/views.ts";
 
 class FakeElement {
@@ -269,6 +275,9 @@ test("landing page selects a tagline once and keeps its form interactions usable
       assert.equal(createInitialAppState().landingTagline, LANDING_TAGLINES[0]);
       Math.random = () => 0.5;
 
+      state.availableGames = [
+        { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2 },
+      ];
       const calls = { create: 0, join: [], names: [] };
       const actions = {
         onPlayerNameChange(name) { state.playerName = name; state.errorMessage = null; state.errorCode = null; calls.names.push(name); },
@@ -291,7 +300,7 @@ test("landing page selects a tagline once and keeps its form interactions usable
       assert.equal(state.landingTagline, selected);
       assert.equal(root.query((element) => element.className.includes("landing-tagline")).textContent, selected);
       assert.equal(root.query((element) => element.id === "player-name").value, "Alex");
-      root.query((element) => element.textContent === "Create room").dispatch("click");
+      root.query((element) => element.textContent === "Create a room").dispatch("click");
       root.query((element) => element.id === "room-code").value = "ABCD";
       root.query((element) => element.textContent === "Join room").dispatch("click");
       assert.equal(calls.create, 1);
@@ -300,6 +309,85 @@ test("landing page selects a tagline once and keeps its form interactions usable
     } finally {
       Math.random = originalRandom;
     }
+  });
+});
+
+test("game selection is registry-driven and selecting a card does not create a room", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.connectionStatus = "connected";
+    state.currentView = "game-selection";
+    state.availableGames = [
+      { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2 },
+      { id: "fact-or-cap-anime", displayName: "Fact or Cap Anime", description: "Anime facts.", minPlayers: 2 },
+      { id: "future-game", displayName: "Future Game", description: "A registered future game.", minPlayers: 4, maxPlayers: 8 },
+    ];
+    const calls = { selected: [], created: [] };
+    const actions = {
+      onChooseGame(gameId) { state.pendingGameId = gameId; calls.selected.push(gameId); },
+      onConfirmCreateRoom(gameId) { calls.created.push(gameId); },
+      onBackToHome() {},
+    };
+    const root = new FakeElement("root");
+    const render = () => renderApp(root, state, actions, {}, {});
+    render();
+
+    const cards = root.query((element) => element.className.includes("game-card-grid"));
+    assert.equal(cards.children.length, 3);
+    assert.deepEqual(cards.children.map((card) => card.dataset.gameId), [
+      "fact-or-cap", "fact-or-cap-anime", "future-game",
+    ]);
+    assert.match(root.text, /Future Game/u);
+    assert.match(root.text, /4–8 players/u);
+    const create = root.query((element) => element.className.includes("create-selected-game"));
+    assert.equal(create.disabled, true);
+
+    const animePlay = root.query((element) => element.tagName === "button" && element.textContent === "Play this game" && element.parentElement.parentElement.dataset.gameId === "fact-or-cap-anime");
+    animePlay.dispatch("click");
+    assert.deepEqual(calls.selected, ["fact-or-cap-anime"]);
+    assert.deepEqual(calls.created, []);
+    state.pendingGameId = "fact-or-cap-anime";
+    render();
+    assert.equal(root.query((element) => element.className.includes("create-selected-game")).disabled, false);
+    root.query((element) => element.className.includes("create-selected-game")).dispatch("click");
+    assert.deepEqual(calls.created, ["fact-or-cap-anime"]);
+  });
+});
+
+test("theme preference defaults safely, persists, and the header exposes an accessible toggle", () => {
+  const values = new Map();
+  const storage = {
+    getItem(key) { return values.get(key) ?? null; },
+    setItem(key, value) { values.set(key, value); },
+  };
+  assert.equal(readThemePreference(storage), "dark");
+  values.set(THEME_STORAGE_KEY, "invalid");
+  assert.equal(readThemePreference(storage), "dark");
+  persistThemePreference("light", storage);
+  assert.equal(readThemePreference(storage), "light");
+  assert.doesNotThrow(() => readThemePreference({ getItem() { throw new Error("storage blocked"); }, setItem() {} }));
+
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.theme = "dark";
+    let toggles = 0;
+    const actions = {
+      onToggleTheme() {
+        toggles += 1;
+        state.theme = state.theme === "dark" ? "light" : "dark";
+        persistThemePreference(state.theme, storage);
+      },
+    };
+    const root = new FakeElement("root");
+    renderApp(root, state, actions, {}, {});
+    const button = root.query((element) => element.className.includes("theme-toggle"));
+    assert.equal(button.attributes["aria-label"], "Switch to light theme");
+    assert.equal(button.attributes["aria-pressed"], "false");
+    button.dispatch("click");
+    assert.equal(toggles, 1);
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.className.includes("theme-toggle")).attributes["aria-label"], "Switch to dark theme");
+    assert.equal(readThemePreference(storage), "light");
   });
 });
 

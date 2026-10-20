@@ -1,6 +1,41 @@
-export type AppView = "home" | "lobby" | "starting" | "game";
+export type AppView = "home" | "game-selection" | "lobby" | "starting" | "game";
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 export type RoomStatus = "lobby" | "starting";
+export type ThemePreference = "dark" | "light";
+
+export const THEME_STORAGE_KEY = "sussed-theme";
+
+type ThemeStorage = Pick<Storage, "getItem" | "setItem">;
+
+function getBrowserStorage(): ThemeStorage | undefined {
+  try {
+    return globalThis.localStorage;
+  } catch {
+    return undefined;
+  }
+}
+
+export function readThemePreference(
+  storage: ThemeStorage | undefined = getBrowserStorage(),
+): ThemePreference {
+  try {
+    const stored = storage?.getItem(THEME_STORAGE_KEY);
+    return stored === "light" ? "light" : "dark";
+  } catch {
+    return "dark";
+  }
+}
+
+export function persistThemePreference(
+  theme: ThemePreference,
+  storage: ThemeStorage | undefined = getBrowserStorage(),
+): void {
+  try {
+    storage?.setItem(THEME_STORAGE_KEY, theme);
+  } catch {
+    // Theme choice still applies for this page when storage is unavailable.
+  }
+}
 
 export interface LobbyPlayer {
   id: string;
@@ -49,6 +84,7 @@ export interface GameSessionState {
 
 export interface AppState {
   currentView: AppView;
+  theme: ThemePreference;
   connectionStatus: ConnectionStatus;
   playerName: string;
   landingTagline: string;
@@ -59,6 +95,8 @@ export interface AppState {
   errorMessage: string | null;
   errorCode: string | null;
   isBusy: boolean;
+  availableGames: LobbyGame[];
+  pendingGameId: string | null;
   resultsReminderSessionId: string | null;
   isSendingResultsReminder: boolean;
   resultsReminderFeedback: string | null;
@@ -98,6 +136,7 @@ export const LANDING_TAGLINES = [
 export function createInitialAppState(): AppState {
   return {
     currentView: "home",
+    theme: readThemePreference(),
     connectionStatus: "connecting",
     playerName: "",
     landingTagline: LANDING_TAGLINES[Math.floor(Math.random() * LANDING_TAGLINES.length)],
@@ -108,6 +147,8 @@ export function createInitialAppState(): AppState {
     errorMessage: null,
     errorCode: null,
     isBusy: false,
+    availableGames: [],
+    pendingGameId: null,
     resultsReminderSessionId: null,
     isSendingResultsReminder: false,
     resultsReminderFeedback: null,

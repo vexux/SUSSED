@@ -1,5 +1,6 @@
 const roomManager = require("./roomManager");
 const gameManager = require("./gameManager");
+const gameRegistry = require("./gameRegistry");
 const factOrCapSocketHandlers = require("./games/fact-or-cap/socketHandlers");
 const bruhWtfSocketHandlers = require("./games/bruh-wtf/socketHandlers");
 
@@ -107,6 +108,12 @@ function registerRoomHandlers(io, socket) {
     factOrCapSocketHandlers.registerSocketHandlers(io, socket);
     bruhWtfSocketHandlers.registerSocketHandlers(io, socket);
 
+    socket.on("list-games", (acknowledge) => {
+        if (typeof acknowledge === "function") {
+            acknowledge({ games: gameRegistry.list() });
+        }
+    });
+
     socket.on("create-room", async (payload, acknowledge) => {
         const isLegacyCall = typeof payload === "function";
         if (isLegacyCall) {
@@ -126,10 +133,13 @@ function registerRoomHandlers(io, socket) {
             : isRecord(payload)
               ? payload.playerName
               : undefined;
+        const gameId = isRecord(payload) && Object.hasOwn(payload, "gameId")
+            ? payload.gameId
+            : undefined;
 
         let room;
         try {
-            room = roomManager.createRoom(socket.id, playerName);
+            room = roomManager.createRoom(socket.id, playerName, gameId);
             await socket.join(room.code);
         } catch (error) {
             if (room) {

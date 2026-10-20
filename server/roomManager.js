@@ -81,8 +81,11 @@ function generateRoomCode() {
     throw new RoomError("NO_ROOM_CODES", "No room codes are available.");
 }
 
-function createRoom(playerId, playerName) {
+function createRoom(playerId, playerName, selectedGameId = gameRegistry.DEFAULT_GAME_ID) {
     validatePlayerId(playerId);
+    if (typeof selectedGameId !== "string" || !gameRegistry.get(selectedGameId)) {
+        throw new RoomError("GAME_NOT_FOUND", "That game is not available.");
+    }
     if (playerRooms.has(playerId)) {
         throw new RoomError("ALREADY_IN_ROOM", "You are already in a room.");
     }
@@ -96,7 +99,7 @@ function createRoom(playerId, playerName) {
         revision: 0,
         hostId: playerId,
         status: "lobby",
-        selectedGameId: gameRegistry.DEFAULT_GAME_ID,
+        selectedGameId,
         selectedRoundCount: DEFAULT_ROUND_COUNT,
         players: [host],
         finishedMatches: new Map(),
