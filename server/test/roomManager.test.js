@@ -44,6 +44,43 @@ test("creates a room with a registered selected game and rejects unknown game ID
     assert.equal(roomManager.getPlayerRoom("invalid-game-host"), null);
 });
 
+test("changing the selected game is host-only and preserves lobby settings and player state", (context) => {
+    const room = roomManager.createRoom("change-game-host", "Host", "fact-or-cap");
+    context.after(() => roomManager.removeRoom(room.code));
+    const guest = roomManager.joinRoom(room.code, "change-game-guest", "Guest");
+    roomManager.setRoomVisibility(room.hostId, "public");
+    roomManager.selectRoundCount(room.hostId, 7, room.revision);
+    roomManager.setPlayerReady(guest.players[1].id, true);
+
+    const previousCode = room.code;
+    const previousHostId = room.hostId;
+    const previousPlayers = room.players.map((player) => ({ ...player }));
+    const previousRevision = room.revision;
+    const changed = roomManager.selectGame(room.hostId, "bruh-wtf");
+
+    assert.equal(changed, room);
+    assert.equal(room.selectedGameId, "bruh-wtf");
+    assert.equal(room.code, previousCode);
+    assert.equal(room.hostId, previousHostId);
+    assert.equal(room.visibility, "public");
+    assert.equal(room.selectedRoundCount, 7);
+    assert.deepEqual(room.players, previousPlayers);
+    assert.ok(room.revision > previousRevision);
+    assert.equal(roomManager.createLobbyState(room).selectedGame.displayName, "Bruh wtf?");
+    assert.throws(
+        () => roomManager.selectGame(guest.players[1].id, "fact-or-cap"),
+        { code: "NOT_HOST" }
+    );
+    assert.equal(room.selectedGameId, "bruh-wtf");
+
+    room.status = "starting";
+    assert.throws(
+        () => roomManager.selectGame(room.hostId, "fact-or-cap"),
+        { code: "ROOM_NOT_IN_LOBBY" }
+    );
+    assert.equal(room.selectedGameId, "bruh-wtf");
+});
+
 test("room-code pool is unique, four letters, and reports exhaustion without replacing rooms", (context) => {
     const rooms = [];
     context.after(() => {

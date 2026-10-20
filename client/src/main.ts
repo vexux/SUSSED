@@ -604,6 +604,12 @@ const actions: AppActions = {
   },
   onChooseGame(gameId) {
     if (!state.availableGames.some((game) => game.id === gameId)) return;
+    if (state.lobby) {
+      const localPlayer = state.lobby.players.find(({ id }) => id === state.localPlayerId);
+      if (localPlayer?.isHost !== true || state.lobby.status !== "lobby") return;
+      actions.onSelectGame(gameId);
+      return;
+    }
     state.pendingGameId = gameId;
     state.errorMessage = null;
     state.errorCode = null;
@@ -633,8 +639,16 @@ const actions: AppActions = {
     );
   },
   onBackToHome() {
-    state.currentView = "home";
+    state.currentView = state.lobby ? "lobby" : "home";
     state.pendingGameId = null;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+  },
+  onChooseAnotherGame() {
+    const localPlayer = state.lobby?.players.find(({ id }) => id === state.localPlayerId);
+    if (!state.lobby || localPlayer?.isHost !== true || state.lobby.status !== "lobby" || state.isBusy) return;
+    state.currentView = "game-selection";
     state.errorMessage = null;
     state.errorCode = null;
     render();
@@ -861,6 +875,16 @@ const actions: AppActions = {
     );
   },
   onSelectGame(gameId) {
+    const localPlayer = state.lobby?.players.find(({ id }) => id === state.localPlayerId);
+    if (
+      !state.lobby ||
+      localPlayer?.isHost !== true ||
+      state.lobby.status !== "lobby" ||
+      gameId === state.lobby.selectedGameId ||
+      !state.availableGames.some((game) => game.id === gameId)
+    ) {
+      return;
+    }
     state.errorMessage = null;
     state.errorCode = null;
     state.isBusy = true;

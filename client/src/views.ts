@@ -16,6 +16,7 @@ export interface AppActions {
   onChooseRoomVisibility(visibility: "public" | "private"): void;
   onConfirmCreateRoom(gameId: string): void;
   onBackToHome(): void;
+  onChooseAnotherGame(): void;
   onToggleTheme(): void;
   onBrowsePublicRooms(): void;
   onRefreshPublicRooms(): void;
@@ -151,7 +152,7 @@ function renderHome(
     }
   }
 
-  const createButton = createElement("button", "primary-button", "Create a room");
+  const createButton = createElement("button", "primary-button", "Choose a game");
   createButton.type = "button";
   createButton.disabled = state.connectionStatus !== "connected" || state.isBusy || state.availableGames.length === 0;
   createButton.addEventListener("click", actions.onCreateRoom);
@@ -229,86 +230,142 @@ function createGameCardArt(index: number): HTMLElement {
   return art;
 }
 
+function createGameCard(
+  game: AppState["availableGames"][number],
+  index: number,
+  options: {
+    selected: boolean;
+    className?: string;
+    action?: {
+      label: string;
+      disabled?: boolean;
+      ariaPressed?: boolean;
+      onClick: () => void;
+    };
+  },
+): HTMLElement {
+  const card = createElement(
+    "article",
+    `game-card${options.selected ? " selected" : ""}${options.className ? ` ${options.className}` : ""}`,
+  );
+  card.dataset.gameId = game.id;
+  card.append(createGameCardArt(index));
+  const details = createElement("div", "game-card-details");
+  details.append(
+    createElement("h2", "game-card-title", game.displayName),
+    createElement("p", "game-card-description", game.description),
+    createElement(
+      "p",
+      "game-card-player-count",
+      game.maxPlayers === undefined
+        ? `${game.minPlayers}+ players`
+        : `${game.minPlayers}–${game.maxPlayers} players`,
+    ),
+  );
+  if (options.action) {
+    const action = createElement(
+      "button",
+      options.selected ? "secondary-button game-card-action" : "primary-button game-card-action",
+      options.action.label,
+    );
+    action.type = "button";
+    action.disabled = options.action.disabled === true;
+    if (options.action.ariaPressed !== undefined) {
+      action.setAttribute("aria-pressed", String(options.action.ariaPressed));
+    }
+    action.addEventListener("click", () => options.action?.onClick());
+    details.append(action);
+  }
+  card.append(details);
+  return card;
+}
+
 function renderGameSelection(state: AppState, actions: AppActions): HTMLElement {
+  const localPlayer = state.lobby?.players.find(({ id }) => id === state.localPlayerId);
+  const isLobbySelection = state.lobby !== null;
+  const canChangeLobbyGame =
+    isLobbySelection && localPlayer?.isHost === true && state.lobby?.status === "lobby";
+  const selectedGameId = state.lobby?.selectedGameId ?? state.pendingGameId;
   const screen = createElement("section", "app-screen game-selection-screen");
   screen.append(
     createElement("p", "eyebrow", "MAKE IT A GAME NIGHT"),
-    createElement("h1", "selection-heading", "Choose your game"),
-    createElement("p", "screen-description", "Pick the kind of trouble you want to get into."),
+    createElement("h1", "selection-heading", isLobbySelection ? "Choose another game" : "Choose your game"),
+    createElement(
+      "p",
+      "screen-description",
+      isLobbySelection
+        ? "Select a different registered game for this lobby."
+        : "Pick the kind of trouble you want to get into.",
+    ),
   );
 
   const cards = createElement("div", "game-card-grid");
   state.availableGames.forEach((game, index) => {
-    const card = createElement("article", `game-card${state.pendingGameId === game.id ? " selected" : ""}`);
-    card.dataset.gameId = game.id;
-    card.append(createGameCardArt(index));
-    const details = createElement("div", "game-card-details");
-    details.append(
-      createElement("h2", "game-card-title", game.displayName),
-      createElement("p", "game-card-description", game.description),
-      createElement(
-        "p",
-        "game-card-player-count",
-        game.maxPlayers === undefined
-          ? `${game.minPlayers}+ players`
-          : `${game.minPlayers}–${game.maxPlayers} players`,
-      ),
-    );
-    const playButton = createElement(
-      "button",
-      state.pendingGameId === game.id ? "secondary-button game-card-action" : "primary-button game-card-action",
-      state.pendingGameId === game.id ? "Selected" : "Play this game",
-    );
-    playButton.type = "button";
-    playButton.setAttribute("aria-pressed", String(state.pendingGameId === game.id));
-    playButton.addEventListener("click", () => actions.onChooseGame(game.id));
-    details.append(playButton);
-    card.append(details);
-    cards.append(card);
+    const selected = selectedGameId === game.id;
+    cards.append(createGameCard(game, index, {
+      selected,
+      action: {
+        label: selected ? "Selected" : "Select game",
+        disabled:
+          state.isBusy ||
+          state.connectionStatus !== "connected" ||
+          selected ||
+          (isLobbySelection && !canChangeLobbyGame),
+        ariaPressed: selected,
+        onClick: () => actions.onChooseGame(game.id),
+      },
+    }));
   });
   screen.append(cards);
 
-  const visibilityField = createElement("div", "field create-visibility-field");
-  const visibilityLabel = createElement("label", "field-label", "Room visibility");
-  visibilityLabel.htmlFor = "create-room-visibility";
-  const visibilitySelect = createElement("select", "text-input");
-  visibilitySelect.id = "create-room-visibility";
-  for (const value of ["private", "public"] as const) {
-    const option = createElement("option", undefined, value === "private" ? "Private" : "Public");
-    option.value = value;
-    visibilitySelect.append(option);
+  if (!isLobbySelection) {
+    const visibilityField = createElement("div", "field create-visibility-field");
+    const visibilityLabel = createElement("label", "field-label", "Room visibility");
+    visibilityLabel.htmlFor = "create-room-visibility";
+    const visibilitySelect = createElement("select", "text-input");
+    visibilitySelect.id = "create-room-visibility";
+    for (const value of ["private", "public"] as const) {
+      const option = createElement("option", undefined, value === "private" ? "Private" : "Public");
+      option.value = value;
+      visibilitySelect.append(option);
+    }
+    visibilitySelect.value = state.pendingRoomVisibility;
+    visibilitySelect.addEventListener("change", () => {
+      actions.onChooseRoomVisibility(visibilitySelect.value as "private" | "public");
+    });
+    visibilityField.append(
+      visibilityLabel,
+      visibilitySelect,
+      createElement(
+        "p",
+        "helper-text",
+        state.pendingRoomVisibility === "public"
+          ? "Public rooms are discoverable while the lobby has an open slot."
+          : "Private rooms stay hidden. Players can join with the room code.",
+      ),
+    );
+    screen.append(visibilityField);
   }
-  visibilitySelect.value = state.pendingRoomVisibility;
-  visibilitySelect.addEventListener("change", () => {
-    actions.onChooseRoomVisibility(visibilitySelect.value as "private" | "public");
-  });
-  visibilityField.append(
-    visibilityLabel,
-    visibilitySelect,
-    createElement(
-      "p",
-      "helper-text",
-      state.pendingRoomVisibility === "public"
-        ? "Public rooms are discoverable while the lobby has an open slot."
-        : "Private rooms stay hidden. Players can join with the room code.",
-    ),
-  );
-  screen.append(visibilityField);
 
   const actionsPanel = createElement("div", "selection-actions");
-  const backButton = createElement("button", "text-button", "Back");
+  const backButton = createElement("button", "text-button", isLobbySelection ? "Back to lobby" : "Back");
   backButton.type = "button";
   backButton.addEventListener("click", actions.onBackToHome);
-  const createButton = createElement("button", "primary-button create-selected-game", "Create room");
-  createButton.type = "button";
-  createButton.disabled = !state.pendingGameId || state.isBusy || state.connectionStatus !== "connected";
-  createButton.addEventListener("click", () => {
-    if (state.pendingGameId) actions.onConfirmCreateRoom(state.pendingGameId);
-  });
-  actionsPanel.append(backButton, createButton);
+  actionsPanel.append(backButton);
+  if (!isLobbySelection) {
+    const createButton = createElement("button", "primary-button create-selected-game", "Create room");
+    createButton.type = "button";
+    createButton.disabled = !state.pendingGameId || state.isBusy || state.connectionStatus !== "connected";
+    createButton.addEventListener("click", () => {
+      if (state.pendingGameId) actions.onConfirmCreateRoom(state.pendingGameId);
+    });
+    actionsPanel.append(createButton);
+  }
   screen.append(actionsPanel);
 
-  if (state.isBusy) screen.append(createElement("p", "status-message", "Creating your room…"));
+  if (state.isBusy) {
+    screen.append(createElement("p", "status-message", isLobbySelection ? "Updating room…" : "Creating your room…"));
+  }
   const error = createErrorMessage(state.errorMessage);
   if (error) screen.append(error);
   return screen;
@@ -404,42 +461,21 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     (player) => player.id === state.localPlayerId,
   );
   const isHost = localPlayer?.isHost === true;
-  const gameSelection = createElement("div", "field game-selection");
-  const gameLabel = createElement("label", "field-label", "Selected game");
-  gameLabel.htmlFor = "selected-game";
-  if (isHost && lobby.status === "lobby") {
-    const gameSelect = createElement("select", "text-input");
-    gameSelect.id = "selected-game";
-    gameSelect.disabled = state.isBusy;
-    for (const game of lobby.availableGames) {
-      const option = createElement("option", undefined, game.displayName);
-      option.value = game.id;
-      gameSelect.append(option);
-    }
-    gameSelect.value = lobby.selectedGameId;
-    gameSelect.addEventListener("change", () => {
-      actions.onSelectGame(gameSelect.value);
-    });
-    gameSelection.append(gameLabel, gameSelect);
-  } else {
-    gameSelection.append(
-      gameLabel,
-      createElement("p", "selected-game-name", lobby.selectedGame.displayName),
-    );
-  }
-  gameSelection.append(
-    createElement(
-      "p",
-      "screen-description",
-      lobby.selectedGame.description,
-    ),
-    createElement(
-      "p",
-      "screen-description",
-      lobby.selectedGame.maxPlayers === undefined
-        ? `Supports ${lobby.selectedGame.minPlayers}+ players`
-        : `Supports ${lobby.selectedGame.minPlayers}–${lobby.selectedGame.maxPlayers} players`,
-    ),
+  const selectedGameIndex = lobby.availableGames.findIndex(({ id }) => id === lobby.selectedGameId);
+  const selectedGameCard = createGameCard(
+    lobby.selectedGame,
+    selectedGameIndex < 0 ? 0 : selectedGameIndex,
+    {
+      selected: true,
+      className: "selected-lobby-game",
+      action: isHost && lobby.status === "lobby"
+        ? {
+            label: "Choose another game",
+            disabled: state.isBusy,
+            onClick: actions.onChooseAnotherGame,
+          }
+        : undefined,
+    },
   );
   const readinessText =
     lobby.readinessStatus === "insufficient-players"
@@ -532,7 +568,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     actions.onSetReady(!localPlayer?.isReady);
   });
 
-  screen.append(heading, roomCodePanel, playerCount, gameSelection, visibilityField, readinessMessage, playerList);
+  screen.append(heading, selectedGameCard, roomCodePanel, playerCount, readinessMessage, playerList, visibilityField);
   if (state.invitationFeedback) {
     const feedback = createElement("p", "lobby-feedback", state.invitationFeedback);
     feedback.setAttribute("role", "status");

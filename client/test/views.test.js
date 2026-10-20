@@ -302,7 +302,7 @@ test("landing page selects a tagline once and keeps its form interactions usable
       assert.equal(state.landingTagline, selected);
       assert.equal(root.query((element) => element.className.includes("landing-tagline")).textContent, selected);
       assert.equal(root.query((element) => element.id === "player-name").value, "Alex");
-      root.query((element) => element.textContent === "Create a room").dispatch("click");
+      root.query((element) => element.textContent === "Choose a game").dispatch("click");
       root.query((element) => element.id === "room-code").value = "ABCD";
       root.query((element) => element.textContent === "Join room").dispatch("click");
       root.query((element) => element.textContent === "Browse public rooms").dispatch("click");
@@ -442,7 +442,7 @@ test("game selection is registry-driven and selecting a card does not create a r
     const create = root.query((element) => element.className.includes("create-selected-game"));
     assert.equal(create.disabled, true);
 
-    const animePlay = root.query((element) => element.tagName === "button" && element.textContent === "Play this game" && element.parentElement.parentElement.dataset.gameId === "fact-or-cap-anime");
+    const animePlay = root.query((element) => element.tagName === "button" && element.textContent === "Select game" && element.parentElement.parentElement.dataset.gameId === "fact-or-cap-anime");
     animePlay.dispatch("click");
     assert.deepEqual(calls.selected, ["fact-or-cap-anime"]);
     assert.deepEqual(calls.created, []);
@@ -456,6 +456,122 @@ test("game selection is registry-driven and selecting a card does not create a r
     assert.equal(calls.visibility, "public");
     root.query((element) => element.className.includes("create-selected-game")).dispatch("click");
     assert.deepEqual(calls.created, ["fact-or-cap-anime"]);
+  });
+});
+
+test("lobby game card shows authoritative metadata and only hosts can open game selection in both themes", () => {
+  withFakeDocument(() => {
+    for (const theme of ["dark", "light"]) {
+      const state = createInitialAppState();
+      state.theme = theme;
+      state.currentView = "lobby";
+      state.localPlayerId = "host";
+      state.lobby = {
+        roomCode: "ZING", revision: 2, playerCount: 2, readinessStatus: "waiting-for-ready",
+        status: "lobby", visibility: "public", maxPlayers: 8, selectedGameId: "future-game", selectedRoundCount: 7,
+        reminderSessionId: null,
+        selectedGame: {
+          id: "future-game",
+          displayName: "Future Game",
+          description: "A registered game with its own description.",
+          minPlayers: 3,
+          maxPlayers: 6,
+        },
+        availableGames: [
+          { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
+          { id: "future-game", displayName: "Future Game", description: "A registered game with its own description.", minPlayers: 3, maxPlayers: 6 },
+        ],
+        players: [
+          { id: "host", name: "Host", isHost: true, isReady: false, isInGame: false },
+          { id: "guest", name: "Guest", isHost: false, isReady: true, isInGame: false },
+        ],
+      };
+      const calls = [];
+      const actions = new Proxy({}, { get: (_target, name) => (...args) => calls.push([name, ...args]) });
+      const root = new FakeElement("root");
+      renderApp(root, state, actions, {}, {});
+
+      const card = root.query((element) => element.className.includes("selected-lobby-game"));
+      assert.equal(card.dataset.gameId, "future-game");
+      assert.equal(card.children[0].className.includes("game-card-art"), true);
+      assert.match(card.text, /A registered game with its own description\./u);
+      assert.match(card.text, /3–6 players/u);
+      assert.ok(root.query((element) => element.className.includes("lobby-room-code-panel")));
+      const choose = root.query((element) => element.tagName === "button" && element.textContent === "Choose another game");
+      assert.ok(choose);
+      choose.dispatch("click");
+      assert.deepEqual(calls, [["onChooseAnotherGame"]]);
+
+      state.localPlayerId = "guest";
+      renderApp(root, state, actions, {}, {});
+      assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Choose another game"), null);
+      assert.equal(root.query((element) => element.textContent === "Select game"), null);
+    }
+  });
+});
+
+test("lobby game selection uses registered cards and returns through the existing selection action", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.connectionStatus = "connected";
+    state.currentView = "game-selection";
+    state.localPlayerId = "host";
+    state.roomCode = "ZING";
+    state.lobby = {
+      roomCode: "ZING", revision: 4, playerCount: 2, readinessStatus: "waiting-for-ready",
+      status: "lobby", visibility: "public", maxPlayers: 8, selectedGameId: "fact-or-cap", selectedRoundCount: 7,
+      reminderSessionId: null,
+      selectedGame: { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
+      availableGames: [
+        { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
+        { id: "future-game", displayName: "Future Game", description: "A registered future game.", minPlayers: 3, maxPlayers: 6 },
+      ],
+      players: [
+        { id: "host", name: "Host", isHost: true, isReady: false, isInGame: false },
+        { id: "guest", name: "Guest", isHost: false, isReady: true, isInGame: false },
+      ],
+    };
+    state.availableGames = state.lobby.availableGames;
+    const calls = [];
+    const actions = new Proxy({}, {
+      get: (_target, name) => (...args) => calls.push([name, ...args]),
+    });
+    const root = new FakeElement("root");
+    renderApp(root, state, actions, {}, {});
+
+    assert.match(root.text, /Choose another game/u);
+    assert.equal(root.query((element) => element.id === "create-room-visibility"), null);
+    assert.equal(root.query((element) => element.className.includes("create-selected-game")), null);
+    const cards = root.query((element) => element.className.includes("game-card-grid"));
+    assert.deepEqual(cards.children.map((card) => card.dataset.gameId), ["fact-or-cap", "future-game"]);
+    const futureGameButton = root.query((element) =>
+      element.tagName === "button" &&
+      element.textContent === "Select game" &&
+      element.parentElement.parentElement.dataset.gameId === "future-game");
+    assert.equal(futureGameButton.disabled, false);
+    futureGameButton.dispatch("click");
+    assert.deepEqual(calls, [["onChooseGame", "future-game"]]);
+
+    state.localPlayerId = "guest";
+    renderApp(root, state, actions, {}, {});
+    const guestChoice = root.query((element) => element.textContent === "Select game");
+    assert.ok(guestChoice.disabled);
+    assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Choose another game"), null);
+  });
+});
+
+test("landing action label leads to game selection while joining and public-room browsing remain available", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.connectionStatus = "connected";
+    state.availableGames = [
+      { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
+    ];
+    const root = new FakeElement("root");
+    renderApp(root, state, createActions(), {}, {});
+    assert.ok(root.query((element) => element.tagName === "button" && element.textContent === "Choose a game"));
+    assert.ok(root.query((element) => element.id === "room-code"));
+    assert.ok(root.query((element) => element.textContent === "Browse public rooms"));
   });
 });
 
