@@ -567,7 +567,7 @@ select:focus:not(:focus-visible) {
 }
 
 .round-option {
-  min-height: 29px;
+  min-height: 44px;
   border: 0;
   border-right: 1px solid var(--color-border);
   color: var(--color-text);

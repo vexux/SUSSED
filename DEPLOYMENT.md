@@ -25,6 +25,16 @@ Set `VITE_PUBLIC_APP_URL` separately per deployment environment when links
 should point to a canonical frontend domain rather than the domain currently
 open in the browser.
 
+`VITE_` variables are embedded in the client build and visible to every
+visitor. Use them only for public configuration such as service URLs; never
+put secrets in them. Set `VITE_SERVER_URL` to the backend's HTTPS origin in
+production. Socket.IO then uses HTTPS/WSS for its cross-origin connection.
+
+The client currently uses the root path and invitation query strings such as
+`/?code=ABCD`; it does not define path-based client routes, so no SPA rewrite is
+needed for the current UI. If path-based routes are added later, configure the
+frontend host to serve `index.html` for those routes.
+
 ## Render backend
 
 Create a Render **Web Service** for this repository with:
@@ -75,3 +85,13 @@ restarts.
 No deployment occurs from this repository configuration alone. Provider
 projects, branch settings, and environment variables must be configured
 separately.
+
+Before release, verify from the deployed frontend origin that the Socket.IO
+connection reaches the configured HTTPS backend, public-room discovery and
+cross-origin joining work, visibility changes update the listing, and copied
+invitation links open that frontend with the room code prefilled. Confirm the
+Render health check returns HTTP 200 and that `CLIENT_ORIGIN` lists the exact
+production frontend origin (plus only the previews or custom domains that
+should be allowed). Exercise these checks against the provider deployment;
+local tests cannot verify provider environment variables, DNS, TLS, or CORS
+configuration.
