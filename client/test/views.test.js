@@ -386,6 +386,7 @@ test("host lobby exposes invitation and confirmed kick actions, while guests hav
     for (const label of ["Copy room code", "Copy invite link", "Share invite"]) {
       root.query((element) => element.tagName === "button" && element.textContent === label).dispatch("click");
     }
+    assert.equal(root.query((element) => element.textContent === "Copy invite link").className.includes("primary-button"), true);
     const guestKick = root.query((element) => element.getAttribute("aria-label") === "Remove Guest from room");
     assert.ok(guestKick);
     assert.equal(root.query((element) => element.getAttribute("aria-label") === "Remove Host from room"), null);
@@ -441,6 +442,11 @@ test("game selection is registry-driven and selecting a card does not create a r
     assert.match(root.text, /4–8 players/u);
     const create = root.query((element) => element.className.includes("create-selected-game"));
     assert.equal(create.disabled, true);
+    assert.deepEqual(cards.children.map((card) => card.children[0].className), [
+      "game-card-art game-art-fact-or-cap",
+      "game-card-art game-art-fact-or-cap-anime",
+      "game-card-art game-art-generic",
+    ]);
 
     const animePlay = root.query((element) => element.tagName === "button" && element.textContent === "Select game" && element.parentElement.parentElement.dataset.gameId === "fact-or-cap-anime");
     animePlay.dispatch("click");
@@ -449,10 +455,13 @@ test("game selection is registry-driven and selecting a card does not create a r
     state.pendingGameId = "fact-or-cap-anime";
     render();
     assert.equal(root.query((element) => element.className.includes("create-selected-game")).disabled, false);
-    const visibility = root.query((element) => element.id === "create-room-visibility");
-    assert.equal(visibility.value, "private");
-    visibility.value = "public";
-    visibility.dispatch("change");
+    const privateVisibility = root.query((element) => element.id === "create-room-visibility-private");
+    const publicVisibility = root.query((element) => element.id === "create-room-visibility-public");
+    assert.equal(privateVisibility.checked, true);
+    assert.equal(publicVisibility.checked, false);
+    privateVisibility.checked = false;
+    publicVisibility.checked = true;
+    publicVisibility.dispatch("change");
     assert.equal(calls.visibility, "public");
     root.query((element) => element.className.includes("create-selected-game")).dispatch("click");
     assert.deepEqual(calls.created, ["fact-or-cap-anime"]);
@@ -494,6 +503,7 @@ test("lobby game card shows authoritative metadata and only hosts can open game 
       const card = root.query((element) => element.className.includes("selected-lobby-game"));
       assert.equal(card.dataset.gameId, "future-game");
       assert.equal(card.children[0].className.includes("game-card-art"), true);
+      assert.equal(card.children[0].className, "game-card-art game-art-generic");
       assert.match(card.text, /A registered game with its own description\./u);
       assert.match(card.text, /3–6 players/u);
       assert.ok(root.query((element) => element.className.includes("lobby-room-code-panel")));
@@ -540,7 +550,7 @@ test("lobby game selection uses registered cards and returns through the existin
     renderApp(root, state, actions, {}, {});
 
     assert.match(root.text, /Choose another game/u);
-    assert.equal(root.query((element) => element.id === "create-room-visibility"), null);
+    assert.equal(root.query((element) => element.id === "create-room-visibility-public"), null);
     assert.equal(root.query((element) => element.className.includes("create-selected-game")), null);
     const cards = root.query((element) => element.className.includes("game-card-grid"));
     assert.deepEqual(cards.children.map((card) => card.dataset.gameId), ["fact-or-cap", "future-game"]);
@@ -557,6 +567,46 @@ test("lobby game selection uses registered cards and returns through the existin
     const guestChoice = root.query((element) => element.textContent === "Select game");
     assert.ok(guestChoice.disabled);
     assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Choose another game"), null);
+  });
+});
+
+test("room visibility uses accessible radio choices and remains read-only for guests", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "lobby";
+    state.localPlayerId = "host";
+    state.lobby = {
+      roomCode: "ZING", revision: 2, playerCount: 2, readinessStatus: "waiting-for-ready",
+      status: "lobby", visibility: "private", maxPlayers: 8, selectedGameId: "fact-or-cap", selectedRoundCount: 5,
+      reminderSessionId: null,
+      selectedGame: { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
+      availableGames: [],
+      players: [
+        { id: "host", name: "Host", isHost: true, isReady: false, isInGame: false },
+        { id: "guest", name: "Guest", isHost: false, isReady: false, isInGame: false },
+      ],
+    };
+    const changes = [];
+    const actions = new Proxy({}, {
+      get: (_target, name) => (...args) => changes.push([name, ...args]),
+    });
+    const root = new FakeElement("root");
+    renderApp(root, state, actions, {}, {});
+
+    const privateChoice = root.query((element) => element.id === "room-visibility-private");
+    const publicChoice = root.query((element) => element.id === "room-visibility-public");
+    assert.equal(privateChoice.type, "radio");
+    assert.equal(privateChoice.checked, true);
+    assert.equal(publicChoice.checked, false);
+    publicChoice.checked = true;
+    publicChoice.dispatch("change");
+    assert.deepEqual(changes, [["onSetRoomVisibility", "public"]]);
+
+    state.localPlayerId = "guest";
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.id === "room-visibility-private"), null);
+    assert.equal(root.query((element) => element.id === "room-visibility-public"), null);
+    assert.match(root.text, /Room visibility.*Private/u);
   });
 });
 
@@ -586,6 +636,7 @@ test("public room browser renders safe room cards, loading, empty and actionable
       onRefreshPublicRooms() { calls.push("refresh"); },
       onBackFromPublicRooms() { calls.push("back"); },
       onJoinPublicRoom(roomId) { calls.push(roomId); },
+      onCreateRoom() { calls.push("create-room"); },
     };
     const root = new FakeElement("root");
     const render = () => renderApp(root, state, actions, {}, {});
@@ -594,7 +645,9 @@ test("public room browser renders safe room cards, loading, empty and actionable
 
     state.isLoadingPublicRooms = false;
     render();
-    assert.match(root.text, /No public rooms are available/u);
+    assert.match(root.text, /No open tables yet/u);
+    assert.match(root.text, /Start a room and invite friends/u);
+    root.query((element) => element.textContent === "Choose a game").dispatch("click");
 
     state.publicRooms = [{
       roomId: "opaque-public-id",
@@ -604,14 +657,59 @@ test("public room browser renders safe room cards, loading, empty and actionable
       playerCount: 3,
       maxPlayers: 8,
       status: "lobby",
+    }, {
+      roomId: "opaque-anime-room",
+      gameId: "fact-or-cap-anime",
+      gameName: "Fact or Cap (Anime)",
+      gameDescription: "Anime facts.",
+      playerCount: 1,
+      maxPlayers: 8,
+      status: "lobby",
+    }, {
+      roomId: "opaque-bruh-room",
+      gameId: "bruh-wtf",
+      gameName: "Bruh wtf?",
+      gameDescription: "Answer and vote.",
+      playerCount: 2,
+      maxPlayers: 8,
+      status: "lobby",
+    }, {
+      roomId: "opaque-future-room",
+      gameId: "future-game",
+      gameName: "Future game",
+      gameDescription: "More surprises.",
+      playerCount: 3,
+      maxPlayers: 8,
+      status: "lobby",
     }];
     render();
     assert.match(root.text, /3\/8 players/u);
     assert.equal(root.text.includes("ABCD"), false);
-    root.query((element) => element.textContent === "Join").dispatch("click");
+    const publicCards = root.query((element) => element.className.includes("public-room-grid")).children;
+    assert.deepEqual(publicCards.map((card) => card.children[0].className), [
+      "game-card-art game-art-fact-or-cap",
+      "game-card-art game-art-fact-or-cap-anime",
+      "game-card-art game-art-bruh-wtf",
+      "game-card-art game-art-generic",
+    ]);
+    assert.deepEqual(publicCards.map((card) => card.dataset.gameId), [
+      "fact-or-cap", "fact-or-cap-anime", "bruh-wtf", "future-game",
+    ]);
+    assert.match(root.text, /Anime facts\./u);
+    const originalArtByRoom = new Map(publicCards.map((card) => [card.dataset.roomId, card.children[0].className]));
+    state.publicRooms.reverse();
+    render();
+    const reorderedCards = root.query((element) => element.className.includes("public-room-grid")).children;
+    assert.deepEqual(
+      new Map(reorderedCards.map((card) => [card.dataset.roomId, card.children[0].className])),
+      originalArtByRoom,
+    );
+    root.query((element) => element.dataset.roomId === "opaque-public-id")
+      .query((element) => element.tagName === "button" && element.textContent === "Join")
+      .dispatch("click");
     root.query((element) => element.textContent === "Refresh").dispatch("click");
     root.query((element) => element.textContent === "Back").dispatch("click");
-    assert.deepEqual(calls, ["opaque-public-id", "refresh", "back"]);
+    assert.deepEqual(calls, ["create-room", "opaque-public-id", "refresh", "back"]);
 
     state.publicRoomsError = "That room is full.";
     render();
@@ -680,8 +778,9 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     renderApp(root, state, actions, {}, {});
     assert.match(root.text, /1 player in lobby/u);
     assert.match(root.text, /1 player in lobby \(8 max\)/u);
-    assert.equal(root.query((element) => element.id === "room-visibility").value, "private");
-    assert.match(root.text, /Players join with the room code/u);
+    assert.equal(root.query((element) => element.id === "room-visibility-private").checked, true);
+    assert.equal(root.query((element) => element.id === "room-visibility-public").checked, false);
+    assert.match(root.text, /Join with a room code/u);
     assert.match(root.text, /Viewer.*In-game/u);
     const hostCard = root.query((element) => element.className.includes("player-card") && element.text.includes("Host"));
     assert.equal(hostCard.children[1].textContent, "Host");
@@ -715,7 +814,7 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     state.resultsReminderFeedback = null;
     state.lobby.players[1].isReady = false;
     renderApp(root, state, actions, {}, {});
-    assert.equal(root.query((element) => element.id === "room-visibility"), null);
+    assert.equal(root.query((element) => element.id === "room-visibility-private"), null);
     assert.match(root.text, /Room visibility.*Private/u);
     assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Ready").disabled, false);
     state.lobby.players[1].isInGame = true;

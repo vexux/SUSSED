@@ -218,21 +218,66 @@ function renderHome(
   return screen;
 }
 
-function createGameCardArt(index: number): HTMLElement {
-  const art = createElement("div", `game-card-art game-card-art-${index % 3}`);
+function createGameCardArt(gameId: string): HTMLElement {
+  const illustration = {
+    "fact-or-cap": "game-art-fact-or-cap",
+    "fact-or-cap-anime": "game-art-fact-or-cap-anime",
+    "bruh-wtf": "game-art-bruh-wtf",
+  }[gameId] ?? "game-art-generic";
+  const art = createElement("div", `game-card-art ${illustration}`);
+  art.dataset.gameId = gameId;
   art.setAttribute("aria-hidden", "true");
   art.append(
-    createElement("span", "game-art-orbit"),
-    createElement("span", "game-art-core"),
-    createElement("span", "game-art-spark game-art-spark-one"),
-    createElement("span", "game-art-spark game-art-spark-two"),
+    createElement("span", "game-art-backdrop"),
+    createElement("span", "game-art-object game-art-object-one"),
+    createElement("span", "game-art-object game-art-object-two"),
+    createElement("span", "game-art-accent"),
   );
   return art;
 }
 
+function createVisibilitySelector(options: {
+  idPrefix: string;
+  visibility: "public" | "private";
+  disabled: boolean;
+  onChange: (visibility: "public" | "private") => void;
+}): HTMLFieldSetElement {
+  const field = createElement("fieldset", "visibility-field");
+  field.append(createElement("legend", "field-label", "Room visibility"));
+  const choices = createElement("div", "visibility-options");
+  for (const visibility of ["public", "private"] as const) {
+    const label = createElement(
+      "label",
+      `visibility-option${options.visibility === visibility ? " selected" : ""}`,
+    );
+    const input = createElement("input");
+    input.type = "radio";
+    input.id = `${options.idPrefix}-${visibility}`;
+    input.name = options.idPrefix;
+    input.value = visibility;
+    input.checked = options.visibility === visibility;
+    input.disabled = options.disabled;
+    input.addEventListener("change", () => {
+      if (input.checked) options.onChange(visibility);
+    });
+    const content = createElement("span", "visibility-option-content");
+    content.append(
+      createElement("span", "visibility-option-title", visibility === "public" ? "Public" : "Private"),
+      createElement(
+        "span",
+        "visibility-option-description",
+        visibility === "public" ? "Discoverable while seats are open" : "Join with a room code",
+      ),
+    );
+    label.append(input, content);
+    choices.append(label);
+  }
+  field.append(choices);
+  return field;
+}
+
 function createGameCard(
   game: AppState["availableGames"][number],
-  index: number,
   options: {
     selected: boolean;
     className?: string;
@@ -249,7 +294,7 @@ function createGameCard(
     `game-card${options.selected ? " selected" : ""}${options.className ? ` ${options.className}` : ""}`,
   );
   card.dataset.gameId = game.id;
-  card.append(createGameCardArt(index));
+  card.append(createGameCardArt(game.id));
   const details = createElement("div", "game-card-details");
   details.append(
     createElement("h2", "game-card-title", game.displayName),
@@ -300,9 +345,9 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
   );
 
   const cards = createElement("div", "game-card-grid");
-  state.availableGames.forEach((game, index) => {
+  state.availableGames.forEach((game) => {
     const selected = selectedGameId === game.id;
-    cards.append(createGameCard(game, index, {
+    cards.append(createGameCard(game, {
       selected,
       action: {
         label: selected ? "Selected" : "Select game",
@@ -319,31 +364,13 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
   screen.append(cards);
 
   if (!isLobbySelection) {
-    const visibilityField = createElement("div", "field create-visibility-field");
-    const visibilityLabel = createElement("label", "field-label", "Room visibility");
-    visibilityLabel.htmlFor = "create-room-visibility";
-    const visibilitySelect = createElement("select", "text-input");
-    visibilitySelect.id = "create-room-visibility";
-    for (const value of ["private", "public"] as const) {
-      const option = createElement("option", undefined, value === "private" ? "Private" : "Public");
-      option.value = value;
-      visibilitySelect.append(option);
-    }
-    visibilitySelect.value = state.pendingRoomVisibility;
-    visibilitySelect.addEventListener("change", () => {
-      actions.onChooseRoomVisibility(visibilitySelect.value as "private" | "public");
+    const visibilityField = createVisibilitySelector({
+      idPrefix: "create-room-visibility",
+      visibility: state.pendingRoomVisibility,
+      disabled: state.isBusy,
+      onChange: actions.onChooseRoomVisibility,
     });
-    visibilityField.append(
-      visibilityLabel,
-      visibilitySelect,
-      createElement(
-        "p",
-        "helper-text",
-        state.pendingRoomVisibility === "public"
-          ? "Public rooms are discoverable while the lobby has an open slot."
-          : "Private rooms stay hidden. Players can join with the room code.",
-      ),
-    );
+    visibilityField.classList.add("create-visibility-field");
     screen.append(visibilityField);
   }
 
@@ -396,13 +423,24 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
     loading.setAttribute("role", "status");
     screen.append(loading);
   } else if (state.publicRooms.length === 0) {
-    screen.append(createElement("p", "public-room-empty", "No public rooms are available right now. Check back in a moment."));
+    const empty = createElement("div", "public-room-empty");
+    empty.append(
+      createElement("h2", undefined, "No open tables yet"),
+      createElement("p", undefined, "Start a room and invite friends, or check back when someone opens a public lobby."),
+    );
+    const createRoom = createElement("button", "primary-button", "Choose a game");
+    createRoom.type = "button";
+    createRoom.disabled = state.connectionStatus !== "connected" || state.isBusy;
+    createRoom.addEventListener("click", actions.onCreateRoom);
+    empty.append(createRoom);
+    screen.append(empty);
   } else {
     const cards = createElement("div", "public-room-grid");
-    state.publicRooms.forEach((room, index) => {
+    state.publicRooms.forEach((room) => {
       const card = createElement("article", "public-room-card");
       card.dataset.roomId = room.roomId;
-      card.append(createGameCardArt(index));
+      card.dataset.gameId = room.gameId;
+      card.append(createGameCardArt(room.gameId));
       const details = createElement("div", "public-room-details");
       details.append(
         createElement("h2", "game-card-title", room.gameName),
@@ -440,12 +478,12 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   const roomCodePanel = createElement("div", "lobby-room-code-panel");
   roomCodePanel.append(roomCode);
   const invitationActions = createElement("div", "button-group invitation-actions");
-  for (const [label, action] of [
-    ["Copy room code", actions.onCopyRoomCode],
-    ["Copy invite link", actions.onCopyInvitationLink],
-    ["Share invite", actions.onShareInvitationLink],
+  for (const [label, className, action] of [
+    ["Copy room code", "secondary-button", actions.onCopyRoomCode],
+    ["Copy invite link", "primary-button", actions.onCopyInvitationLink],
+    ["Share invite", "secondary-button", actions.onShareInvitationLink],
   ] as const) {
-    const button = createElement("button", "secondary-button invitation-button", label);
+    const button = createElement("button", `${className} invitation-button`, label);
     button.type = "button";
     button.disabled = state.isBusy || state.isInvitationBusy;
     button.addEventListener("click", action);
@@ -461,10 +499,8 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     (player) => player.id === state.localPlayerId,
   );
   const isHost = localPlayer?.isHost === true;
-  const selectedGameIndex = lobby.availableGames.findIndex(({ id }) => id === lobby.selectedGameId);
   const selectedGameCard = createGameCard(
     lobby.selectedGame,
-    selectedGameIndex < 0 ? 0 : selectedGameIndex,
     {
       selected: true,
       className: "selected-lobby-game",
@@ -493,36 +529,32 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   readinessMessage.setAttribute("role", "status");
   const playerList = createElement("ul", "player-list");
 
-  const visibilityField = createElement("div", "field room-visibility-field");
-  const visibilityLabel = createElement("label", "field-label", "Room visibility");
-  visibilityLabel.htmlFor = "room-visibility";
+  let visibilityField: HTMLElement;
   if (isHost && lobby.status === "lobby") {
-    const visibilitySelect = createElement("select", "text-input");
-    visibilitySelect.id = "room-visibility";
-    visibilitySelect.disabled = state.isBusy;
-    for (const value of ["private", "public"] as const) {
-      const option = createElement("option", undefined, value === "private" ? "Private" : "Public");
-      option.value = value;
-      visibilitySelect.append(option);
-    }
-    visibilitySelect.value = lobby.visibility;
-    visibilitySelect.addEventListener("change", () => {
-      actions.onSetRoomVisibility(visibilitySelect.value as "private" | "public");
+    visibilityField = createVisibilitySelector({
+      idPrefix: "room-visibility",
+      visibility: lobby.visibility,
+      disabled: state.isBusy,
+      onChange: actions.onSetRoomVisibility,
     });
-    visibilityField.append(visibilityLabel, visibilitySelect);
+    visibilityField.classList.add("room-visibility-field");
   } else {
-    visibilityField.append(
-      visibilityLabel,
-      createElement("p", "selected-game-name", lobby.visibility === "public" ? "Public" : "Private"),
-    );
+    const readOnlyVisibility = createElement("div", "field room-visibility-field");
+    readOnlyVisibility.append(createElement("p", "field-label", "Room visibility"));
+    readOnlyVisibility.append(createElement(
+      "p",
+      "selected-game-name",
+      lobby.visibility === "public" ? "Public" : "Private",
+    ));
+    readOnlyVisibility.append(createElement(
+      "p",
+      "helper-text",
+      lobby.visibility === "public"
+        ? "Public rooms can be discovered while the lobby has an open slot."
+        : "Private rooms are hidden from discovery. Players join with the room code.",
+    ));
+    visibilityField = readOnlyVisibility;
   }
-  visibilityField.append(createElement(
-    "p",
-    "helper-text",
-    lobby.visibility === "public"
-      ? "Public rooms can be discovered by players while this lobby has an open slot."
-      : "Private rooms are hidden from discovery. Players join with the room code.",
-  ));
 
   for (const player of lobby.players) {
     const item = createElement("li", "player-card");
