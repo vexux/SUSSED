@@ -1,4 +1,4 @@
-export type AppView = "home" | "game-selection" | "lobby" | "starting" | "game";
+export type AppView = "home" | "game-selection" | "public-rooms" | "lobby" | "starting" | "game";
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 export type RoomStatus = "lobby" | "starting";
 export type ThemePreference = "dark" | "light";
@@ -51,6 +51,8 @@ export interface LobbyState {
   playerCount: number;
   readinessStatus: "insufficient-players" | "waiting-for-ready" | "ready" | "starting";
   status: RoomStatus;
+  visibility: "public" | "private";
+  maxPlayers: number;
   selectedGameId: string;
   selectedRoundCount: 5 | 7 | 10;
   selectedGame: LobbyGame;
@@ -64,7 +66,17 @@ export interface LobbyGame {
   displayName: string;
   description: string;
   minPlayers: number;
-  maxPlayers?: number;
+  maxPlayers: number;
+}
+
+export interface PublicRoom {
+  roomId: string;
+  gameId: string;
+  gameName: string;
+  gameDescription: string;
+  playerCount: number;
+  maxPlayers: number;
+  status: "lobby";
 }
 
 export interface GameParticipant {
@@ -97,6 +109,10 @@ export interface AppState {
   isBusy: boolean;
   availableGames: LobbyGame[];
   pendingGameId: string | null;
+  pendingRoomVisibility: "public" | "private";
+  publicRooms: PublicRoom[];
+  isLoadingPublicRooms: boolean;
+  publicRoomsError: string | null;
   resultsReminderSessionId: string | null;
   isSendingResultsReminder: boolean;
   resultsReminderFeedback: string | null;
@@ -149,6 +165,10 @@ export function createInitialAppState(): AppState {
     isBusy: false,
     availableGames: [],
     pendingGameId: null,
+    pendingRoomVisibility: "private",
+    publicRooms: [],
+    isLoadingPublicRooms: false,
+    publicRoomsError: null,
     resultsReminderSessionId: null,
     isSendingResultsReminder: false,
     resultsReminderFeedback: null,

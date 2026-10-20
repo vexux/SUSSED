@@ -4,6 +4,8 @@ const gameRegistry = require("./gameRegistry");
 const factOrCapSocketHandlers = require("./games/fact-or-cap/socketHandlers");
 const bruhWtfSocketHandlers = require("./games/bruh-wtf/socketHandlers");
 
+const PUBLIC_ROOM_BROWSERS = "public-room-browsers";
+
 function isRecord(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -37,6 +39,12 @@ function broadcastLobby(io, room, { resultsSessionId = null } = {}) {
     }
 }
 
+function broadcastPublicRooms(io) {
+    io.to(PUBLIC_ROOM_BROWSERS).emit("public-rooms-updated", {
+        rooms: roomManager.listPublicRooms()
+    });
+}
+
 async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
     const room = roomManager.getPlayerRoom(socket.id);
     if (!room) {
@@ -59,6 +67,7 @@ async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
 
     if (!updatedRoom) {
         gameManager.removeGame(room.code, departure?.sessionId);
+        broadcastPublicRooms(io);
         return { room, updatedRoom: null, departure, leaveError: await leavePromise };
     }
 
@@ -97,6 +106,7 @@ async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
     } else {
         broadcastLobby(io, updatedRoom);
     }
+    broadcastPublicRooms(io);
     return { room, updatedRoom, departure, leaveError: await leavePromise };
 }
 
@@ -112,6 +122,26 @@ function registerRoomHandlers(io, socket) {
         if (typeof acknowledge === "function") {
             acknowledge({ games: gameRegistry.list() });
         }
+    });
+
+    socket.on("subscribe-public-rooms", async (acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) return;
+        try {
+            await socket.join(PUBLIC_ROOM_BROWSERS);
+            acknowledge({ rooms: roomManager.listPublicRooms() });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
+    });
+
+    socket.on("refresh-public-rooms", (acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) return;
+        acknowledge({ rooms: roomManager.listPublicRooms() });
+    });
+
+    socket.on("unsubscribe-public-rooms", () => {
+        void socket.leave(PUBLIC_ROOM_BROWSERS);
     });
 
     socket.on("create-room", async (payload, acknowledge) => {
@@ -136,14 +166,18 @@ function registerRoomHandlers(io, socket) {
         const gameId = isRecord(payload) && Object.hasOwn(payload, "gameId")
             ? payload.gameId
             : undefined;
+        const visibility = isRecord(payload) && Object.hasOwn(payload, "visibility")
+            ? payload.visibility
+            : "private";
 
         let room;
         try {
-            room = roomManager.createRoom(socket.id, playerName, gameId);
+            room = roomManager.createRoom(socket.id, playerName, gameId, visibility);
             await socket.join(room.code);
         } catch (error) {
             if (room) {
                 roomManager.removeRoom(room.code);
+                broadcastPublicRooms(io);
             }
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
@@ -152,6 +186,7 @@ function registerRoomHandlers(io, socket) {
 
         socket.data.roomCode = room.code;
         broadcastLobby(io, room);
+        broadcastPublicRooms(io);
         acknowledge({ roomCode: room.code });
     });
 
@@ -179,6 +214,7 @@ function registerRoomHandlers(io, socket) {
         } catch (error) {
             if (room) {
                 roomManager.removePlayer(socket.id);
+                broadcastPublicRooms(io);
             }
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
@@ -188,7 +224,58 @@ function registerRoomHandlers(io, socket) {
         socket.data.roomCode = room.code;
         const lobby = roomManager.createLobbyState(room);
         broadcastLobby(io, room);
+        broadcastPublicRooms(io);
         acknowledge({ lobby });
+    });
+
+    socket.on("join-public-room", async (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) return;
+        if (!isRecord(payload) || typeof payload.publicRoomId !== "string" || typeof payload.playerName !== "string") {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "A public room reference and player name are required.");
+            return;
+        }
+        if (roomManager.getPlayerRoom(socket.id)) {
+            acknowledgeError(acknowledge, "ALREADY_IN_ROOM", "You are already in a room.");
+            return;
+        }
+
+        let room;
+        try {
+            room = roomManager.joinPublicRoom(payload.publicRoomId, socket.id, payload.playerName);
+            await socket.join(room.code);
+        } catch (error) {
+            if (room) {
+                roomManager.removePlayer(socket.id);
+                broadcastPublicRooms(io);
+            }
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+            return;
+        }
+
+        socket.data.roomCode = room.code;
+        const lobby = roomManager.createLobbyState(room);
+        broadcastLobby(io, room);
+        broadcastPublicRooms(io);
+        acknowledge({ lobby });
+    });
+
+    socket.on("set-room-visibility", (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) return;
+        if (!isRecord(payload) || Object.keys(payload).length !== 1 || typeof payload.visibility !== "string") {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "A public or private visibility value is required.");
+            return;
+        }
+        try {
+            const room = roomManager.setRoomVisibility(socket.id, payload.visibility);
+            const lobby = roomManager.createLobbyState(room);
+            broadcastLobby(io, room);
+            broadcastPublicRooms(io);
+            acknowledge({ visibility: room.visibility, lobby });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
     });
 
     socket.on("leave-room", async (payload, acknowledge) => {
@@ -257,6 +344,7 @@ function registerRoomHandlers(io, socket) {
         try {
             const room = roomManager.selectGame(socket.id, payload.gameId);
             broadcastLobby(io, room);
+            broadcastPublicRooms(io);
             acknowledge({
                 selectedGameId: room.selectedGameId,
                 lobby: roomManager.createLobbyState(room)
@@ -335,11 +423,13 @@ function registerRoomHandlers(io, socket) {
                     startingRoom.selectedGameId
                 );
             }
+            broadcastPublicRooms(io);
             acknowledge({ starting: true, game });
         } catch (error) {
             if (startingRoom) {
                 gameManager.abortActiveGame(startingRoom.code);
                 roomManager.cancelRoomStart(startingRoom);
+                broadcastPublicRooms(io);
             }
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
@@ -370,6 +460,7 @@ function registerRoomHandlers(io, socket) {
             // Results viewers need the authoritative room update to know the
             // host has returned, while retaining their local finished snapshot.
             broadcastLobby(io, lobbyRoom, { resultsSessionId: payload.sessionId });
+            broadcastPublicRooms(io);
             acknowledge({ returned: true });
         } catch (error) {
             const operationError = getOperationError(error);

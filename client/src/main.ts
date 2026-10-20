@@ -5,6 +5,7 @@ import {
   type GameSessionState,
   type LobbyGame,
   type LobbyState,
+  type PublicRoom,
 } from "./appState";
 import { socket } from "./socket";
 import { renderApp } from "./views";
@@ -49,6 +50,11 @@ interface RoomOperationResponse {
 
 interface GameListResponse {
   games?: LobbyGame[];
+  error?: { code: string; message: string };
+}
+
+interface PublicRoomsResponse {
+  rooms?: PublicRoom[];
   error?: { code: string; message: string };
 }
 
@@ -203,6 +209,35 @@ function requestAvailableGames(): void {
       render();
     },
   );
+}
+
+function applyPublicRoomsResponse(error: Error | null, response?: PublicRoomsResponse): void {
+  state.isLoadingPublicRooms = false;
+  if (error || !response || !Array.isArray(response.rooms)) {
+    state.publicRoomsError = response?.error?.message ?? "Public rooms could not be loaded. Try again.";
+  } else {
+    state.publicRooms = response.rooms;
+    state.publicRoomsError = null;
+  }
+  if (state.currentView === "public-rooms") render();
+}
+
+function subscribeToPublicRooms(): void {
+  state.isLoadingPublicRooms = true;
+  state.publicRoomsError = null;
+  render();
+  socket.timeout(5000).emit("subscribe-public-rooms", applyPublicRoomsResponse);
+}
+
+function refreshPublicRooms(): void {
+  state.isLoadingPublicRooms = true;
+  state.publicRoomsError = null;
+  render();
+  socket.timeout(5000).emit("refresh-public-rooms", applyPublicRoomsResponse);
+}
+
+function unsubscribeFromPublicRooms(): void {
+  if (socket.connected) socket.emit("unsubscribe-public-rooms");
 }
 
 function showOperationError(response: RoomOperationResponse): void {
@@ -484,6 +519,7 @@ const actions: AppActions = {
   onCreateRoom() {
     state.currentView = "game-selection";
     state.pendingGameId = null;
+    state.pendingRoomVisibility = "private";
     state.errorMessage = null;
     state.errorCode = null;
     render();
@@ -495,6 +531,10 @@ const actions: AppActions = {
     state.errorCode = null;
     render();
   },
+  onChooseRoomVisibility(visibility) {
+    state.pendingRoomVisibility = visibility;
+    render();
+  },
   onConfirmCreateRoom(gameId) {
     if (gameId !== state.pendingGameId || !state.availableGames.some((game) => game.id === gameId)) return;
     state.errorMessage = null;
@@ -503,7 +543,7 @@ const actions: AppActions = {
     render();
     emitRoomOperation(
       "create-room",
-      { playerName: state.playerName, gameId },
+      { playerName: state.playerName, gameId, visibility: state.pendingRoomVisibility },
       (response) => {
         if (response.error) {
           showOperationError(response);
@@ -526,6 +566,53 @@ const actions: AppActions = {
     persistThemePreference(state.theme);
     document.documentElement.dataset.theme = state.theme;
     if (themeColor) themeColor.content = state.theme === "dark" ? "#17131c" : "#f7f4fa";
+    render();
+  },
+  onBrowsePublicRooms() {
+    if (state.connectionStatus !== "connected") return;
+    state.currentView = "public-rooms";
+    state.publicRoomsError = null;
+    state.isLoadingPublicRooms = true;
+    subscribeToPublicRooms();
+  },
+  onRefreshPublicRooms() {
+    if (state.connectionStatus === "connected") refreshPublicRooms();
+  },
+  onJoinPublicRoom(roomId) {
+    if (state.connectionStatus !== "connected" || state.isBusy) return;
+    state.isBusy = true;
+    state.publicRoomsError = null;
+    render();
+    socket.timeout(5000).emit(
+      "join-public-room",
+      { publicRoomId: roomId, playerName: state.playerName },
+      (transportError: Error | null, response?: RoomOperationResponse) => {
+      state.isBusy = false;
+      if (transportError || !response) {
+        state.publicRoomsError = "The server did not respond. Refresh the list and try again.";
+        render();
+        return;
+      }
+      if (response.error) {
+        state.publicRoomsError = response.error.message;
+        render();
+        return;
+      }
+      if (!response.lobby) {
+        state.publicRoomsError = "The room joined, but its current state could not be loaded. Refresh and try again.";
+        render();
+        return;
+      }
+      unsubscribeFromPublicRooms();
+      applyLobbyState(response.lobby);
+      },
+    );
+  },
+  onBackFromPublicRooms() {
+    unsubscribeFromPublicRooms();
+    state.currentView = "home";
+    state.publicRoomsError = null;
+    state.errorMessage = null;
     render();
   },
   onJoinRoom(roomCode) {
@@ -572,6 +659,21 @@ const actions: AppActions = {
       state.errorMessage = null;
       state.errorCode = null;
       render();
+    });
+  },
+  onSetRoomVisibility(visibility) {
+    state.isBusy = true;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+    emitRoomOperation("set-room-visibility", { visibility }, (response) => {
+      if (response.error) {
+        showOperationError(response);
+        return;
+      }
+      state.isBusy = false;
+      if (response.lobby) applyLobbyState(response.lobby);
+      else render();
     });
   },
   onSetReady(isReady) {
@@ -988,6 +1090,13 @@ socket.on("lobby-state", (lobby: LobbyState) => {
   applyLobbyState(lobby);
 });
 
+socket.on("public-rooms-updated", (payload: PublicRoomsResponse) => {
+  if (state.currentView !== "public-rooms" || !Array.isArray(payload.rooms)) return;
+  state.publicRooms = payload.rooms;
+  state.publicRoomsError = null;
+  render();
+});
+
 socket.on(
   "game-starting",
   (payload: {
@@ -1027,12 +1136,14 @@ socket.on("connect", () => {
   hasConnectedOnce = true;
   render();
   requestAvailableGames();
+  if (state.currentView === "public-rooms") subscribeToPublicRooms();
 });
 
 socket.on("disconnect", () => {
   connectionWasLost = true;
   state.connectionStatus = "disconnected";
-  state.currentView = "home";
+  const wasBrowsingPublicRooms = state.currentView === "public-rooms";
+  state.currentView = wasBrowsingPublicRooms ? "public-rooms" : "home";
   state.roomCode = null;
   state.localPlayerId = null;
   state.lobby = null;
@@ -1042,6 +1153,8 @@ socket.on("disconnect", () => {
   resetFakeAnswerViewState();
   state.isBusy = false;
   state.errorMessage = "Connection lost. Reconnect to create or join a room.";
+  state.isLoadingPublicRooms = false;
+  if (wasBrowsingPublicRooms) state.publicRoomsError = "Connection lost. Reconnect to browse public rooms.";
   state.errorCode = null;
   render();
 });
@@ -1051,6 +1164,10 @@ socket.on("connect_error", () => {
   state.connectionStatus = "disconnected";
   state.isBusy = false;
   state.errorMessage = "Unable to connect to the server. Retrying…";
+  if (state.currentView === "public-rooms") {
+    state.isLoadingPublicRooms = false;
+    state.publicRoomsError = "Unable to connect. Reconnect to browse public rooms.";
+  }
   state.errorCode = null;
   render();
 });

@@ -101,16 +101,94 @@ test("room codes normalize to uppercase for lookup and joining", (context) => {
     assert.equal(host.players.length, 2);
 });
 
-test("rooms start with five rounds and allow any additional player count", (context) => {
-    const host = roomManager.createRoom("uncapped-host", "Host");
+test("rooms start with five rounds and enforce the shared eight-player capacity", (context) => {
+    const host = roomManager.createRoom("capped-host", "Host");
     context.after(() => roomManager.removeRoom(host.code));
     assert.equal(host.selectedRoundCount, 5);
     assert.equal(roomManager.createLobbyState(host).selectedRoundCount, 5);
+    assert.equal(roomManager.MAX_ROOM_CAPACITY, 8);
+    assert.equal(roomManager.createLobbyState(host).maxPlayers, roomManager.MAX_ROOM_CAPACITY);
 
-    for (let index = 1; index < 12; index += 1) {
-        roomManager.joinRoom(host.code, `uncapped-${index}`, `Player ${index}`);
+    for (let index = 1; index < roomManager.MAX_ROOM_CAPACITY; index += 1) {
+        roomManager.joinRoom(host.code, `capped-${index}`, `Player ${index}`);
     }
-    assert.equal(host.players.length, 12);
+    assert.equal(host.players.length, roomManager.MAX_ROOM_CAPACITY);
+    assert.throws(
+        () => roomManager.joinRoom(host.code, "ninth-player", "Ninth"),
+        { code: "ROOM_FULL" }
+    );
+    assert.equal(host.players.length, roomManager.MAX_ROOM_CAPACITY);
+});
+
+test("simultaneous joins reserve only the last available room slot", async (context) => {
+    const host = roomManager.createRoom("last-slot-host", "Host");
+    context.after(() => roomManager.removeRoom(host.code));
+    for (let index = 1; index < roomManager.MAX_ROOM_CAPACITY - 1; index += 1) {
+        roomManager.joinRoom(host.code, `last-slot-${index}`, `Player ${index}`);
+    }
+
+    const attempts = await Promise.allSettled([
+        Promise.resolve().then(() => roomManager.joinRoom(host.code, "last-slot-a", "Player A")),
+        Promise.resolve().then(() => roomManager.joinRoom(host.code, "last-slot-b", "Player B")),
+    ]);
+    assert.equal(attempts.filter(({ status }) => status === "fulfilled").length, 1);
+    assert.equal(attempts.filter(({ status, reason }) => status === "rejected" && reason.code === "ROOM_FULL").length, 1);
+    assert.equal(host.players.length, roomManager.MAX_ROOM_CAPACITY);
+});
+
+test("simultaneous public joins cannot exceed room capacity", async (context) => {
+    const host = roomManager.createRoom("public-last-slot-host", "Host", undefined, "public");
+    context.after(() => roomManager.removeRoom(host.code));
+    for (let index = 1; index < roomManager.MAX_ROOM_CAPACITY - 1; index += 1) {
+        roomManager.joinRoom(host.code, `public-last-slot-${index}`, `Player ${index}`);
+    }
+    const roomId = roomManager.listPublicRooms()[0].roomId;
+    const attempts = await Promise.allSettled([
+        Promise.resolve().then(() => roomManager.joinPublicRoom(roomId, "public-last-slot-a", "Player A")),
+        Promise.resolve().then(() => roomManager.joinPublicRoom(roomId, "public-last-slot-b", "Player B")),
+    ]);
+    assert.equal(attempts.filter(({ status }) => status === "fulfilled").length, 1);
+    assert.equal(attempts.filter(({ status, reason }) => status === "rejected" && reason.code === "ROOM_FULL").length, 1);
+    assert.equal(host.players.length, roomManager.MAX_ROOM_CAPACITY);
+});
+
+test("visibility defaults to private and only the host can change it in the lobby", (context) => {
+    const room = roomManager.createRoom("visibility-host", "Host");
+    context.after(() => roomManager.removeRoom(room.code));
+    const guest = roomManager.joinRoom(room.code, "visibility-guest", "Guest");
+    assert.equal(room.visibility, "private");
+    assert.equal(roomManager.listPublicRooms().some(({ roomId }) => roomId === room.publicRoomId), false);
+    assert.throws(() => roomManager.createRoom("invalid-visibility", "Invalid", undefined, "unlisted"), { code: "INVALID_VISIBILITY" });
+    assert.throws(() => roomManager.setRoomVisibility(guest.players[1].id, "public"), { code: "NOT_HOST" });
+    assert.throws(() => roomManager.setRoomVisibility(room.hostId, "unlisted"), { code: "INVALID_VISIBILITY" });
+
+    roomManager.setRoomVisibility(room.hostId, "public");
+    assert.equal(roomManager.createLobbyState(room).visibility, "public");
+    assert.equal(roomManager.listPublicRooms().some(({ roomId }) => roomId === room.publicRoomId), true);
+    roomManager.setRoomVisibility(room.hostId, "private");
+    assert.equal(roomManager.listPublicRooms().some(({ roomId }) => roomId === room.publicRoomId), false);
+
+    room.visibility = "public";
+    room.status = "starting";
+    assert.throws(() => roomManager.setRoomVisibility(room.hostId, "private"), { code: "ROOM_NOT_IN_LOBBY" });
+});
+
+test("public discovery exposes opaque references only and public joins revalidate visibility and capacity", (context) => {
+    const room = roomManager.createRoom("public-host", "Secret Host", undefined, "public");
+    context.after(() => roomManager.removeRoom(room.code));
+    let listing = roomManager.listPublicRooms();
+    assert.equal(listing.length, 1);
+    assert.deepEqual(Object.keys(listing[0]).sort(), [
+        "gameDescription", "gameId", "gameName", "maxPlayers", "playerCount", "roomId", "status",
+    ]);
+    assert.equal(JSON.stringify(listing).includes(room.code), false);
+    assert.equal(JSON.stringify(listing).includes("Secret Host"), false);
+    const publicJoin = roomManager.joinPublicRoom(listing[0].roomId, "public-guest", "Guest");
+    assert.equal(publicJoin.players.length, 2);
+    assert.throws(() => roomManager.joinPublicRoom("stale-public-id", "stale-guest", "Stale"), { code: "PUBLIC_ROOM_NOT_FOUND" });
+
+    roomManager.setRoomVisibility(room.hostId, "private");
+    assert.throws(() => roomManager.joinPublicRoom(room.publicRoomId, "late-guest", "Late"), { code: "ROOM_NOT_PUBLIC" });
 });
 
 test("round count changes require an eligible host and a current lobby revision", (context) => {

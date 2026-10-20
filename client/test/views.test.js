@@ -276,13 +276,14 @@ test("landing page selects a tagline once and keeps its form interactions usable
       Math.random = () => 0.5;
 
       state.availableGames = [
-        { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2 },
+        { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
       ];
       const calls = { create: 0, join: [], names: [] };
       const actions = {
         onPlayerNameChange(name) { state.playerName = name; state.errorMessage = null; state.errorCode = null; calls.names.push(name); },
         onCreateRoom() { calls.create += 1; },
         onJoinRoom(code) { calls.join.push(code); },
+        onBrowsePublicRooms() { calls.browse = true; },
       };
       const root = new FakeElement("root");
       const render = () => renderApp(root, state, actions, {}, {});
@@ -303,9 +304,11 @@ test("landing page selects a tagline once and keeps its form interactions usable
       root.query((element) => element.textContent === "Create a room").dispatch("click");
       root.query((element) => element.id === "room-code").value = "ABCD";
       root.query((element) => element.textContent === "Join room").dispatch("click");
+      root.query((element) => element.textContent === "Browse public rooms").dispatch("click");
       assert.equal(calls.create, 1);
       assert.deepEqual(calls.join, ["ABCD"]);
       assert.deepEqual(calls.names, ["Alex"]);
+      assert.equal(calls.browse, true);
     } finally {
       Math.random = originalRandom;
     }
@@ -318,13 +321,14 @@ test("game selection is registry-driven and selecting a card does not create a r
     state.connectionStatus = "connected";
     state.currentView = "game-selection";
     state.availableGames = [
-      { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2 },
-      { id: "fact-or-cap-anime", displayName: "Fact or Cap Anime", description: "Anime facts.", minPlayers: 2 },
+      { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
+      { id: "fact-or-cap-anime", displayName: "Fact or Cap Anime", description: "Anime facts.", minPlayers: 2, maxPlayers: 8 },
       { id: "future-game", displayName: "Future Game", description: "A registered future game.", minPlayers: 4, maxPlayers: 8 },
     ];
     const calls = { selected: [], created: [] };
     const actions = {
       onChooseGame(gameId) { state.pendingGameId = gameId; calls.selected.push(gameId); },
+      onChooseRoomVisibility(visibility) { state.pendingRoomVisibility = visibility; calls.visibility = visibility; },
       onConfirmCreateRoom(gameId) { calls.created.push(gameId); },
       onBackToHome() {},
     };
@@ -349,8 +353,57 @@ test("game selection is registry-driven and selecting a card does not create a r
     state.pendingGameId = "fact-or-cap-anime";
     render();
     assert.equal(root.query((element) => element.className.includes("create-selected-game")).disabled, false);
+    const visibility = root.query((element) => element.id === "create-room-visibility");
+    assert.equal(visibility.value, "private");
+    visibility.value = "public";
+    visibility.dispatch("change");
+    assert.equal(calls.visibility, "public");
     root.query((element) => element.className.includes("create-selected-game")).dispatch("click");
     assert.deepEqual(calls.created, ["fact-or-cap-anime"]);
+  });
+});
+
+test("public room browser renders safe room cards, loading, empty and actionable states", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "public-rooms";
+    state.connectionStatus = "connected";
+    state.isLoadingPublicRooms = true;
+    const calls = [];
+    const actions = {
+      onRefreshPublicRooms() { calls.push("refresh"); },
+      onBackFromPublicRooms() { calls.push("back"); },
+      onJoinPublicRoom(roomId) { calls.push(roomId); },
+    };
+    const root = new FakeElement("root");
+    const render = () => renderApp(root, state, actions, {}, {});
+    render();
+    assert.match(root.text, /Finding open rooms/u);
+
+    state.isLoadingPublicRooms = false;
+    render();
+    assert.match(root.text, /No public rooms are available/u);
+
+    state.publicRooms = [{
+      roomId: "opaque-public-id",
+      gameId: "fact-or-cap",
+      gameName: "Fact or Cap",
+      gameDescription: "Bluff with facts.",
+      playerCount: 3,
+      maxPlayers: 8,
+      status: "lobby",
+    }];
+    render();
+    assert.match(root.text, /3\/8 players/u);
+    assert.equal(root.text.includes("ABCD"), false);
+    root.query((element) => element.textContent === "Join").dispatch("click");
+    root.query((element) => element.textContent === "Refresh").dispatch("click");
+    root.query((element) => element.textContent === "Back").dispatch("click");
+    assert.deepEqual(calls, ["opaque-public-id", "refresh", "back"]);
+
+    state.publicRoomsError = "That room is full.";
+    render();
+    assert.equal(root.query((element) => element.attributes.role === "alert").textContent, "That room is full.");
   });
 });
 
@@ -400,9 +453,9 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     state.roomCode = "ABCD";
     state.lobby = {
       roomCode: "ABCD", revision: 3, playerCount: 1, readinessStatus: "insufficient-players",
-      status: "lobby", selectedGameId: "fact-or-cap", selectedRoundCount: 5,
+      status: "lobby", visibility: "private", maxPlayers: 8, selectedGameId: "fact-or-cap", selectedRoundCount: 5,
       reminderSessionId: "finished-session",
-      selectedGame: { id: "fact-or-cap", displayName: "Fact or Cap", description: "Game", minPlayers: 2 },
+      selectedGame: { id: "fact-or-cap", displayName: "Fact or Cap", description: "Game", minPlayers: 2, maxPlayers: 8 },
       availableGames: [],
       players: [
         { id: "host", name: "Host", isHost: true, isReady: false, isInGame: false },
@@ -414,6 +467,9 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     const root = new FakeElement("root");
     renderApp(root, state, actions, {}, {});
     assert.match(root.text, /1 player in lobby/u);
+    assert.match(root.text, /1 player in lobby \(8 max\)/u);
+    assert.equal(root.query((element) => element.id === "room-visibility").value, "private");
+    assert.match(root.text, /Players join with the room code/u);
     assert.match(root.text, /Viewer.*In-game/u);
     const hostCard = root.query((element) => element.className.includes("player-card") && element.text.includes("Host"));
     assert.equal(hostCard.children[1].textContent, "Host");
@@ -447,6 +503,8 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     state.resultsReminderFeedback = null;
     state.lobby.players[1].isReady = false;
     renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.id === "room-visibility"), null);
+    assert.match(root.text, /Room visibility.*Private/u);
     assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Ready").disabled, false);
     state.lobby.players[1].isInGame = true;
     state.lobby.playerCount = 1;

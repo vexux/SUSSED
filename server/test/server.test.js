@@ -174,6 +174,22 @@ function waitForLobby(client, predicate = () => true) {
     });
 }
 
+function waitForPublicRooms(client, predicate = () => true) {
+    return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            client.off("public-rooms-updated", onRooms);
+            reject(new Error("public-rooms-updated event timed out"));
+        }, 3000);
+        function onRooms(payload) {
+            if (!predicate(payload.rooms)) return;
+            clearTimeout(timeout);
+            client.off("public-rooms-updated", onRooms);
+            resolve(payload.rooms);
+        }
+        client.on("public-rooms-updated", onRooms);
+    });
+}
+
 function waitForGameState(client, predicate = () => true) {
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
@@ -250,12 +266,14 @@ async function startFakeAnswer(
         playerCount = 4,
         waitForSubmission = true,
         gameId = "fact-or-cap",
-        roundCount = 5
+        roundCount = 5,
+        visibility = "private"
     } = {}
 ) {
     const host = await harness.connect();
     const created = await emitWithAck(host, "create-room", {
         playerName: "Host",
+        visibility,
     });
     harness.trackRoom(created.roomCode);
     const players = await joinPlayers(harness, created.roomCode, playerCount - 1);
@@ -523,6 +541,7 @@ test("lists registered games and creates a room with the requested game before i
         "fact-or-cap-anime",
         "bruh-wtf"
     ]);
+    assert.ok(list.games.every(({ maxPlayers }) => maxPlayers === roomManager.MAX_ROOM_CAPACITY));
 
     const firstLobby = waitForLobby(client);
     const created = await emitWithAck(client, "create-room", {
@@ -542,6 +561,156 @@ test("lists registered games and creates a room with the requested game before i
     assert.equal(rejected.error.code, "GAME_NOT_FOUND");
     assert.equal(roomManager.getPlayerRoom(invalidClient.id), null);
     assert.equal(roomManager.getRoom(lobby.roomCode).selectedGameId, "fact-or-cap-anime");
+});
+
+test("public room browser lists only safe metadata, revalidates joins, and follows room eligibility", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const initialList = await emitWithAck(host, "subscribe-public-rooms", undefined);
+    assert.deepEqual(initialList.rooms, []);
+
+    const createdRoomList = waitForPublicRooms(host, (rooms) => rooms.length === 1);
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Hidden Host Name",
+        gameId: "fact-or-cap",
+        visibility: "public"
+    });
+    harness.trackRoom(created.roomCode);
+    const [listedRoom] = await createdRoomList;
+    assert.equal(listedRoom.playerCount, 1);
+    assert.equal(listedRoom.maxPlayers, roomManager.MAX_ROOM_CAPACITY);
+    assert.equal(listedRoom.gameName, "Fact or Cap");
+    assert.equal(JSON.stringify(listedRoom).includes(created.roomCode), false);
+    assert.equal(JSON.stringify(listedRoom).includes("Hidden Host Name"), false);
+    assert.equal(Object.hasOwn(listedRoom, "players"), false);
+    assert.deepEqual((await emitWithAck(host, "refresh-public-rooms", undefined)).rooms, [listedRoom]);
+
+    const joinedUpdate = waitForPublicRooms(host, (rooms) => rooms[0]?.playerCount === 2);
+    const joined = await emitWithAck(guest, "join-public-room", {
+        publicRoomId: listedRoom.roomId,
+        playerName: "Public Guest"
+    });
+    assert.equal(joined.error, undefined);
+    assert.equal(joined.lobby.roomCode, created.roomCode);
+    assert.equal((await joinedUpdate)[0].playerCount, 2);
+
+    const privateUpdate = waitForPublicRooms(host, (rooms) => rooms.length === 0);
+    const madePrivate = await emitWithAck(host, "set-room-visibility", { visibility: "private" });
+    assert.equal(madePrivate.visibility, "private");
+    assert.equal(madePrivate.lobby.visibility, "private");
+    assert.deepEqual(await privateUpdate, []);
+
+    const lateGuest = await harness.connect();
+    const deniedPublicJoin = await emitWithAck(lateGuest, "join-public-room", {
+        publicRoomId: listedRoom.roomId,
+        playerName: "Late Guest"
+    });
+    assert.equal(deniedPublicJoin.error.code, "ROOM_NOT_PUBLIC");
+    assert.equal(roomManager.getRoom(created.roomCode).players.length, 2);
+
+    const invalidVisibility = await emitWithAck(host, "set-room-visibility", { visibility: "unlisted" });
+    assert.equal(invalidVisibility.error.code, "INVALID_VISIBILITY");
+    const nonHostVisibility = await emitWithAck(guest, "set-room-visibility", { visibility: "public" });
+    assert.equal(nonHostVisibility.error.code, "NOT_HOST");
+
+    const publicAgain = waitForPublicRooms(host, (rooms) => rooms.length === 1);
+    const changedBack = await emitWithAck(host, "set-room-visibility", { visibility: "public" });
+    assert.equal(changedBack.visibility, "public");
+    const [reopened] = await publicAgain;
+
+    const finalSlot = roomManager.MAX_ROOM_CAPACITY - 3;
+    const extraGuests = [];
+    for (let index = 0; index < finalSlot; index += 1) {
+        const player = await harness.connect();
+        extraGuests.push(player);
+        const response = await emitWithAck(player, "join-room", {
+            roomCode: created.roomCode,
+            playerName: `Code Guest ${index + 1}`
+        });
+        assert.equal(response.error, undefined);
+    }
+    const fullRoomUpdate = waitForPublicRooms(host, (rooms) => rooms.length === 0);
+    const publicContenders = [await harness.connect(), await harness.connect()];
+    const concurrentPublicJoins = await Promise.all(publicContenders.map((player, index) =>
+        emitWithAck(player, "join-public-room", {
+            publicRoomId: reopened.roomId,
+            playerName: `Concurrent ${index + 1}`
+        })
+    ));
+    assert.equal(concurrentPublicJoins.filter(({ error }) => !error).length, 1);
+    assert.equal(concurrentPublicJoins.filter(({ error }) => error?.code === "ROOM_FULL").length, 1);
+    assert.deepEqual(await fullRoomUpdate, []);
+    assert.equal(roomManager.getRoom(created.roomCode).players.length, roomManager.MAX_ROOM_CAPACITY);
+    assert.deepEqual(roomManager.listPublicRooms().filter(({ roomId }) => roomId === reopened.roomId), []);
+    const fullJoiner = await harness.connect();
+    const fullPublicJoin = await emitWithAck(fullJoiner, "join-public-room", {
+        publicRoomId: reopened.roomId,
+        playerName: "Ninth Player"
+    });
+    assert.equal(fullPublicJoin.error.code, "ROOM_FULL");
+    const fullCodeJoiner = await harness.connect();
+    const fullCodeJoin = await emitWithAck(fullCodeJoiner, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Code Ninth"
+    });
+    assert.equal(fullCodeJoin.error.code, "ROOM_FULL");
+    assert.equal(roomManager.getRoom(created.roomCode).players.length, roomManager.MAX_ROOM_CAPACITY);
+
+    const departureUpdate = waitForPublicRooms(host, (rooms) => rooms[0]?.playerCount === 7);
+    assert.deepEqual(await emitWithAck(extraGuests[0], "leave-room", undefined), { left: true });
+    assert.equal((await departureUpdate)[0].roomId, reopened.roomId);
+
+    const room = roomManager.getRoom(created.roomCode);
+    for (const player of room.players.filter(({ id }) => id !== host.id)) {
+        const client = [guest, ...extraGuests, ...publicContenders].find(({ id }) => id === player.id);
+        assert.ok(client);
+        const ready = await emitWithAck(client, "set-ready", { isReady: true });
+        assert.equal(ready.error, undefined);
+    }
+    const noLongerLobby = waitForPublicRooms(host, (rooms) => rooms.length === 0);
+    const started = await emitWithAck(host, "start-game", undefined);
+    assert.equal(started.error, undefined);
+    assert.deepEqual(await noLongerLobby, []);
+    assert.equal((await emitWithAck(host, "set-room-visibility", { visibility: "private" })).error.code, "ROOM_NOT_IN_LOBBY");
+    const staleJoiner = await harness.connect();
+    const startedJoin = await emitWithAck(staleJoiner, "join-public-room", {
+        publicRoomId: reopened.roomId,
+        playerName: "After Start"
+    });
+    assert.equal(startedJoin.error.code, "ROOM_NOT_IN_LOBBY");
+});
+
+test("public-room updates follow host transfer and remove a room when its last player leaves", async (context) => {
+    const harness = await createHarness(context);
+    const browser = await harness.connect();
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    assert.deepEqual((await emitWithAck(browser, "subscribe-public-rooms", undefined)).rooms, []);
+
+    const appeared = waitForPublicRooms(browser, (rooms) => rooms.length === 1);
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Host",
+        visibility: "public"
+    });
+    harness.trackRoom(created.roomCode);
+    await appeared;
+    const joinedCount = waitForPublicRooms(browser, (rooms) => rooms[0]?.playerCount === 2);
+    assert.equal((await emitWithAck(guest, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Guest"
+    })).error, undefined);
+    await joinedCount;
+
+    const afterTransfer = waitForPublicRooms(browser, (rooms) => rooms[0]?.playerCount === 1);
+    host.disconnect();
+    await afterTransfer;
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, guest.id);
+
+    const removed = waitForPublicRooms(browser, (rooms) => rooms.length === 0);
+    assert.deepEqual(await emitWithAck(guest, "leave-room", undefined), { left: true });
+    await removed;
+    assert.equal(roomManager.getRoom(created.roomCode), null);
 });
 
 test("serves a minimal HTTP health endpoint without exposing game state", async (context) => {
@@ -583,7 +752,8 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
         id: "fact-or-cap",
         displayName: "Fact or Cap",
         description: "A bluffing party game about surprising facts.",
-        minPlayers: 2
+        minPlayers: 2,
+        maxPlayers: roomManager.MAX_ROOM_CAPACITY
     });
     assert.deepEqual(response.lobby.availableGames.map(({ id }) => id), [
         "fact-or-cap",
@@ -608,6 +778,7 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
     assert.equal(authoritativeRoom.hostId, host.id);
     assert.deepEqual(Object.keys(response.lobby).sort(), [
         "availableGames",
+        "maxPlayers",
         "playerCount",
         "players",
         "readinessStatus",
@@ -618,6 +789,7 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
         "selectedGameId",
         "selectedRoundCount",
         "status",
+        "visibility",
     ]);
     assert.deepEqual(Object.keys(response.lobby.players[0]).sort(), [
         "id",
@@ -670,7 +842,8 @@ test("host selects a registered game and broadcasts authoritative metadata to al
         id: "fact-or-cap-anime",
         displayName: "Fact or Cap (Anime)",
         description: "A bluffing party game about surprising and verifiable anime facts.",
-        minPlayers: 2
+        minPlayers: 2,
+        maxPlayers: roomManager.MAX_ROOM_CAPACITY
     });
     assert.deepEqual(hostLobby.availableGames.map(({ id }) => id), [
         "fact-or-cap",
@@ -705,7 +878,8 @@ test("host selects a registered game and broadcasts authoritative metadata to al
         id: "fact-or-cap",
         displayName: "Fact or Cap",
         description: "A bluffing party game about surprising facts.",
-        minPlayers: 2
+        minPlayers: 2,
+        maxPlayers: roomManager.MAX_ROOM_CAPACITY
     });
 });
 
@@ -829,7 +1003,8 @@ test("Anime rematches retain the selected game and use only the Anime question b
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, {
         playerCount: 4,
-        gameId: "fact-or-cap-anime"
+        gameId: "fact-or-cap-anime",
+        visibility: "public"
     });
     const clients = [game.host, ...game.players];
     let roundState = game.gameState;
@@ -866,12 +1041,17 @@ test("Anime rematches retain the selected game and use only the Anime question b
     const resultViewerLobbyUpdates = Promise.all(game.players.map((player) =>
         waitForLobby(player, (state) => state.status === "lobby" && state.players.find(({ id }) => id === player.id)?.isInGame)
     ));
+    assert.deepEqual((await emitWithAck(game.host, "subscribe-public-rooms", undefined)).rooms, []);
+    const roomListedAfterReturn = waitForPublicRooms(game.host, (rooms) => rooms.length === 1);
     assert.deepEqual(
         await emitWithAck(game.host, "return-to-lobby", {
             sessionId: roundState.sessionId
         }),
         { returned: true }
     );
+    const [returnedPublicRoom] = await roomListedAfterReturn;
+    assert.equal(returnedPublicRoom.playerCount, 4);
+    assert.equal(returnedPublicRoom.gameId, "fact-or-cap-anime");
     const deliveredToResultsViewers = await resultViewerLobbyUpdates;
     assert.equal(deliveredToResultsViewers.length, 3);
     assert.ok(deliveredToResultsViewers.every(({ playerCount, players, status }) =>
@@ -1027,7 +1207,7 @@ test("rejects invalid room codes", async (context) => {
     }
 });
 
-test("allows at least ten players to join a room", async (context) => {
+test("allows exactly eight players to join a room and rejects later joins", async (context) => {
     const harness = await createHarness(context);
     const players = [];
     for (let index = 0; index < 10; index += 1) {
@@ -1039,14 +1219,22 @@ test("allows at least ten players to join a room", async (context) => {
     });
     harness.trackRoom(createResponse.roomCode);
 
-    for (let index = 1; index < players.length; index += 1) {
+    for (let index = 1; index < roomManager.MAX_ROOM_CAPACITY; index += 1) {
         const response = await emitWithAck(players[index], "join-room", {
             roomCode: createResponse.roomCode,
             playerName: `Player ${index}`,
         });
         assert.equal(response.lobby.playerCount, index + 1);
     }
-    assert.equal(roomManager.getRoom(createResponse.roomCode).players.length, 10);
+    for (let index = roomManager.MAX_ROOM_CAPACITY; index < players.length; index += 1) {
+        const response = await emitWithAck(players[index], "join-room", {
+            roomCode: createResponse.roomCode,
+            playerName: `Player ${index}`,
+        });
+        assert.equal(response.error.code, "ROOM_FULL");
+        assert.equal(roomManager.getPlayerRoom(players[index].id), null);
+    }
+    assert.equal(roomManager.getRoom(createResponse.roomCode).players.length, roomManager.MAX_ROOM_CAPACITY);
 });
 
 test("rejects invalid or empty player names on create and join", async (context) => {

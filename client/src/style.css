@@ -301,6 +301,10 @@ select:focus:not(:focus-visible) {
   margin-top: 24px;
 }
 
+.browse-public-rooms {
+  margin-top: var(--space-3);
+}
+
 .button-group {
   display: flex;
   flex-wrap: wrap;
@@ -746,6 +750,78 @@ select:focus:not(:focus-visible) {
 
 .create-selected-game {
   min-width: min(100%, 220px);
+}
+
+.create-visibility-field {
+  margin-top: var(--space-4);
+}
+
+.public-rooms-screen {
+  gap: var(--space-3);
+  padding-top: clamp(var(--space-5), 5vh, 3rem);
+}
+
+.public-room-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
+.public-room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
+  width: 100%;
+  margin-top: var(--space-3);
+  text-align: left;
+}
+
+.public-room-card {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.public-room-card .game-card-art {
+  height: 100%;
+  min-height: 150px;
+}
+
+.public-room-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.public-room-details .game-card-description {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.public-room-details .public-room-join {
+  width: 100%;
+}
+
+.public-room-empty {
+  width: min(100%, 520px);
+  margin: var(--space-6) 0;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-muted);
+  background: var(--color-surface-raised);
+  line-height: 1.6;
+}
+
+.room-visibility-field {
+  margin: var(--space-4) 0;
 }
 
 .results-reminder-backdrop {
@@ -1226,6 +1302,19 @@ select:focus:not(:focus-visible) {
 @media (max-width: 760px) {
   .game-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .public-room-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .public-room-card {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .public-room-card .game-card-art {
+    min-height: 100%;
   }
 }
 
