@@ -61,6 +61,7 @@ class FakeElement {
   setAttribute(name, value) { this.attributes[name] = value; }
   getAttribute(name) { return this.attributes[name] ?? null; }
   removeAttribute(name) { delete this.attributes[name]; }
+  focus() { this.ownerDocument.activeElement = this; }
   setSelectionRange(start, end, direction = "none") {
     this.selectionStart = start;
     this.selectionEnd = end;
@@ -94,6 +95,7 @@ function withFakeDocument(callback) {
   globalThis.document = {
     activeElement: null,
     createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
   };
   try { callback(); }
   finally {
@@ -295,6 +297,7 @@ test("landing page selects a tagline once and keeps its form interactions usable
       assert.equal(tagline.textContent, selected);
       assert.equal(codeInput.placeholder, "CODE");
       assert.equal(root.text.includes("Room codes are memorable four-letter words."), false);
+      assert.ok(root.query((element) => element.tagName === "button" && element.textContent === "Choose a game"));
 
       nameInput.value = "Alex";
       nameInput.dispatch("input");
@@ -363,7 +366,7 @@ test("malformed invitation information is announced and leaves manual joining av
   });
 });
 
-test("host lobby exposes invitation and confirmed kick actions, while guests have no kick controls", () => {
+test("lobby offers a room-code chip and invitation dialog while preserving host-only kick actions", () => {
   withFakeDocument(() => {
     const state = createInitialAppState();
     state.currentView = "lobby";
@@ -383,15 +386,46 @@ test("host lobby exposes invitation and confirmed kick actions, while guests hav
     const actions = new Proxy({}, { get: (_target, name) => (...args) => calls.push([name, ...args]) });
     const root = new FakeElement("root");
     renderApp(root, state, actions, {}, {});
-    for (const label of ["Copy room code", "Copy invite link", "Share invite"]) {
-      root.query((element) => element.tagName === "button" && element.textContent === label).dispatch("click");
-    }
-    assert.equal(root.query((element) => element.textContent === "Copy invite link").className.includes("primary-button"), true);
+    const roomCodeButton = root.query((element) => element.className.includes("room-code-chip"));
+    assert.equal(roomCodeButton.getAttribute("aria-label"), "Copy room code ZING");
+    roomCodeButton.dispatch("click");
+    const inviteButton = root.query((element) => element.className.includes("invite-friends-button"));
+    inviteButton.dispatch("click");
+    assert.equal(root.query((element) => element.textContent === "Copy invite link"), null);
+    state.invitationUrl = "https://play.example/?code=ZING";
+    state.isInvitationDialogOpen = true;
+    renderApp(root, state, actions, {}, {});
+    const invitationDialog = root.query((element) => element.className.includes("invitation-dialog"));
+    assert.equal(invitationDialog.getAttribute("aria-labelledby"), "invitation-dialog-title");
+    assert.equal(invitationDialog.getAttribute("open"), "");
+    assert.match(invitationDialog.text, /https:\/\/play\.example\/\?code=ZING/u);
+    assert.ok(invitationDialog.query((element) => element.textContent === "Copy link"));
+    assert.ok(invitationDialog.query((element) => element.textContent === "Share invite"));
+    assert.ok(invitationDialog.query((element) => element.textContent === "Show QR code"));
+    invitationDialog.dispatch("cancel", { preventDefault() {} });
+    assert.ok(calls.some(([name]) => name === "onCloseInvitationDialog"));
+    state.invitationQrDataUrl = "data:image/png;base64,encoded";
+    state.isInvitationQrVisible = true;
+    renderApp(root, state, actions, {}, {});
+    const qrImage = root.query((element) => element.tagName === "img");
+    assert.equal(qrImage.src, "data:image/png;base64,encoded");
+    assert.equal(qrImage.alt, "QR code for this room invitation link");
+    state.isInvitationDialogOpen = false;
+    renderApp(root, state, actions, {}, {});
+    state.invitationFeedback = "Room code copied.";
+    state.roomCodeCopied = true;
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.className.includes("invitation-toast")).textContent, "Room code copied.");
+    assert.equal(root.query((element) => element.className.includes("room-code-chip")).children[1].children[0].attributes.d, "m5 12 4 4L19 6");
+    state.invitationFeedback = null;
+    state.roomCodeCopied = false;
+    renderApp(root, state, actions, {}, {});
     const guestKick = root.query((element) => element.getAttribute("aria-label") === "Remove Guest from room");
     assert.ok(guestKick);
     assert.equal(root.query((element) => element.getAttribute("aria-label") === "Remove Host from room"), null);
     guestKick.dispatch("click");
-    assert.deepEqual(calls.map(([name]) => name), ["onCopyRoomCode", "onCopyInvitationLink", "onShareInvitationLink", "onRequestKickPlayer"]);
+    assert.ok(calls.some(([name]) => name === "onCopyRoomCode"));
+    assert.ok(calls.some(([name]) => name === "onOpenInvitationDialog"));
     assert.equal(calls.at(-1)[1], "guest");
 
     state.pendingKickPlayerId = "guest";
@@ -745,11 +779,16 @@ test("theme preference defaults safely, persists, and the header exposes an acce
     renderApp(root, state, actions, {}, {});
     const button = root.query((element) => element.className.includes("theme-toggle"));
     assert.equal(button.attributes["aria-label"], "Switch to light theme");
+    assert.equal(button.title, "Switch to light theme");
     assert.equal(button.attributes["aria-pressed"], "false");
+    assert.match(button.children[0].children[0].attributes.d, /M12 3v2/u);
     button.dispatch("click");
     assert.equal(toggles, 1);
     renderApp(root, state, actions, {}, {});
-    assert.equal(root.query((element) => element.className.includes("theme-toggle")).attributes["aria-label"], "Switch to dark theme");
+    const lightThemeButton = root.query((element) => element.className.includes("theme-toggle"));
+    assert.equal(lightThemeButton.attributes["aria-label"], "Switch to dark theme");
+    assert.equal(lightThemeButton.title, "Switch to dark theme");
+    assert.match(lightThemeButton.children[0].children[0].attributes.d, /M20\.9 13/u);
     assert.equal(readThemePreference(storage), "light");
   });
 });

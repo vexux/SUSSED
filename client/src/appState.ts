@@ -102,6 +102,11 @@ export interface AppState {
   joinRoomCode: string;
   invitationMessage: string | null;
   isInvitationBusy: boolean;
+  isInvitationDialogOpen: boolean;
+  invitationUrl: string | null;
+  invitationQrDataUrl: string | null;
+  isInvitationQrVisible: boolean;
+  roomCodeCopied: boolean;
   landingTagline: string;
   localPlayerId: string | null;
   roomCode: string | null;
@@ -164,6 +169,11 @@ export function createInitialAppState(): AppState {
     joinRoomCode: "",
     invitationMessage: null,
     isInvitationBusy: false,
+    isInvitationDialogOpen: false,
+    invitationUrl: null,
+    invitationQrDataUrl: null,
+    isInvitationQrVisible: false,
+    roomCodeCopied: false,
     landingTagline: LANDING_TAGLINES[Math.floor(Math.random() * LANDING_TAGLINES.length)],
     localPlayerId: null,
     roomCode: null,

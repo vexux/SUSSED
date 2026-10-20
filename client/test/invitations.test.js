@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { PNG } from "pngjs";
+import jsQR from "jsqr";
 import {
   copyText,
+  createInvitationQrDataUrl,
   createInvitationUrl,
   parseInvitationCode,
   shareOrCopyInvitation,
@@ -54,4 +57,13 @@ test("native sharing falls back to copying when unavailable or rejected", async 
     copy: async () => { throw new Error("should not copy"); },
   }), "shared");
   assert.deepEqual(copied, [invitation.url, invitation.url]);
+});
+
+test("invitation QR codes are generated locally and decode to the exact invite URL", async () => {
+  const url = createInvitationUrl("ZING", "http://localhost:5173/", "https://play.example");
+  const dataUrl = await createInvitationQrDataUrl(url);
+  assert.match(dataUrl, /^data:image\/png;base64,/u);
+  const image = PNG.sync.read(Buffer.from(dataUrl.split(",")[1], "base64"));
+  const decoded = jsQR(new Uint8ClampedArray(image.data), image.width, image.height);
+  assert.equal(decoded?.data, url);
 });

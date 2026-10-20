@@ -182,8 +182,15 @@ button:disabled {
 }
 
 .brand {
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  display: flex;
+  align-items: baseline;
+  font-size: 1.15rem;
+  font-weight: 950;
+  letter-spacing: -0.06em;
+}
+
+.brand .wordmark-exclamation {
+  margin-left: 0.02em;
 }
 
 .header-controls {
@@ -193,14 +200,49 @@ button:disabled {
 }
 
 .theme-toggle {
+  display: grid;
+  width: 44px;
+  height: 44px;
   min-height: 44px;
+  place-items: center;
   border: 1px solid var(--color-control-border);
-  border-radius: var(--radius-pill);
-  padding: 0 var(--space-4);
+  border-radius: 50%;
+  padding: 0;
   color: var(--color-text);
   background: var(--color-surface-alt);
-  font-size: 0.9rem;
-  font-weight: 650;
+}
+
+.theme-toggle svg,
+.room-code-chip svg,
+.invitation-dialog-close svg {
+  flex: 0 0 auto;
+}
+
+.room-code-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  border: 1px solid var(--color-accent-border-strong);
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-5);
+  color: var(--color-accent-light);
+  background: var(--color-accent-surface-strong);
+}
+
+.room-code-chip-value {
+  font-size: 1.45rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+}
+
+.lobby-room-code {
+  margin: 8px 0 0;
+  color: var(--color-accent-light);
+  font-size: clamp(2rem, 8vw, 3rem);
+  font-weight: 800;
+  letter-spacing: 0.18em;
 }
 
 .connection-status {
@@ -413,14 +455,6 @@ select:focus:not(:focus-visible) {
   color: var(--color-text-muted);
 }
 
-.lobby-room-code {
-  margin: 8px 0 0;
-  color: var(--color-accent-light);
-  font-size: clamp(2rem, 8vw, 3rem);
-  font-weight: 800;
-  letter-spacing: 0.18em;
-}
-
 .lobby-room-code-panel {
   display: grid;
   justify-items: center;
@@ -430,13 +464,145 @@ select:focus:not(:focus-visible) {
 }
 
 .invitation-actions {
-  width: min(100%, 720px);
-  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  width: 100%;
 }
 
-.invitation-button {
-  min-height: 44px;
-  flex: 1 1 140px;
+.invite-friends-button {
+  min-height: 48px;
+  padding-inline: var(--space-5);
+}
+
+.invitation-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(calc(100% - 2rem), 34rem);
+  max-width: none;
+  max-height: min(90dvh, 42rem);
+  overflow-y: auto;
+  margin: auto;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+  box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 35%);
+  text-align: left;
+}
+
+.invitation-dialog::backdrop {
+  background: var(--color-overlay);
+}
+
+.invitation-dialog-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.invitation-dialog-heading h2 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 1.5rem;
+}
+
+.invitation-dialog-close {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border: 1px solid var(--color-control-border);
+  border-radius: 50%;
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+}
+
+.invitation-dialog-description {
+  margin: var(--space-3) 0;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.invitation-url {
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  color: var(--color-text);
+  background: var(--color-surface);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.invitation-dialog-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.invitation-dialog-actions > button {
+  min-width: 0;
+  min-height: 48px;
+  padding-inline: var(--space-3);
+}
+
+.invitation-dialog-actions > button:last-child {
+  grid-column: 1 / -1;
+}
+
+.invitation-qr-code {
+  display: block;
+  width: min(100%, 256px);
+  height: auto;
+  margin: var(--space-4) auto 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  background: #fff;
+  image-rendering: pixelated;
+}
+
+.invitation-dialog-feedback {
+  position: fixed;
+  z-index: 1;
+  inset: auto auto max(1rem, env(safe-area-inset-bottom)) 50%;
+  max-width: calc(100vw - 2rem);
+  margin: 0;
+  border: 1px solid var(--color-success-border);
+  border-radius: var(--radius-pill);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-success-text);
+  background: var(--color-surface-raised);
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 25%);
+  font-weight: 650;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.invitation-toast {
+  position: fixed;
+  z-index: 10;
+  inset: auto auto max(1rem, env(safe-area-inset-bottom)) 50%;
+  max-width: calc(100vw - 2rem);
+  margin: 0;
+  border: 1px solid var(--color-success-border);
+  border-radius: var(--radius-pill);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 25%);
+  text-align: center;
+  transform: translateX(-50%);
 }
 
 .visibility-field {
@@ -1750,36 +1916,24 @@ select:focus:not(:focus-visible) {
     flex: 1 1 140px;
   }
 
-  .lobby-room-code {
-    font-size: clamp(1.8rem, 12vw, 2.4rem);
+  .invitation-dialog {
+    inset: auto 0 0;
+    width: 100%;
+    max-height: min(90dvh, 42rem);
+    margin: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: var(--space-4) var(--space-4) max(var(--space-4), env(safe-area-inset-bottom));
   }
 
-  .invitation-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-2);
+  .invitation-dialog-actions {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .invitation-button {
-    min-width: 0;
-    flex: none;
-    padding-inline: var(--space-2);
-    font-size: 0.88rem;
-  }
-
-  .invitation-button:nth-child(2) {
-    grid-column: 1 / -1;
-    grid-row: 1;
-  }
-
-  .invitation-button:first-child {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  .invitation-button:last-child {
-    grid-column: 2;
-    grid-row: 2;
+  .invitation-dialog-actions > button:last-child {
+    grid-column: auto;
   }
 
   .player-card {
@@ -1804,8 +1958,6 @@ select:focus:not(:focus-visible) {
 
   .theme-toggle {
     min-height: 44px;
-    padding-inline: var(--space-3);
-    font-size: 0.82rem;
   }
 
   .home-screen {

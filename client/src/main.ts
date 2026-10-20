@@ -12,6 +12,7 @@ import { renderApp } from "./views";
 import type { AppActions } from "./views";
 import {
   copyText,
+  createInvitationQrDataUrl,
   createInvitationUrl,
   normalizeInvitationCode,
   parseInvitationCode,
@@ -99,6 +100,7 @@ let allRoundHistoryOpen = false;
 let allRoundHistoryPage = -1;
 let fakeAnswerFeedbackDismissedIdentity: string | null = null;
 let resultsReminderFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
+let invitationFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
 let bruhAnswerDraft = "";
 let bruhIsSubmitting = false;
 let bruhSubmitError: string | null = null;
@@ -154,7 +156,31 @@ function showResultsReminderFeedback(message: string): void {
   }, 3500);
 }
 
+function clearInvitationFeedback(): void {
+  if (invitationFeedbackTimeout) {
+    clearTimeout(invitationFeedbackTimeout);
+    invitationFeedbackTimeout = null;
+  }
+  state.invitationFeedback = null;
+  state.roomCodeCopied = false;
+}
+
+function showInvitationFeedback(message: string, roomCodeCopied = false): void {
+  clearInvitationFeedback();
+  state.invitationFeedback = message;
+  state.roomCodeCopied = roomCodeCopied;
+  invitationFeedbackTimeout = setTimeout(() => {
+    state.invitationFeedback = null;
+    state.roomCodeCopied = false;
+    invitationFeedbackTimeout = null;
+    render();
+  }, 2400);
+}
+
 function render(): void {
+  if (state.currentView !== "lobby") {
+    state.isInvitationDialogOpen = false;
+  }
   renderApp(appRoot, state, actions, {
     hasSubmitted: fakeAnswerHasSubmitted,
     completionDraft: fakeAnswerCompletionDraft,
@@ -209,7 +235,7 @@ function render(): void {
   });
   document.body.classList.toggle(
     "modal-open",
-    appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop") !== null,
+    appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop, .invitation-dialog") !== null,
   );
 }
 
@@ -341,17 +367,17 @@ function buildCurrentInvitationUrl(roomCode: string): string {
   );
 }
 
-function runInvitationAction(action: () => Promise<string>): void {
+function runInvitationAction(action: () => Promise<string>, roomCodeCopied = false): void {
   if (state.isBusy || state.isInvitationBusy || !state.lobby) return;
+  clearInvitationFeedback();
   state.isInvitationBusy = true;
-  state.invitationFeedback = null;
   state.errorMessage = null;
   state.errorCode = null;
   render();
   void action().then((message) => {
-    state.invitationFeedback = message;
+    showInvitationFeedback(message, roomCodeCopied);
   }).catch(() => {
-    state.errorMessage = "The invitation could not be copied or shared. Check browser permissions and try again.";
+    state.errorMessage = "The invitation could not be copied or shared. Check clipboard or sharing permissions and try again.";
     state.errorCode = "INVITATION_ACTION_FAILED";
   }).finally(() => {
     state.isInvitationBusy = false;
@@ -829,21 +855,45 @@ const actions: AppActions = {
     runInvitationAction(async () => {
       await copyInvitationText(roomCode);
       return "Room code copied.";
-    });
+    }, true);
+  },
+  onOpenInvitationDialog() {
+    if (!state.lobby || state.lobby.status !== "lobby" || state.isBusy) return;
+    try {
+      const url = buildCurrentInvitationUrl(state.lobby.roomCode);
+      if (state.invitationUrl !== url) {
+        state.invitationQrDataUrl = null;
+        state.isInvitationQrVisible = false;
+      }
+      state.invitationUrl = url;
+      state.isInvitationDialogOpen = true;
+      state.errorMessage = null;
+      state.errorCode = null;
+    } catch {
+      state.errorMessage = "The invitation link could not be created. Check the public app URL configuration.";
+      state.errorCode = "INVITATION_URL_INVALID";
+    }
+    render();
+  },
+  onCloseInvitationDialog() {
+    if (!state.isInvitationDialogOpen) return;
+    state.isInvitationDialogOpen = false;
+    render();
+    appRoot.querySelector<HTMLButtonElement>(".invite-friends-button")?.focus();
   },
   onCopyInvitationLink() {
-    const roomCode = state.lobby?.roomCode;
-    if (!roomCode) return;
+    const url = state.invitationUrl;
+    if (!url) return;
     runInvitationAction(async () => {
-      await copyInvitationText(buildCurrentInvitationUrl(roomCode));
+      await copyInvitationText(url);
       return "Invitation link copied.";
     });
   },
   onShareInvitationLink() {
     const roomCode = state.lobby?.roomCode;
-    if (!roomCode) return;
+    const url = state.invitationUrl;
+    if (!roomCode || !url) return;
     runInvitationAction(async () => {
-      const url = buildCurrentInvitationUrl(roomCode);
       const result = await shareOrCopyInvitation(
         { title: "Join my SUSSED! room", text: `Join my SUSSED! room with code ${roomCode}.`, url },
         {
@@ -853,7 +903,36 @@ const actions: AppActions = {
           copy: copyInvitationText,
         },
       );
-      return result === "shared" ? "Invitation shared." : "Sharing was unavailable, so the invitation link was copied.";
+      return result === "shared"
+        ? "Share sheet opened. Delivery is not confirmed."
+        : "Sharing was unavailable; invitation link copied.";
+    });
+  },
+  onToggleInvitationQr() {
+    if (state.isBusy || state.isInvitationBusy || !state.invitationUrl) return;
+    if (state.isInvitationQrVisible) {
+      state.isInvitationQrVisible = false;
+      render();
+      return;
+    }
+    if (state.invitationQrDataUrl) {
+      state.isInvitationQrVisible = true;
+      render();
+      return;
+    }
+    state.isInvitationBusy = true;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+    void createInvitationQrDataUrl(state.invitationUrl).then((dataUrl) => {
+      state.invitationQrDataUrl = dataUrl;
+      state.isInvitationQrVisible = true;
+    }).catch(() => {
+      state.errorMessage = "The QR code could not be created. Copy the invitation link instead.";
+      state.errorCode = "INVITATION_QR_FAILED";
+    }).finally(() => {
+      state.isInvitationBusy = false;
+      render();
     });
   },
   onSetReady(isReady) {

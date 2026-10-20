@@ -1,3 +1,5 @@
+import QRCode from "qrcode";
+
 export type InvitationCodeResult =
   | { status: "missing"; code: null }
   | { status: "invalid"; code: null }
@@ -37,6 +39,14 @@ export function createInvitationUrl(
 
   target.searchParams.set("code", code);
   return target.toString();
+}
+
+export function createInvitationQrDataUrl(url: string): Promise<string> {
+  return QRCode.toDataURL(url, {
+    errorCorrectionLevel: "M",
+    margin: 2,
+    width: 256,
+  });
 }
 
 export interface ClipboardFallbacks {

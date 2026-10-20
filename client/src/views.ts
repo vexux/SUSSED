@@ -29,8 +29,11 @@ export interface AppActions {
   onConfirmKickPlayer(): void;
   onCancelKickPlayer(): void;
   onCopyRoomCode(): void;
+  onOpenInvitationDialog(): void;
+  onCloseInvitationDialog(): void;
   onCopyInvitationLink(): void;
   onShareInvitationLink(): void;
+  onToggleInvitationQr(): void;
   onSetReady(isReady: boolean): void;
   onSelectGame(gameId: string): void;
   onSelectRoundCount(roundCount: 5 | 7 | 10, revision: number): void;
@@ -69,6 +72,39 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
   return element;
 }
 
+function createIcon(name: "sun" | "moon" | "copy" | "check" | "close"): SVGSVGElement {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("width", "20");
+  svg.setAttribute("height", "20");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  const paths: Record<typeof name, string> = {
+    sun: "M12 3v2m0 14v2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42M3 12h2m14 0h2M5.64 18.36l1.42-1.42m9.88-9.88 1.42-1.42M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z",
+    moon: "M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z",
+    copy: "M8 8V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3M5 8h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z",
+    check: "m5 12 4 4L19 6",
+    close: "m18 6-12 12M6 6l12 12",
+  };
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", paths[name]);
+  path.setAttribute("fill", "none");
+  path.setAttribute("stroke", "currentColor");
+  path.setAttribute("stroke-width", "2");
+  path.setAttribute("stroke-linecap", "round");
+  path.setAttribute("stroke-linejoin", "round");
+  svg.append(path);
+  return svg;
+}
+
+function appendWordmark(target: HTMLElement): void {
+  target.setAttribute("aria-label", "SUSSED!");
+  target.append(
+    createElement("span", undefined, "SUSSED"),
+    createElement("span", "wordmark-exclamation", "!"),
+  );
+}
+
 function createStatus(state: AppState): HTMLElement {
   const status = createElement(
     "span",
@@ -81,15 +117,15 @@ function createStatus(state: AppState): HTMLElement {
 
 function createHeader(state: AppState, actions: AppActions): HTMLElement {
   const header = createElement("header", "app-header");
-  const brand = createElement("span", "brand", "SUSSED!");
+  const brand = createElement("span", "brand");
+  appendWordmark(brand);
   const controls = createElement("div", "header-controls");
-  const themeButton = createElement(
-    "button",
-    "theme-toggle",
-    state.theme === "dark" ? "Light mode" : "Dark mode",
-  );
+  const targetTheme = state.theme === "dark" ? "light" : "dark";
+  const themeButton = createElement("button", "theme-toggle");
+  themeButton.append(createIcon(targetTheme === "light" ? "sun" : "moon"));
   themeButton.type = "button";
-  themeButton.setAttribute("aria-label", `Switch to ${state.theme === "dark" ? "light" : "dark"} theme`);
+  themeButton.setAttribute("aria-label", `Switch to ${targetTheme} theme`);
+  themeButton.title = `Switch to ${targetTheme} theme`;
   themeButton.setAttribute("aria-pressed", String(state.theme === "light"));
   themeButton.addEventListener("click", actions.onToggleTheme);
   controls.append(createStatus(state), themeButton);
@@ -115,11 +151,7 @@ function renderHome(
 ): HTMLElement {
   const screen = createElement("section", "app-screen home-screen");
   const title = createElement("h1", "landing-wordmark");
-  title.setAttribute("aria-label", "SUSSED!");
-  title.append(
-    createElement("span", undefined, "SUSSED"),
-    createElement("span", "wordmark-exclamation", "!"),
-  );
+  appendWordmark(title);
   const introduction = createElement(
     "p",
     "screen-description landing-tagline",
@@ -473,22 +505,23 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   }
 
   const heading = createElement("h1", undefined, "Lobby");
-  const roomCode = createElement("p", "lobby-room-code", lobby.roomCode);
-  roomCode.setAttribute("aria-label", `Room code ${lobby.roomCode}`);
+  const roomCodeButton = createElement("button", "room-code-chip");
+  roomCodeButton.type = "button";
+  roomCodeButton.disabled = state.isBusy || state.isInvitationBusy;
+  roomCodeButton.setAttribute("aria-label", `Copy room code ${lobby.roomCode}`);
+  roomCodeButton.title = "Copy room code";
+  roomCodeButton.append(
+    createElement("span", "room-code-chip-value", lobby.roomCode),
+    createIcon(state.roomCodeCopied ? "check" : "copy"),
+  );
+  roomCodeButton.addEventListener("click", actions.onCopyRoomCode);
   const roomCodePanel = createElement("div", "lobby-room-code-panel");
-  roomCodePanel.append(roomCode);
-  const invitationActions = createElement("div", "button-group invitation-actions");
-  for (const [label, className, action] of [
-    ["Copy room code", "secondary-button", actions.onCopyRoomCode],
-    ["Copy invite link", "primary-button", actions.onCopyInvitationLink],
-    ["Share invite", "secondary-button", actions.onShareInvitationLink],
-  ] as const) {
-    const button = createElement("button", `${className} invitation-button`, label);
-    button.type = "button";
-    button.disabled = state.isBusy || state.isInvitationBusy;
-    button.addEventListener("click", action);
-    invitationActions.append(button);
-  }
+  const invitationActions = createElement("div", "invitation-actions");
+  const inviteButton = createElement("button", "primary-button invite-friends-button", "Invite friends");
+  inviteButton.type = "button";
+  inviteButton.disabled = state.isBusy || state.isInvitationBusy;
+  inviteButton.addEventListener("click", actions.onOpenInvitationDialog);
+  invitationActions.append(roomCodeButton, inviteButton);
   roomCodePanel.append(invitationActions);
   const playerCount = createElement(
     "p",
@@ -601,19 +634,11 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   });
 
   screen.append(heading, selectedGameCard, roomCodePanel, playerCount, readinessMessage, playerList, visibilityField);
-  if (state.invitationFeedback) {
-    const feedback = createElement("p", "lobby-feedback", state.invitationFeedback);
-    feedback.setAttribute("role", "status");
-    screen.append(feedback);
-  }
   if (state.kickFeedback) {
     const feedback = createElement("p", "lobby-feedback", state.kickFeedback);
     feedback.setAttribute("role", "status");
     screen.append(feedback);
   }
-  const invitationError = createErrorMessage(state.errorMessage);
-  if (invitationError) screen.append(invitationError);
-
   const roundsField = createElement("fieldset", "round-selector");
   roundsField.append(createElement("legend", "field-label", "Rounds"));
   const roundOptions = createElement("div", "round-options");
@@ -720,10 +745,89 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     screen.append(feedback);
   }
   const error = createErrorMessage(state.errorMessage);
-  if (error) {
+  if (error && !state.isInvitationDialogOpen) {
     screen.append(error);
   }
+  if (state.isInvitationDialogOpen && state.invitationUrl) {
+    screen.append(createInvitationDialog(state, actions, state.invitationUrl));
+  }
   return screen;
+}
+
+function createInvitationDialog(
+  state: AppState,
+  actions: AppActions,
+  invitationUrl: string,
+): HTMLDialogElement {
+  const dialog = createElement("dialog", "invitation-dialog");
+  dialog.setAttribute("aria-labelledby", "invitation-dialog-title");
+  dialog.setAttribute("aria-describedby", "invitation-dialog-description");
+  const heading = createElement("div", "invitation-dialog-heading");
+  const title = createElement("h2", undefined, "Invite friends");
+  title.id = "invitation-dialog-title";
+  const closeButton = createElement("button", "invitation-dialog-close");
+  closeButton.type = "button";
+  closeButton.autofocus = true;
+  closeButton.setAttribute("aria-label", "Close invitation dialog");
+  closeButton.setAttribute("data-invitation-focus", "close");
+  closeButton.addEventListener("click", actions.onCloseInvitationDialog);
+  closeButton.append(createIcon("close"));
+  heading.append(title, closeButton);
+  const description = createElement("p", "invitation-dialog-description", "Share this link with friends to invite them to your room.");
+  description.id = "invitation-dialog-description";
+  dialog.append(heading, description);
+
+  const url = createElement("p", "invitation-url", invitationUrl);
+  url.id = "invitation-url";
+  url.setAttribute("aria-label", "Invitation link");
+  dialog.append(url);
+
+  const actionPanel = createElement("div", "invitation-dialog-actions");
+  const copyButton = createElement("button", "primary-button", state.isInvitationBusy ? "Working…" : "Copy link");
+  copyButton.type = "button";
+  copyButton.disabled = state.isBusy || state.isInvitationBusy;
+  copyButton.setAttribute("data-invitation-focus", "copy");
+  copyButton.addEventListener("click", actions.onCopyInvitationLink);
+  const shareButton = createElement("button", "secondary-button", "Share invite");
+  shareButton.type = "button";
+  shareButton.disabled = state.isBusy || state.isInvitationBusy;
+  shareButton.setAttribute("data-invitation-focus", "share");
+  shareButton.addEventListener("click", actions.onShareInvitationLink);
+  const qrButton = createElement("button", "secondary-button", state.isInvitationQrVisible ? "Hide QR code" : "Show QR code");
+  qrButton.type = "button";
+  qrButton.disabled = state.isBusy || state.isInvitationBusy;
+  qrButton.setAttribute("aria-expanded", String(state.isInvitationQrVisible));
+  qrButton.setAttribute("data-invitation-focus", "qr");
+  qrButton.addEventListener("click", actions.onToggleInvitationQr);
+  actionPanel.append(copyButton, shareButton, qrButton);
+  dialog.append(actionPanel);
+
+  if (state.isInvitationQrVisible && state.invitationQrDataUrl) {
+    const qrImage = createElement("img", "invitation-qr-code");
+    qrImage.src = state.invitationQrDataUrl;
+    qrImage.alt = "QR code for this room invitation link";
+    dialog.append(qrImage);
+  }
+  if (state.errorMessage) {
+    const error = createErrorMessage(state.errorMessage);
+    if (error) dialog.append(error);
+  }
+  if (state.invitationFeedback) {
+    const feedback = createElement("p", "invitation-dialog-feedback", state.invitationFeedback);
+    feedback.setAttribute("role", "status");
+    dialog.append(feedback);
+  }
+  dialog.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      actions.onCloseInvitationDialog();
+    }
+  });
+  dialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    actions.onCloseInvitationDialog();
+  });
+  return dialog;
 }
 
 function renderStarting(state: AppState): HTMLElement {
@@ -975,6 +1079,12 @@ export function renderApp(
   fakeAnswerSubmission: FakeAnswerViewState,
   bruhWtfSubmission: BruhWtfViewState,
 ): void {
+  const previousDialog = root.querySelector<HTMLDialogElement>(".invitation-dialog");
+  const previousFocus = root.ownerDocument.activeElement;
+  const previousFocusKey =
+    previousDialog && previousFocus && previousDialog.contains(previousFocus)
+      ? previousFocus.getAttribute("data-invitation-focus")
+      : null;
   const shell = createElement("main", "app-shell");
   shell.append(createHeader(state, actions));
   const screen =
@@ -991,6 +1101,11 @@ export function renderApp(
             : renderHome(state, actions);
   screen.dataset.renderScope = getRenderScope(state);
   shell.append(screen);
+  if (state.invitationFeedback && !state.isInvitationDialogOpen && state.currentView === "lobby") {
+    const toast = createElement("p", "invitation-toast", state.invitationFeedback);
+    toast.setAttribute("role", "status");
+    shell.append(toast);
+  }
   if (state.resultsReminderSessionId) {
     const backdrop = createElement("div", "results-reminder-backdrop");
     const dialog = createElement("section", "results-reminder-dialog");
@@ -1017,5 +1132,18 @@ export function renderApp(
   // round, session, and view changes use the normal replacement path.
   if (!renderPreservingActiveTextEntry(root, shell)) {
     root.replaceChildren(shell);
+  }
+  const invitationDialog = root.querySelector<HTMLDialogElement>(".invitation-dialog");
+  if (state.isInvitationDialogOpen && invitationDialog) {
+    if (typeof invitationDialog.showModal === "function") {
+      if (!invitationDialog.open) invitationDialog.showModal();
+    } else {
+      invitationDialog.setAttribute("open", "");
+    }
+    if (previousFocusKey) {
+      invitationDialog
+        .querySelector<HTMLButtonElement>(`[data-invitation-focus="${previousFocusKey}"]`)
+        ?.focus();
+    }
   }
 }
