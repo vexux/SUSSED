@@ -66,7 +66,9 @@ test("changing the selected game is host-only and preserves lobby settings and p
     assert.equal(room.selectedRoundCount, 7);
     assert.deepEqual(room.players, previousPlayers);
     assert.ok(room.revision > previousRevision);
-    assert.equal(roomManager.createLobbyState(room).selectedGame.displayName, "Bruh wtf?");
+    const lobby = roomManager.createLobbyState(room);
+    assert.equal(lobby.selectedGame.displayName, "Bruh wtf?");
+    assert.equal(lobby.selectedGame.supportsRoundSelection, true);
     assert.throws(
         () => roomManager.selectGame(guest.players[1].id, "fact-or-cap"),
         { code: "NOT_HOST" }

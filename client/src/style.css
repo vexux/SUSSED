@@ -295,6 +295,108 @@ button:disabled {
   justify-content: flex-start;
 }
 
+.lobby-heading-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.lobby-heading-bar .visibility-field {
+  width: auto;
+  margin: 0;
+  gap: var(--space-1);
+}
+
+.lobby-heading-bar .room-visibility-field {
+  width: auto;
+  margin: 0;
+}
+
+.lobby-heading-bar .visibility-field legend {
+  padding: 0;
+  font-size: 0.78rem;
+}
+
+.lobby-heading-bar .visibility-options {
+  gap: var(--space-1);
+}
+
+.lobby-heading-bar .visibility-option {
+  min-height: 44px;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+
+.lobby-heading-bar .visibility-option input {
+  margin: 0;
+}
+
+.lobby-heading-bar .visibility-option-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lobby-heading-bar .visibility-option-title svg {
+  width: 16px;
+  height: 16px;
+}
+
+.room-code-control {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+}
+
+.room-code-label {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.invite-friends-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  min-width: 190px;
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  border-color: var(--color-accent-border-strong);
+  color: var(--color-accent-light);
+  background: var(--color-accent-surface-strong);
+}
+
+.invite-friends-button svg,
+.game-card-action svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.lobby-room-code-panel .invitation-actions {
+  justify-content: flex-start;
+  gap: var(--space-4);
+}
+
+.host-crown-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: var(--color-trophy);
+}
+
+.player-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .lobby-content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
@@ -347,9 +449,18 @@ button:disabled {
 }
 
 .readonly-setting-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
   color: var(--color-text-strong);
   font-weight: 700;
+}
+
+.readonly-setting-value svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
 }
 
 .lobby-player-panel > .secondary-button {
@@ -706,10 +817,10 @@ select:focus:not(:focus-visible) {
 
 .visibility-field {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   width: min(100%, 520px);
   min-width: 0;
-  margin: var(--space-4) 0;
+  margin: var(--space-2) 0;
   padding: 0;
   border: 0;
   text-align: left;
@@ -723,11 +834,11 @@ select:focus:not(:focus-visible) {
 
 .visibility-option {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
+  align-items: center;
+  gap: var(--space-2);
   min-width: 0;
-  min-height: 68px;
-  padding: var(--space-3);
+  min-height: 44px;
+  padding: var(--space-2);
   border: 1px solid var(--color-control-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -760,8 +871,17 @@ select:focus:not(:focus-visible) {
 }
 
 .visibility-option-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--color-text-strong);
   font-weight: 750;
+}
+
+.visibility-option-title svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
 }
 
 .visibility-option-description {
@@ -1487,7 +1607,48 @@ select:focus:not(:focus-visible) {
 }
 
 .game-card-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   width: 100%;
+}
+
+.name-entry-field {
+  width: min(100%, 420px);
+  margin: 0 auto var(--space-3);
+  text-align: left;
+}
+
+.name-entry-field .text-input {
+  width: 100%;
+}
+
+.inline-name-error {
+  margin: var(--space-1) 0 0;
+}
+
+.public-room-name-entry {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  width: min(100%, 32rem);
+  margin: var(--space-4) auto;
+  padding: var(--space-4);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  text-align: left;
+}
+
+.public-room-name-title {
+  margin: 0;
+  color: var(--color-text-strong);
+}
+
+.public-room-name-entry .name-entry-field {
+  width: 100%;
+  margin: 0;
 }
 
 .selection-actions {
@@ -2071,6 +2232,15 @@ select:focus:not(:focus-visible) {
 }
 
 @media (max-width: 760px) {
+  .lobby-heading-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .lobby-heading-bar .visibility-field {
+    width: min(100%, 520px);
+  }
+
   .lobby-content-grid {
     grid-template-columns: minmax(0, 1fr);
   }

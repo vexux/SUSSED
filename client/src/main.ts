@@ -18,6 +18,7 @@ import {
   parseInvitationCode,
   shareOrCopyInvitation,
 } from "./invitations";
+import { validatePlayerName } from "./playerName";
 import {
   isFakeAnswerPublicState,
   updateFakeAnswerProgress,
@@ -248,6 +249,10 @@ function render(): void {
     "modal-open",
     appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop, .invitation-dialog, .player-detail-dialog[aria-modal='true']") !== null,
   );
+}
+
+function focusPlayerName(id: string): void {
+  appRoot.querySelector<HTMLInputElement>(`#${id}`)?.focus();
 }
 
 function requestAvailableGames(): void {
@@ -640,8 +645,12 @@ function applyGameState(game: GameSessionState): void {
 const actions: AppActions = {
   onPlayerNameChange(name) {
     state.playerName = name;
+    state.nameEntryError = null;
     state.errorMessage = null;
     state.errorCode = null;
+    if (state.currentView === "game-selection" || (state.currentView === "public-rooms" && state.pendingPublicRoomId)) {
+      render();
+    }
   },
   onRoomCodeChange(code) {
     state.joinRoomCode = normalizeInvitationCode(code).slice(0, 4);
@@ -653,10 +662,9 @@ const actions: AppActions = {
   },
   onCreateRoom() {
     state.currentView = "game-selection";
-    state.pendingGameId = null;
-    state.pendingRoomVisibility = "private";
     state.errorMessage = null;
     state.errorCode = null;
+    state.nameEntryError = null;
     render();
   },
   onChooseGame(gameId) {
@@ -678,6 +686,14 @@ const actions: AppActions = {
   },
   onConfirmCreateRoom(gameId) {
     if (gameId !== state.pendingGameId || !state.availableGames.some((game) => game.id === gameId)) return;
+    const nameError = validatePlayerName(state.playerName);
+    if (nameError) {
+      state.nameEntryError = nameError;
+      render();
+      focusPlayerName("selection-player-name");
+      return;
+    }
+    state.nameEntryError = null;
     state.errorMessage = null;
     state.errorCode = null;
     state.isBusy = true;
@@ -697,7 +713,6 @@ const actions: AppActions = {
   },
   onBackToHome() {
     state.currentView = state.lobby ? "lobby" : "home";
-    state.pendingGameId = null;
     state.errorMessage = null;
     state.errorCode = null;
     render();
@@ -729,6 +744,16 @@ const actions: AppActions = {
   },
   onJoinPublicRoom(roomId) {
     if (state.connectionStatus !== "connected" || state.isBusy) return;
+    const nameError = validatePlayerName(state.playerName);
+    if (nameError) {
+      state.pendingPublicRoomId = roomId;
+      state.nameEntryError = nameError;
+      render();
+      focusPlayerName("public-room-player-name");
+      return;
+    }
+    if (state.pendingPublicRoomId !== roomId) state.pendingPublicRoomId = null;
+    state.nameEntryError = null;
     state.isBusy = true;
     state.publicRoomsError = null;
     render();
@@ -753,14 +778,20 @@ const actions: AppActions = {
         return;
       }
       unsubscribeFromPublicRooms();
+      state.pendingPublicRoomId = null;
       applyLobbyState(response.lobby);
       },
     );
+  },
+  onContinuePublicRoomJoin() {
+    if (state.pendingPublicRoomId) actions.onJoinPublicRoom(state.pendingPublicRoomId);
   },
   onBackFromPublicRooms() {
     unsubscribeFromPublicRooms();
     state.currentView = "home";
     state.publicRoomsError = null;
+    state.pendingPublicRoomId = null;
+    state.nameEntryError = null;
     state.errorMessage = null;
     render();
   },
@@ -770,6 +801,14 @@ const actions: AppActions = {
       state.errorMessage = "Enter a four-letter room code.";
       state.errorCode = "INVALID_ROOM_CODE";
       render();
+      return;
+    }
+    const nameError = validatePlayerName(state.playerName);
+    if (nameError) {
+      state.errorMessage = nameError;
+      state.errorCode = "INVALID_NAME";
+      render();
+      focusPlayerName("player-name");
       return;
     }
     state.joinRoomCode = normalizedCode;

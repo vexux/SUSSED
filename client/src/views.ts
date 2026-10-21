@@ -21,6 +21,7 @@ export interface AppActions {
   onBrowsePublicRooms(): void;
   onRefreshPublicRooms(): void;
   onJoinPublicRoom(roomId: string): void;
+  onContinuePublicRoomJoin(): void;
   onBackFromPublicRooms(): void;
   onJoinRoom(roomCode: string): void;
   onLeaveRoom(): void;
@@ -78,7 +79,9 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
   return element;
 }
 
-function createIcon(name: "sun" | "moon" | "copy" | "check" | "close"): SVGSVGElement {
+type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown";
+
+function createIcon(name: IconName): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("width", "20");
@@ -91,6 +94,11 @@ function createIcon(name: "sun" | "moon" | "copy" | "check" | "close"): SVGSVGEl
     copy: "M8 8V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3M5 8h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z",
     check: "m5 12 4 4L19 6",
     close: "m18 6-12 12M6 6l12 12",
+    users: "M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m16 0v-2a4 4 0 0 0-3-3.87M14 3.13a4 4 0 0 1 0 7.75M10 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z",
+    game: "M6 11h4m-2-2v4m7-1h.01M18 10h.01M7 6h10a4 4 0 0 1 3.9 3.1l1 5A3 3 0 0 1 17 17l-2-2H9l-2 2a3 3 0 0 1-4.9-2.9l1-5A4 4 0 0 1 7 6Z",
+    globe: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20",
+    lock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
+    crown: "m2 8 5 4 5-8 5 8 5-4-2 12H4L2 8Zm2 15h16",
   };
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("d", paths[name]);
@@ -101,6 +109,32 @@ function createIcon(name: "sun" | "moon" | "copy" | "check" | "close"): SVGSVGEl
   path.setAttribute("stroke-linejoin", "round");
   svg.append(path);
   return svg;
+}
+
+function createNameEntry(state: AppState, inputId: string, actions: AppActions): HTMLElement {
+  const field = createElement("div", "field name-entry-field");
+  const label = createElement("label", "field-label", "Player name");
+  label.htmlFor = inputId;
+  const input = createElement("input", "text-input");
+  input.id = inputId;
+  input.name = "playerName";
+  input.type = "text";
+  input.autocomplete = "name";
+  input.required = true;
+  input.value = state.playerName;
+  if (state.nameEntryError) {
+    input.setAttribute("aria-invalid", "true");
+    input.setAttribute("aria-describedby", `${inputId}-error`);
+  }
+  input.addEventListener("input", () => actions.onPlayerNameChange(input.value));
+  field.append(label, input);
+  if (state.nameEntryError) {
+    const error = createElement("p", "error-message inline-name-error", state.nameEntryError);
+    error.id = `${inputId}-error`;
+    error.setAttribute("role", "alert");
+    field.append(error);
+  }
+  return field;
 }
 
 function appendWordmark(target: HTMLElement): void {
@@ -180,7 +214,6 @@ function renderHome(
   playerNameInput.name = "playerName";
   playerNameInput.type = "text";
   playerNameInput.autocomplete = "name";
-  playerNameInput.maxLength = 20;
   playerNameInput.required = true;
   playerNameInput.value = state.playerName;
   playerNameInput.addEventListener("input", () => {
@@ -307,14 +340,9 @@ function createVisibilitySelector(options: {
       if (input.checked) options.onChange(visibility);
     });
     const content = createElement("span", "visibility-option-content");
-    content.append(
-      createElement("span", "visibility-option-title", visibility === "public" ? "Public" : "Private"),
-      createElement(
-        "span",
-        "visibility-option-description",
-        visibility === "public" ? "Discoverable while seats are open" : "Join with a room code",
-      ),
-    );
+    const title = createElement("span", "visibility-option-title", visibility === "public" ? "Public" : "Private");
+    title.append(createIcon(visibility === "public" ? "globe" : "lock"));
+    content.append(title);
     label.append(input, content);
     choices.append(label);
   }
@@ -329,6 +357,7 @@ function createGameCard(
     className?: string;
     action?: {
       label: string;
+      icon?: IconName;
       disabled?: boolean;
       ariaPressed?: boolean;
       onClick: () => void;
@@ -361,6 +390,7 @@ function createGameCard(
     );
     action.type = "button";
     action.disabled = options.action.disabled === true;
+    if (options.action.icon) action.append(createIcon(options.action.icon));
     if (options.action.ariaPressed !== undefined) {
       action.setAttribute("aria-pressed", String(options.action.ariaPressed));
     }
@@ -389,6 +419,9 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
         : "Pick the kind of trouble you want to get into.",
     ),
   );
+  if (!isLobbySelection) {
+    screen.append(createNameEntry(state, "selection-player-name", actions));
+  }
 
   const cards = createElement("div", "game-card-grid");
   state.availableGames.forEach((game) => {
@@ -495,12 +528,33 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
       const join = createElement("button", "primary-button public-room-join", state.isBusy ? "Joining…" : "Join");
       join.type = "button";
       join.disabled = state.connectionStatus !== "connected" || state.isBusy;
+      join.setAttribute("aria-pressed", String(state.pendingPublicRoomId === room.roomId));
+      if (state.pendingPublicRoomId === room.roomId) {
+        join.textContent = "Selected";
+        join.disabled = true;
+      }
       join.addEventListener("click", () => actions.onJoinPublicRoom(room.roomId));
       details.append(join);
       card.append(details);
       cards.append(card);
     });
     screen.append(cards);
+  }
+
+  if (state.pendingPublicRoomId && !state.isBusy) {
+    const pendingRoom = state.publicRooms.find(({ roomId }) => roomId === state.pendingPublicRoomId);
+    const joinName = createElement("section", "public-room-name-entry");
+    joinName.setAttribute("aria-label", pendingRoom ? `Join ${pendingRoom.gameName}` : "Join selected room");
+    joinName.append(
+      createElement("h2", "public-room-name-title", pendingRoom ? `Join ${pendingRoom.gameName}` : "Join selected room"),
+      createNameEntry(state, "public-room-player-name", actions),
+    );
+    const continueJoin = createElement("button", "primary-button", state.isBusy ? "Joining…" : "Join room");
+    continueJoin.type = "button";
+    continueJoin.disabled = state.isBusy || state.connectionStatus !== "connected";
+    continueJoin.addEventListener("click", actions.onContinuePublicRoomJoin);
+    joinName.append(continueJoin);
+    screen.append(joinName);
   }
 
   if (state.publicRoomsError) {
@@ -521,8 +575,8 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   const roomCodeButton = createElement("button", "room-code-chip");
   roomCodeButton.type = "button";
   roomCodeButton.disabled = state.isBusy || state.isInvitationBusy;
-  roomCodeButton.setAttribute("aria-label", `Copy room code ${lobby.roomCode}`);
-  roomCodeButton.title = "Copy room code";
+  roomCodeButton.setAttribute("aria-label", state.roomCodeCopied ? `Room code ${lobby.roomCode} copied` : `Copy room code ${lobby.roomCode}`);
+  roomCodeButton.title = state.roomCodeCopied ? "Room code copied" : "Copy room code";
   roomCodeButton.append(
     createElement("span", "room-code-chip-value", lobby.roomCode),
     createIcon(state.roomCodeCopied ? "check" : "copy"),
@@ -530,11 +584,14 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   roomCodeButton.addEventListener("click", actions.onCopyRoomCode);
   const roomCodePanel = createElement("div", "lobby-room-code-panel");
   const invitationActions = createElement("div", "invitation-actions");
-  const inviteButton = createElement("button", "primary-button invite-friends-button", "Invite friends");
+  const roomCodeControl = createElement("div", "room-code-control");
+  roomCodeControl.append(createElement("span", "room-code-label", "Room Code"), roomCodeButton);
+  const inviteButton = createElement("button", "secondary-button invite-friends-button");
+  inviteButton.append(createIcon("users"), createElement("span", undefined, "Invite friends"));
   inviteButton.type = "button";
   inviteButton.disabled = state.isBusy || state.isInvitationBusy;
   inviteButton.addEventListener("click", actions.onOpenInvitationDialog);
-  invitationActions.append(roomCodeButton, inviteButton);
+  invitationActions.append(roomCodeControl, inviteButton);
   roomCodePanel.append(invitationActions);
   const playerCount = createElement(
     "p",
@@ -553,8 +610,9 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
       action: isHost && lobby.status === "lobby"
         ? {
             label: "Change game",
-            disabled: state.isBusy,
-            onClick: actions.onChooseAnotherGame,
+          icon: "game",
+          disabled: state.isBusy,
+          onClick: actions.onChooseAnotherGame,
           }
         : undefined,
     },
@@ -587,32 +645,56 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   } else {
     const readOnlyVisibility = createElement("div", "field room-visibility-field");
     readOnlyVisibility.append(createElement("p", "field-label", "Room visibility"));
-    readOnlyVisibility.append(createElement(
+    const readOnlyValue = createElement(
       "p",
       "readonly-setting-value",
       lobby.visibility === "public" ? "Public" : "Private",
-    ));
+    );
+    readOnlyValue.append(createIcon(lobby.visibility === "public" ? "globe" : "lock"));
+    readOnlyVisibility.append(readOnlyValue);
     visibilityField = readOnlyVisibility;
   }
 
-  for (const player of lobby.players) {
+  const orderedPlayers = [...lobby.players].sort((first, second) =>
+    Number(second.isHost) - Number(first.isHost));
+  for (const player of orderedPlayers) {
     const item = createElement("li", "player-list-item");
     const trigger = createElement("button", `player-card${player.id === state.localPlayerId ? " local-player" : ""}`);
     trigger.type = "button";
     trigger.dataset.playerId = player.id;
     trigger.setAttribute("aria-haspopup", "dialog");
     trigger.setAttribute("aria-expanded", String(state.selectedPlayerId === player.id));
-    trigger.setAttribute("aria-label", `${player.name}, ${player.isHost ? "host, " : ""}${player.isInGame ? "in game" : player.isReady ? "ready" : "not ready"}. View player card.`);
+    const playerStatus = player.isInGame
+      ? "in game"
+      : player.isHost
+        ? "host"
+        : player.isReady
+          ? "ready"
+          : "not ready";
+    trigger.setAttribute("aria-label", `${player.name}, ${playerStatus}. View player card.`);
     trigger.addEventListener("click", () => actions.onOpenPlayerCard(player.id));
     const avatar = createElement("span", "player-avatar", getPlayerInitials(player.name));
     avatar.setAttribute("aria-hidden", "true");
     const name = createElement("span", "player-name", player.name);
+    if (player.isHost) {
+      const crown = createIcon("crown");
+      crown.classList.add("host-crown-icon");
+      crown.setAttribute("role", "img");
+      crown.removeAttribute("aria-hidden");
+      crown.setAttribute("aria-label", "Current host");
+      crown.setAttribute("title", "Current host");
+      name.append(crown);
+    }
     const badges = createElement("span", "player-card-badges");
-    badges.append(createElement(
-      "span",
-      player.isInGame ? "in-game-badge" : player.isReady ? "ready-badge" : "not-ready-badge",
-      player.isInGame ? "In-game" : player.isReady ? "Ready" : "Not ready",
-    ));
+    if (player.isInGame) {
+      badges.append(createElement("span", "in-game-badge", "In-game"));
+    } else if (!player.isHost) {
+      badges.append(createElement(
+        "span",
+        player.isReady ? "ready-badge" : "not-ready-badge",
+        player.isReady ? "Ready" : "Not ready",
+      ));
+    }
     if (player.isHost) badges.append(createElement("span", "host-badge", "Host"));
     trigger.append(avatar, name, badges);
     item.append(trigger);
@@ -635,11 +717,14 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     actions.onSetReady(!localPlayer?.isReady);
   });
 
-  screen.append(heading, selectedGameCard, roomCodePanel);
+  const headingBar = createElement("div", "lobby-heading-bar");
+  headingBar.append(heading, visibilityField);
+  screen.append(headingBar, selectedGameCard, roomCodePanel);
 
   const roundsField = createElement("fieldset", "round-selector");
   roundsField.append(createElement("legend", "field-label", "Rounds"));
-  if (isHost && lobby.status === "lobby") {
+  const supportsRoundSelection = lobby.selectedGame.supportsRoundSelection !== false;
+  if (supportsRoundSelection && isHost && lobby.status === "lobby") {
     const roundOptions = createElement("div", "round-options");
     for (const roundCount of [5, 7, 10] as const) {
       const option = createElement(
@@ -657,7 +742,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
       roundOptions.append(option);
     }
     roundsField.append(roundOptions);
-  } else {
+  } else if (supportsRoundSelection) {
     roundsField.append(
       createElement("p", "readonly-setting-value", `${lobby.selectedRoundCount} rounds`),
     );
@@ -672,11 +757,14 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     playerSection.append(readyButton);
   }
 
-  const settingsSection = createElement("section", "lobby-panel lobby-settings-panel");
-  settingsSection.setAttribute("aria-label", "Lobby settings");
-  settingsSection.append(visibilityField, roundsField);
   const lobbyContent = createElement("div", "lobby-content-grid");
-  lobbyContent.append(playerSection, settingsSection);
+  lobbyContent.append(playerSection);
+  if (supportsRoundSelection) {
+    const settingsSection = createElement("section", "lobby-panel lobby-settings-panel");
+    settingsSection.setAttribute("aria-label", "Lobby settings");
+    settingsSection.append(roundsField);
+    lobbyContent.append(settingsSection);
+  }
   screen.append(lobbyContent);
 
   const pendingPlayerId = state.pendingKickPlayerId ?? state.pendingHostTransferId;

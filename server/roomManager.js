@@ -522,7 +522,8 @@ function createLobbyState(room) {
             displayName: selectedGame.displayName,
             description: selectedGame.description,
             minPlayers: selectedGame.supportedPlayers.min,
-            maxPlayers
+            maxPlayers,
+            supportsRoundSelection: selectedGame.supportsRoundSelection === true
         },
         availableGames: gameRegistry.list(),
         players: room.players.map((player) => ({

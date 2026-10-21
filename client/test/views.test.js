@@ -7,6 +7,7 @@ import {
   readThemePreference,
   THEME_STORAGE_KEY,
 } from "../src/appState.ts";
+import { validatePlayerName } from "../src/playerName.ts";
 import { renderApp } from "../src/views.ts";
 
 class FakeElement {
@@ -670,6 +671,7 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     const actions = new Proxy({}, {
       get: (_target, name) => (...args) => changes.push([name, ...args]),
     });
+
     const root = new FakeElement("root");
     renderApp(root, state, actions, {}, {});
 
@@ -692,6 +694,150 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.equal(root.query((element) => element.getAttribute("aria-label") === "5 rounds"), null);
     assert.ok(root.query((element) => element.className.includes("readonly-setting-value")));
     assert.match(root.text, /5 rounds/u);
+  });
+});
+
+test("player name validation matches the server length, trim, and control-character rules", () => {
+  assert.equal(validatePlayerName("  Alex  "), null);
+  assert.equal(validatePlayerName("a".repeat(20)), null);
+  assert.match(validatePlayerName("   "), /1 and 20/u);
+  assert.match(validatePlayerName("a".repeat(21)), /1 and 20/u);
+  assert.match(validatePlayerName("Alex\n"), /1 and 20/u);
+});
+
+test("game selection provides in-flow name entry and keeps selected creation settings", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "game-selection";
+    state.connectionStatus = "connected";
+    state.pendingGameId = "fact-or-cap";
+    state.playerName = "Alex";
+    state.pendingRoomVisibility = "public";
+    state.availableGames = [
+      { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
+    ];
+    const root = new FakeElement("root");
+    renderApp(root, state, createActions(), {}, {});
+
+    const name = root.query((element) => element.id === "selection-player-name");
+    assert.equal(name.value, "Alex");
+    assert.equal(name.required, true);
+    assert.equal(name.maxLength, undefined);
+    assert.equal(root.query((element) => element.id === "create-room-visibility-public").checked, true);
+    assert.equal(root.query((element) => element.textContent === "Create room").disabled, false);
+
+    state.nameEntryError = "Enter a player name between 1 and 20 characters.";
+    renderApp(root, state, createActions(), {}, {});
+    assert.equal(root.query((element) => element.id === "selection-player-name").getAttribute("aria-invalid"), "true");
+    assert.match(root.text, /Enter a player name between 1 and 20 characters/u);
+  });
+});
+
+test("public-room name entry retains the selected room until the user continues", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "public-rooms";
+    state.connectionStatus = "connected";
+    state.pendingPublicRoomId = "public-room-1";
+    state.publicRooms = [{
+      roomId: "public-room-1",
+      gameId: "fact-or-cap",
+      gameName: "Fact or Cap",
+      gameDescription: "Bluff with facts.",
+      playerCount: 2,
+      maxPlayers: 8,
+      status: "lobby",
+    }];
+    const calls = [];
+    const actions = new Proxy({}, {
+      get: (_target, name) => (...args) => calls.push([name, ...args]),
+    });
+    const root = new FakeElement("root");
+    renderApp(root, state, actions, {}, {});
+
+    assert.equal(root.query((element) => element.id === "public-room-player-name").required, true);
+    assert.equal(root.query((element) => element.textContent === "Selected").disabled, true);
+    root.query((element) => element.textContent === "Join room").dispatch("click");
+    assert.deepEqual(calls.map(([action]) => action), ["onContinuePublicRoomJoin"]);
+    assert.equal(state.pendingPublicRoomId, "public-room-1");
+  });
+});
+
+test("lobby lists the authoritative host first with a crown and no host readiness badge", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "lobby";
+    state.localPlayerId = "host";
+    state.lobby = {
+      roomCode: "ZING", revision: 2, playerCount: 3, readinessStatus: "waiting-for-ready",
+      status: "lobby", visibility: "public", maxPlayers: 8, selectedGameId: "fact-or-cap", selectedRoundCount: 7,
+      reminderSessionId: null,
+      selectedGame: { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
+      availableGames: [],
+      players: [
+        { id: "guest", name: "Guest Player", isHost: false, isReady: true, isInGame: false },
+        { id: "host", name: "Host Player", isHost: true, isReady: false, isInGame: false },
+        { id: "other", name: "Other Player", isHost: false, isReady: false, isInGame: false },
+      ],
+    };
+    const root = new FakeElement("root");
+    renderApp(root, state, createActions(), {}, {});
+    const playerList = root.query((element) => element.className.includes("player-list"));
+    const getPlayerId = (item) => item.children[0].dataset.playerId;
+    assert.deepEqual(playerList.children.map(getPlayerId), ["host", "guest", "other"]);
+    const hostRow = playerList.children[0].children[0];
+    const guestRow = playerList.children[1].children[0];
+    assert.ok(hostRow.query((element) => element.className.includes("host-crown-icon")));
+    assert.equal(guestRow.query((element) => element.className.includes("host-crown-icon")), null);
+    assert.equal(hostRow.query((element) => element.className.includes("ready-badge")), null);
+    assert.equal(hostRow.query((element) => element.className.includes("not-ready-badge")), null);
+    assert.ok(guestRow.query((element) => element.className.includes("ready-badge")));
+
+    state.localPlayerId = "host";
+    state.lobby.players[0].isHost = true;
+    state.lobby.players[1].isHost = false;
+    renderApp(root, state, createActions(), {}, {});
+    const transferredList = root.query((element) => element.className.includes("player-list"));
+    assert.deepEqual(transferredList.children.map(getPlayerId), ["guest", "host", "other"]);
+    assert.ok(transferredList.children[0].query((element) => element.className.includes("host-crown-icon")));
+    assert.equal(transferredList.children[1].query((element) => element.className.includes("host-crown-icon")), null);
+    assert.equal(root.query((element) => element.id === "room-visibility-public"), null);
+    assert.match(root.text, /Room visibilityPublic/u);
+  });
+});
+
+test("lobby controls expose compact invitation and visibility hooks and hide unsupported rounds", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "lobby";
+    state.localPlayerId = "host";
+    state.roomCodeCopied = true;
+    state.lobby = {
+      roomCode: "ZING", revision: 2, playerCount: 2, readinessStatus: "waiting-for-ready",
+      status: "lobby", visibility: "private", maxPlayers: 8, selectedGameId: "future-game", selectedRoundCount: 5,
+      reminderSessionId: null,
+      selectedGame: {
+        id: "future-game", displayName: "Future Game", description: "A future game.",
+        minPlayers: 2, maxPlayers: 8, supportsRoundSelection: false,
+      },
+      availableGames: [],
+      players: [
+        { id: "host", name: "Host", isHost: true, isReady: false, isInGame: false },
+        { id: "guest", name: "Guest", isHost: false, isReady: true, isInGame: false },
+      ],
+    };
+    const root = new FakeElement("root");
+    renderApp(root, state, createActions(), {}, {});
+    const roomCode = root.query((element) => element.className.includes("room-code-chip"));
+    const invite = root.query((element) => element.className.includes("invite-friends-button"));
+    assert.match(root.text, /Room CodeZING/u);
+    assert.match(roomCode.getAttribute("aria-label"), /copied/u);
+    assert.ok(invite.query((element) => element.tagName === "svg"));
+    assert.equal(root.query((element) => element.className.includes("round-selector")), null);
+    assert.equal(root.query((element) => element.className.includes("lobby-heading-bar")).children[1].className.includes("room-visibility-field"), true);
+    assert.doesNotMatch(root.text, /Discoverable while seats are open|Join with a room code/u);
+    const changeGame = root.query((element) => element.textContent === "Change game");
+    assert.ok(changeGame.query((element) => element.tagName === "svg"));
   });
 });
 
@@ -870,7 +1016,7 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     assert.match(root.text, /1 player in lobby \(8 max\)/u);
     assert.equal(root.query((element) => element.id === "room-visibility-private").checked, true);
     assert.equal(root.query((element) => element.id === "room-visibility-public").checked, false);
-    assert.match(root.text, /Join with a room code/u);
+    assert.doesNotMatch(root.text, /Join with a room code/u);
     assert.match(root.text, /Viewer.*In-game/u);
     const hostCard = root.query((element) => element.className.includes("player-card") && element.text.includes("Host"));
     assert.equal(hostCard.children[1].textContent, "Host");

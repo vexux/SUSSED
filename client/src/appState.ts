@@ -67,6 +67,7 @@ export interface LobbyGame {
   description: string;
   minPlayers: number;
   maxPlayers: number;
+  supportsRoundSelection?: boolean;
 }
 
 export interface PublicRoom {
@@ -99,6 +100,8 @@ export interface AppState {
   theme: ThemePreference;
   connectionStatus: ConnectionStatus;
   playerName: string;
+  nameEntryError: string | null;
+  pendingPublicRoomId: string | null;
   joinRoomCode: string;
   invitationMessage: string | null;
   isInvitationBusy: boolean;
@@ -139,6 +142,8 @@ export function createInitialAppState(): AppState {
     theme: readThemePreference(),
     connectionStatus: "connecting",
     playerName: "",
+    nameEntryError: null,
+    pendingPublicRoomId: null,
     joinRoomCode: "",
     invitationMessage: null,
     isInvitationBusy: false,

@@ -903,7 +903,8 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
         displayName: "Fact or Cap",
         description: "A bluffing party game about surprising facts.",
         minPlayers: 2,
-        maxPlayers: roomManager.MAX_ROOM_CAPACITY
+        maxPlayers: roomManager.MAX_ROOM_CAPACITY,
+        supportsRoundSelection: true
     });
     assert.deepEqual(response.lobby.availableGames.map(({ id }) => id), [
         "fact-or-cap",
@@ -993,7 +994,8 @@ test("host selects a registered game and broadcasts authoritative metadata to al
         displayName: "Fact or Cap (Anime)",
         description: "A bluffing party game about surprising and verifiable anime facts.",
         minPlayers: 2,
-        maxPlayers: roomManager.MAX_ROOM_CAPACITY
+        maxPlayers: roomManager.MAX_ROOM_CAPACITY,
+        supportsRoundSelection: true
     });
     assert.deepEqual(hostLobby.availableGames.map(({ id }) => id), [
         "fact-or-cap",
@@ -1029,7 +1031,8 @@ test("host selects a registered game and broadcasts authoritative metadata to al
         displayName: "Fact or Cap",
         description: "A bluffing party game about surprising facts.",
         minPlayers: 2,
-        maxPlayers: roomManager.MAX_ROOM_CAPACITY
+        maxPlayers: roomManager.MAX_ROOM_CAPACITY,
+        supportsRoundSelection: true
     });
 });
 
