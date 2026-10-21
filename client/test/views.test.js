@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createInitialAppState,
-  LANDING_TAGLINES,
+  LANDING_TAGLINE,
   persistThemePreference,
   readThemePreference,
   THEME_STORAGE_KEY,
@@ -267,7 +267,7 @@ test("a new game round starts a fresh answer-entry input", () => {
   });
 });
 
-test("landing page selects a tagline once and keeps its form interactions usable", () => {
+test("landing page uses a stable tagline and keeps its form interactions usable", () => {
   withFakeDocument(() => {
     const originalRandom = Math.random;
     Math.random = () => 0.5;
@@ -275,10 +275,9 @@ test("landing page selects a tagline once and keeps its form interactions usable
       const state = createInitialAppState();
       state.connectionStatus = "connected";
       const selected = state.landingTagline;
-      assert.ok(LANDING_TAGLINES.includes(selected));
-      assert.equal(selected, LANDING_TAGLINES[Math.floor(LANDING_TAGLINES.length * 0.5)]);
+      assert.equal(selected, LANDING_TAGLINE);
       Math.random = () => 0;
-      assert.equal(createInitialAppState().landingTagline, LANDING_TAGLINES[0]);
+      assert.equal(createInitialAppState().landingTagline, LANDING_TAGLINE);
       Math.random = () => 0.5;
 
       state.availableGames = [
@@ -588,14 +587,14 @@ test("lobby game card shows authoritative metadata and only hosts can open game 
       assert.match(card.text, /A registered game with its own description\./u);
       assert.match(card.text, /3–6 players/u);
       assert.ok(root.query((element) => element.className.includes("lobby-room-code-panel")));
-      const choose = root.query((element) => element.tagName === "button" && element.textContent === "Choose another game");
+      const choose = root.query((element) => element.tagName === "button" && element.textContent === "Change game");
       assert.ok(choose);
       choose.dispatch("click");
       assert.deepEqual(calls, [["onChooseAnotherGame"]]);
 
       state.localPlayerId = "guest";
       renderApp(root, state, actions, {}, {});
-      assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Choose another game"), null);
+      assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Change game"), null);
       assert.equal(root.query((element) => element.textContent === "Select game"), null);
     }
   });
@@ -679,6 +678,8 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.equal(privateChoice.type, "radio");
     assert.equal(privateChoice.checked, true);
     assert.equal(publicChoice.checked, false);
+    assert.equal(root.query((element) => element.getAttribute("aria-label") === "5 rounds").disabled, false);
+    assert.ok(root.query((element) => element.className.includes("lobby-content-grid")));
     publicChoice.checked = true;
     publicChoice.dispatch("change");
     assert.deepEqual(changes, [["onSetRoomVisibility", "public"]]);
@@ -688,6 +689,9 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.equal(root.query((element) => element.id === "room-visibility-private"), null);
     assert.equal(root.query((element) => element.id === "room-visibility-public"), null);
     assert.match(root.text, /Room visibility.*Private/u);
+    assert.equal(root.query((element) => element.getAttribute("aria-label") === "5 rounds"), null);
+    assert.ok(root.query((element) => element.className.includes("readonly-setting-value")));
+    assert.match(root.text, /5 rounds/u);
   });
 });
 
@@ -727,7 +731,7 @@ test("public room browser renders safe room cards, loading, empty and actionable
     state.isLoadingPublicRooms = false;
     render();
     assert.match(root.text, /No open tables yet/u);
-    assert.match(root.text, /Start a room and invite friends/u);
+    assert.match(root.text, /No public rooms are open right now/u);
     root.query((element) => element.textContent === "Choose a game").dispatch("click");
 
     state.publicRooms = [{
@@ -776,7 +780,7 @@ test("public room browser renders safe room cards, loading, empty and actionable
     assert.deepEqual(publicCards.map((card) => card.dataset.gameId), [
       "fact-or-cap", "fact-or-cap-anime", "bruh-wtf", "future-game",
     ]);
-    assert.match(root.text, /Anime facts\./u);
+    assert.equal(root.text.includes("Anime facts."), false);
     const originalArtByRoom = new Map(publicCards.map((card) => [card.dataset.roomId, card.children[0].className]));
     state.publicRooms.reverse();
     render();

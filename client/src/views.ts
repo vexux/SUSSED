@@ -472,7 +472,7 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
     const empty = createElement("div", "public-room-empty");
     empty.append(
       createElement("h2", undefined, "No open tables yet"),
-      createElement("p", undefined, "Start a room and invite friends, or check back when someone opens a public lobby."),
+      createElement("p", undefined, "No public rooms are open right now."),
     );
     const createRoom = createElement("button", "primary-button", "Choose a game");
     createRoom.type = "button";
@@ -490,7 +490,6 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
       const details = createElement("div", "public-room-details");
       details.append(
         createElement("h2", "game-card-title", room.gameName),
-        createElement("p", "game-card-description", room.gameDescription),
         createElement("p", "game-card-player-count", `${room.playerCount}/${room.maxPlayers} players`),
       );
       const join = createElement("button", "primary-button public-room-join", state.isBusy ? "Joining…" : "Join");
@@ -553,7 +552,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
       className: "selected-lobby-game",
       action: isHost && lobby.status === "lobby"
         ? {
-            label: "Choose another game",
+            label: "Change game",
             disabled: state.isBusy,
             onClick: actions.onChooseAnotherGame,
           }
@@ -590,15 +589,8 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     readOnlyVisibility.append(createElement("p", "field-label", "Room visibility"));
     readOnlyVisibility.append(createElement(
       "p",
-      "selected-game-name",
+      "readonly-setting-value",
       lobby.visibility === "public" ? "Public" : "Private",
-    ));
-    readOnlyVisibility.append(createElement(
-      "p",
-      "helper-text",
-      lobby.visibility === "public"
-        ? "Public rooms can be discovered while the lobby has an open slot."
-        : "Private rooms are hidden from discovery. Players join with the room code.",
     ));
     visibilityField = readOnlyVisibility;
   }
@@ -643,27 +635,49 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     actions.onSetReady(!localPlayer?.isReady);
   });
 
-  screen.append(heading, selectedGameCard, roomCodePanel, playerCount, readinessMessage, playerList, visibilityField);
+  screen.append(heading, selectedGameCard, roomCodePanel);
+
   const roundsField = createElement("fieldset", "round-selector");
   roundsField.append(createElement("legend", "field-label", "Rounds"));
-  const roundOptions = createElement("div", "round-options");
-  for (const roundCount of [5, 7, 10] as const) {
-    const option = createElement(
-      "button",
-      `round-option${lobby.selectedRoundCount === roundCount ? " selected" : ""}`,
-      String(roundCount),
+  if (isHost && lobby.status === "lobby") {
+    const roundOptions = createElement("div", "round-options");
+    for (const roundCount of [5, 7, 10] as const) {
+      const option = createElement(
+        "button",
+        `round-option${lobby.selectedRoundCount === roundCount ? " selected" : ""}`,
+        String(roundCount),
+      );
+      option.type = "button";
+      option.setAttribute("aria-label", `${roundCount} rounds`);
+      option.setAttribute("aria-pressed", String(lobby.selectedRoundCount === roundCount));
+      option.disabled = state.isBusy;
+      option.addEventListener("click", () => {
+        actions.onSelectRoundCount(roundCount, lobby.revision);
+      });
+      roundOptions.append(option);
+    }
+    roundsField.append(roundOptions);
+  } else {
+    roundsField.append(
+      createElement("p", "readonly-setting-value", `${lobby.selectedRoundCount} rounds`),
     );
-    option.type = "button";
-    option.setAttribute("aria-label", `${roundCount} rounds`);
-    option.setAttribute("aria-pressed", String(lobby.selectedRoundCount === roundCount));
-    option.disabled = !isHost || lobby.status !== "lobby" || state.isBusy;
-    option.addEventListener("click", () => {
-      actions.onSelectRoundCount(roundCount, lobby.revision);
-    });
-    roundOptions.append(option);
   }
-  roundsField.append(roundOptions);
-  screen.append(roundsField);
+
+  const playerSection = createElement("section", "lobby-panel lobby-player-panel");
+  playerSection.setAttribute("aria-labelledby", "lobby-players-title");
+  const playersHeading = createElement("h2", "lobby-panel-title", "Players");
+  playersHeading.id = "lobby-players-title";
+  playerSection.append(playersHeading, playerCount, readinessMessage, playerList);
+  if (lobby.status === "lobby" && !isHost) {
+    playerSection.append(readyButton);
+  }
+
+  const settingsSection = createElement("section", "lobby-panel lobby-settings-panel");
+  settingsSection.setAttribute("aria-label", "Lobby settings");
+  settingsSection.append(visibilityField, roundsField);
+  const lobbyContent = createElement("div", "lobby-content-grid");
+  lobbyContent.append(playerSection, settingsSection);
+  screen.append(lobbyContent);
 
   const pendingPlayerId = state.pendingKickPlayerId ?? state.pendingHostTransferId;
   const pendingPlayer = lobby.players.find(({ id }) => id === pendingPlayerId);
@@ -731,9 +745,6 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   if (selectedPlayer) screen.append(createPlayerDetailDialog(state, selectedPlayer, isHost, actions));
 
   const lobbyActions = createElement("div", "button-group lobby-actions");
-  if (lobby.status === "lobby" && !isHost) {
-    lobbyActions.append(readyButton);
-  }
 
   if (isHost) {
     const startButton = createElement("button", "primary-button", "Start game");

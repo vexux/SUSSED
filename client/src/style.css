@@ -268,6 +268,105 @@ button:disabled {
   text-align: center;
 }
 
+.lobby-screen {
+  align-items: stretch;
+  gap: var(--space-4);
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-6);
+  text-align: left;
+}
+
+.lobby-screen > h1 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+}
+
+.lobby-screen .selected-lobby-game {
+  width: 100%;
+  max-width: none;
+}
+
+.lobby-screen .lobby-room-code-panel {
+  width: 100%;
+}
+
+.lobby-screen .invitation-actions {
+  justify-content: flex-start;
+}
+
+.lobby-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  align-items: start;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.lobby-panel {
+  min-width: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  background: var(--color-surface-raised);
+}
+
+.lobby-panel-title {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 1.1rem;
+}
+
+.lobby-player-panel .player-count {
+  margin: var(--space-2) 0 0;
+}
+
+.lobby-player-panel .lobby-readiness-status {
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.lobby-player-panel .player-list {
+  width: 100%;
+  margin: 0;
+}
+
+.lobby-settings-panel {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+
+.lobby-settings-panel .visibility-field,
+.lobby-settings-panel .round-selector {
+  width: 100%;
+  margin: 0;
+}
+
+.lobby-settings-panel .round-selector {
+  justify-items: stretch;
+}
+
+.readonly-setting-value {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-weight: 700;
+}
+
+.lobby-player-panel > .secondary-button {
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
+.lobby-screen .lobby-actions {
+  justify-content: flex-start;
+  width: 100%;
+  margin: 0;
+}
+
+.lobby-screen .lobby-actions > button {
+  min-width: 140px;
+}
+
 .app-screen h1 {
   margin: 0 0 12px;
   font-size: clamp(2.5rem, 8vw, 4.5rem);
@@ -709,6 +808,10 @@ select:focus:not(:focus-visible) {
   margin: 0 0 28px;
   padding: 0;
   list-style: none;
+}
+
+.lobby-screen .player-list {
+  gap: var(--space-2);
 }
 
 .player-list-item {
@@ -1968,6 +2071,10 @@ select:focus:not(:focus-visible) {
 }
 
 @media (max-width: 760px) {
+  .lobby-content-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .game-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1989,6 +2096,47 @@ select:focus:not(:focus-visible) {
 @media (max-width: 560px) {
   .app-screen {
     padding: 40px 0;
+  }
+
+  .lobby-screen {
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-5);
+  }
+
+  .lobby-screen .lobby-panel {
+    padding: var(--space-3);
+  }
+
+  .lobby-screen .selected-lobby-game {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .lobby-screen .lobby-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .lobby-screen .lobby-actions > button {
+    min-width: 0;
+    padding-inline: var(--space-2);
+  }
+
+  .lobby-screen .player-card {
+    gap: var(--space-2);
+  }
+
+  .lobby-screen .player-card-badges {
+    gap: 4px;
+  }
+
+  .lobby-screen .host-badge,
+  .lobby-screen .ready-badge,
+  .lobby-screen .not-ready-badge,
+  .lobby-screen .in-game-badge {
+    padding: 4px 7px;
+    font-size: 0.72rem;
   }
 
   .room-actions {

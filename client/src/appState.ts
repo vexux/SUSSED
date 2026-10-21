@@ -131,36 +131,7 @@ export interface AppState {
   resultsReminderFeedback: string | null;
 }
 
-export const LANDING_TAGLINES = [
-  "Gather your friends. Ruin their self-esteem.",
-  "Create a room. Expose your friends.",
-  "Join your friends. Question your friendships.",
-  "Your friends are liars. Prove it.",
-  "One room. Zero dignity. Questionable friendships.",
-  "Bring your friends. Leave with evidence.",
-  "Create a room and discover who's the biggest fraud.",
-  "Think you know your friends? That's adorable.",
-  "Invite your friends. Find out who's confidently stupid.",
-  "A party game for people who should not be trusted.",
-  "Lie, vote, betray. It's called friendship.",
-  "Make a room. Make enemies.",
-  "Your group chat, but with consequences.",
-  "Prove your friends are idiots. Or prove them right.",
-  "Bad answers. Worse friends. Excellent entertainment.",
-  "Trust nobody. Especially the funny one.",
-  "Friendship is temporary. The scoreboard is forever.",
-  "Create a room. Let the accusations begin.",
-  "Finally, a way to weaponize your friend group's stupidity.",
-  "Come for the games. Stay for the allegations.",
-  "Create a room. Question your friendships.",
-  "A party game for people with questionable friends.",
-  "Your friends are liars. Your votes are evidence.",
-  "Gather your friends. Trust absolutely none of them.",
-  "One room, multiple liars, questionable friendships.",
-  "Think you're funny? Your friends will be the judge.",
-  "Expose the frauds hiding in your friend group.",
-  "Bad answers. Worse friends. Excellent entertainment.",
-] as const;
+export const LANDING_TAGLINE = "Gather your friends. Ruin their self-esteem.";
 
 export function createInitialAppState(): AppState {
   return {
@@ -176,7 +147,7 @@ export function createInitialAppState(): AppState {
     invitationQrDataUrl: null,
     isInvitationQrVisible: false,
     roomCodeCopied: false,
-    landingTagline: LANDING_TAGLINES[Math.floor(Math.random() * LANDING_TAGLINES.length)],
+    landingTagline: LANDING_TAGLINE,
     localPlayerId: null,
     roomCode: null,
     lobby: null,
