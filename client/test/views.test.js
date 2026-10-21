@@ -302,6 +302,13 @@ test("landing page uses a stable tagline and keeps its form interactions usable"
       assert.equal(codeInput.placeholder, "CODE");
       assert.equal(root.text.includes("Room codes are memorable four-letter words."), false);
       assert.ok(root.query((element) => element.tagName === "button" && element.textContent === "Choose a game"));
+      const actionCards = root.query((element) => element.className.includes("landing-actions")).children;
+      assert.equal(actionCards.length, 3);
+      assert.deepEqual(actionCards.map((card) => card.query((element) => element.tagName === "h2").text), [
+        "Create a room", "Join with code", "Browse public rooms",
+      ]);
+      assert.ok(actionCards.every((card) => card.className.includes("landing-action-card")));
+      assert.equal(actionCards[0].query((element) => element.tagName === "svg").attributes["aria-hidden"], "true");
 
       nameInput.value = "Alex";
       nameInput.dispatch("input");
@@ -312,7 +319,7 @@ test("landing page uses a stable tagline and keeps its form interactions usable"
       root.query((element) => element.textContent === "Choose a game").dispatch("click");
       root.query((element) => element.id === "room-code").value = "ABCD";
       root.query((element) => element.textContent === "Join room").dispatch("click");
-      root.query((element) => element.textContent === "Browse public rooms").dispatch("click");
+      root.query((element) => element.tagName === "button" && element.textContent === "Browse public rooms").dispatch("click");
       assert.equal(calls.create, 1);
       assert.deepEqual(calls.join, ["ABCD"]);
       assert.deepEqual(calls.names, ["Alex"]);
@@ -419,7 +426,7 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     state.invitationFeedback = "Room code copied.";
     state.roomCodeCopied = true;
     renderApp(root, state, actions, {}, {});
-    assert.equal(root.query((element) => element.className.includes("invitation-toast")).textContent, "Room code copied.");
+    assert.equal(root.query((element) => element.className.includes("invitation-toast")), null);
     assert.equal(root.query((element) => element.className.includes("room-code-chip")).children[1].children[0].attributes.d, "m5 12 4 4L19 6");
     state.invitationFeedback = null;
     state.roomCodeCopied = false;
@@ -856,7 +863,7 @@ test("landing action label leads to game selection while joining and public-room
   });
 });
 
-test("public room browser renders safe room cards, loading, empty and actionable states", () => {
+test("public room browser renders compact cards, accessible refresh, and a concise empty state", () => {
   withFakeDocument(() => {
     const state = createInitialAppState();
     state.currentView = "public-rooms";
@@ -867,7 +874,6 @@ test("public room browser renders safe room cards, loading, empty and actionable
       onRefreshPublicRooms() { calls.push("refresh"); },
       onBackFromPublicRooms() { calls.push("back"); },
       onJoinPublicRoom(roomId) { calls.push(roomId); },
-      onCreateRoom() { calls.push("create-room"); },
     };
     const root = new FakeElement("root");
     const render = () => renderApp(root, state, actions, {}, {});
@@ -876,9 +882,13 @@ test("public room browser renders safe room cards, loading, empty and actionable
 
     state.isLoadingPublicRooms = false;
     render();
-    assert.match(root.text, /No open tables yet/u);
-    assert.match(root.text, /No public rooms are open right now/u);
-    root.query((element) => element.textContent === "Choose a game").dispatch("click");
+    assert.match(root.text, /No open rooms yet/u);
+    assert.equal(root.text.includes("Choose a game"), false);
+    const refresh = root.query((element) => element.className.includes("public-room-refresh"));
+    assert.equal(refresh.attributes["aria-label"], "Refresh public rooms");
+    assert.equal(refresh.title, "Refresh public rooms");
+    assert.equal(refresh.children[0].tagName, "svg");
+    assert.equal(refresh.children[0].attributes["aria-hidden"], "true");
 
     state.publicRooms = [{
       roomId: "opaque-public-id",
@@ -916,7 +926,11 @@ test("public room browser renders safe room cards, loading, empty and actionable
     render();
     assert.match(root.text, /3\/8 players/u);
     assert.equal(root.text.includes("ABCD"), false);
+    assert.equal(root.text.includes("Bluff with facts."), false);
     const publicCards = root.query((element) => element.className.includes("public-room-grid")).children;
+    assert.ok(publicCards[0].query((element) => element.textContent === "Fact or Cap"));
+    assert.ok(publicCards[0].query((element) => element.textContent === "3/8 players"));
+    assert.ok(publicCards[0].query((element) => element.textContent === "Join"));
     assert.deepEqual(publicCards.map((card) => card.children[0].className), [
       "game-card-art game-art-fact-or-cap",
       "game-card-art game-art-fact-or-cap-anime",
@@ -938,13 +952,37 @@ test("public room browser renders safe room cards, loading, empty and actionable
     root.query((element) => element.dataset.roomId === "opaque-public-id")
       .query((element) => element.tagName === "button" && element.textContent === "Join")
       .dispatch("click");
-    root.query((element) => element.textContent === "Refresh").dispatch("click");
+    refresh.dispatch("click");
     root.query((element) => element.textContent === "Back").dispatch("click");
-    assert.deepEqual(calls, ["create-room", "opaque-public-id", "refresh", "back"]);
+    assert.deepEqual(calls, ["opaque-public-id", "refresh", "back"]);
 
     state.publicRoomsError = "That room is full.";
     render();
     assert.equal(root.query((element) => element.attributes.role === "alert").textContent, "That room is full.");
+  });
+});
+
+test("room-code copy feedback uses the copied control state without a duplicate toast", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "lobby";
+    state.localPlayerId = "host";
+    state.roomCodeCopied = true;
+    state.invitationFeedback = "Room code copied.";
+    state.lobby = {
+      roomCode: "ZING", revision: 1, playerCount: 1, readinessStatus: "insufficient-players",
+      status: "lobby", visibility: "private", maxPlayers: 8, selectedGameId: "fact-or-cap", selectedRoundCount: 5,
+      reminderSessionId: null,
+      selectedGame: { id: "fact-or-cap", displayName: "Fact or Cap", description: "Game", minPlayers: 2, maxPlayers: 8 },
+      availableGames: [],
+      players: [{ id: "host", name: "Host", isHost: true, isReady: false, isInGame: false }],
+    };
+    const root = new FakeElement("root");
+    renderApp(root, state, createActions(), {}, {});
+    const roomCode = root.query((element) => element.className.includes("room-code-chip"));
+    assert.equal(roomCode.attributes["aria-label"], "Room code ZING copied");
+    assert.equal(roomCode.children[1].children[0].attributes.d, "m5 12 4 4L19 6");
+    assert.equal(root.query((element) => element.className.includes("invitation-toast")), null);
   });
 });
 

@@ -79,7 +79,7 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
   return element;
 }
 
-type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown";
+type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh";
 
 function createIcon(name: IconName): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -99,6 +99,8 @@ function createIcon(name: IconName): SVGSVGElement {
     globe: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20",
     lock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
     crown: "m2 8 5 4 5-8 5 8 5-4-2 12H4L2 8Zm2 15h16",
+    key: "M21 2 11 12m0 0a5 5 0 1 1-7.1 7.1A5 5 0 0 1 11 12Zm3-3 3 3m-6 0 3 3",
+    refresh: "M20 7v5h-5M4 17v-5h5m-4.1-3A8 8 0 0 1 19 7l1 5M4 12l1 5a8 8 0 0 0 14.1-2",
   };
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("d", paths[name]);
@@ -220,7 +222,7 @@ function renderHome(
     actions.onPlayerNameChange(playerNameInput.value);
   });
 
-  const identityField = createElement("div", "field");
+  const identityField = createElement("div", "field landing-name-field");
   identityField.append(playerNameLabel, playerNameInput);
   screen.append(identityField);
   if (state.errorCode === "DUPLICATE_PLAYER_NAME") {
@@ -231,17 +233,19 @@ function renderHome(
     }
   }
 
+  const createPanel = createElement("section", "landing-action-card");
+  const createHeading = createElement("h2", "landing-action-heading");
+  createHeading.append(createIcon("game"), createElement("span", undefined, "Create a room"));
   const createButton = createElement("button", "primary-button", "Choose a game");
   createButton.type = "button";
   createButton.disabled = state.connectionStatus !== "connected" || state.isBusy || state.availableGames.length === 0;
   createButton.addEventListener("click", actions.onCreateRoom);
+  createPanel.append(createHeading, createButton);
 
-  const createPanel = createElement("div", "action-panel");
-  createPanel.append(
-    createButton,
-    createElement("p", "helper-text", state.availableGames.length === 0 ? "Loading games…" : "Choose a game on the next screen."),
-  );
-
+  const joinPanel = createElement("section", "landing-action-card");
+  const joinHeading = createElement("h2", "landing-action-heading");
+  joinHeading.append(createIcon("key"), createElement("span", undefined, "Join with code"));
+  joinPanel.append(joinHeading);
   const joinLabel = createElement("label", "field-label", "Room code");
   joinLabel.htmlFor = "room-code";
   const roomCodeInput = createElement("input", "text-input room-code-input");
@@ -267,24 +271,27 @@ function renderHome(
     actions.onJoinRoom(roomCodeInput.value);
   });
 
-  const joinPanel = createElement("div", "join-panel");
   const roomCodeField = createElement("div", "field");
   roomCodeField.append(joinLabel, roomCodeInput);
   joinPanel.append(roomCodeField, joinButton);
 
-  const actionsPanel = createElement("div", "room-actions");
-  actionsPanel.append(createPanel, joinPanel);
+  const browsePanel = createElement("section", "landing-action-card");
+  const browseHeading = createElement("h2", "landing-action-heading");
+  browseHeading.append(createIcon("users"), createElement("span", undefined, "Browse public rooms"));
+  const browseButton = createElement("button", "secondary-button browse-public-rooms", "Browse public rooms");
+  browseButton.type = "button";
+  browseButton.disabled = state.connectionStatus !== "connected" || state.isBusy;
+  browseButton.addEventListener("click", actions.onBrowsePublicRooms);
+  browsePanel.append(browseHeading, browseButton);
+  const actionsPanel = createElement("div", "landing-actions");
+  actionsPanel.setAttribute("aria-label", "Room actions");
+  actionsPanel.append(createPanel, joinPanel, browsePanel);
   screen.append(actionsPanel);
   if (state.invitationMessage) {
     const invitationMessage = createElement("p", "invitation-message", state.invitationMessage);
     invitationMessage.setAttribute("role", state.joinRoomCode ? "status" : "alert");
     screen.append(invitationMessage);
   }
-  const browseButton = createElement("button", "secondary-button browse-public-rooms", "Browse public rooms");
-  browseButton.type = "button";
-  browseButton.disabled = state.connectionStatus !== "connected" || state.isBusy;
-  browseButton.addEventListener("click", actions.onBrowsePublicRooms);
-  screen.append(browseButton);
   if (state.isBusy) {
     screen.append(createElement("p", "status-message", "Connecting to room…"));
   }
@@ -482,17 +489,19 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
   screen.append(
     createElement("p", "eyebrow", "OPEN TABLES"),
     createElement("h1", "selection-heading", "Browse public rooms"),
-    createElement("p", "screen-description", "Join a lobby that is open and has room for you."),
   );
 
   const controls = createElement("div", "public-room-controls");
   const back = createElement("button", "text-button", "Back");
   back.type = "button";
   back.addEventListener("click", actions.onBackFromPublicRooms);
-  const refresh = createElement("button", "secondary-button", state.isLoadingPublicRooms ? "Refreshing…" : "Refresh");
+  const refresh = createElement("button", "secondary-button icon-button public-room-refresh");
   refresh.type = "button";
   refresh.disabled = state.connectionStatus !== "connected" || state.isLoadingPublicRooms;
   refresh.setAttribute("aria-busy", String(state.isLoadingPublicRooms));
+  refresh.setAttribute("aria-label", state.isLoadingPublicRooms ? "Refreshing public rooms" : "Refresh public rooms");
+  refresh.title = state.isLoadingPublicRooms ? "Refreshing public rooms" : "Refresh public rooms";
+  refresh.append(createIcon("refresh"));
   refresh.addEventListener("click", actions.onRefreshPublicRooms);
   controls.append(back, refresh);
   screen.append(controls);
@@ -504,14 +513,9 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
   } else if (state.publicRooms.length === 0) {
     const empty = createElement("div", "public-room-empty");
     empty.append(
-      createElement("h2", undefined, "No open tables yet"),
-      createElement("p", undefined, "No public rooms are open right now."),
+      createIcon("users"),
+      createElement("p", undefined, "No open rooms yet"),
     );
-    const createRoom = createElement("button", "primary-button", "Choose a game");
-    createRoom.type = "button";
-    createRoom.disabled = state.connectionStatus !== "connected" || state.isBusy;
-    createRoom.addEventListener("click", actions.onCreateRoom);
-    empty.append(createRoom);
     screen.append(empty);
   } else {
     const cards = createElement("div", "public-room-grid");
@@ -1291,7 +1295,7 @@ export function renderApp(
             : renderHome(state, actions);
   screen.dataset.renderScope = getRenderScope(state);
   shell.append(screen);
-  if (state.invitationFeedback && !state.isInvitationDialogOpen && state.currentView === "lobby") {
+  if (state.invitationFeedback && !state.isInvitationDialogOpen && !state.roomCodeCopied && state.currentView === "lobby") {
     const toast = createElement("p", "invitation-toast", state.invitationFeedback);
     toast.setAttribute("role", "status");
     shell.append(toast);

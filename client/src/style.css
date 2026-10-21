@@ -561,20 +561,72 @@ select:focus:not(:focus-visible) {
   outline: none;
 }
 
-.home-screen > .field {
-  margin-top: 36px;
+.home-screen > .landing-name-field {
+  margin-top: var(--space-5);
 }
 
-.room-actions {
+.landing-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  width: min(100%, 640px);
-  margin-top: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--space-3);
+  width: min(100%, 820px);
+  margin-top: var(--space-4);
+  text-align: left;
+}
+
+.landing-action-card {
+  display: flex;
+  min-width: 0;
+  min-height: 176px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.landing-action-heading {
+  display: flex;
+  min-height: 28px;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.landing-action-heading svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  color: var(--color-accent-light);
+}
+
+.landing-action-card .field {
+  width: 100%;
+  gap: var(--space-1);
+}
+
+.landing-action-card .field-label {
+  font-size: 0.82rem;
+}
+
+.landing-action-card .text-input {
+  min-height: 44px;
+}
+
+.landing-action-card > .primary-button,
+.landing-action-card > .secondary-button {
+  width: 100%;
 }
 
 .browse-public-rooms {
-  margin-top: var(--space-3);
+  margin-top: auto;
 }
 
 .button-group {
@@ -588,25 +640,6 @@ select:focus:not(:focus-visible) {
 .lobby-actions {
   width: min(100%, 640px);
   margin-top: 8px;
-}
-
-.action-panel,
-.join-panel {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 12px;
-  min-height: 108px;
-  padding: 16px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 12px;
-  background: var(--color-surface-raised);
-}
-
-.join-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
 }
 
 .primary-button,
@@ -639,6 +672,20 @@ select:focus:not(:focus-visible) {
 .primary-button:active:not(:disabled),
 .secondary-button:active:not(:disabled) {
   transform: translateY(1px);
+}
+
+.icon-button {
+  display: inline-grid;
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  place-items: center;
+  padding: 0;
+}
+
+.icon-button svg {
+  width: 20px;
+  height: 20px;
 }
 
 .room-code-input {
@@ -1683,78 +1730,79 @@ select:focus:not(:focus-visible) {
 
 .public-room-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: var(--space-4);
-  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  width: min(100%, 760px);
   margin-top: var(--space-3);
   text-align: left;
 }
 
 .public-room-card {
   display: grid;
-  grid-template-columns: 116px minmax(0, 1fr);
+  grid-template-columns: 96px minmax(0, 1fr);
   overflow: hidden;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
-  box-shadow: 0 0.75rem 1.8rem rgb(0 0 0 / 12%);
 }
 
 .public-room-card .game-card-art {
   height: 100%;
-  min-height: 150px;
+  min-height: 124px;
 }
 
 .public-room-details {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: center;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
   padding: var(--space-3);
 }
 
 .public-room-details .game-card-title {
+  grid-column: 1;
+  margin: 0;
   overflow-wrap: anywhere;
 }
 
-.public-room-details .game-card-description {
-  flex: 1;
-  font-size: 0.9rem;
+.public-room-details .game-card-player-count {
+  grid-column: 1;
+  margin: 0;
 }
 
 .public-room-details .public-room-join {
-  width: 100%;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-width: 76px;
+  min-height: 44px;
 }
 
 .public-room-empty {
   display: grid;
-  justify-items: center;
+  grid-template-columns: auto 1fr;
+  align-items: center;
   gap: var(--space-3);
-  width: min(100%, 520px);
-  margin: var(--space-6) 0;
-  padding: var(--space-5);
+  width: min(100%, 760px);
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   color: var(--color-text-muted);
   background: var(--color-surface-raised);
-  line-height: 1.6;
 }
 
-.public-room-empty h2,
 .public-room-empty p {
   margin: 0;
-}
-
-.public-room-empty h2 {
   color: var(--color-text-strong);
+  font-weight: 650;
 }
 
-.public-room-empty p {
-  color: var(--color-text-muted);
-}
-
-.public-room-empty .primary-button {
-  width: min(100%, 260px);
+.public-room-empty svg {
+  width: 24px;
+  height: 24px;
+  color: var(--color-accent-light);
 }
 
 .room-visibility-field {
@@ -2249,17 +2297,8 @@ select:focus:not(:focus-visible) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .public-room-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-3);
-  }
-
   .public-room-card {
-    grid-template-columns: 88px minmax(0, 1fr);
-  }
-
-  .public-room-card .game-card-art {
-    min-height: 100%;
+    grid-template-columns: 80px minmax(0, 1fr);
   }
 }
 
@@ -2309,17 +2348,46 @@ select:focus:not(:focus-visible) {
     font-size: 0.72rem;
   }
 
-  .room-actions {
+  .landing-actions {
     grid-template-columns: 1fr;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
   }
 
-  .action-panel,
-  .join-panel {
-    min-height: auto;
+  .landing-action-card {
+    min-height: 0;
+    gap: var(--space-2);
+    padding: var(--space-3);
   }
 
-  .join-panel {
-    grid-template-columns: 1fr;
+  .landing-action-heading {
+    min-height: 24px;
+  }
+
+  .public-room-card {
+    grid-template-columns: 68px minmax(0, 1fr);
+  }
+
+  .public-room-card .game-card-art {
+    min-height: 112px;
+  }
+
+  .public-room-details {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+    padding: var(--space-2);
+  }
+
+  .public-room-details .game-card-title,
+  .public-room-details .game-card-player-count,
+  .public-room-details .public-room-join {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .public-room-details .public-room-join {
+    width: 100%;
+    min-height: 44px;
   }
 
   .vote-option {
@@ -2423,7 +2491,7 @@ select:focus:not(:focus-visible) {
   }
 
   .home-screen > .field,
-  .room-actions {
+  .landing-actions {
     width: 100%;
   }
 
