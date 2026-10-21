@@ -247,8 +247,17 @@ function render(): void {
   });
   document.body.classList.toggle(
     "modal-open",
-    appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop, .invitation-dialog, .player-detail-dialog[aria-modal='true']") !== null,
+    appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop, .invitation-dialog, .player-detail-dialog[aria-modal='true'], .results-reminder-dialog[open]") !== null,
   );
+}
+
+function focusCurrentScreen(): void {
+  const target = appRoot.querySelector<HTMLElement>(
+    ".lobby-screen h1, .starting-screen > h1, .question-screen",
+  );
+  if (!target) return;
+  target.tabIndex = -1;
+  target.focus();
 }
 
 function focusPlayerName(id: string): void {
@@ -418,6 +427,7 @@ function applyLobbyState(lobby: LobbyState): void {
     state.currentView === "game" &&
     state.game?.status === "finished" &&
     localPlayer.isInGame;
+  const dismissedResultsReminder = state.resultsReminderSessionId !== null;
   if ((lobby.status === "lobby" && !remainsOnFinishedResults) || (lobby.status === "starting" && localPlayer.isInGame === false && state.game?.status === "finished")) {
     if (state.game) {
       retiredGameSessionIds.add(state.game.sessionId);
@@ -462,6 +472,7 @@ function applyLobbyState(lobby: LobbyState): void {
   state.errorCode = null;
   state.isBusy = false;
   render();
+  if (dismissedResultsReminder) focusCurrentScreen();
 }
 
 function focusPlayerCardTrigger(playerId: string): void {
@@ -1458,15 +1469,25 @@ const actions: AppActions = {
   onDismissResultsReminder() {
     state.resultsReminderSessionId = null;
     render();
+    focusCurrentScreen();
   },
   onAcceptResultsReminder() {
     const sessionId = state.resultsReminderSessionId;
-    if (!sessionId) return;
+    if (!sessionId || state.isBusy) return;
+    state.isBusy = true;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
     emitRoomOperation("return-from-results", { sessionId }, (response) => {
       if (response.error) {
-        state.resultsReminderSessionId = null;
+        state.isBusy = false;
         state.errorCode = response.error.code;
         state.errorMessage = response.error.message;
+        render();
+      } else if (response.returned !== true) {
+        state.isBusy = false;
+        state.errorCode = "INVALID_RESPONSE";
+        state.errorMessage = "The room could not be returned to its current state. Please try again.";
         render();
       }
     });

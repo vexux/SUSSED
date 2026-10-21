@@ -1306,25 +1306,43 @@ export function renderApp(
     shell.append(toast);
   }
   if (state.resultsReminderSessionId) {
-    const backdrop = createElement("div", "results-reminder-backdrop");
-    const dialog = createElement("section", "results-reminder-dialog");
-    dialog.setAttribute("role", "dialog");
-    dialog.setAttribute("aria-modal", "true");
+    const dialog = createElement("dialog", "results-reminder-dialog");
+    dialog.setAttribute("aria-labelledby", "results-reminder-title");
     dialog.append(
       createElement("p", undefined, "The host is waiting in the lobby."),
-      createElement("h2", undefined, "Return to Lobby?"),
     );
+    const title = createElement("h2", undefined, "Return to Lobby?");
+    title.id = "results-reminder-title";
+    dialog.append(title);
     const actionsPanel = createElement("div", "button-group");
     const waitButton = createElement("button", "secondary-button", "Wait");
     waitButton.type = "button";
+    waitButton.disabled = state.isBusy;
     waitButton.addEventListener("click", actions.onDismissResultsReminder);
-    const okButton = createElement("button", "primary-button", "OK");
-    okButton.type = "button";
-    okButton.addEventListener("click", actions.onAcceptResultsReminder);
-    actionsPanel.append(waitButton, okButton);
+    const returnButton = createElement(
+      "button",
+      "primary-button",
+      state.isBusy ? "Returning…" : "Return to lobby",
+    );
+    returnButton.type = "button";
+    returnButton.autofocus = true;
+    returnButton.disabled = state.isBusy;
+    returnButton.setAttribute("aria-busy", String(state.isBusy));
+    returnButton.addEventListener("click", actions.onAcceptResultsReminder);
+    actionsPanel.append(waitButton, returnButton);
     dialog.append(actionsPanel);
-    backdrop.append(dialog);
-    shell.append(backdrop);
+    const error = createErrorMessage(state.errorMessage);
+    if (error) dialog.append(error);
+    dialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      if (!state.isBusy) actions.onDismissResultsReminder();
+    });
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      if (!state.isBusy) actions.onDismissResultsReminder();
+    });
+    shell.append(dialog);
   }
   // Client invariant: same-scope updates must leave active text entry attached.
   // The shared renderer preserves that control without calling focus; phase,
@@ -1394,6 +1412,14 @@ export function renderApp(
           actions.onClosePlayerCard();
         }
       });
+    }
+  }
+  const resultsReminderDialog = root.querySelector<HTMLDialogElement>(".results-reminder-dialog");
+  if (state.resultsReminderSessionId && resultsReminderDialog) {
+    if (typeof resultsReminderDialog.showModal === "function") {
+      if (!resultsReminderDialog.open) resultsReminderDialog.showModal();
+    } else {
+      resultsReminderDialog.setAttribute("open", "");
     }
   }
 }

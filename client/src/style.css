@@ -1809,24 +1809,22 @@ select:focus:not(:focus-visible) {
   margin: var(--space-4) 0;
 }
 
-.results-reminder-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  background: var(--color-overlay);
-}
-
 .results-reminder-dialog {
   width: min(100%, 30rem);
+  max-height: calc(100% - 2rem);
+  overflow: auto;
+  margin: auto;
   padding: 1.5rem;
-  border: 1px solid var(--color-accent);
-  border-radius: 1rem;
+  border: 1px solid var(--color-accent-border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
   background: var(--color-surface);
   box-shadow: 0 0 2rem rgb(var(--color-accent-rgb) / 18%);
   text-align: center;
+}
+
+.results-reminder-dialog::backdrop {
+  background: var(--color-overlay);
 }
 
 .start-reason {
@@ -1840,6 +1838,13 @@ select:focus:not(:focus-visible) {
 .question-screen {
   justify-content: center;
   gap: 16px;
+}
+
+.question-screen:focus,
+.lobby-screen h1:focus,
+.starting-screen > h1:focus {
+  outline: var(--focus-ring);
+  outline-offset: 4px;
 }
 
 .round-counter {

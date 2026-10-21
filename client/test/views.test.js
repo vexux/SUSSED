@@ -1103,10 +1103,31 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     renderApp(root, state, actions, {}, {});
     assert.match(root.text, /The host is waiting in the lobby\./u);
     assert.match(root.text, /Return to Lobby\?/u);
+    const reminderDialog = root.query((element) => element.className.includes("results-reminder-dialog"));
+    assert.equal(reminderDialog.tagName, "dialog");
+    assert.equal(reminderDialog.getAttribute("aria-labelledby"), "results-reminder-title");
+    assert.equal(reminderDialog.getAttribute("open"), "");
+    reminderDialog.dispatch("keydown", { key: "Escape", preventDefault() {} });
+    reminderDialog.dispatch("cancel", { preventDefault() {} });
     root.query((element) => element.textContent === "Wait").dispatch("click");
-    root.query((element) => element.textContent === "OK").dispatch("click");
+    root.query((element) => element.textContent === "Return to lobby").dispatch("click");
     assert.equal(calls.includes("onDismissResultsReminder"), true);
     assert.equal(calls.includes("onAcceptResultsReminder"), true);
+
+    state.isBusy = true;
+    state.errorMessage = "The server did not respond.";
+    renderApp(root, state, actions, {}, {});
+    const pendingDialog = root.query((element) => element.className.includes("results-reminder-dialog"));
+    assert.equal(pendingDialog.query((element) => element.textContent === "Wait").disabled, true);
+    assert.equal(pendingDialog.query((element) => element.textContent === "Returning…").disabled, true);
+    assert.equal(pendingDialog.query((element) => element.attributes.role === "alert").textContent, state.errorMessage);
+    const dismissCallsBeforePendingEscape = calls.filter(([name]) => name === "onDismissResultsReminder").length;
+    pendingDialog.dispatch("keydown", { key: "Escape", preventDefault() {} });
+    pendingDialog.dispatch("cancel", { preventDefault() {} });
+    assert.equal(
+      calls.filter(([name]) => name === "onDismissResultsReminder").length,
+      dismissCallsBeforePendingEscape,
+    );
   });
 });
 
