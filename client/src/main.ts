@@ -101,6 +101,7 @@ let allRoundHistoryPage = -1;
 let fakeAnswerFeedbackDismissedIdentity: string | null = null;
 let resultsReminderFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
 let invitationFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
+let playerActionFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
 let bruhAnswerDraft = "";
 let bruhIsSubmitting = false;
 let bruhSubmitError: string | null = null;
@@ -177,6 +178,16 @@ function showInvitationFeedback(message: string, roomCodeCopied = false): void {
   }, 2400);
 }
 
+function showPlayerActionFeedback(message: string): void {
+  if (playerActionFeedbackTimeout) clearTimeout(playerActionFeedbackTimeout);
+  state.kickFeedback = message;
+  playerActionFeedbackTimeout = setTimeout(() => {
+    state.kickFeedback = null;
+    playerActionFeedbackTimeout = null;
+    render();
+  }, 3000);
+}
+
 function render(): void {
   if (state.currentView !== "lobby") {
     state.isInvitationDialogOpen = false;
@@ -235,7 +246,7 @@ function render(): void {
   });
   document.body.classList.toggle(
     "modal-open",
-    appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop, .invitation-dialog") !== null,
+    appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop, .invitation-dialog, .player-detail-dialog[aria-modal='true']") !== null,
   );
 }
 
@@ -426,12 +437,32 @@ function applyLobbyState(lobby: LobbyState): void {
   if (state.pendingKickPlayerId && !lobby.players.some(({ id }) => id === state.pendingKickPlayerId)) {
     state.pendingKickPlayerId = null;
   }
+  if (state.pendingHostTransferId && !lobby.players.some(({ id }) => id === state.pendingHostTransferId)) {
+    state.pendingHostTransferId = null;
+  }
+  if (state.selectedPlayerId && !lobby.players.some(({ id }) => id === state.selectedPlayerId)) {
+    state.selectedPlayerId = null;
+  }
+  if (lobby.status !== "lobby") {
+    state.pendingKickPlayerId = null;
+    state.pendingHostTransferId = null;
+  }
+  if (!localPlayer.isHost) {
+    state.pendingKickPlayerId = null;
+    state.pendingHostTransferId = null;
+  }
   state.availableGames = lobby.availableGames;
   state.pendingGameId = null;
   state.errorMessage = null;
   state.errorCode = null;
   state.isBusy = false;
   render();
+}
+
+function focusPlayerCardTrigger(playerId: string): void {
+  Array.from(appRoot.querySelectorAll<HTMLButtonElement>(".player-card"))
+    .find(({ dataset }) => dataset.playerId === playerId)
+    ?.focus();
 }
 
 function currentFakeAnswerIdentity(): { sessionId: string; roundId: string } | null {
@@ -803,11 +834,44 @@ const actions: AppActions = {
       else render();
     });
   },
+  onOpenPlayerCard(playerId) {
+    if (!state.lobby || !state.lobby.players.some(({ id }) => id === playerId)) return;
+    state.selectedPlayerId = state.selectedPlayerId === playerId ? null : playerId;
+    render();
+    if (state.selectedPlayerId) {
+      appRoot.querySelector<HTMLButtonElement>(".player-detail-close")?.focus();
+    } else {
+      focusPlayerCardTrigger(playerId);
+    }
+  },
+  onClosePlayerCard() {
+    const playerId = state.selectedPlayerId;
+    if (!playerId) return;
+    state.selectedPlayerId = null;
+    render();
+    focusPlayerCardTrigger(playerId);
+  },
   onRequestKickPlayer(playerId) {
     const localPlayer = state.lobby?.players.find(({ id }) => id === state.localPlayerId);
     if (!state.lobby || state.lobby.status !== "lobby" || !localPlayer?.isHost || playerId === state.localPlayerId) return;
-    if (!state.lobby.players.some(({ id }) => id === playerId)) return;
+    const target = state.lobby.players.find(({ id }) => id === playerId);
+    if (!target || target.isHost) return;
     state.pendingKickPlayerId = playerId;
+    state.pendingHostTransferId = null;
+    state.selectedPlayerId = null;
+    state.kickFeedback = null;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+    appRoot.querySelector<HTMLButtonElement>("#kick-confirmation-cancel")?.focus();
+  },
+  onRequestHostTransfer(playerId) {
+    const localPlayer = state.lobby?.players.find(({ id }) => id === state.localPlayerId);
+    const target = state.lobby?.players.find(({ id }) => id === playerId);
+    if (!state.lobby || state.lobby.status !== "lobby" || !localPlayer?.isHost || !target || target.isHost || playerId === state.localPlayerId || state.isBusy) return;
+    state.pendingHostTransferId = playerId;
+    state.pendingKickPlayerId = null;
+    state.selectedPlayerId = null;
     state.kickFeedback = null;
     state.errorMessage = null;
     state.errorCode = null;
@@ -823,6 +887,7 @@ const actions: AppActions = {
     if (!player || player.isHost) {
       state.pendingKickPlayerId = null;
       render();
+      if (playerId) focusPlayerCardTrigger(playerId);
       return;
     }
     state.isBusy = true;
@@ -834,20 +899,45 @@ const actions: AppActions = {
       state.pendingKickPlayerId = null;
       if (response.error) {
         showOperationError(response);
+        focusPlayerCardTrigger(playerId);
         return;
       }
-      state.kickFeedback = `${player.name} was removed from the room.`;
+      showPlayerActionFeedback(`${player.name} was removed from the room.`);
       render();
+    });
+  },
+  onConfirmHostTransfer() {
+    const playerId = state.pendingHostTransferId;
+    const lobby = state.lobby;
+    const localPlayer = lobby?.players.find(({ id }) => id === state.localPlayerId);
+    const player = lobby?.players.find(({ id }) => id === playerId);
+    if (!playerId || !lobby || lobby.status !== "lobby" || !localPlayer?.isHost || !player || player.isHost || state.isBusy) return;
+    state.isBusy = true;
+    state.errorMessage = null;
+    state.kickFeedback = null;
+    render();
+    emitRoomOperation("transfer-host", { targetPlayerId: playerId }, (response) => {
+      state.isBusy = false;
+      state.pendingHostTransferId = null;
+      if (response.error) {
+        showOperationError(response);
+        focusPlayerCardTrigger(playerId);
+        return;
+      }
+      state.selectedPlayerId = null;
+      if (response.lobby) applyLobbyState(response.lobby);
+      showPlayerActionFeedback(`${player.name} is now the host.`);
+      render();
+      focusPlayerCardTrigger(playerId);
     });
   },
   onCancelKickPlayer() {
     if (state.isBusy) return;
-    const cancelledPlayerId = state.pendingKickPlayerId;
+    const cancelledPlayerId = state.pendingKickPlayerId ?? state.pendingHostTransferId;
     state.pendingKickPlayerId = null;
+    state.pendingHostTransferId = null;
     render();
-    const trigger = Array.from(appRoot.querySelectorAll<HTMLButtonElement>(".kick-player-button"))
-      .find((button) => button.dataset.playerId === cancelledPlayerId);
-    trigger?.focus();
+    if (cancelledPlayerId) focusPlayerCardTrigger(cancelledPlayerId);
   },
   onCopyRoomCode() {
     const roomCode = state.lobby?.roomCode;

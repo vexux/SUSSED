@@ -711,6 +711,11 @@ select:focus:not(:focus-visible) {
   list-style: none;
 }
 
+.player-list-item {
+  position: relative;
+  min-width: 0;
+}
+
 .round-selector {
   display: grid;
   justify-items: center;
@@ -761,14 +766,48 @@ select:focus:not(:focus-visible) {
 .player-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  min-height: 52px;
-  padding: 10px 14px;
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 12px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
   background: var(--color-surface);
   text-align: left;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.player-card:hover,
+.player-card[aria-expanded="true"] {
+  border-color: var(--color-accent-border-strong);
+  background: var(--color-surface-alt);
+}
+
+.player-avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border: 1px solid var(--color-accent-border-strong);
+  border-radius: 50%;
+  color: var(--color-accent-light);
+  background: var(--color-accent-surface-strong);
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.player-card-badges,
+.player-detail-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 0 0 auto;
 }
 
 .player-name {
@@ -777,10 +816,99 @@ select:focus:not(:focus-visible) {
   overflow-wrap: anywhere;
 }
 
-.kick-player-button {
+.player-detail-dialog {
+  position: fixed;
+  z-index: 30;
+  width: min(calc(100vw - 24px), 300px);
+  max-width: none;
+  max-height: min(75vh, 420px);
+  overflow-y: auto;
+  margin: 0;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 34%);
+  text-align: left;
+}
+
+.player-detail-dialog::backdrop {
+  background: var(--color-overlay);
+}
+
+.player-detail-header {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.player-detail-header h2 {
+  min-width: 0;
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 1.15rem;
+  overflow-wrap: anywhere;
+}
+
+.player-detail-close {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--color-control-border);
+  border-radius: 50%;
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+}
+
+.player-detail-status {
+  justify-content: flex-start;
+  margin-top: var(--space-3);
+}
+
+.player-detail-actions {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.player-detail-actions > button {
   min-height: 44px;
-  flex: 0 0 auto;
-  padding-inline: 14px;
+}
+
+.destructive-button {
+  min-height: 44px;
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  color: var(--color-error);
+  background: transparent;
+  font-weight: 700;
+}
+
+.destructive-button:hover:not(:disabled) {
+  background: var(--color-error);
+  color: var(--color-background);
+}
+
+.player-action-toast {
+  position: fixed;
+  z-index: 15;
+  inset: auto auto max(1rem, env(safe-area-inset-bottom)) 50%;
+  max-width: calc(100vw - 2rem);
+  margin: 0;
+  border: 1px solid var(--color-success-border);
+  border-radius: var(--radius-pill);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 25%);
+  text-align: center;
+  transform: translateX(-50%);
 }
 
 .kick-confirmation {
@@ -1938,6 +2066,18 @@ select:focus:not(:focus-visible) {
 
   .player-card {
     padding: 9px 10px;
+  }
+
+  .player-detail-dialog[aria-modal="true"] {
+    inset: auto 0 0;
+    width: 100%;
+    max-height: min(82dvh, 34rem);
+    margin: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: var(--space-4) var(--space-4) max(var(--space-4), env(safe-area-inset-bottom));
   }
 
   .host-badge,

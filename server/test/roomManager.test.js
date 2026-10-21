@@ -227,6 +227,49 @@ test("kick validation is host-only, lobby-only, rejects self and safely handles 
     assert.throws(() => roomManager.validatePlayerKick("kick-host", "kick-guest-2"), { code: "ROOM_NOT_IN_LOBBY" });
 });
 
+test("host transfer is atomic, lobby-only, and preserves all other room and player state", (context) => {
+    const room = roomManager.createRoom("transfer-host", "Host");
+    context.after(() => roomManager.removeRoom(room.code));
+    roomManager.joinRoom(room.code, "transfer-guest", "Guest");
+    roomManager.joinRoom(room.code, "transfer-other", "Other");
+    roomManager.setRoomVisibility(room.hostId, "public");
+    roomManager.selectRoundCount(room.hostId, 7, room.revision);
+    roomManager.setPlayerReady("transfer-guest", true);
+    const previousHost = room.hostId;
+    const target = "transfer-guest";
+    const snapshot = {
+        code: room.code,
+        visibility: room.visibility,
+        selectedGameId: room.selectedGameId,
+        selectedRoundCount: room.selectedRoundCount,
+        players: room.players.map((player) => ({ ...player }))
+    };
+
+    assert.throws(() => roomManager.transferHost(target, previousHost), { code: "NOT_HOST" });
+    assert.throws(() => roomManager.transferHost(previousHost, previousHost), { code: "CANNOT_TRANSFER_HOST_TO_SELF" });
+    assert.throws(() => roomManager.transferHost(previousHost, "not-a-member"), { code: "TARGET_NOT_FOUND" });
+    assert.throws(() => roomManager.transferHost(previousHost, ""), { code: "INVALID_PLAYER" });
+    assert.equal(room.hostId, previousHost);
+
+    const revision = room.revision;
+    assert.equal(roomManager.transferHost(previousHost, target), room);
+    assert.equal(room.hostId, target);
+    assert.ok(room.revision > revision);
+    assert.deepEqual({
+        code: room.code,
+        visibility: room.visibility,
+        selectedGameId: room.selectedGameId,
+        selectedRoundCount: room.selectedRoundCount,
+        players: room.players
+    }, snapshot);
+    const lobby = roomManager.createLobbyState(room);
+    assert.equal(lobby.players.find(({ id }) => id === previousHost).isHost, false);
+    assert.equal(lobby.players.find(({ id }) => id === target).isHost, true);
+    room.status = "starting";
+    assert.throws(() => roomManager.transferHost(target, "transfer-other"), { code: "ROOM_NOT_IN_LOBBY" });
+    assert.equal(room.hostId, target);
+});
+
 test("public discovery exposes opaque references only and public joins revalidate visibility and capacity", (context) => {
     const room = roomManager.createRoom("public-host", "Secret Host", undefined, "public");
     context.after(() => roomManager.removeRoom(room.code));

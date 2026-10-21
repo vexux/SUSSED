@@ -77,6 +77,10 @@ class FakeElement {
     return null;
   }
   querySelector(selector) {
+    const attributeMatch = selector.match(/^\[([^=]+)="([^"]+)"\]$/u);
+    if (attributeMatch) {
+      return this.query((element) => element.getAttribute(attributeMatch[1]) === attributeMatch[2]);
+    }
     if (selector.startsWith("#")) {
       return this.query((element) => element.id === selector.slice(1));
     }
@@ -421,28 +425,71 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     state.roomCodeCopied = false;
     renderApp(root, state, actions, {}, {});
     const guestKick = root.query((element) => element.getAttribute("aria-label") === "Remove Guest from room");
-    assert.ok(guestKick);
-    assert.equal(root.query((element) => element.getAttribute("aria-label") === "Remove Host from room"), null);
-    guestKick.dispatch("click");
+    assert.equal(guestKick, null);
+    const guestCard = root.query((element) => element.className.includes("player-card") && element.dataset.playerId === "guest");
+    assert.ok(guestCard);
+    assert.equal(guestCard.tagName, "button");
+    assert.equal(guestCard.getAttribute("aria-haspopup"), "dialog");
+    assert.match(guestCard.text, /Guest/u);
+    assert.match(guestCard.text, /Not ready/u);
+    assert.match(guestCard.text, /GU/u);
+    guestCard.dispatch("click");
     assert.ok(calls.some(([name]) => name === "onCopyRoomCode"));
     assert.ok(calls.some(([name]) => name === "onOpenInvitationDialog"));
-    assert.equal(calls.at(-1)[1], "guest");
+    assert.ok(calls.some(([name, playerId]) => name === "onOpenPlayerCard" && playerId === "guest"));
 
+    state.selectedPlayerId = "guest";
+    renderApp(root, state, actions, {}, {});
+    const playerDialog = root.query((element) => element.className.includes("player-detail-dialog"));
+    assert.equal(playerDialog.getAttribute("aria-labelledby"), "player-detail-title");
+    assert.equal(globalThis.document.activeElement.className, "player-detail-close");
+    assert.ok(playerDialog.query((element) => element.textContent === "Make host"));
+    assert.ok(playerDialog.query((element) => element.textContent === "Remove from room"));
+    playerDialog.dispatch("keydown", { key: "Escape" });
+    assert.ok(calls.some(([name]) => name === "onClosePlayerCard"));
+
+    state.selectedPlayerId = "host";
+    renderApp(root, state, actions, {}, {});
+    const ownCard = root.query((element) => element.className.includes("player-detail-dialog"));
+    assert.equal(globalThis.document.activeElement.className, "player-detail-close");
+    assert.match(ownCard.text, /Host/u);
+    assert.equal(ownCard.query((element) => element.textContent === "Make host"), null);
+    assert.equal(ownCard.query((element) => element.textContent === "Remove from room"), null);
+
+    state.selectedPlayerId = null;
+    state.pendingHostTransferId = "guest";
+    renderApp(root, state, actions, {}, {});
+    const transferConfirmation = root.query((element) => element.className.includes("kick-confirmation"));
+    assert.match(transferConfirmation.text, /gain control of this lobby/u);
+    assert.ok(transferConfirmation.query((element) => element.textContent === "Make host"));
+    assert.equal(transferConfirmation.query((element) => element.className.includes("destructive-button")), null);
+    transferConfirmation.query((element) => element.textContent === "Make host").dispatch("click");
+    assert.ok(calls.some(([name]) => name === "onConfirmHostTransfer"));
+
+    state.pendingHostTransferId = null;
     state.pendingKickPlayerId = "guest";
     renderApp(root, state, actions, {}, {});
-    const dialog = root.query((element) => element.getAttribute("role") === "dialog");
-    assert.equal(dialog.attributes["aria-modal"], "true");
-    assert.equal(dialog.attributes["aria-describedby"], "kick-confirmation-description");
-    root.query((element) => element.textContent === "Cancel").dispatch("click");
-    dialog.dispatch("keydown", { key: "Escape" });
-    root.query((element) => element.textContent === "Remove player").dispatch("click");
+    const removeConfirmation = root.query((element) => element.className.includes("kick-confirmation"));
+    assert.match(removeConfirmation.text, /They'll leave this room/u);
+    assert.ok(removeConfirmation.query((element) => element.textContent === "Remove from room"));
+    removeConfirmation.query((element) => element.textContent === "Cancel").dispatch("click");
+    removeConfirmation.dispatch("keydown", { key: "Escape" });
+    removeConfirmation.query((element) => element.textContent === "Remove from room").dispatch("click");
     assert.equal(calls.some(([name]) => name === "onCancelKickPlayer"), true);
     assert.equal(calls.some(([name]) => name === "onConfirmKickPlayer"), true);
 
     state.localPlayerId = "guest";
     state.pendingKickPlayerId = null;
+    state.selectedPlayerId = "host";
     renderApp(root, state, actions, {}, {});
-    assert.equal(root.query((element) => element.className.includes("kick-player-button")), null);
+    const guestViewCard = root.query((element) => element.className.includes("player-detail-dialog"));
+    assert.ok(guestViewCard);
+    assert.equal(guestViewCard.query((element) => element.textContent === "Make host"), null);
+    assert.equal(guestViewCard.query((element) => element.textContent === "Remove from room"), null);
+    state.selectedPlayerId = null;
+    state.kickFeedback = "Guest is now the host.";
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.className.includes("player-action-toast")).textContent, "Guest is now the host.");
   });
 });
 

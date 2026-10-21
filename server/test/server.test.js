@@ -734,6 +734,103 @@ test("host can kick a lobby player through departure reconciliation; unauthorize
     })).error.code, "NOT_IN_ROOM");
 });
 
+test("host transfer validates membership, broadcasts the projected lobby, and transfers subsequent host permissions", async (context) => {
+    const harness = await createHarness(context);
+    const browser = await harness.connect();
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const remainingPlayer = await harness.connect();
+    const outsiderHost = await harness.connect();
+    const outsider = await harness.connect();
+    const stale = await harness.connect();
+    await emitWithAck(browser, "subscribe-public-rooms", undefined);
+
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Original Host",
+        visibility: "public"
+    });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "New Host" });
+    await emitWithAck(remainingPlayer, "join-room", { roomCode: created.roomCode, playerName: "Remaining" });
+    await emitWithAck(stale, "join-room", { roomCode: created.roomCode, playerName: "Stale" });
+    assert.deepEqual(await emitWithAck(stale, "leave-room", undefined), { left: true });
+    const outsiderRoom = await emitWithAck(outsiderHost, "create-room", { playerName: "Other Host" });
+    harness.trackRoom(outsiderRoom.roomCode);
+    await emitWithAck(outsider, "join-room", { roomCode: outsiderRoom.roomCode, playerName: "Outsider" });
+    const authoritativeRoom = roomManager.getRoom(created.roomCode);
+    roomManager.setRoomVisibility(host.id, "public");
+    roomManager.selectRoundCount(host.id, 7, authoritativeRoom.revision);
+    roomManager.setPlayerReady(guest.id, true);
+
+    assert.equal((await emitWithAck(guest, "transfer-host", { targetPlayerId: remainingPlayer.id })).error.code, "NOT_HOST");
+    assert.equal((await emitWithAck(browser, "transfer-host", { targetPlayerId: guest.id })).error.code, "NOT_IN_ROOM");
+    assert.equal((await emitWithAck(host, "transfer-host", { targetPlayerId: host.id })).error.code, "CANNOT_TRANSFER_HOST_TO_SELF");
+    assert.equal((await emitWithAck(host, "transfer-host", { targetPlayerId: outsider.id })).error.code, "TARGET_NOT_FOUND");
+    assert.equal((await emitWithAck(host, "transfer-host", { targetPlayerId: stale.id })).error.code, "TARGET_NOT_FOUND");
+    assert.equal((await emitWithAck(host, "transfer-host", {})).error.code, "INVALID_REQUEST");
+    assert.equal(authoritativeRoom.hostId, host.id);
+
+    const targetSocket = harness.io.sockets.sockets.get(remainingPlayer.id);
+    harness.io.sockets.sockets.delete(remainingPlayer.id);
+    assert.equal((await emitWithAck(host, "transfer-host", { targetPlayerId: remainingPlayer.id })).error.code, "TARGET_NOT_CONNECTED");
+    harness.io.sockets.sockets.set(remainingPlayer.id, targetSocket);
+
+    const hostUpdate = waitForLobby(host, (lobby) => lobby.players.some(({ id, isHost }) => id === guest.id && isHost));
+    const guestUpdate = waitForLobby(guest, (lobby) => lobby.players.some(({ id, isHost }) => id === guest.id && isHost));
+    const remainingUpdate = waitForLobby(remainingPlayer, (lobby) => lobby.players.some(({ id, isHost }) => id === guest.id && isHost));
+    const transferred = await emitWithAck(host, "transfer-host", { targetPlayerId: guest.id });
+    assert.equal(transferred.transferred, true);
+    assert.equal(transferred.playerId, guest.id);
+    assert.equal((await hostUpdate).players.find(({ id }) => id === host.id).isHost, false);
+    assert.equal((await guestUpdate).players.find(({ id }) => id === guest.id).isHost, true);
+    assert.equal((await remainingUpdate).players.find(({ id }) => id === guest.id).isHost, true);
+    assert.equal((await emitWithAck(browser, "refresh-public-rooms", undefined)).rooms.length, 1);
+    assert.equal(authoritativeRoom.hostId, guest.id);
+    assert.deepEqual(authoritativeRoom.players.map(({ id }) => id), [host.id, guest.id, remainingPlayer.id]);
+    assert.equal(authoritativeRoom.visibility, "public");
+    assert.equal(authoritativeRoom.selectedRoundCount, 7);
+    assert.equal(authoritativeRoom.players.find(({ id }) => id === guest.id).isReady, true);
+    assert.equal(transferred.lobby.players.find(({ id }) => id === host.id).isHost, false);
+
+    assert.equal((await emitWithAck(host, "set-room-visibility", { visibility: "private" })).error.code, "NOT_HOST");
+    assert.equal((await emitWithAck(guest, "set-room-visibility", { visibility: "private" })).visibility, "private");
+    assert.equal((await emitWithAck(host, "transfer-host", { targetPlayerId: remainingPlayer.id })).error.code, "NOT_HOST");
+
+    authoritativeRoom.status = "starting";
+    assert.equal((await emitWithAck(guest, "transfer-host", { targetPlayerId: remainingPlayer.id })).error.code, "ROOM_NOT_IN_LOBBY");
+    authoritativeRoom.status = "lobby";
+    roomManager.setPlayerReady(host.id, true);
+    roomManager.setPlayerReady(remainingPlayer.id, true);
+    const started = await emitWithAck(guest, "start-game", undefined);
+    assert.equal(started.error, undefined);
+    assert.equal(started.starting, true);
+});
+
+test("the former host can leave after explicit transfer without undoing new host identity or room cleanup", async (context) => {
+    const harness = await createHarness(context);
+    const originalHost = await harness.connect();
+    const newHost = await harness.connect();
+    const remainingPlayer = await harness.connect();
+    const created = await emitWithAck(originalHost, "create-room", { playerName: "Original" });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(newHost, "join-room", { roomCode: created.roomCode, playerName: "New" });
+    await emitWithAck(remainingPlayer, "join-room", { roomCode: created.roomCode, playerName: "Remaining" });
+
+    assert.equal((await emitWithAck(originalHost, "transfer-host", { targetPlayerId: newHost.id })).transferred, true);
+    const formerHostLeft = waitForLobby(newHost, (lobby) => lobby.playerCount === 2 && lobby.players.every(({ id }) => id !== originalHost.id));
+    assert.deepEqual(await emitWithAck(originalHost, "leave-room", undefined), { left: true });
+    await formerHostLeft;
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, newHost.id);
+    assert.deepEqual(roomManager.getRoom(created.roomCode).players.map(({ id }) => id), [newHost.id, remainingPlayer.id]);
+
+    const transferredHostLeft = waitForLobby(remainingPlayer, (lobby) => lobby.playerCount === 1 && lobby.players[0]?.isHost);
+    newHost.disconnect();
+    await transferredHostLeft;
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, remainingPlayer.id);
+    assert.deepEqual(await emitWithAck(remainingPlayer, "leave-room", undefined), { left: true });
+    assert.equal(roomManager.getRoom(created.roomCode), null);
+});
+
 test("public-room updates follow host transfer and remove a room when its last player leaves", async (context) => {
     const harness = await createHarness(context);
     const browser = await harness.connect();

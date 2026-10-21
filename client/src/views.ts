@@ -1,4 +1,4 @@
-import type { AppState } from "./appState.ts";
+import type { AppState, LobbyPlayer } from "./appState.ts";
 import {
   renderFakeAnswerGame,
   type FakeAnswerViewState,
@@ -26,8 +26,12 @@ export interface AppActions {
   onLeaveRoom(): void;
   onSetRoomVisibility(visibility: "public" | "private"): void;
   onRequestKickPlayer(playerId: string): void;
+  onRequestHostTransfer(playerId: string): void;
   onConfirmKickPlayer(): void;
+  onConfirmHostTransfer(): void;
   onCancelKickPlayer(): void;
+  onOpenPlayerCard(playerId: string): void;
+  onClosePlayerCard(): void;
   onCopyRoomCode(): void;
   onOpenInvitationDialog(): void;
   onCloseInvitationDialog(): void;
@@ -56,6 +60,8 @@ export interface AppActions {
   onToggleResultsHistory(): void;
   onResultsHistoryPage(page: number): void;
 }
+
+const playerCardDismissRoots = new WeakSet<HTMLElement>();
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
   tagName: K,
@@ -103,6 +109,14 @@ function appendWordmark(target: HTMLElement): void {
     createElement("span", undefined, "SUSSED"),
     createElement("span", "wordmark-exclamation", "!"),
   );
+}
+
+function getPlayerInitials(name: string): string {
+  const parts = name.trim().split(/\s+/u).filter(Boolean);
+  if (parts.length > 1) {
+    return `${parts[0]?.[0] ?? ""}${parts[parts.length - 1]?.[0] ?? ""}`.toUpperCase();
+  }
+  return (parts[0]?.slice(0, 2) ?? "?").toUpperCase();
 }
 
 function createStatus(state: AppState): HTMLElement {
@@ -590,30 +604,26 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   }
 
   for (const player of lobby.players) {
-    const item = createElement("li", "player-card");
+    const item = createElement("li", "player-list-item");
+    const trigger = createElement("button", `player-card${player.id === state.localPlayerId ? " local-player" : ""}`);
+    trigger.type = "button";
+    trigger.dataset.playerId = player.id;
+    trigger.setAttribute("aria-haspopup", "dialog");
+    trigger.setAttribute("aria-expanded", String(state.selectedPlayerId === player.id));
+    trigger.setAttribute("aria-label", `${player.name}, ${player.isHost ? "host, " : ""}${player.isInGame ? "in game" : player.isReady ? "ready" : "not ready"}. View player card.`);
+    trigger.addEventListener("click", () => actions.onOpenPlayerCard(player.id));
+    const avatar = createElement("span", "player-avatar", getPlayerInitials(player.name));
+    avatar.setAttribute("aria-hidden", "true");
     const name = createElement("span", "player-name", player.name);
-    item.append(name);
-    item.append(
-      player.isHost
-        ? createElement("span", "host-badge", "Host")
-        : createElement(
-            "span",
-            player.isInGame ? "in-game-badge" : player.isReady ? "ready-badge" : "not-ready-badge",
-            player.isInGame ? "In-game" : player.isReady ? "Ready" : "Not ready",
-          ),
-    );
-    if (player.id === state.localPlayerId) {
-      item.classList.add("local-player");
-    }
-    if (isHost && lobby.status === "lobby" && !player.isHost) {
-      const kickButton = createElement("button", "secondary-button kick-player-button", "Remove");
-      kickButton.type = "button";
-      kickButton.disabled = state.isBusy;
-      kickButton.setAttribute("aria-label", `Remove ${player.name} from room`);
-      kickButton.dataset.playerId = player.id;
-      kickButton.addEventListener("click", () => actions.onRequestKickPlayer(player.id));
-      item.append(kickButton);
-    }
+    const badges = createElement("span", "player-card-badges");
+    badges.append(createElement(
+      "span",
+      player.isInGame ? "in-game-badge" : player.isReady ? "ready-badge" : "not-ready-badge",
+      player.isInGame ? "In-game" : player.isReady ? "Ready" : "Not ready",
+    ));
+    if (player.isHost) badges.append(createElement("span", "host-badge", "Host"));
+    trigger.append(avatar, name, badges);
+    item.append(trigger);
     playerList.append(item);
   }
 
@@ -634,11 +644,6 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   });
 
   screen.append(heading, selectedGameCard, roomCodePanel, playerCount, readinessMessage, playerList, visibilityField);
-  if (state.kickFeedback) {
-    const feedback = createElement("p", "lobby-feedback", state.kickFeedback);
-    feedback.setAttribute("role", "status");
-    screen.append(feedback);
-  }
   const roundsField = createElement("fieldset", "round-selector");
   roundsField.append(createElement("legend", "field-label", "Rounds"));
   const roundOptions = createElement("div", "round-options");
@@ -660,8 +665,9 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   roundsField.append(roundOptions);
   screen.append(roundsField);
 
-  const kickTarget = lobby.players.find(({ id }) => id === state.pendingKickPlayerId && id !== state.localPlayerId);
-  if (isHost && lobby.status === "lobby" && kickTarget) {
+  const pendingPlayerId = state.pendingKickPlayerId ?? state.pendingHostTransferId;
+  const pendingPlayer = lobby.players.find(({ id }) => id === pendingPlayerId);
+  if (isHost && lobby.status === "lobby" && pendingPlayer && pendingPlayer.id !== state.localPlayerId) {
     const backdrop = createElement("div", "kick-confirmation-backdrop");
     const dialog = createElement("section", "kick-confirmation");
     dialog.setAttribute("role", "dialog");
@@ -687,9 +693,16 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
         first?.focus();
       }
     });
-    const title = createElement("h2", undefined, "Remove player?");
+    const isHostTransfer = state.pendingHostTransferId !== null;
+    const title = createElement("h2", undefined, isHostTransfer ? `Make ${pendingPlayer.name} host?` : `Remove ${pendingPlayer.name}?`);
     title.id = "kick-confirmation-title";
-    const description = createElement("p", "screen-description", `Remove ${kickTarget.name} from this room? They may rejoin if they have the room code.`);
+    const description = createElement(
+      "p",
+      "screen-description",
+      isHostTransfer
+        ? "They'll gain control of this lobby."
+        : "They'll leave this room and can rejoin with its code.",
+    );
     description.id = "kick-confirmation-description";
     dialog.append(title, description);
     const confirmationActions = createElement("div", "button-group kick-confirmation-actions");
@@ -698,17 +711,24 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     cancel.disabled = state.isBusy;
     cancel.id = "kick-confirmation-cancel";
     cancel.addEventListener("click", actions.onCancelKickPlayer);
-    const confirm = createElement("button", "primary-button", "Remove player");
+    const confirm = createElement(
+      "button",
+      isHostTransfer ? "primary-button" : "destructive-button",
+      isHostTransfer ? "Make host" : "Remove from room",
+    );
     confirm.type = "button";
     confirm.disabled = state.isBusy;
     confirm.id = "kick-confirmation-submit";
     confirm.setAttribute("aria-busy", String(state.isBusy));
-    confirm.addEventListener("click", actions.onConfirmKickPlayer);
+    confirm.addEventListener("click", isHostTransfer ? actions.onConfirmHostTransfer : actions.onConfirmKickPlayer);
     confirmationActions.append(cancel, confirm);
     dialog.append(confirmationActions);
     backdrop.append(dialog);
     screen.append(backdrop);
   }
+
+  const selectedPlayer = lobby.players.find(({ id }) => id === state.selectedPlayerId);
+  if (selectedPlayer) screen.append(createPlayerDetailDialog(state, selectedPlayer, isHost, actions));
 
   const lobbyActions = createElement("div", "button-group lobby-actions");
   if (lobby.status === "lobby" && !isHost) {
@@ -826,6 +846,71 @@ function createInvitationDialog(
   dialog.addEventListener("cancel", (event) => {
     event.preventDefault();
     actions.onCloseInvitationDialog();
+  });
+  return dialog;
+}
+
+function createPlayerDetailDialog(
+  state: AppState,
+  player: LobbyPlayer,
+  isHost: boolean,
+  actions: AppActions,
+): HTMLDialogElement {
+  const dialog = createElement("dialog", "player-detail-dialog");
+  dialog.dataset.playerId = player.id;
+  dialog.setAttribute("aria-labelledby", "player-detail-title");
+  const header = createElement("div", "player-detail-header");
+  const avatar = createElement("span", "player-avatar player-detail-avatar", getPlayerInitials(player.name));
+  avatar.setAttribute("aria-hidden", "true");
+  const title = createElement("h2", undefined, player.name);
+  title.id = "player-detail-title";
+  const close = createElement("button", "player-detail-close");
+  close.type = "button";
+  close.autofocus = true;
+  close.setAttribute("aria-label", "Close player card");
+  close.setAttribute("data-player-detail-focus", "close");
+  close.append(createIcon("close"));
+  close.addEventListener("click", actions.onClosePlayerCard);
+  header.append(avatar, title, close);
+  dialog.append(header);
+
+  const status = createElement("div", "player-detail-status");
+  status.append(createElement(
+    "span",
+    player.isInGame ? "in-game-badge" : player.isReady ? "ready-badge" : "not-ready-badge",
+    player.isInGame ? "In-game" : player.isReady ? "Ready" : "Not ready",
+  ));
+  if (player.isHost) status.append(createElement("span", "host-badge", "Host"));
+  dialog.append(status);
+
+  if (isHost && state.localPlayerId !== player.id && state.lobby?.status === "lobby") {
+    const actionsPanel = createElement("div", "player-detail-actions");
+    const makeHost = createElement("button", "secondary-button", "Make host");
+    makeHost.type = "button";
+    makeHost.disabled = state.isBusy;
+    makeHost.setAttribute("data-player-detail-focus", "make-host");
+    makeHost.addEventListener("click", () => actions.onRequestHostTransfer(player.id));
+    const remove = createElement("button", "destructive-button", "Remove from room");
+    remove.type = "button";
+    remove.disabled = state.isBusy;
+    remove.setAttribute("data-player-detail-focus", "remove");
+    remove.addEventListener("click", () => actions.onRequestKickPlayer(player.id));
+    actionsPanel.append(makeHost, remove);
+    dialog.append(actionsPanel);
+  }
+
+  dialog.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      actions.onClosePlayerCard();
+    }
+  });
+  dialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    actions.onClosePlayerCard();
+  });
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog && dialog.matches(":modal")) actions.onClosePlayerCard();
   });
   return dialog;
 }
@@ -1085,6 +1170,12 @@ export function renderApp(
     previousDialog && previousFocus && previousDialog.contains(previousFocus)
       ? previousFocus.getAttribute("data-invitation-focus")
       : null;
+  const previousPlayerDialog = root.querySelector<HTMLDialogElement>(".player-detail-dialog");
+  const previousPlayerFocus = root.ownerDocument.activeElement;
+  const previousPlayerFocusKey =
+    previousPlayerDialog && previousPlayerFocus && previousPlayerDialog.contains(previousPlayerFocus)
+      ? previousPlayerFocus.getAttribute("data-player-detail-focus")
+      : null;
   const shell = createElement("main", "app-shell");
   shell.append(createHeader(state, actions));
   const screen =
@@ -1103,6 +1194,11 @@ export function renderApp(
   shell.append(screen);
   if (state.invitationFeedback && !state.isInvitationDialogOpen && state.currentView === "lobby") {
     const toast = createElement("p", "invitation-toast", state.invitationFeedback);
+    toast.setAttribute("role", "status");
+    shell.append(toast);
+  }
+  if (state.kickFeedback && state.currentView === "lobby") {
+    const toast = createElement("p", "player-action-toast", state.kickFeedback);
     toast.setAttribute("role", "status");
     shell.append(toast);
   }
@@ -1144,6 +1240,57 @@ export function renderApp(
       invitationDialog
         .querySelector<HTMLButtonElement>(`[data-invitation-focus="${previousFocusKey}"]`)
         ?.focus();
+    }
+  }
+  const playerDialog = root.querySelector<HTMLDialogElement>(".player-detail-dialog");
+  if (state.selectedPlayerId && playerDialog) {
+    const mobile = typeof window !== "undefined" && window.matchMedia("(max-width: 560px)").matches;
+    playerDialog.setAttribute("aria-modal", String(mobile));
+    if (mobile && typeof playerDialog.showModal === "function") {
+      if (!playerDialog.open) playerDialog.showModal();
+    } else if (typeof playerDialog.show === "function") {
+      if (!playerDialog.open) playerDialog.show();
+    } else {
+      playerDialog.setAttribute("open", "");
+    }
+    if (previousPlayerFocusKey) {
+      playerDialog
+        .querySelector<HTMLButtonElement>(`[data-player-detail-focus="${previousPlayerFocusKey}"]`)
+        ?.focus();
+    } else {
+      playerDialog.querySelector<HTMLButtonElement>(".player-detail-close")?.focus();
+    }
+    if (!mobile && typeof window !== "undefined") {
+      const trigger = Array.from(root.querySelectorAll<HTMLButtonElement>(".player-card"))
+        .find(({ dataset }) => dataset.playerId === state.selectedPlayerId);
+      if (trigger) {
+        const anchor = trigger.getBoundingClientRect();
+        const card = playerDialog.getBoundingClientRect();
+        const margin = 12;
+        const left = Math.max(margin, Math.min(anchor.left, window.innerWidth - card.width - margin));
+        const below = anchor.bottom + 8;
+        const top = below + card.height <= window.innerHeight - margin
+          ? below
+          : Math.max(margin, anchor.top - card.height - 8);
+        playerDialog.style.left = `${left}px`;
+        playerDialog.style.top = `${top}px`;
+      }
+    }
+    if (!playerCardDismissRoots.has(root)) {
+      playerCardDismissRoots.add(root);
+      root.addEventListener("pointerdown", (event) => {
+        const activeDialog = root.querySelector<HTMLDialogElement>(".player-detail-dialog");
+        const target = event.target;
+        if (
+          activeDialog?.open &&
+          !activeDialog.matches(":modal") &&
+          target instanceof Element &&
+          !activeDialog.contains(target) &&
+          !target.closest(".player-card")
+        ) {
+          actions.onClosePlayerCard();
+        }
+      });
     }
   }
 }

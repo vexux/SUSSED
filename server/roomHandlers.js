@@ -39,6 +39,13 @@ function broadcastLobby(io, room, { resultsSessionId = null } = {}) {
     }
 }
 
+function broadcastLobbyToAllMembers(io, room) {
+    const lobby = roomManager.createLobbyState(room);
+    for (const { id } of room.players) {
+        io.to(id).emit("lobby-state", lobby);
+    }
+}
+
 function broadcastPublicRooms(io) {
     io.to(PUBLIC_ROOM_BROWSERS).emit("public-rooms-updated", {
         rooms: roomManager.listPublicRooms()
@@ -272,6 +279,44 @@ function registerRoomHandlers(io, socket) {
             broadcastLobby(io, room);
             broadcastPublicRooms(io);
             acknowledge({ visibility: room.visibility, lobby });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
+    });
+
+    socket.on("transfer-host", (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) return;
+        if (
+            !isRecord(payload) ||
+            Object.keys(payload).length !== 1 ||
+            typeof payload.targetPlayerId !== "string" ||
+            payload.targetPlayerId.length === 0
+        ) {
+            acknowledgeError(acknowledge, "INVALID_REQUEST", "A target player ID is required.");
+            return;
+        }
+        try {
+            const currentRoom = roomManager.getPlayerRoom(socket.id);
+            if (!currentRoom) throw new roomManager.RoomError("NOT_IN_ROOM", "You are not in a room.");
+            if (currentRoom.hostId !== socket.id) {
+                throw new roomManager.RoomError("NOT_HOST", "Only the current host can transfer host status.");
+            }
+            if (currentRoom.status !== "lobby") {
+                throw new roomManager.RoomError("ROOM_NOT_IN_LOBBY", "Host status can only be transferred in the lobby.");
+            }
+            const target = currentRoom.players.find(({ id }) => id === payload.targetPlayerId);
+            if (!target) {
+                throw new roomManager.RoomError("TARGET_NOT_FOUND", "That player is no longer in this room.");
+            }
+            const targetSocket = io.sockets.sockets.get(target.id);
+            if (!targetSocket?.connected) {
+                throw new roomManager.RoomError("TARGET_NOT_CONNECTED", "That player is no longer connected.");
+            }
+            const room = roomManager.transferHost(socket.id, target.id);
+            const lobby = roomManager.createLobbyState(room);
+            broadcastLobbyToAllMembers(io, room);
+            acknowledge({ transferred: true, playerId: target.id, lobby });
         } catch (error) {
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);

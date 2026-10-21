@@ -119,6 +119,8 @@ export interface AppState {
   pendingGameId: string | null;
   pendingRoomVisibility: "public" | "private";
   pendingKickPlayerId: string | null;
+  pendingHostTransferId: string | null;
+  selectedPlayerId: string | null;
   kickFeedback: string | null;
   invitationFeedback: string | null;
   publicRooms: PublicRoom[];
@@ -186,6 +188,8 @@ export function createInitialAppState(): AppState {
     pendingGameId: null,
     pendingRoomVisibility: "private",
     pendingKickPlayerId: null,
+    pendingHostTransferId: null,
+    selectedPlayerId: null,
     kickFeedback: null,
     invitationFeedback: null,
     publicRooms: [],

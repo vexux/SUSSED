@@ -294,6 +294,30 @@ function validatePlayerKick(hostId, targetPlayerId) {
     return { room, target };
 }
 
+function transferHost(requesterId, targetPlayerId) {
+    const room = getPlayerRoom(requesterId);
+    if (!room) throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
+    if (room.hostId !== requesterId) throw new RoomError("NOT_HOST", "Only the current host can transfer host status.");
+    if (room.status !== "lobby") throw new RoomError("ROOM_NOT_IN_LOBBY", "Host status can only be transferred in the lobby.");
+    if (typeof targetPlayerId !== "string" || targetPlayerId.length === 0) {
+        throw new RoomError("INVALID_PLAYER", "A valid target player is required.");
+    }
+    if (targetPlayerId === requesterId) {
+        throw new RoomError("CANNOT_TRANSFER_HOST_TO_SELF", "You are already the host.");
+    }
+    const requester = room.players.find(({ id }) => id === requesterId);
+    const target = room.players.find(({ id }) => id === targetPlayerId);
+    if (!requester || playerRooms.get(requesterId) !== room.code) {
+        throw new RoomError("NOT_IN_ROOM", "You are not in this room.");
+    }
+    if (!target || playerRooms.get(targetPlayerId) !== room.code) {
+        throw new RoomError("TARGET_NOT_FOUND", "That player is no longer in this room.");
+    }
+    room.hostId = targetPlayerId;
+    advanceRevision(room);
+    return room;
+}
+
 function selectRoundCount(playerId, roundCount, expectedRevision) {
     const room = getPlayerRoom(playerId);
     if (!room) {
@@ -565,6 +589,7 @@ module.exports = {
     selectGame,
     setRoomVisibility,
     validatePlayerKick,
+    transferHost,
     selectRoundCount,
     setPlayerReady,
     startRoom,

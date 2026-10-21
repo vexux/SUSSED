@@ -25,6 +25,9 @@ The existing `join-room` `{ roomCode, playerName }` flow remains available for p
 
 ## Host removal
 
+- `transfer-host` accepts `{ targetPlayerId }` and acknowledges `{ transferred, playerId, lobby }` on success.
+- Only the current room host may transfer host status to a different connected member while the room is in the lobby. Invalid, self-targeted, stale, disconnected, cross-room, non-host, and out-of-lobby requests return structured errors without changing room state.
+- A successful transfer changes only the authoritative `hostId` and room revision. The former host remains in the room as a regular player. The server broadcasts the projected `lobby-state` to every current room member, and subsequent host-only actions use the new host identity. This operation does not run departure reconciliation.
 - `kick-player` accepts `{ targetPlayerId }` and acknowledges `{ kicked, playerId }` on success.
 - Only the current host can remove another player, and only while the room is in the lobby. Self-removal, non-host requests, stale targets, and malformed payloads return structured errors without changing membership.
 - The removed socket receives `removed-from-room` with `{ roomCode, reason: "kicked", message }`, then leaves the Socket.IO room. The server reconciles the removal through the same departure path used by leave/disconnect, so room state and public listings update together. Removed sockets no longer pass the room-membership checks used by game actions.
