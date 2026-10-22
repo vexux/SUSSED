@@ -7,7 +7,7 @@ import {
   type LobbyState,
   type PublicRoom,
 } from "./appState";
-import { socket } from "./socket";
+import { socket, socketConfigurationError } from "./socket";
 import { renderApp } from "./views";
 import type { AppActions } from "./views";
 import {
@@ -85,7 +85,14 @@ if (invitationCode.status === "valid") {
 } else if (invitationCode.status === "invalid") {
   state.invitationMessage = "This invitation link has an invalid room code. You can enter a room code manually.";
 }
-state.connectionStatus = socket.connected ? "connected" : "connecting";
+state.connectionStatus = socketConfigurationError
+  ? "disconnected"
+  : socket.connected
+    ? "connected"
+    : "connecting";
+if (socketConfigurationError) {
+  state.errorMessage = socketConfigurationError;
+}
 document.documentElement.dataset.theme = state.theme;
 const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
 if (themeColor) themeColor.content = state.theme === "dark" ? "#17131c" : "#f7f4fa";

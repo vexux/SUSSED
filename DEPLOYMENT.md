@@ -4,6 +4,28 @@ SUSSED! can be hosted as a Vercel static frontend and a Render Node.js web
 service. This guide configures the repository for those providers; it does not
 deploy the application.
 
+## Local development
+
+Install dependencies from the repository root:
+
+```sh
+npm ci
+npm --prefix client ci
+npm --prefix server ci
+```
+
+Start the Vite client and Node.js server together with `npm run dev`. The client
+uses `http://localhost:3000` for the server when `VITE_SERVER_URL` is not set in
+development. Vite normally serves the client at `http://localhost:5173`; if
+that port is occupied, Vite selects another available port. Localhost origins
+are allowed by the development server configuration.
+
+Run the server tests with `npm --prefix server test`, client tests with
+`npm --prefix client test`, type-check with `npm --prefix client run typecheck`,
+and build the production client with `npm run build`. The build creates
+`client/dist`; serve that static output through the configured frontend host
+and run the backend with `npm --prefix server start`.
+
 ## Vercel frontend
 
 Create a Vercel project for this repository with:
@@ -29,6 +51,9 @@ open in the browser.
 visitor. Use them only for public configuration such as service URLs; never
 put secrets in them. Set `VITE_SERVER_URL` to the backend's HTTPS origin in
 production. Socket.IO then uses HTTPS/WSS for its cross-origin connection.
+If a production build is missing `VITE_SERVER_URL`, the client reports the
+configuration error instead of attempting to connect to localhost. Rebuild
+after setting the variable.
 
 The client currently uses the root path and invitation query strings such as
 `/?code=ABCD`; it does not define path-based client routes, so no SPA rewrite is

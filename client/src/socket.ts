@@ -1,5 +1,12 @@
 import { io } from "socket.io-client";
+import { resolveSocketConfiguration } from "./socketConfig";
 
-const serverUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
+const configuration = resolveSocketConfiguration(
+  import.meta.env.VITE_SERVER_URL,
+  import.meta.env.PROD,
+);
 
-export const socket = io(serverUrl);
+export const socketConfigurationError = configuration.errorMessage;
+export const socket = configuration.serverUrl
+  ? io(configuration.serverUrl)
+  : io({ autoConnect: false });
