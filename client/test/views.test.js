@@ -8,6 +8,7 @@ import {
   THEME_STORAGE_KEY,
 } from "../src/appState.ts";
 import { validatePlayerName } from "../src/playerName.ts";
+import { reconcilePublicRooms } from "../src/publicRoomState.ts";
 import { renderApp } from "../src/views.ts";
 
 class FakeElement {
@@ -494,6 +495,10 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     assert.equal(transferConfirmation.query((element) => element.className.includes("destructive-button")), null);
     transferConfirmation.query((element) => element.textContent === "Make host").dispatch("click");
     assert.ok(calls.some(([name]) => name === "onConfirmHostTransfer"));
+    state.lobby.players.find(({ id }) => id === "guest").isHost = true;
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.className.includes("kick-confirmation")), null);
+    state.lobby.players.find(({ id }) => id === "guest").isHost = false;
 
     state.pendingHostTransferId = null;
     state.pendingKickPlayerId = "guest";
@@ -801,7 +806,11 @@ test("public-room name entry retains the selected room until the user continues"
     assert.equal(roomCard.query((element) => element.textContent === "Join").getAttribute("aria-expanded"), "true");
     assert.equal(root.query((element) => element.id === "public-room-player-name").required, true);
     root.query((element) => element.textContent === "Join room").dispatch("click");
-    assert.deepEqual(calls.map(([action]) => action), ["onContinuePublicRoomJoin"]);
+    root.query((element) => element.textContent === "Cancel").dispatch("click");
+    assert.deepEqual(calls.map(([action]) => action), [
+      "onContinuePublicRoomJoin",
+      "onCancelPublicRoomJoin",
+    ]);
     assert.equal(state.pendingPublicRoomId, "public-room-1");
   });
 });
@@ -944,6 +953,7 @@ test("public room browser renders compact cards, accessible refresh, and a conci
 
     state.isLoadingPublicRooms = false;
     render();
+    assert.ok(root.query((element) => element.tagName === "h1" && element.textContent === "Find a table"));
     assert.match(root.text, /No open rooms yet/u);
     assert.equal(root.text.includes("Choose a game"), false);
     const refresh = root.query((element) => element.className.includes("public-room-refresh"));
@@ -1033,6 +1043,72 @@ test("public room browser renders compact cards, accessible refresh, and a conci
     state.publicRoomsError = "That room is full.";
     render();
     assert.equal(root.query((element) => element.attributes.role === "alert").textContent, "That room is full.");
+    state.publicRooms = [];
+    render();
+    assert.equal(root.query((element) => element.className.includes("public-room-empty")), null);
+  });
+});
+
+test("public-room selection is cleared when its room disappears or fills", () => {
+  const state = createInitialAppState();
+  const room = {
+    roomId: "public-room-1",
+    hostName: "Alex",
+    gameId: "fact-or-cap",
+    gameName: "Fact or Cap",
+    gameDescription: "Bluff with facts.",
+    playerCount: 2,
+    maxPlayers: 8,
+    status: "lobby",
+  };
+  state.pendingPublicRoomId = room.roomId;
+  state.nameEntryError = "Enter a player name between 1 and 20 characters.";
+  state.publicRooms = [room];
+  assert.equal(reconcilePublicRooms(state, [{ ...room, playerCount: 3 }]), false);
+  assert.equal(state.pendingPublicRoomId, room.roomId);
+  assert.equal(state.nameEntryError !== null, true);
+
+  assert.equal(reconcilePublicRooms(state, [{ ...room, playerCount: 8 }]), true);
+  assert.equal(state.pendingPublicRoomId, null);
+  assert.equal(state.nameEntryError, null);
+  assert.match(state.publicRoomsError, /no longer available/u);
+  assert.equal(state.publicRooms[0].playerCount, 8);
+
+  state.pendingPublicRoomId = room.roomId;
+  state.nameEntryError = "Enter your name.";
+  assert.equal(reconcilePublicRooms(state, []), true);
+  assert.equal(state.pendingPublicRoomId, null);
+  assert.equal(state.nameEntryError, null);
+  assert.deepEqual(state.publicRooms, []);
+  withFakeDocument(() => {
+    state.currentView = "public-rooms";
+    const root = new FakeElement("root");
+    renderApp(root, state, createActions(), {}, {});
+    assert.equal(root.query((element) => element.id === "public-room-player-name"), null);
+    assert.match(root.text, /That room is no longer available/u);
+  });
+});
+
+test("full public rooms remain visible but cannot be selected to join", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "public-rooms";
+    state.publicRooms = [{
+      roomId: "full-room",
+      hostName: "Alex",
+      gameId: "fact-or-cap",
+      gameName: "Fact or Cap",
+      gameDescription: "Bluff with facts.",
+      playerCount: 8,
+      maxPlayers: 8,
+      status: "lobby",
+    }];
+    const root = new FakeElement("root");
+    renderApp(root, state, createActions(), {}, {});
+    const fullButton = root.query((element) => element.className.includes("public-room-join"));
+    assert.equal(fullButton.textContent, "Full");
+    assert.equal(fullButton.disabled, true);
+    assert.equal(fullButton.getAttribute("aria-expanded"), "false");
   });
 });
 
@@ -1146,6 +1222,10 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     reminder.dispatch("click");
     assert.equal(calls.includes("onAskResultsViewersToReturn"), true);
 
+    state.isBusy = true;
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.textContent === "Ask everyone to return to lobby").disabled, true);
+    state.isBusy = false;
     state.isSendingResultsReminder = true;
     renderApp(root, state, actions, {}, {});
     const sending = root.query((element) => element.textContent === "Sending reminder…");
@@ -1187,6 +1267,7 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     const reminderDialog = root.query((element) => element.className.includes("results-reminder-dialog"));
     assert.equal(reminderDialog.tagName, "dialog");
     assert.equal(reminderDialog.getAttribute("aria-labelledby"), "results-reminder-title");
+    assert.equal(reminderDialog.getAttribute("aria-describedby"), "results-reminder-description");
     assert.equal(reminderDialog.getAttribute("open"), "");
     reminderDialog.dispatch("keydown", { key: "Escape", preventDefault() {} });
     reminderDialog.dispatch("cancel", { preventDefault() {} });

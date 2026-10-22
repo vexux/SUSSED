@@ -1954,6 +1954,19 @@ select:focus:not(:focus-visible) {
 
 .public-room-name-entry .public-room-continue-join {
   min-height: 44px;
+  flex: 1 1 180px;
+}
+
+.public-room-join-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.public-room-cancel-join {
+  flex: 0 0 auto;
 }
 
 .public-room-empty {

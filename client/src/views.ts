@@ -22,6 +22,7 @@ export interface AppActions {
   onRefreshPublicRooms(): void;
   onJoinPublicRoom(roomId: string): void;
   onContinuePublicRoomJoin(): void;
+  onCancelPublicRoomJoin(): void;
   onBackFromPublicRooms(): void;
   onJoinRoom(roomCode: string): void;
   onLeaveRoom(): void;
@@ -469,6 +470,7 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
   const actionsPanel = createElement("div", "selection-actions");
   const backButton = createElement("button", "text-button", isLobbySelection ? "Back to lobby" : "Back");
   backButton.type = "button";
+  backButton.disabled = state.isBusy;
   backButton.addEventListener("click", actions.onBackToHome);
   actionsPanel.append(backButton);
   if (!isLobbySelection) {
@@ -494,12 +496,13 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
   const screen = createElement("section", "app-screen public-rooms-screen");
   screen.append(
     createElement("p", "eyebrow", "OPEN TABLES"),
-    createElement("h1", "selection-heading", "Browse public rooms"),
+    createElement("h1", "selection-heading", "Find a table"),
   );
 
   const controls = createElement("div", "public-room-controls");
   const back = createElement("button", "text-button", "Back");
   back.type = "button";
+  back.disabled = state.isBusy;
   back.addEventListener("click", actions.onBackFromPublicRooms);
   const refresh = createElement("button", "secondary-button icon-button public-room-refresh");
   refresh.type = "button";
@@ -516,7 +519,7 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
     const loading = createElement("p", "status-message", "Finding open rooms…");
     loading.setAttribute("role", "status");
     screen.append(loading);
-  } else if (state.publicRooms.length === 0) {
+  } else if (state.publicRooms.length === 0 && !state.publicRoomsError) {
     const empty = createElement("div", "public-room-empty");
     empty.append(
       createIcon("users"),
@@ -548,10 +551,15 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
       progressFill.style.width = `${occupancyPercent}%`;
       progress.append(progressFill);
       occupancy.append(occupancyText, progress);
-      const joinIsExpanded = state.pendingPublicRoomId === room.roomId && !state.isBusy;
-      const join = createElement("button", "primary-button public-room-join", state.isBusy ? "Joining…" : "Join");
+      const roomIsFull = room.playerCount >= room.maxPlayers;
+      const joinIsExpanded = state.pendingPublicRoomId === room.roomId && !state.isBusy && !roomIsFull;
+      const join = createElement(
+        "button",
+        "primary-button public-room-join",
+        state.isBusy ? "Joining…" : roomIsFull ? "Full" : "Join",
+      );
       join.type = "button";
-      join.disabled = state.connectionStatus !== "connected" || state.isBusy;
+      join.disabled = state.connectionStatus !== "connected" || state.isBusy || roomIsFull;
       join.setAttribute("aria-expanded", String(joinIsExpanded));
       if (joinIsExpanded) join.setAttribute("aria-controls", `public-room-name-entry-${room.roomId}`);
       join.addEventListener("click", () => actions.onJoinPublicRoom(room.roomId));
@@ -565,30 +573,20 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
         nameEntry.append(createNameEntry(state, "public-room-player-name", actions));
         const continueJoin = createElement("button", "primary-button public-room-continue-join", "Join room");
         continueJoin.type = "button";
-        continueJoin.disabled = state.connectionStatus !== "connected";
+        continueJoin.disabled = state.connectionStatus !== "connected" || state.isBusy;
         continueJoin.addEventListener("click", actions.onContinuePublicRoomJoin);
-        nameEntry.append(continueJoin);
+        const cancelJoin = createElement("button", "text-button public-room-cancel-join", "Cancel");
+        cancelJoin.type = "button";
+        cancelJoin.disabled = state.isBusy;
+        cancelJoin.addEventListener("click", actions.onCancelPublicRoomJoin);
+        const joinActions = createElement("div", "public-room-join-actions");
+        joinActions.append(continueJoin, cancelJoin);
+        nameEntry.append(joinActions);
         card.append(nameEntry);
       }
       cards.append(card);
     });
     screen.append(cards);
-  }
-
-  if (state.pendingPublicRoomId && !state.isBusy) {
-    const pendingRoom = state.publicRooms.find(({ roomId }) => roomId === state.pendingPublicRoomId);
-    if (!pendingRoom) {
-      const joinName = createElement("section", "public-room-name-entry");
-      joinName.setAttribute("aria-label", "Join selected room");
-      joinName.append(createElement("h2", "public-room-name-title", "Enter your name to join"));
-      joinName.append(createNameEntry(state, "public-room-player-name", actions));
-      const continueJoin = createElement("button", "primary-button public-room-continue-join", "Join room");
-      continueJoin.type = "button";
-      continueJoin.disabled = state.connectionStatus !== "connected";
-      continueJoin.addEventListener("click", actions.onContinuePublicRoomJoin);
-      joinName.append(continueJoin);
-      screen.append(joinName);
-    }
   }
 
   if (state.publicRoomsError) {
@@ -814,7 +812,13 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
 
   const pendingPlayerId = state.pendingKickPlayerId ?? state.pendingHostTransferId;
   const pendingPlayer = lobby.players.find(({ id }) => id === pendingPlayerId);
-  if (isHost && lobby.status === "lobby" && pendingPlayer && pendingPlayer.id !== state.localPlayerId) {
+  if (
+    isHost &&
+    lobby.status === "lobby" &&
+    pendingPlayer &&
+    !pendingPlayer.isHost &&
+    pendingPlayer.id !== state.localPlayerId
+  ) {
     const backdrop = createElement("div", "kick-confirmation-backdrop");
     const dialog = createElement("section", "kick-confirmation");
     dialog.setAttribute("role", "dialog");
@@ -839,6 +843,9 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
         event.preventDefault();
         first?.focus();
       }
+    });
+    backdrop.addEventListener("click", (event) => {
+      if (event.target === backdrop) actions.onCancelKickPlayer();
     });
     const isHostTransfer = state.pendingHostTransferId !== null;
     const title = createElement("h2", undefined, isHostTransfer ? `Make ${pendingPlayer.name} host?` : `Remove ${pendingPlayer.name}?`);
@@ -891,7 +898,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     if (lobby.reminderSessionId && lobby.status === "lobby") {
       reminderButton = createElement("button", "secondary-button reminder-button", "Ask everyone to return to lobby");
       reminderButton.type = "button";
-      reminderButton.disabled = state.isSendingResultsReminder;
+      reminderButton.disabled = state.isBusy || state.isSendingResultsReminder;
       reminderButton.setAttribute("aria-busy", String(state.isSendingResultsReminder));
       reminderButton.textContent = state.isSendingResultsReminder
         ? "Sending reminder…"
@@ -1357,12 +1364,12 @@ export function renderApp(
   if (state.resultsReminderSessionId) {
     const dialog = createElement("dialog", "results-reminder-dialog");
     dialog.setAttribute("aria-labelledby", "results-reminder-title");
-    dialog.append(
-      createElement("p", undefined, "The host is waiting in the lobby."),
-    );
+    dialog.setAttribute("aria-describedby", "results-reminder-description");
     const title = createElement("h2", undefined, "Return to Lobby?");
     title.id = "results-reminder-title";
-    dialog.append(title);
+    const description = createElement("p", "results-reminder-description", "The host is waiting in the lobby.");
+    description.id = "results-reminder-description";
+    dialog.append(title, description);
     const actionsPanel = createElement("div", "button-group");
     const waitButton = createElement("button", "secondary-button", "Wait");
     waitButton.type = "button";
