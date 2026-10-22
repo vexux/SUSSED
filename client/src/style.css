@@ -2133,7 +2133,7 @@ select:focus:not(:focus-visible) {
 
 .answer-badge-correct {
   color: var(--color-success-soft-text);
-  background: var(--color-success-badge-text);
+  background: var(--color-success-badge-background);
 }
 
 .answer-badge-fake {
@@ -2348,7 +2348,7 @@ select:focus:not(:focus-visible) {
   filter: drop-shadow(0 0 8px rgb(var(--color-accent-rgb) / 45%));
 }
 
-.final-winner-heading {
+.final-results-screen .final-winner-heading {
   margin: 0;
   color: var(--color-accent-light);
   font-size: clamp(1.25rem, 3vw, 1.75rem);

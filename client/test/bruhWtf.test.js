@@ -282,7 +282,7 @@ test("Bruh final results omit round content and show tied winners, final leaderb
     assert.match(root.text, /Final leaderboard/u);
     assert.match(root.text, /Return to lobby/u);
     assert.doesNotMatch(root.text, /Final prompt|Round 5 of 5|Answers|Round points|final answer|points this round/u);
-    assert.equal(root.query((node) => node.tagName === "h1"), null);
+    assert.equal(root.query((node) => node.tagName === "h1").textContent, "It's a tie!");
     assert.equal(root.queryAll((node) => node.className.split(" ").includes("result-card")).length, 3);
     const leaderboard = root.query((node) => node.tagName === "ol" && node.className.includes("final-leaderboard"));
     assert.deepEqual(leaderboard.children.map((row) => row.children[0].textContent), ["#1", "#1", "#3"]);

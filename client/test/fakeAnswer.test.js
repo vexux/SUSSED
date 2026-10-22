@@ -365,6 +365,7 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
     const leaderboard = screen.children[2];
     assert.equal(winnerCard.className, "final-winner-card");
     assert.equal(winnerCard.children[0].textContent, "🏆");
+    assert.equal(winnerCard.children[1].tagName, "h1");
     assert.match(winnerCard.text, /It's a tie!/u);
     assert.match(winnerCard.text, /Player Two, Player One/u);
     assert.match(winnerCard.text, /9 points/u);
@@ -377,12 +378,14 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
 
     const animeScreen = renderFinal("Fact-or-Cap Anime", tieState);
     assert.equal(animeScreen.children[0].className, "final-winner-card");
+    assert.equal(animeScreen.query((node) => node.tagName === "h1").textContent, "It's a tie!");
     assert.match(animeScreen.text, /Player Two, Player One/u);
     assert.doesNotMatch(animeScreen.text, /Final results|Round 5 of 5/u);
     assert.equal(animeScreen.query((node) => node.className === "round-counter"), null);
 
     const singleScreen = renderFinal("Fact or Cap", createFinalPublicState(false));
     const singleWinner = singleScreen.children[0];
+    assert.equal(singleScreen.query((node) => node.tagName === "h1").textContent, "Winner");
     assert.match(singleWinner.text, /Winner/u);
     assert.match(singleWinner.text, /Player Two/u);
     assert.doesNotMatch(singleWinner.text, /Player One/u);
