@@ -23,6 +23,7 @@ class FakeElement {
     this.textContent = "";
     this.value = "";
     this.type = "text";
+    this._maxLength = -1;
     this.selectionStart = 0;
     this.selectionEnd = 0;
     this.selectionDirection = "none";
@@ -64,6 +65,11 @@ class FakeElement {
   getAttribute(name) { return this.attributes[name] ?? null; }
   removeAttribute(name) { delete this.attributes[name]; }
   focus() { this.ownerDocument.activeElement = this; }
+  get maxLength() { return this._maxLength; }
+  set maxLength(value) {
+    if (value < 0) throw new RangeError("maxLength must not be negative");
+    this._maxLength = value;
+  }
   setSelectionRange(start, end, direction = "none") {
     this.selectionStart = start;
     this.selectionEnd = end;
@@ -400,8 +406,13 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     renderApp(root, state, actions, {}, {});
     const roomCodeButton = root.query((element) => element.className.includes("room-code-chip"));
     assert.equal(roomCodeButton.getAttribute("aria-label"), "Copy room code ZING");
+    assert.equal(roomCodeButton.children[0].textContent, "Room Code");
+    assert.equal(roomCodeButton.children[1].className, "room-code-chip-row");
+    assert.equal(roomCodeButton.children[1].children[0].textContent, "ZING");
     roomCodeButton.dispatch("click");
     const inviteButton = root.query((element) => element.className.includes("invite-friends-button"));
+    assert.equal(inviteButton.className.includes("secondary-button"), true);
+    assert.equal(inviteButton.children[0].tagName, "svg");
     inviteButton.dispatch("click");
     assert.equal(root.query((element) => element.textContent === "Copy invite link"), null);
     state.invitationUrl = "https://play.example/?code=ZING";
@@ -428,7 +439,10 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     state.roomCodeCopied = true;
     renderApp(root, state, actions, {}, {});
     assert.equal(root.query((element) => element.className.includes("invitation-toast")), null);
-    assert.equal(root.query((element) => element.className.includes("room-code-chip")).children[1].children[0].attributes.d, "m5 12 4 4L19 6");
+    assert.equal(
+      root.query((element) => element.className.includes("room-code-chip")).children[1].children[1].children[0].attributes.d,
+      "m5 12 4 4L19 6",
+    );
     state.invitationFeedback = null;
     state.roomCodeCopied = false;
     renderApp(root, state, actions, {}, {});
@@ -730,12 +744,14 @@ test("game selection provides in-flow name entry and keeps selected creation set
     const name = root.query((element) => element.id === "selection-player-name");
     assert.equal(name.value, "Alex");
     assert.equal(name.required, true);
-    assert.equal(name.maxLength, undefined);
+    assert.equal(name.maxLength, -1);
     assert.equal(root.query((element) => element.id === "create-room-visibility-public").checked, true);
     assert.equal(root.query((element) => element.textContent === "Create room").disabled, false);
 
     state.nameEntryError = "Enter a player name between 1 and 20 characters.";
-    renderApp(root, state, createActions(), {}, {});
+    name.focus();
+    assert.doesNotThrow(() => renderApp(root, state, createActions(), {}, {}));
+    assert.equal(globalThis.document.activeElement, name);
     assert.equal(root.query((element) => element.id === "selection-player-name").getAttribute("aria-invalid"), "true");
     assert.match(root.text, /Enter a player name between 1 and 20 characters/u);
   });
@@ -1019,7 +1035,7 @@ test("room-code copy feedback uses the copied control state without a duplicate 
     renderApp(root, state, createActions(), {}, {});
     const roomCode = root.query((element) => element.className.includes("room-code-chip"));
     assert.equal(roomCode.attributes["aria-label"], "Room code ZING copied");
-    assert.equal(roomCode.children[1].children[0].attributes.d, "m5 12 4 4L19 6");
+    assert.equal(roomCode.children[1].children[1].children[0].attributes.d, "m5 12 4 4L19 6");
     assert.equal(root.query((element) => element.className.includes("invitation-toast")), null);
   });
 });
@@ -1054,14 +1070,21 @@ test("theme preference defaults safely, persists, and the header exposes an acce
     assert.equal(button.attributes["aria-label"], "Switch to light theme");
     assert.equal(button.title, "Switch to light theme");
     assert.equal(button.attributes["aria-pressed"], "false");
-    assert.match(button.children[0].children[0].attributes.d, /M12 3v2/u);
+    const darkIcons = button.query((element) => element.className.includes("theme-toggle-icons"));
+    assert.equal(darkIcons.children.length, 2);
+    assert.ok(darkIcons.query((element) => element.className.includes("theme-toggle-sun")));
+    assert.ok(darkIcons.query((element) => element.className.includes("theme-toggle-moon")));
     button.dispatch("click");
     assert.equal(toggles, 1);
     renderApp(root, state, actions, {}, {});
     const lightThemeButton = root.query((element) => element.className.includes("theme-toggle"));
     assert.equal(lightThemeButton.attributes["aria-label"], "Switch to dark theme");
     assert.equal(lightThemeButton.title, "Switch to dark theme");
-    assert.match(lightThemeButton.children[0].children[0].attributes.d, /M20\.9 13/u);
+    assert.equal(lightThemeButton.attributes["aria-pressed"], "true");
+    assert.equal(
+      lightThemeButton.query((element) => element.className.includes("theme-toggle-moon")).getAttribute("aria-hidden"),
+      "true",
+    );
     assert.equal(readThemePreference(storage), "light");
   });
 });

@@ -172,7 +172,13 @@ function createHeader(state: AppState, actions: AppActions): HTMLElement {
   const controls = createElement("div", "header-controls");
   const targetTheme = state.theme === "dark" ? "light" : "dark";
   const themeButton = createElement("button", "theme-toggle");
-  themeButton.append(createIcon(targetTheme === "light" ? "sun" : "moon"));
+  const themeIcons = createElement("span", "theme-toggle-icons");
+  const sunIcon = createIcon("sun");
+  sunIcon.classList.add("theme-toggle-sun");
+  const moonIcon = createIcon("moon");
+  moonIcon.classList.add("theme-toggle-moon");
+  themeIcons.append(sunIcon, moonIcon);
+  themeButton.append(themeIcons);
   themeButton.type = "button";
   themeButton.setAttribute("aria-label", `Switch to ${targetTheme} theme`);
   themeButton.title = `Switch to ${targetTheme} theme`;
@@ -606,14 +612,19 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   roomCodeButton.setAttribute("aria-label", state.roomCodeCopied ? `Room code ${lobby.roomCode} copied` : `Copy room code ${lobby.roomCode}`);
   roomCodeButton.title = state.roomCodeCopied ? "Room code copied" : "Copy room code";
   roomCodeButton.append(
+    createElement("span", "room-code-label", "Room Code"),
+  );
+  const roomCodeValue = createElement("span", "room-code-chip-row");
+  roomCodeValue.append(
     createElement("span", "room-code-chip-value", lobby.roomCode),
     createIcon(state.roomCodeCopied ? "check" : "copy"),
   );
+  roomCodeButton.append(roomCodeValue);
   roomCodeButton.addEventListener("click", actions.onCopyRoomCode);
   const roomCodePanel = createElement("div", "lobby-room-code-panel");
   const invitationActions = createElement("div", "invitation-actions");
   const roomCodeControl = createElement("div", "room-code-control");
-  roomCodeControl.append(createElement("span", "room-code-label", "Room Code"), roomCodeButton);
+  roomCodeControl.append(roomCodeButton);
   const inviteButton = createElement("button", "secondary-button invite-friends-button");
   inviteButton.append(createIcon("users"), createElement("span", undefined, "Invite friends"));
   inviteButton.type = "button";
@@ -1200,8 +1211,9 @@ function syncAttributes(current: HTMLElement, next: HTMLElement, preserveValue: 
     "disabled", "readOnly", "checked", "selectedIndex",
   ] as const) {
     if (property in next) {
-      (current as unknown as Record<string, unknown>)[property] =
-        (next as unknown as Record<string, unknown>)[property];
+      const value = (next as unknown as Record<string, unknown>)[property];
+      if (property === "maxLength" && typeof value === "number" && value < 0) continue;
+      (current as unknown as Record<string, unknown>)[property] = value;
     }
   }
 }
