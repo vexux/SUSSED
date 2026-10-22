@@ -581,8 +581,8 @@ test("public room browser lists only safe metadata, revalidates joins, and follo
     assert.equal(listedRoom.playerCount, 1);
     assert.equal(listedRoom.maxPlayers, roomManager.MAX_ROOM_CAPACITY);
     assert.equal(listedRoom.gameName, "Fact or Cap");
+    assert.equal(listedRoom.hostName, "Hidden Host Name");
     assert.equal(JSON.stringify(listedRoom).includes(created.roomCode), false);
-    assert.equal(JSON.stringify(listedRoom).includes("Hidden Host Name"), false);
     assert.equal(Object.hasOwn(listedRoom, "players"), false);
     assert.deepEqual((await emitWithAck(host, "refresh-public-rooms", undefined)).rooms, [listedRoom]);
 
@@ -679,6 +679,60 @@ test("public room browser lists only safe metadata, revalidates joins, and follo
         playerName: "After Start"
     });
     assert.equal(startedJoin.error.code, "ROOM_NOT_IN_LOBBY");
+});
+
+test("public room subscription, refresh, and live updates use canonical occupancy ordering", async (context) => {
+    const harness = await createHarness(context);
+    const browser = await harness.connect();
+    const firstHost = await harness.connect();
+    const secondHost = await harness.connect();
+    assert.deepEqual((await emitWithAck(browser, "subscribe-public-rooms", undefined)).rooms, []);
+
+    const firstAppears = waitForPublicRooms(browser, (rooms) => rooms.length === 1);
+    const firstRoom = await emitWithAck(firstHost, "create-room", {
+        playerName: "First Host",
+        visibility: "public"
+    });
+    harness.trackRoom(firstRoom.roomCode);
+    await firstAppears;
+
+    const secondAppears = waitForPublicRooms(browser, (rooms) => rooms.length === 2);
+    const secondRoom = await emitWithAck(secondHost, "create-room", {
+        playerName: "Second Host",
+        visibility: "public"
+    });
+    harness.trackRoom(secondRoom.roomCode);
+    const initialLiveList = await secondAppears;
+    const subscribedList = await emitWithAck(browser, "subscribe-public-rooms", undefined);
+    const refreshedList = await emitWithAck(browser, "refresh-public-rooms", undefined);
+    assert.deepEqual(subscribedList.rooms, initialLiveList);
+    assert.deepEqual(refreshedList.rooms, initialLiveList);
+    assert.deepEqual(initialLiveList, roomManager.listPublicRooms());
+
+    const targetRoom = [firstRoom, secondRoom].find(({ roomCode }) =>
+        roomManager.getRoom(roomCode).publicRoomId !== initialLiveList[0].roomId
+    );
+    assert.ok(targetRoom);
+    const targetRoomState = roomManager.getRoom(targetRoom.roomCode);
+    let lastLiveList;
+    for (let index = 1; index <= 3; index += 1) {
+        const count = index + 1;
+        const countUpdate = waitForPublicRooms(browser, (rooms) =>
+            rooms.find(({ roomId }) => roomId === targetRoomState.publicRoomId)?.playerCount === count
+        );
+        const guest = await harness.connect();
+        const joined = await emitWithAck(guest, "join-room", {
+            roomCode: targetRoom.roomCode,
+            playerName: `Ordering Guest ${index}`
+        });
+        assert.equal(joined.error, undefined);
+        harness.trackRoom(targetRoom.roomCode);
+        lastLiveList = await countUpdate;
+    }
+
+    assert.equal(lastLiveList[0].roomId, targetRoomState.publicRoomId);
+    assert.deepEqual(lastLiveList, roomManager.listPublicRooms());
+    assert.deepEqual((await emitWithAck(browser, "refresh-public-rooms", undefined)).rooms, lastLiveList);
 });
 
 test("host can kick a lobby player through departure reconciliation; unauthorized and stale requests are rejected", async (context) => {
@@ -778,12 +832,14 @@ test("host transfer validates membership, broadcasts the projected lobby, and tr
     const hostUpdate = waitForLobby(host, (lobby) => lobby.players.some(({ id, isHost }) => id === guest.id && isHost));
     const guestUpdate = waitForLobby(guest, (lobby) => lobby.players.some(({ id, isHost }) => id === guest.id && isHost));
     const remainingUpdate = waitForLobby(remainingPlayer, (lobby) => lobby.players.some(({ id, isHost }) => id === guest.id && isHost));
+    const publicHostUpdate = waitForPublicRooms(browser, (rooms) => rooms[0]?.hostName === "New Host");
     const transferred = await emitWithAck(host, "transfer-host", { targetPlayerId: guest.id });
     assert.equal(transferred.transferred, true);
     assert.equal(transferred.playerId, guest.id);
     assert.equal((await hostUpdate).players.find(({ id }) => id === host.id).isHost, false);
     assert.equal((await guestUpdate).players.find(({ id }) => id === guest.id).isHost, true);
     assert.equal((await remainingUpdate).players.find(({ id }) => id === guest.id).isHost, true);
+    assert.equal((await publicHostUpdate)[0].hostName, "New Host");
     assert.equal((await emitWithAck(browser, "refresh-public-rooms", undefined)).rooms.length, 1);
     assert.equal(authoritativeRoom.hostId, guest.id);
     assert.deepEqual(authoritativeRoom.players.map(({ id }) => id), [host.id, guest.id, remainingPlayer.id]);
@@ -852,9 +908,9 @@ test("public-room updates follow host transfer and remove a room when its last p
     })).error, undefined);
     await joinedCount;
 
-    const afterTransfer = waitForPublicRooms(browser, (rooms) => rooms[0]?.playerCount === 1);
+    const afterTransfer = waitForPublicRooms(browser, (rooms) => rooms[0]?.playerCount === 1 && rooms[0]?.hostName === "Guest");
     host.disconnect();
-    await afterTransfer;
+    assert.equal((await afterTransfer)[0].hostName, "Guest");
     assert.equal(roomManager.getRoom(created.roomCode).hostId, guest.id);
 
     const removed = waitForPublicRooms(browser, (rooms) => rooms.length === 0);

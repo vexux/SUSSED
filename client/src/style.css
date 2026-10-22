@@ -1740,6 +1740,7 @@ select:focus:not(:focus-visible) {
 .public-room-card {
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr);
+  min-width: 0;
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -1748,7 +1749,7 @@ select:focus:not(:focus-visible) {
 
 .public-room-card .game-card-art {
   height: 100%;
-  min-height: 124px;
+  min-height: 136px;
 }
 
 .public-room-details {
@@ -1757,25 +1758,67 @@ select:focus:not(:focus-visible) {
   grid-template-columns: minmax(0, 1fr) auto;
   align-content: center;
   align-items: center;
-  gap: var(--space-1) var(--space-3);
+  gap: var(--space-2) var(--space-3);
   padding: var(--space-3);
 }
 
-.public-room-details .game-card-title {
+.public-room-room-name {
   grid-column: 1;
   margin: 0;
+  color: var(--color-text-strong);
+  font-size: 1.08rem;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
-.public-room-details .game-card-player-count {
+.public-room-game-title {
   grid-column: 1;
   margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.public-room-occupancy {
+  display: grid;
+  grid-column: 1;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.public-room-occupancy .game-card-player-count {
+  margin: 0;
+}
+
+.public-room-occupancy-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-border-subtle);
+}
+
+.public-room-occupancy-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+  transition: width 180ms ease;
 }
 
 .public-room-details .public-room-join {
   grid-column: 2;
-  grid-row: 1 / span 2;
+  grid-row: 1 / span 3;
   min-width: 76px;
+  min-height: 44px;
+}
+
+.public-room-card .public-room-name-entry {
+  grid-column: 1 / -1;
+  width: auto;
+  margin: 0 var(--space-3) var(--space-3);
+  padding: var(--space-3);
+}
+
+.public-room-name-entry .public-room-continue-join {
   min-height: 44px;
 }
 
@@ -2374,17 +2417,18 @@ select:focus:not(:focus-visible) {
   }
 
   .public-room-card .game-card-art {
-    min-height: 112px;
+    min-height: 140px;
   }
 
   .public-room-details {
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-1);
+    gap: var(--space-2);
     padding: var(--space-2);
   }
 
-  .public-room-details .game-card-title,
-  .public-room-details .game-card-player-count,
+  .public-room-room-name,
+  .public-room-game-title,
+  .public-room-occupancy,
   .public-room-details .public-room-join {
     grid-column: 1;
     grid-row: auto;
@@ -2393,6 +2437,11 @@ select:focus:not(:focus-visible) {
   .public-room-details .public-room-join {
     width: 100%;
     min-height: 44px;
+  }
+
+  .public-room-card .public-room-name-entry {
+    margin-inline: var(--space-2);
+    padding: var(--space-2);
   }
 
   .vote-option {

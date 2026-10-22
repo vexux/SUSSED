@@ -316,6 +316,7 @@ function registerRoomHandlers(io, socket) {
             const room = roomManager.transferHost(socket.id, target.id);
             const lobby = roomManager.createLobbyState(room);
             broadcastLobbyToAllMembers(io, room);
+            broadcastPublicRooms(io);
             acknowledge({ transferred: true, playerId: target.id, lobby });
         } catch (error) {
             const operationError = getOperationError(error);

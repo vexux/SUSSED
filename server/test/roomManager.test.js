@@ -1,6 +1,7 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 const roomManager = require("../roomManager");
+const gameRegistry = require("../gameRegistry");
 
 const ROOM_CODE_PATTERN = /^[A-Z]{4}$/;
 
@@ -278,16 +279,63 @@ test("public discovery exposes opaque references only and public joins revalidat
     let listing = roomManager.listPublicRooms();
     assert.equal(listing.length, 1);
     assert.deepEqual(Object.keys(listing[0]).sort(), [
-        "gameDescription", "gameId", "gameName", "maxPlayers", "playerCount", "roomId", "status",
+        "gameDescription", "gameId", "gameName", "hostName", "maxPlayers", "playerCount", "roomId", "status",
     ]);
+    assert.equal(listing[0].hostName, "Secret Host");
     assert.equal(JSON.stringify(listing).includes(room.code), false);
-    assert.equal(JSON.stringify(listing).includes("Secret Host"), false);
     const publicJoin = roomManager.joinPublicRoom(listing[0].roomId, "public-guest", "Guest");
     assert.equal(publicJoin.players.length, 2);
     assert.throws(() => roomManager.joinPublicRoom("stale-public-id", "stale-guest", "Stale"), { code: "PUBLIC_ROOM_NOT_FOUND" });
 
     roomManager.setRoomVisibility(room.hostId, "private");
     assert.throws(() => roomManager.joinPublicRoom(room.publicRoomId, "late-guest", "Late"), { code: "ROOM_NOT_PUBLIC" });
+});
+
+test("public listings use the current host and sort by occupancy ratio with deterministic ties", (context) => {
+    const originalGet = gameRegistry.get;
+    const rooms = [];
+    gameRegistry.get = (gameId) => {
+        const game = originalGet(gameId);
+        if (!game) return game;
+        return {
+            ...game,
+            supportedPlayers: {
+                ...game.supportedPlayers,
+                max: gameId === "bruh-wtf" ? 4 : 8
+            }
+        };
+    };
+    context.after(() => {
+        gameRegistry.get = originalGet;
+        for (const room of rooms) roomManager.removeRoom(room.code);
+    });
+
+    const standardRoom = roomManager.createRoom("sort-standard-host", "Alpha", "fact-or-cap", "public");
+    const smallRoom = roomManager.createRoom("sort-small-host", "Beta", "bruh-wtf", "public");
+    const standardTieRoom = roomManager.createRoom("sort-tie-host", "Charlie", "fact-or-cap", "public");
+    const fullerRoom = roomManager.createRoom("sort-fuller-host", "Delta", "fact-or-cap", "public");
+    rooms.push(standardRoom, smallRoom, standardTieRoom, fullerRoom);
+
+    for (let index = 1; index < 4; index += 1) {
+        roomManager.joinRoom(standardRoom.code, `sort-standard-${index}`, `Standard ${index}`);
+        roomManager.joinRoom(standardTieRoom.code, `sort-tie-${index}`, `Tie ${index}`);
+    }
+    roomManager.joinRoom(smallRoom.code, "sort-small-1", "Small 1");
+    roomManager.joinRoom(fullerRoom.code, "sort-fuller-1", "Fuller 1");
+    roomManager.joinRoom(fullerRoom.code, "sort-fuller-2", "Fuller 2");
+    roomManager.joinRoom(fullerRoom.code, "sort-fuller-3", "Fuller 3");
+    roomManager.joinRoom(fullerRoom.code, "sort-fuller-4", "Fuller 4");
+    roomManager.transferHost(standardRoom.hostId, "sort-standard-1");
+
+    const listing = roomManager.listPublicRooms();
+    assert.deepEqual(listing.map(({ roomId }) => roomId), [
+        fullerRoom.publicRoomId,
+        ...[standardRoom, standardTieRoom].map(({ publicRoomId }) => publicRoomId).sort(),
+        smallRoom.publicRoomId,
+    ]);
+    assert.equal(listing.find(({ roomId }) => roomId === standardRoom.publicRoomId).hostName, "Standard 1");
+    assert.equal(listing.find(({ roomId }) => roomId === smallRoom.publicRoomId).maxPlayers, 4);
+    assert.equal(listing.some(({ roomId }) => roomId === fullerRoom.publicRoomId), true);
 });
 
 test("round count changes require an eligible host and a current lobby revision", (context) => {

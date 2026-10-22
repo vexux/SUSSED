@@ -72,6 +72,7 @@ export interface LobbyGame {
 
 export interface PublicRoom {
   roomId: string;
+  hostName: string;
   gameId: string;
   gameName: string;
   gameDescription: string;

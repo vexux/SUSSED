@@ -18,7 +18,7 @@ The server remains authoritative for room visibility, capacity, and join eligibi
 - `refresh-public-rooms` acknowledges a current `{ rooms }` snapshot without changing subscription state.
 - Subscribers receive `public-rooms-updated` with `{ rooms }` after relevant room changes.
 - `unsubscribe-public-rooms` leaves the feed.
-- Each room entry contains only `{ roomId, gameId, gameName, gameDescription, playerCount, maxPlayers, status }`. `roomId` is an opaque reference distinct from the join-by-code room code; no room code or player details are included.
+- Each room entry contains only `{ roomId, hostName, gameId, gameName, gameDescription, playerCount, maxPlayers, status }`. `hostName` is the current host's validated display name. `roomId` is an opaque reference distinct from the join-by-code room code; no room code or player list or private player details are included. Entries are sorted by descending occupancy ratio, then descending player count, then ascending opaque room ID.
 - `join-public-room` accepts `{ publicRoomId, playerName }` and acknowledges `{ lobby }` on success. The server rechecks that the referenced room is public, in the lobby, and has capacity at the instant the slot is reserved. Stale, private, started, full, or removed rooms return structured errors.
 
 The existing `join-room` `{ roomCode, playerName }` flow remains available for private rooms and also enforces capacity. Public listings are filtered by the server to rooms that are public, in the lobby, and below their effective capacity.

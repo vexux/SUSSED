@@ -541,8 +541,10 @@ function listPublicRooms() {
         .filter((room) => room.visibility === "public" && room.status === "lobby" && room.players.length < getRoomCapacity(room))
         .map((room) => {
             const game = gameRegistry.get(room.selectedGameId);
+            const host = room.players.find((player) => player.id === room.hostId);
             return {
                 roomId: room.publicRoomId,
+                hostName: host.name,
                 gameId: game.id,
                 gameName: game.displayName,
                 gameDescription: game.description,
@@ -550,7 +552,12 @@ function listPublicRooms() {
                 maxPlayers: getRoomCapacity(room),
                 status: "lobby"
             };
-        });
+        })
+        .sort((left, right) =>
+            right.playerCount / right.maxPlayers - left.playerCount / left.maxPlayers ||
+            right.playerCount - left.playerCount ||
+            (left.roomId < right.roomId ? -1 : left.roomId > right.roomId ? 1 : 0)
+        );
 }
 
 function removeRoom(roomCode) {

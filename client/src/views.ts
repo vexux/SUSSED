@@ -525,21 +525,45 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
       card.dataset.gameId = room.gameId;
       card.append(createGameCardArt(room.gameId));
       const details = createElement("div", "public-room-details");
-      details.append(
-        createElement("h2", "game-card-title", room.gameName),
-        createElement("p", "game-card-player-count", `${room.playerCount}/${room.maxPlayers} players`),
-      );
+      const roomTitle = /s$/iu.test(room.hostName) ? `${room.hostName}' room` : `${room.hostName}'s room`;
+      const roomName = createElement("h2", "public-room-room-name", roomTitle);
+      const gameName = createElement("p", "public-room-game-title", room.gameName);
+      const occupancy = createElement("div", "public-room-occupancy");
+      const occupancyText = createElement("p", "game-card-player-count", `${room.playerCount}/${room.maxPlayers} players`);
+      const progress = createElement("div", "public-room-occupancy-track");
+      progress.setAttribute("role", "progressbar");
+      progress.setAttribute("aria-label", "Room occupancy");
+      progress.setAttribute("aria-valuemin", "0");
+      progress.setAttribute("aria-valuemax", String(room.maxPlayers));
+      progress.setAttribute("aria-valuenow", String(room.playerCount));
+      progress.setAttribute("aria-valuetext", `${room.playerCount} of ${room.maxPlayers} players`);
+      const progressFill = createElement("div", "public-room-occupancy-fill");
+      const occupancyPercent = Math.min(100, Math.max(0, (room.playerCount / room.maxPlayers) * 100));
+      progressFill.style.width = `${occupancyPercent}%`;
+      progress.append(progressFill);
+      occupancy.append(occupancyText, progress);
+      const joinIsExpanded = state.pendingPublicRoomId === room.roomId && !state.isBusy;
       const join = createElement("button", "primary-button public-room-join", state.isBusy ? "Joining…" : "Join");
       join.type = "button";
       join.disabled = state.connectionStatus !== "connected" || state.isBusy;
-      join.setAttribute("aria-pressed", String(state.pendingPublicRoomId === room.roomId));
-      if (state.pendingPublicRoomId === room.roomId) {
-        join.textContent = "Selected";
-        join.disabled = true;
-      }
+      join.setAttribute("aria-expanded", String(joinIsExpanded));
+      if (joinIsExpanded) join.setAttribute("aria-controls", `public-room-name-entry-${room.roomId}`);
       join.addEventListener("click", () => actions.onJoinPublicRoom(room.roomId));
-      details.append(join);
+      details.append(roomName, gameName, occupancy, join);
       card.append(details);
+
+      if (joinIsExpanded) {
+        const nameEntry = createElement("section", "public-room-name-entry");
+        nameEntry.id = `public-room-name-entry-${room.roomId}`;
+        nameEntry.setAttribute("aria-label", `Join ${roomTitle}`);
+        nameEntry.append(createNameEntry(state, "public-room-player-name", actions));
+        const continueJoin = createElement("button", "primary-button public-room-continue-join", "Join room");
+        continueJoin.type = "button";
+        continueJoin.disabled = state.connectionStatus !== "connected";
+        continueJoin.addEventListener("click", actions.onContinuePublicRoomJoin);
+        nameEntry.append(continueJoin);
+        card.append(nameEntry);
+      }
       cards.append(card);
     });
     screen.append(cards);
@@ -547,18 +571,18 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
 
   if (state.pendingPublicRoomId && !state.isBusy) {
     const pendingRoom = state.publicRooms.find(({ roomId }) => roomId === state.pendingPublicRoomId);
-    const joinName = createElement("section", "public-room-name-entry");
-    joinName.setAttribute("aria-label", pendingRoom ? `Join ${pendingRoom.gameName}` : "Join selected room");
-    joinName.append(
-      createElement("h2", "public-room-name-title", pendingRoom ? `Join ${pendingRoom.gameName}` : "Join selected room"),
-      createNameEntry(state, "public-room-player-name", actions),
-    );
-    const continueJoin = createElement("button", "primary-button", state.isBusy ? "Joining…" : "Join room");
-    continueJoin.type = "button";
-    continueJoin.disabled = state.isBusy || state.connectionStatus !== "connected";
-    continueJoin.addEventListener("click", actions.onContinuePublicRoomJoin);
-    joinName.append(continueJoin);
-    screen.append(joinName);
+    if (!pendingRoom) {
+      const joinName = createElement("section", "public-room-name-entry");
+      joinName.setAttribute("aria-label", "Join selected room");
+      joinName.append(createElement("h2", "public-room-name-title", "Enter your name to join"));
+      joinName.append(createNameEntry(state, "public-room-player-name", actions));
+      const continueJoin = createElement("button", "primary-button public-room-continue-join", "Join room");
+      continueJoin.type = "button";
+      continueJoin.disabled = state.connectionStatus !== "connected";
+      continueJoin.addEventListener("click", actions.onContinuePublicRoomJoin);
+      joinName.append(continueJoin);
+      screen.append(joinName);
+    }
   }
 
   if (state.publicRoomsError) {

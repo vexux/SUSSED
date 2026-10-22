@@ -26,6 +26,7 @@ class FakeElement {
     this.selectionStart = 0;
     this.selectionEnd = 0;
     this.selectionDirection = "none";
+    this.style = { width: "" };
     this.classList = {
       add: (...names) => { this.className = `${this.className} ${names.join(" ")}`.trim(); },
       contains: (name) => this.className.split(/\s+/u).includes(name),
@@ -748,6 +749,7 @@ test("public-room name entry retains the selected room until the user continues"
     state.pendingPublicRoomId = "public-room-1";
     state.publicRooms = [{
       roomId: "public-room-1",
+      hostName: "Alex",
       gameId: "fact-or-cap",
       gameName: "Fact or Cap",
       gameDescription: "Bluff with facts.",
@@ -762,8 +764,10 @@ test("public-room name entry retains the selected room until the user continues"
     const root = new FakeElement("root");
     renderApp(root, state, actions, {}, {});
 
+    const roomCard = root.query((element) => element.dataset.roomId === "public-room-1");
+    assert.equal(roomCard.query((element) => element.textContent === "Alex's room").tagName, "h2");
+    assert.equal(roomCard.query((element) => element.textContent === "Join").getAttribute("aria-expanded"), "true");
     assert.equal(root.query((element) => element.id === "public-room-player-name").required, true);
-    assert.equal(root.query((element) => element.textContent === "Selected").disabled, true);
     root.query((element) => element.textContent === "Join room").dispatch("click");
     assert.deepEqual(calls.map(([action]) => action), ["onContinuePublicRoomJoin"]);
     assert.equal(state.pendingPublicRoomId, "public-room-1");
@@ -848,6 +852,28 @@ test("lobby controls expose compact invitation and visibility hooks and hide uns
   });
 });
 
+test("public-room host names are rendered as text and long names remain available", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "public-rooms";
+    state.publicRooms = [{
+      roomId: "opaque-long-name-room",
+      hostName: "<abcdefghijklmnopqr>",
+      gameId: "fact-or-cap",
+      gameName: "Fact or Cap",
+      gameDescription: "Bluff with facts.",
+      playerCount: 1,
+      maxPlayers: 8,
+      status: "lobby",
+    }];
+    const root = new FakeElement("root");
+    renderApp(root, state, createActions(), {}, {});
+    const title = root.query((element) => element.className.includes("public-room-room-name"));
+    assert.equal(title.textContent, "<abcdefghijklmnopqr>'s room");
+    assert.equal(root.query((element) => element.tagName === "img"), null);
+  });
+});
+
 test("landing action label leads to game selection while joining and public-room browsing remain available", () => {
   withFakeDocument(() => {
     const state = createInitialAppState();
@@ -892,6 +918,7 @@ test("public room browser renders compact cards, accessible refresh, and a conci
 
     state.publicRooms = [{
       roomId: "opaque-public-id",
+      hostName: "Alex",
       gameId: "fact-or-cap",
       gameName: "Fact or Cap",
       gameDescription: "Bluff with facts.",
@@ -900,6 +927,7 @@ test("public room browser renders compact cards, accessible refresh, and a conci
       status: "lobby",
     }, {
       roomId: "opaque-anime-room",
+      hostName: "James",
       gameId: "fact-or-cap-anime",
       gameName: "Fact or Cap (Anime)",
       gameDescription: "Anime facts.",
@@ -908,6 +936,7 @@ test("public room browser renders compact cards, accessible refresh, and a conci
       status: "lobby",
     }, {
       roomId: "opaque-bruh-room",
+      hostName: "Riley",
       gameId: "bruh-wtf",
       gameName: "Bruh wtf?",
       gameDescription: "Answer and vote.",
@@ -916,6 +945,7 @@ test("public room browser renders compact cards, accessible refresh, and a conci
       status: "lobby",
     }, {
       roomId: "opaque-future-room",
+      hostName: "Taylor",
       gameId: "future-game",
       gameName: "Future game",
       gameDescription: "More surprises.",
@@ -928,9 +958,17 @@ test("public room browser renders compact cards, accessible refresh, and a conci
     assert.equal(root.text.includes("ABCD"), false);
     assert.equal(root.text.includes("Bluff with facts."), false);
     const publicCards = root.query((element) => element.className.includes("public-room-grid")).children;
+    assert.ok(publicCards[0].query((element) => element.textContent === "Alex's room"));
     assert.ok(publicCards[0].query((element) => element.textContent === "Fact or Cap"));
     assert.ok(publicCards[0].query((element) => element.textContent === "3/8 players"));
     assert.ok(publicCards[0].query((element) => element.textContent === "Join"));
+    assert.ok(publicCards[1].query((element) => element.textContent === "James' room"));
+    const occupancy = publicCards[0].query((element) => element.getAttribute("role") === "progressbar");
+    assert.equal(occupancy.getAttribute("aria-valuemin"), "0");
+    assert.equal(occupancy.getAttribute("aria-valuemax"), "8");
+    assert.equal(occupancy.getAttribute("aria-valuenow"), "3");
+    assert.equal(occupancy.getAttribute("aria-valuetext"), "3 of 8 players");
+    assert.equal(publicCards[0].query((element) => element.className.includes("public-room-occupancy-fill")).style.width, "37.5%");
     assert.deepEqual(publicCards.map((card) => card.children[0].className), [
       "game-card-art game-art-fact-or-cap",
       "game-card-art game-art-fact-or-cap-anime",
