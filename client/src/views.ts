@@ -94,7 +94,7 @@ function createIcon(name: IconName): SVGSVGElement {
     copy: "M8 8V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3M5 8h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z",
     check: "m5 12 4 4L19 6",
     close: "m18 6-12 12M6 6l12 12",
-    users: "M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m16 0v-2a4 4 0 0 0-3-3.87M14 3.13a4 4 0 0 1 0 7.75M10 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z",
+    users: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m16 0v-2a4 4 0 0 0-3-3.87M14 3.13a4 4 0 0 1 0 7.75M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
     game: "M6 11h4m-2-2v4m7-1h.01M18 10h.01M7 6h10a4 4 0 0 1 3.9 3.1l1 5A3 3 0 0 1 17 17l-2-2H9l-2 2a3 3 0 0 1-4.9-2.9l1-5A4 4 0 0 1 7 6Z",
     globe: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20",
     lock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
@@ -626,7 +626,11 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   const roomCodeControl = createElement("div", "room-code-control");
   roomCodeControl.append(roomCodeButton);
   const inviteButton = createElement("button", "secondary-button invite-friends-button");
-  inviteButton.append(createIcon("users"), createElement("span", undefined, "Invite friends"));
+  inviteButton.append(
+    createIcon("users"),
+    createElement("span", "invite-label-long", "Invite friends"),
+    createElement("span", "invite-label-short", "Invite"),
+  );
   inviteButton.type = "button";
   inviteButton.disabled = state.isBusy || state.isInvitationBusy;
   inviteButton.addEventListener("click", actions.onOpenInvitationDialog);
@@ -756,12 +760,15 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     actions.onSetReady(!localPlayer?.isReady);
   });
 
+  let reminderButton: HTMLButtonElement | null = null;
   const headingBar = createElement("div", "lobby-heading-bar");
   headingBar.append(heading, visibilityField);
   screen.append(headingBar, selectedGameCard, roomCodePanel);
 
-  const roundsField = createElement("fieldset", "round-selector");
-  roundsField.append(createElement("legend", "field-label", "Rounds"));
+  const roundsField = createElement("div", "round-selector");
+  roundsField.setAttribute("role", "group");
+  roundsField.setAttribute("aria-label", "Rounds");
+  roundsField.append(createElement("span", "field-label", "Rounds"));
   const supportsRoundSelection = lobby.selectedGame.supportsRoundSelection !== false;
   if (supportsRoundSelection && isHost && lobby.status === "lobby") {
     const roundOptions = createElement("div", "round-options");
@@ -796,14 +803,13 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     playerSection.append(readyButton);
   }
 
+  const lobbySettingsRow = createElement("div", "lobby-settings-row");
   const lobbyContent = createElement("div", "lobby-content-grid");
   lobbyContent.append(playerSection);
   if (supportsRoundSelection) {
-    const settingsSection = createElement("section", "lobby-panel lobby-settings-panel");
-    settingsSection.setAttribute("aria-label", "Lobby settings");
-    settingsSection.append(roundsField);
-    lobbyContent.append(settingsSection);
+    lobbySettingsRow.append(roundsField);
   }
+  if (supportsRoundSelection) screen.append(lobbySettingsRow);
   screen.append(lobbyContent);
 
   const pendingPlayerId = state.pendingKickPlayerId ?? state.pendingHostTransferId;
@@ -871,7 +877,10 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   const selectedPlayer = lobby.players.find(({ id }) => id === state.selectedPlayerId);
   if (selectedPlayer) screen.append(createPlayerDetailDialog(state, selectedPlayer, isHost, actions));
 
-  const lobbyActions = createElement("div", "button-group lobby-actions");
+  const lobbyActions = createElement(
+    "div",
+    `button-group lobby-actions${isHost ? " host-lobby-actions" : ""}`,
+  );
 
   if (isHost) {
     const startButton = createElement("button", "primary-button", "Start game");
@@ -880,7 +889,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     startButton.addEventListener("click", actions.onStartGame);
     lobbyActions.append(startButton);
     if (lobby.reminderSessionId && lobby.status === "lobby") {
-      const reminderButton = createElement("button", "secondary-button reminder-button", "Ask everyone to return to lobby");
+      reminderButton = createElement("button", "secondary-button reminder-button", "Ask everyone to return to lobby");
       reminderButton.type = "button";
       reminderButton.disabled = state.isSendingResultsReminder;
       reminderButton.setAttribute("aria-busy", String(state.isSendingResultsReminder));
@@ -888,11 +897,11 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
         ? "Sending reminder…"
         : "Ask everyone to return to lobby";
       reminderButton.addEventListener("click", actions.onAskResultsViewersToReturn);
-      lobbyActions.append(reminderButton);
     }
   }
 
   lobbyActions.append(leaveButton);
+  if (reminderButton) lobbyActions.append(reminderButton);
   screen.append(lobbyActions);
   if (state.isBusy) {
     screen.append(createElement("p", "status-message", "Updating room…"));
@@ -937,16 +946,20 @@ function createInvitationDialog(
 
   const url = createElement("p", "invitation-url", invitationUrl);
   url.id = "invitation-url";
-  url.setAttribute("aria-label", "Invitation link");
-  dialog.append(url);
-
-  const actionPanel = createElement("div", "invitation-dialog-actions");
-  const copyButton = createElement("button", "primary-button", state.isInvitationBusy ? "Working…" : "Copy link");
+  const urlRow = createElement("div", "invitation-url-row");
+  const copyButton = createElement("button", "secondary-button invitation-copy-button");
   copyButton.type = "button";
   copyButton.disabled = state.isBusy || state.isInvitationBusy;
+  copyButton.setAttribute("aria-label", state.invitationFeedback === "Invitation link copied." ? "Invitation link copied" : "Copy invitation link");
+  copyButton.title = state.invitationFeedback === "Invitation link copied." ? "Invitation link copied" : "Copy invitation link";
   copyButton.setAttribute("data-invitation-focus", "copy");
+  copyButton.append(createIcon(state.invitationFeedback === "Invitation link copied." ? "check" : "copy"));
   copyButton.addEventListener("click", actions.onCopyInvitationLink);
-  const shareButton = createElement("button", "secondary-button", "Share invite");
+  urlRow.append(url, copyButton);
+  dialog.append(urlRow);
+
+  const actionPanel = createElement("div", "invitation-dialog-actions");
+  const shareButton = createElement("button", "primary-button", "Share invite");
   shareButton.type = "button";
   shareButton.disabled = state.isBusy || state.isInvitationBusy;
   shareButton.setAttribute("data-invitation-focus", "share");
@@ -957,7 +970,7 @@ function createInvitationDialog(
   qrButton.setAttribute("aria-expanded", String(state.isInvitationQrVisible));
   qrButton.setAttribute("data-invitation-focus", "qr");
   qrButton.addEventListener("click", actions.onToggleInvitationQr);
-  actionPanel.append(copyButton, shareButton, qrButton);
+  actionPanel.append(shareButton, qrButton);
   dialog.append(actionPanel);
 
   if (state.isInvitationQrVisible && state.invitationQrDataUrl) {

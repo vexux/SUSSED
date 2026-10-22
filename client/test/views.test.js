@@ -422,7 +422,14 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     assert.equal(invitationDialog.getAttribute("aria-labelledby"), "invitation-dialog-title");
     assert.equal(invitationDialog.getAttribute("open"), "");
     assert.match(invitationDialog.text, /https:\/\/play\.example\/\?code=ZING/u);
-    assert.ok(invitationDialog.query((element) => element.textContent === "Copy link"));
+    assert.equal(invitationDialog.query((element) => element.textContent === "Copy link"), null);
+    const inlineCopyButton = invitationDialog.query((element) => element.getAttribute("aria-label") === "Copy invitation link");
+    assert.ok(inlineCopyButton);
+    assert.equal(inlineCopyButton.className.includes("invitation-copy-button"), true);
+    assert.equal(inlineCopyButton.getAttribute("data-invitation-focus"), "copy");
+    assert.ok(invitationDialog.query((element) => element.className.includes("invitation-url-row")));
+    inlineCopyButton.dispatch("click");
+    assert.ok(calls.some(([name]) => name === "onCopyInvitationLink"));
     assert.ok(invitationDialog.query((element) => element.textContent === "Share invite"));
     assert.ok(invitationDialog.query((element) => element.textContent === "Show QR code"));
     invitationDialog.dispatch("cancel", { preventDefault() {} });
@@ -681,7 +688,7 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     state.lobby = {
       roomCode: "ZING", revision: 2, playerCount: 2, readinessStatus: "waiting-for-ready",
       status: "lobby", visibility: "private", maxPlayers: 8, selectedGameId: "fact-or-cap", selectedRoundCount: 5,
-      reminderSessionId: null,
+      reminderSessionId: "finished-session",
       selectedGame: { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
       availableGames: [],
       players: [
@@ -704,6 +711,15 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.equal(publicChoice.checked, false);
     assert.equal(root.query((element) => element.getAttribute("aria-label") === "5 rounds").disabled, false);
     assert.ok(root.query((element) => element.className.includes("lobby-content-grid")));
+    const headingBar = root.query((element) => element.className.includes("lobby-heading-bar"));
+    assert.equal(headingBar.children[0].textContent, "Lobby");
+    const rounds = root.query((element) => element.className.includes("round-selector"));
+    assert.equal(rounds.parentElement.className, "lobby-settings-row");
+    assert.equal(root.query((element) => element.className.includes("lobby-settings-panel")), null);
+    const hostActions = root.query((element) => element.className.includes("host-lobby-actions"));
+    assert.deepEqual(hostActions.children.map((button) => button.textContent), [
+      "Start game", "Leave room", "Ask everyone to return to lobby",
+    ]);
     publicChoice.checked = true;
     publicChoice.dispatch("change");
     assert.deepEqual(changes, [["onSetRoomVisibility", "public"]]);
@@ -858,9 +874,13 @@ test("lobby controls expose compact invitation and visibility hooks and hide uns
     const roomCode = root.query((element) => element.className.includes("room-code-chip"));
     const invite = root.query((element) => element.className.includes("invite-friends-button"));
     assert.match(root.text, /Room CodeZING/u);
+    assert.equal(roomCode.className.includes("room-code-chip"), true);
+    assert.equal(invite.children[1].className, "invite-label-long");
+    assert.equal(invite.children[2].className, "invite-label-short");
     assert.match(roomCode.getAttribute("aria-label"), /copied/u);
     assert.ok(invite.query((element) => element.tagName === "svg"));
     assert.equal(root.query((element) => element.className.includes("round-selector")), null);
+    assert.equal(root.query((element) => element.className.includes("lobby-settings-panel")), null);
     assert.equal(root.query((element) => element.className.includes("lobby-heading-bar")).children[1].className.includes("room-visibility-field"), true);
     assert.doesNotMatch(root.text, /Discoverable while seats are open|Join with a room code/u);
     const changeGame = root.query((element) => element.textContent === "Change game");
