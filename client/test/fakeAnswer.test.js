@@ -35,6 +35,11 @@ class FakeElement {
   dispatch(type, event = {}) { this.listeners[type]?.({ preventDefault() {}, stopPropagation() {}, ...event }); }
   get text() { return this.textContent + this.children.map((child) => child.text).join(""); }
   get firstElementChild() { return this.children.find((child) => !child.isTextNode) ?? null; }
+  querySelector(selector) {
+    if (!selector.startsWith(".")) return null;
+    const className = selector.slice(1);
+    return this.query((node) => node.className.split(/\s+/u).includes(className));
+  }
   query(predicate) {
     return this.children.find(predicate) ?? this.children.map((child) => child.query(predicate)).find(Boolean) ?? null;
   }
@@ -589,7 +594,10 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
 
 test("ordinary question and round-results screens retain their heading and round counter", () => {
   const originalDocument = globalThis.document;
-  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
   try {
     const submission = createFinalView({ isRoundFeedbackDismissed: true });
     const question = renderFakeAnswerGame({
@@ -624,6 +632,56 @@ test("ordinary question and round-results screens retain their heading and round
     const roundResults = renderFakeAnswerGame(roundState, submission, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false, () => {});
     assert.equal(roundResults.query((node) => node.tagName === "h1").textContent, "Round results");
     assert.equal(roundResults.query((node) => node.className === "round-counter").textContent, "Round 4 of 5");
+    assert.equal(
+      roundResults.query((node) => node.className === "continue-progress").textContent,
+      "0 / 2 players ready to continue",
+    );
+    const readiness = roundResults.query((node) => node.className.includes("continue-player-list"));
+    assert.equal(readiness.className, "continue-player-list avatar-status-list");
+    assert.deepEqual(readiness.children.map((item) => item.dataset.playerId), ["player-1", "player-2"]);
+    assert.deepEqual(readiness.children.map((item) => item.children[0].children[0].textContent), ["PO", "PT"]);
+    assert.deepEqual(readiness.children.map((item) => item.children[1].textContent), ["Player One", "Player Two"]);
+    assert.deepEqual(
+      readiness.children.map((item) => item.children[0].children[1].attributes["aria-label"]),
+      ["Waiting", "Waiting"],
+    );
+
+    roundState.continueReadyCount = 1;
+    roundState.viewerReadyToContinue = true;
+    roundState.continueProgress[0].ready = true;
+    const updatedRoundResults = renderFakeAnswerGame(roundState, submission, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false, () => {});
+    const updatedReadiness = updatedRoundResults.query((node) => node.className.includes("continue-player-list"));
+    assert.equal(
+      updatedRoundResults.query((node) => node.className === "continue-progress").textContent,
+      "1 / 2 players ready to continue",
+    );
+    assert.deepEqual(
+      updatedReadiness.children.map((item) => item.children[0].children[1].className),
+      [
+        "avatar-status-badge avatar-status-badge-complete",
+        "avatar-status-badge avatar-status-badge-waiting",
+      ],
+    );
+    assert.deepEqual(
+      updatedReadiness.children.map((item) => item.children[0].children[1].attributes["aria-label"]),
+      ["Ready", "Waiting"],
+    );
+
+    roundState.phase = "answer-submission";
+    roundState.currentRound = 5;
+    roundState.roundId = "round-5";
+    roundState.submissionCount = 0;
+    roundState.submissionProgress = [
+      { playerId: "player-1", name: "Player One", submitted: false },
+      { playerId: "player-2", name: "Player Two", submitted: false },
+    ];
+    const nextRound = renderFakeAnswerGame(roundState, submission, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false, () => {});
+    assert.equal(nextRound.query((node) => node.className.includes("continue-player-list")), null);
+    assert.deepEqual(
+      nextRound.query((node) => node.className.includes("submission-player-list"))
+        .children.map((item) => item.children[0].children[1].attributes["aria-label"]),
+      ["Waiting", "Waiting"],
+    );
   } finally {
     if (originalDocument === undefined) delete globalThis.document;
     else globalThis.document = originalDocument;

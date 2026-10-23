@@ -839,9 +839,12 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   const roundsField = createElement("div", "round-selector");
   roundsField.setAttribute("role", "group");
   roundsField.setAttribute("aria-label", "Rounds");
-  roundsField.append(createElement("span", "field-label", "Rounds"));
   const supportsRoundSelection = lobby.selectedGame.supportsRoundSelection !== false;
-  if (supportsRoundSelection && isHost && lobby.status === "lobby") {
+  const canSelectRounds = isHost && lobby.status === "lobby";
+  if (canSelectRounds) {
+    roundsField.append(createElement("span", "field-label", "Rounds"));
+  }
+  if (supportsRoundSelection && canSelectRounds) {
     const roundOptions = createElement("div", "round-options");
     for (const roundCount of [5, 7, 10] as const) {
       const option = createElement(

@@ -592,6 +592,13 @@ test("game selection is registry-driven and selecting a card does not create a r
     const publicVisibility = root.query((element) => element.id === "create-room-visibility-public");
     assert.equal(privateVisibility.checked, true);
     assert.equal(publicVisibility.checked, false);
+    const publicVisibilityTitle = publicVisibility.parentElement.query((element) => element.className.includes("visibility-option-title"));
+    assert.ok(publicVisibilityTitle);
+    assert.ok(publicVisibilityTitle.query((element) => element.className.includes("icon-globe")));
+    assert.equal(publicVisibilityTitle.query((element) => element.className.includes("icon-globe")).getAttribute("aria-hidden"), "true");
+    const privateVisibilityTitle = privateVisibility.parentElement.query((element) => element.className.includes("visibility-option-title"));
+    assert.ok(privateVisibilityTitle.query((element) => element.className.includes("icon-lock")));
+    assert.equal(privateVisibilityTitle.query((element) => element.className.includes("icon-lock")).getAttribute("aria-hidden"), "true");
     privateVisibility.checked = false;
     publicVisibility.checked = true;
     publicVisibility.dispatch("change");
@@ -749,6 +756,7 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.equal(headingBar.children[0].textContent, "Lobby");
     const rounds = root.query((element) => element.className.includes("round-selector"));
     assert.equal(rounds.parentElement.className, "lobby-settings-row");
+    assert.equal(rounds.children[0].textContent, "Rounds");
     assert.equal(
       rounds.query((element) => element.className.includes("round-options")).children.map((button) => button.textContent).join(", "),
       "5, 7, 10",
@@ -767,7 +775,14 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.equal(root.query((element) => element.getAttribute("aria-label") === "Room visibility: Private").tagName, "span");
     assert.doesNotMatch(root.text, /Room visibility/u);
     assert.equal(root.query((element) => element.getAttribute("aria-label") === "5 rounds"), null);
-    assert.ok(root.query((element) => element.className.includes("readonly-setting-value")));
+    const readonlyRounds = root.query((element) => element.className.includes("readonly-setting-value"));
+    assert.ok(readonlyRounds);
+    assert.equal(readonlyRounds.textContent, "Number of rounds: 5");
+    assert.equal(
+      root.query((element) => element.className.includes("round-selector"))
+        .children.some((element) => element.className.includes("field-label")),
+      false,
+    );
     assert.match(root.text, /Number of rounds: 5/u);
     assert.doesNotMatch(root.text, /Rounds\s+5 rounds/u);
     const guestActions = root.query((element) => element.className.includes("lobby-actions"));

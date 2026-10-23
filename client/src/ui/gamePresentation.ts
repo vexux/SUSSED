@@ -49,32 +49,6 @@ export function createStatusMessage(
   return status;
 }
 
-export function createProgressChipList<T extends PresentationPlayer>(
-  players: T[],
-  statusFor: (player: T) => string,
-  className = "progress-chip-list",
-): HTMLUListElement {
-  const list = document.createElement("ul");
-  list.className = className;
-  replaceProgressChipList(list, players, statusFor);
-  return list;
-}
-
-export function replaceProgressChipList<T extends PresentationPlayer>(
-  list: HTMLUListElement,
-  players: T[],
-  statusFor: (player: T) => string,
-): void {
-  list.replaceChildren();
-  for (const player of players) {
-    const item = document.createElement("li");
-    item.className = "progress-chip";
-    item.dataset.playerId = player.playerId;
-    item.textContent = statusFor(player);
-    list.append(item);
-  }
-}
-
 function getPlayerInitials(name: string): string {
   const parts = name.trim().split(/\s+/u).filter(Boolean);
   if (parts.length > 1) {
@@ -537,10 +511,12 @@ export function appendContinueReadiness(options: {
   progress.className = "continue-progress";
   progress.textContent = `${options.readyCount} / ${options.playerCount} players ready to continue`;
   options.screen.append(progress);
-  const list = createProgressChipList(options.players, ({ name, ready }) => `${name} · ${ready ? "Ready" : "Waiting"}`, "continue-player-list progress-chip-list");
-  options.players.forEach((player, index) => {
-    if (player.ready) list.children[index]?.classList.add("progress-chip-done");
-  });
+  const list = createAvatarStatusList(
+    options.players,
+    ({ ready }) => ready,
+    "Ready",
+    "continue-player-list avatar-status-list",
+  );
   options.screen.append(list);
   if (options.viewerReady) {
     options.screen.append(createStatusMessage("You’re ready. Waiting for the other players…"));
