@@ -373,7 +373,9 @@ function createVisibilitySelector(options: {
     });
     const content = createElement("span", "visibility-option-content");
     const title = createElement("span", "visibility-option-title", visibility === "public" ? "Public" : "Private");
-    title.append(createIcon(visibility === "public" ? "globe" : "lock"));
+    const icon = createIcon(visibility === "public" ? "globe" : "lock");
+    icon.classList.add(`room-visibility-icon-${visibility}`);
+    title.append(icon);
     content.append(title);
     label.append(input, content);
     choices.append(label);

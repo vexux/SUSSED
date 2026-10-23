@@ -853,7 +853,7 @@ export function renderFakeAnswerGame(
       submitted.className = "status-message";
       const waitingCount = publicState.playerCount - publicState.submissionCount;
       submitted.textContent = waitingCount > 0
-        ? `Answer submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}.`
+        ? `Answer submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}...`
         : "Answer submitted. Preparing the answers…";
       screen.append(submitted);
       return screen;
@@ -914,7 +914,7 @@ export function renderFakeAnswerGame(
     if (viewerHasVoted) {
       updateFakeAnswerVoteProgress(screen, publicState);
       const waiting = document.createElement("p");
-      waiting.className = "status-message vote-accepted";
+      waiting.className = "status-message";
       const waitingCount = publicState.playerCount - (publicState.voteCount ?? 0);
       waiting.textContent = waitingCount > 0
         ? `Vote submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}…`

@@ -1211,6 +1211,7 @@ select:focus:not(:focus-visible) {
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
+  transform: translateY(1px);
 }
 
 .invitation-message,
@@ -2291,14 +2292,6 @@ select:focus:not(:focus-visible) {
   color: var(--color-text-muted);
   font-size: 0.95rem;
   font-weight: 700;
-}
-
-.vote-accepted {
-  max-width: 640px;
-  padding: 14px 18px;
-  border: 1px solid var(--color-success-border);
-  border-radius: 8px;
-  background: var(--color-success-surface);
 }
 
 .results-section-heading {

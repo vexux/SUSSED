@@ -260,7 +260,7 @@ export function renderBruhWtfGame(
     if (submitted) {
       const waitingCount = state.playerCount - (state.submissionCount ?? 0);
       screen.append(createStatusMessage(waitingCount > 0
-        ? `Answer submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}.`
+        ? `Answer submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}...`
         : "Answer submitted. Preparing the answers…"));
     } else {
       screen.append(createStatusMessage("Submit your answer when you’re ready."));
@@ -290,7 +290,7 @@ export function renderBruhWtfGame(
       const waitingCount = state.playerCount - (state.voteCount ?? 0);
       screen.append(createStatusMessage(waitingCount > 0
         ? `Vote submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}…`
-        : "Vote submitted. Preparing results…", "status-message vote-accepted"));
+        : "Vote submitted. Preparing results…"));
     } else {
       screen.append(createVotingForm({
         answers: state.options ?? [],

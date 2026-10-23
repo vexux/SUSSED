@@ -362,6 +362,51 @@ test("Bruh round results show answer details and authoritative round deltas in t
   });
 });
 
+test("Bruh wtf submission and vote status messages retain plain wording", () => {
+  withFakeElements(() => {
+    const view = {
+      currentPlayerId: "local", answerDraft: "", isSubmitting: false, submitError: null,
+      selectedOptionId: null, hasVoted: true, isVoting: false, voteError: null,
+      isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null,
+    };
+    const submissionState = {
+      phase: "answer-submission",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: "What would Alex do?",
+      playerCount: 2,
+      submissionCount: 1,
+      submissionProgress: [
+        { playerId: "local", name: "Alex", submitted: true },
+        { playerId: "remote", name: "Sam", submitted: false },
+      ],
+    };
+    const submissionScreen = renderBruhWtfGame(
+      submissionState, view, () => {}, () => {}, () => {}, () => {}, () => {}, () => {},
+      "Bruh wtf?", false,
+    );
+    assert.equal(
+      submissionScreen.query((node) => node.className === "status-message").textContent,
+      "Answer submitted. Waiting for 1 player...",
+    );
+
+    const votingScreen = renderBruhWtfGame({
+      ...submissionState,
+      phase: "voting",
+      voteCount: 1,
+      voteProgress: [
+        { playerId: "local", name: "Alex", voted: true },
+        { playerId: "remote", name: "Sam", voted: false },
+      ],
+    }, view, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", false);
+    const voteMessage = votingScreen.query((node) => node.textContent.startsWith("Vote submitted."));
+    assert.equal(voteMessage.className, "status-message");
+    assert.equal(voteMessage.textContent, "Vote submitted. Waiting for 1 player…");
+  });
+});
+
 test("Bruh final results omit round content and show tied winners, final leaderboard, and host control", () => {
   withFakeElements(() => {
     let returnCalls = 0;

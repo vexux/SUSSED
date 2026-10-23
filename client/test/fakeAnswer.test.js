@@ -349,6 +349,72 @@ test("Fact or Cap voting renders shared avatar progress before the local vote is
   }
 });
 
+test("Fact or Cap submission and vote status messages retain plain wording", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
+  try {
+    const view = {
+      ...createFinalView(),
+      currentPlayerId: "local",
+      hasVoted: true,
+    };
+    const submissionState = {
+      phase: "answer-submission",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: { id: "prompt-1", text: "Complete this sentence." },
+      submissionCount: 1,
+      playerCount: 2,
+      submissionProgress: [
+        { playerId: "local", name: "Local", submitted: true },
+        { playerId: "remote", name: "Remote", submitted: false },
+      ],
+    };
+    const submissionScreen = renderFakeAnswerGame(
+      submissionState, view, () => {}, () => {}, () => {}, () => {}, () => {},
+      "Fact or Cap", false,
+    );
+    const submissionMessage = submissionScreen.query((node) => node.className === "status-message");
+    assert.equal(submissionMessage.textContent, "Answer submitted. Waiting for 1 player...");
+
+    const votingScreen = renderFakeAnswerGame({
+      ...submissionState,
+      phase: "voting",
+      submissionCount: 2,
+      voteCount: 1,
+      voteProgress: [
+        { playerId: "local", name: "Local", voted: true },
+        { playerId: "remote", name: "Remote", voted: false },
+      ],
+      options: [
+        { id: "own", completion: "Local answer", isOwnAnswer: true },
+        { id: "remote", completion: "Remote answer", isOwnAnswer: false },
+        { id: "correct", completion: "Correct answer", isOwnAnswer: false },
+      ],
+    }, view, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false);
+    const voteMessage = votingScreen.query((node) => node.textContent.startsWith("Vote submitted."));
+    assert.equal(voteMessage.className, "status-message");
+    assert.equal(voteMessage.textContent, "Vote submitted. Waiting for 1 player…");
+
+    const allSubmittedScreen = renderFakeAnswerGame({
+      ...submissionState,
+      submissionCount: 2,
+      submissionProgress: submissionState.submissionProgress.map((player) => ({ ...player, submitted: true })),
+    }, view, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false);
+    assert.equal(
+      allSubmittedScreen.query((node) => node.className === "status-message").textContent,
+      "Answer submitted. Preparing the answers…",
+    );
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
 test("groups reveal answers by authoritative correctness rather than answer text", () => {
   const results = createResults();
   const groups = getRevealAnswerGroups(results.options);
