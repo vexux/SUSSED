@@ -11,7 +11,7 @@ import {
   createSubmissionProgress,
   createVoteProgress,
   createVotingForm,
-  replaceProgressChipList,
+  replaceAvatarStatusList,
 } from "../ui/gamePresentation.ts";
 
 export interface BruhWtfPublicState {
@@ -106,14 +106,12 @@ export function updateBruhSubmissionProgress(
   const current = publicState.submissionProgress?.find(({ playerId }) => playerId === currentPlayerId);
   if (!progress || !list || !current) return false;
   progress.textContent = `${publicState.submissionCount} of ${publicState.playerCount} answers submitted`;
-  replaceProgressChipList(list, publicState.submissionProgress ?? [], (player) => {
-    const status = player.submitted ? "Submitted" : "Waiting";
-    return player.playerId === currentPlayerId ? `You · ${status}` : `${player.name} · ${status}`;
-  });
-  for (const item of Array.from(list.children)) {
-    const player = publicState.submissionProgress?.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
-    if (player?.submitted) item.classList.add("progress-chip-done");
-  }
+  replaceAvatarStatusList(
+    list,
+    publicState.submissionProgress ?? [],
+    (player) => player.submitted,
+    "Submitted",
+  );
   return !current.submitted;
 }
 
@@ -129,14 +127,12 @@ export function updateBruhVoteProgress(
   if (!progress || !current) return false;
   progress.textContent = `${publicState.voteCount ?? 0} of ${publicState.playerCount} players voted`;
   if (list) {
-    replaceProgressChipList(list, publicState.voteProgress ?? [], (player) => {
-      const label = player.voted ? "Voted" : "Waiting";
-      return player.playerId === currentPlayerId ? `You · ${label}` : `${player.name} · ${label}`;
-    });
-    for (const item of Array.from(list.children)) {
-      const player = publicState.voteProgress?.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
-      if (player?.voted) item.classList.add("progress-chip-done");
-    }
+    replaceAvatarStatusList(
+      list,
+      publicState.voteProgress ?? [],
+      (player) => player.voted,
+      "Voted",
+    );
   }
   return !current.voted;
 }
@@ -257,7 +253,7 @@ export function renderBruhWtfGame(
 
   if (state.phase === "answer-submission") {
     const submitted = state.submissionProgress?.some(({ playerId, submitted: done }) => playerId === view.currentPlayerId && done) === true;
-    const [progress, list] = createSubmissionProgress(state.submissionCount ?? 0, state.playerCount, state.submissionProgress ?? [], view.currentPlayerId);
+    const [progress, list] = createSubmissionProgress(state.submissionCount ?? 0, state.playerCount, state.submissionProgress ?? []);
     list.classList.add("bruh-submission-player-list");
     screen.append(progress, list);
     updateBruhSubmissionProgress(screen, state, view.currentPlayerId);
@@ -286,7 +282,7 @@ export function renderBruhWtfGame(
   } else if (state.phase === "voting") {
     const viewerVoted = view.hasVoted || state.voteProgress?.some(({ playerId, voted }) => playerId === view.currentPlayerId && voted) === true;
     screen.append(createStatusMessage("Answers are anonymous. Choose another player’s answer.", "screen-description"));
-    const voteProgress = createVoteProgress(state.voteCount ?? 0, state.playerCount, state.voteProgress ?? [], view.currentPlayerId);
+    const voteProgress = createVoteProgress(state.voteCount ?? 0, state.playerCount, state.voteProgress ?? []);
     voteProgress[0].classList.add("bruh-vote-progress");
     voteProgress[1].classList.add("bruh-vote-player-list");
     if (viewerVoted) {
@@ -313,7 +309,7 @@ export function renderBruhWtfGame(
     }
   } else if (state.phase === "waiting-for-results") {
     screen.append(createStatusMessage("Waiting for results.", "screen-description"));
-    screen.append(...createVoteProgress(state.voteCount ?? 0, state.playerCount, state.voteProgress ?? [], view.currentPlayerId));
+    screen.append(...createVoteProgress(state.voteCount ?? 0, state.playerCount, state.voteProgress ?? []));
   } else if (state.results) {
     const results = state.results;
     const answersHeading = element("h2", "results-section-heading", "Answers");

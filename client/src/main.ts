@@ -769,7 +769,7 @@ function applyGameState(game: GameSessionState): void {
   }
   if (
     isVoteProgressOnly &&
-    updateFakeAnswerVoteProgress(appRoot, game.state, state.localPlayerId)
+    updateFakeAnswerVoteProgress(appRoot, game.state)
   ) {
     return;
   }

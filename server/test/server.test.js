@@ -3308,10 +3308,27 @@ test("a transferred host viewing finished results returns from results instead o
     const newHostReturned = waitForLobby(game.players[0], (lobby) =>
         lobby.players.find(({ id }) => id === game.players[0].id)?.isInGame === false
     );
+    const formerHostSeesReturnedNewHost = waitForLobby(game.host, (lobby) =>
+        lobby.players.find(({ id }) => id === game.players[0].id)?.isInGame === false
+    );
     assert.deepEqual(await emitWithAck(game.players[0], "return-from-results", {
         sessionId: finishedSessionId
     }), { returned: true, status: "lobby" });
-    assert.equal((await newHostReturned).status, "lobby");
+    const [newHostLobbyAfterReturn, formerHostLobbyAfterReturn] = await Promise.all([
+        newHostReturned,
+        formerHostSeesReturnedNewHost
+    ]);
+    assert.deepEqual(newHostLobbyAfterReturn, formerHostLobbyAfterReturn);
+    assert.equal(newHostLobbyAfterReturn.status, "lobby");
+    assert.equal(newHostLobbyAfterReturn.players.find(
+        ({ id }) => id === game.players[0].id
+    ).isHost, true);
+    assert.equal(newHostLobbyAfterReturn.players.find(
+        ({ id }) => id === game.players[0].id
+    ).isInGame, false);
+    assert.equal(newHostLobbyAfterReturn.players.find(
+        ({ id }) => id === game.host.id
+    ).isHost, false);
     assert.equal(roomManager.getRoom(game.roomCode).players.find(
         ({ id }) => id === game.players[0].id
     ).viewingResultsSessionId, null);

@@ -9,6 +9,7 @@ import {
   getRevealAnswerGroups,
   renderFakeAnswerGame,
   updateFakeAnswerProgress,
+  updateFakeAnswerVoteProgress,
 } from "../src/games/fakeAnswer.ts";
 
 class FakeElement {
@@ -165,13 +166,8 @@ test("remote submission progress updates without changing the active answer inpu
   };
   const originalDocument = globalThis.document;
   globalThis.document = {
-    createElement() {
-      return {
-        dataset: {},
-        className: "",
-        append() {},
-      };
-    },
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
   };
 
   try {
@@ -192,17 +188,159 @@ test("remote submission progress updates without changing the active answer inpu
     assert.equal(updated, true);
     assert.equal(progress.textContent, "1 of 2 answers submitted");
     assert.equal(children.length, 2);
+    assert.deepEqual(children.map((item) => item.children[1].textContent), ["Local", "Remote"]);
+    assert.deepEqual(
+      children.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Waiting", "Submitted"],
+    );
     assert.equal(root.querySelector("#fake-completion"), input);
     assert.equal(input.value, "partial answer");
     assert.equal(input.selectionStart, 7);
     assert.equal(input.selectionEnd, 7);
     assert.equal(input.focused, true);
+
+    const updatedState = {
+      phase: "answer-submission",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: { id: "prompt-1", text: "Complete this sentence." },
+      submissionCount: 2,
+      playerCount: 2,
+      submissionProgress: [
+        { playerId: "local", name: "Local", submitted: true },
+        { playerId: "remote", name: "Remote", submitted: true },
+      ],
+    };
+    assert.equal(updateFakeAnswerProgress(root, updatedState, "local"), false);
+    assert.equal(progress.textContent, "2 of 2 answers submitted");
+    assert.deepEqual(
+      children.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Submitted", "Submitted"],
+    );
   } finally {
     if (originalDocument === undefined) {
       delete globalThis.document;
     } else {
       globalThis.document = originalDocument;
     }
+  }
+});
+
+test("Fact or Cap vote progress changes only from authoritative waiting to voted state", () => {
+  const progress = { textContent: "" };
+  const children = [];
+  const playerList = {
+    replaceChildren() { children.length = 0; },
+    append(child) { children.push(child); },
+    get children() { return children; },
+  };
+  const root = {
+    querySelector(selector) {
+      return selector === ".vote-progress" ? progress : selector === ".vote-player-list" ? playerList : null;
+    },
+  };
+  const originalDocument = globalThis.document;
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
+  try {
+    const state = {
+      phase: "voting",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: { id: "prompt-1", text: "Complete this sentence." },
+      submissionCount: 2,
+      playerCount: 2,
+      voteCount: 1,
+      options: [
+        { id: "own", completion: "Local answer", isOwnAnswer: true },
+        { id: "remote", completion: "Remote answer", isOwnAnswer: false },
+        { id: "correct", completion: "Correct answer", isOwnAnswer: false },
+      ],
+      voteProgress: [
+        { playerId: "local", name: "Local", voted: false },
+        { playerId: "remote", name: "Remote", voted: true },
+      ],
+    };
+    assert.equal(updateFakeAnswerVoteProgress(root, state), true);
+    assert.equal(progress.textContent, "1 of 2 players voted");
+    assert.deepEqual(
+      children.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Waiting", "Voted"],
+    );
+
+    state.voteCount = 2;
+    state.voteProgress[0].voted = true;
+    assert.equal(updateFakeAnswerVoteProgress(root, state), true);
+    assert.equal(progress.textContent, "2 of 2 players voted");
+    assert.deepEqual(
+      children.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Voted", "Voted"],
+    );
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
+test("Fact or Cap voting renders shared avatar progress before the local vote is submitted", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
+  try {
+    const publicState = {
+      phase: "voting",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: { id: "prompt-1", text: "Complete this sentence." },
+      submissionCount: 2,
+      playerCount: 2,
+      voteCount: 0,
+      voteProgress: [
+        { playerId: "local", name: "Local", voted: false },
+        { playerId: "remote", name: "Remote", voted: false },
+      ],
+      options: [
+        { id: "own", completion: "Local answer", isOwnAnswer: true },
+        { id: "remote", completion: "Remote answer", isOwnAnswer: false },
+        { id: "correct", completion: "Correct answer", isOwnAnswer: false },
+      ],
+    };
+    const view = {
+      currentPlayerId: "local", hasSubmitted: true, completionDraft: "", isSubmitting: false,
+      submissionError: null, hasVoted: false, isVoting: false, selectedOptionId: null,
+      voteError: null, isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null, isRoundFeedbackDismissed: true,
+    };
+    const root = renderFakeAnswerGame(
+      publicState,
+      view,
+      () => {},
+      () => {},
+      () => {},
+      () => {},
+      () => {},
+      "Fact or Cap",
+      false,
+    );
+    const progress = root.query((element) => element.className === "vote-progress");
+    const list = root.query((element) => element.className.includes("vote-player-list"));
+    assert.equal(progress.textContent, "0 of 2 players voted");
+    assert.equal(list.className, "vote-player-list avatar-status-list");
+    assert.deepEqual(
+      list.children.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Waiting", "Waiting"],
+    );
+    assert.ok(root.query((element) => element.className === "vote-form"));
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
   }
 });
 
@@ -285,7 +423,10 @@ test("missing or invalid votes produce neutral feedback", () => {
 
 test("Fact-or-Cap voting renderer retains shared voting labels, option markup, and submission callback", () => {
   const originalDocument = globalThis.document;
-  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
   try {
     const publicState = {
       phase: "voting",

@@ -2432,15 +2432,97 @@ select:focus:not(:focus-visible) {
   font-weight: 700;
 }
 
-.submission-player-list {
+.avatar-status-list {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  align-items: flex-start;
+  gap: var(--space-3) var(--space-2);
   width: 100%;
   margin: 8px 0 0;
   padding: 0;
   list-style: none;
+}
+
+.avatar-status-player {
+  display: flex;
+  flex: 0 1 68px;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  gap: 4px;
+  text-align: center;
+}
+
+.avatar-status-wrapper {
+  position: relative;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+}
+
+.avatar-status-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+}
+
+.avatar-status-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid;
+  border-radius: 50%;
+}
+
+.avatar-status-badge-complete {
+  border-color: var(--color-success-border-strong);
+  color: var(--color-success-bright);
+  background: var(--color-success-surface);
+}
+
+.avatar-status-badge-waiting {
+  border-color: var(--color-accent-border-strong);
+  color: var(--color-accent-light);
+  background: var(--color-accent-surface-strong);
+}
+
+.avatar-status-badge svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.avatar-status-badge-waiting svg {
+  animation: avatar-hourglass-rotate 3s ease-in-out infinite;
+}
+
+.avatar-status-name {
+  width: 100%;
+  color: var(--color-text-soft);
+  font-size: 0.78rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+@keyframes avatar-hourglass-rotate {
+  0%, 35%, 100% {
+    transform: rotate(0deg);
+  }
+
+  50%, 85% {
+    transform: rotate(180deg);
+  }
 }
 
 .progress-chip-list {
@@ -2975,5 +3057,9 @@ select:focus:not(:focus-visible) {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .avatar-status-badge-waiting svg {
+    animation: none !important;
   }
 }

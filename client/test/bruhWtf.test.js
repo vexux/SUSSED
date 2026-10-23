@@ -10,14 +10,8 @@ import {
 function withFakeDocument(run) {
   const original = globalThis.document;
   globalThis.document = {
-    createElement() {
-      const item = { dataset: {}, className: "", append() {} };
-      item.classList = { add(...names) { item.className = [...new Set(`${item.className} ${names.join(" ")}`.trim().split(/\s+/u))].join(" "); } };
-      return item;
-    },
-    createElementNS(_namespace, tagName) {
-      return new FakeElement(tagName);
-    },
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
   };
   try {
     run();
@@ -141,11 +135,25 @@ test("Bruh wtf remote submission progress retains an unsubmitted answer input", 
     assert.equal(updateBruhSubmissionProgress(root, state, "local"), true);
     assert.equal(progress.textContent, "1 of 2 answers submitted");
     assert.equal(chips.length, 2);
+    assert.deepEqual(chips.map((item) => item.children[1].textContent), ["Alex", "Sam"]);
+    assert.deepEqual(
+      chips.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Waiting", "Submitted"],
+    );
     assert.equal(root.querySelector("#bruh-answer"), input);
     assert.equal(input.value, "unfinished thought");
     assert.equal(input.selectionStart, 10);
     assert.equal(input.selectionEnd, 10);
     assert.equal(input.focused, true);
+
+    state.submissionCount = 2;
+    state.submissionProgress[0].submitted = true;
+    assert.equal(updateBruhSubmissionProgress(root, state, "local"), false);
+    assert.equal(progress.textContent, "2 of 2 answers submitted");
+    assert.deepEqual(
+      chips.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Submitted", "Submitted"],
+    );
   });
 });
 
@@ -183,10 +191,40 @@ test("Bruh wtf vote progress updates in place until the local vote is acknowledg
   assert.equal(updateBruhVoteProgress(root, state, "local"), true);
   assert.equal(progress.textContent, "1 of 2 players voted");
   assert.equal(chips.length, 2);
+  assert.deepEqual(
+    chips.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+    ["Waiting", "Voted"],
+  );
   assert.equal(root.querySelector("#selected-option"), input);
   assert.equal(input.checked, true);
+  state.voteCount = 2;
   state.voteProgress[0].voted = true;
   assert.equal(updateBruhVoteProgress(root, state, "local"), false);
+  assert.equal(progress.textContent, "2 of 2 players voted");
+  assert.deepEqual(
+    chips.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+    ["Voted", "Voted"],
+  );
+  });
+});
+
+test("Bruh wtf voting renders shared avatar statuses while the local player is still choosing", () => {
+  withFakeElements(() => {
+    const root = renderVoting({
+      currentPlayerId: "local", answerDraft: "", isSubmitting: false, submitError: null,
+      selectedOptionId: null, hasVoted: false, isVoting: false, voteError: null,
+      isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null,
+    }, () => {}, () => {});
+    const progress = root.query((node) => node.className.includes("bruh-vote-progress"));
+    const list = root.query((node) => node.className.includes("bruh-vote-player-list"));
+    assert.equal(progress.textContent, "0 of 3 players voted");
+    assert.equal(list.className, "vote-player-list avatar-status-list bruh-vote-player-list");
+    assert.deepEqual(
+      list.children.map((item) => item.query((node) => node.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Waiting", "Waiting", "Waiting"],
+    );
+    assert.ok(root.query((node) => node.className === "vote-form"));
   });
 });
 
