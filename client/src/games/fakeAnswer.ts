@@ -10,7 +10,7 @@ import {
   createSubmissionProgress,
   createVoteProgress,
   createVotingForm,
-  replaceProgressChipList,
+  replaceAvatarStatusList,
 } from "../ui/gamePresentation.ts";
 
 export interface FakeAnswerOption {
@@ -450,14 +450,12 @@ export function updateFakeAnswerProgress(
 
   progress.textContent =
     `${publicState.submissionCount} of ${publicState.playerCount} answers submitted`;
-  replaceProgressChipList(playerList, publicState.submissionProgress ?? [], (player) => {
-    const status = player.submitted ? "Submitted" : "Waiting";
-    return player.playerId === currentPlayerId ? `You · ${status}` : `${player.name} · ${status}`;
-  });
-  for (const item of Array.from(playerList.children)) {
-    const player = publicState.submissionProgress?.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
-    if (player?.submitted) item.className = "progress-chip progress-chip-done";
-  }
+  replaceAvatarStatusList(
+    playerList,
+    publicState.submissionProgress ?? [],
+    (player) => player.submitted,
+    "Submitted",
+  );
   // A local successful submission changes the form into its submitted state;
   // let the normal render perform that transition. Remote progress updates
   // can update these nodes without replacing an unsubmitted player's input.
@@ -467,7 +465,6 @@ export function updateFakeAnswerProgress(
 export function updateFakeAnswerVoteProgress(
   root: ParentNode,
   publicState: unknown,
-  currentPlayerId: string | null,
 ): boolean {
   if (
     !isFakeAnswerPublicState(publicState) ||
@@ -485,14 +482,12 @@ export function updateFakeAnswerVoteProgress(
   }
   progress.textContent =
     `${publicState.voteCount} of ${publicState.playerCount} players voted`;
-  replaceProgressChipList(playerList, publicState.voteProgress ?? [], (player) => {
-    const status = player.voted ? "Voted" : "Waiting";
-    return player.playerId === currentPlayerId ? `You · ${status}` : `${player.name} · ${status}`;
-  });
-  for (const item of Array.from(playerList.children)) {
-    const player = publicState.voteProgress?.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
-    if (player?.voted) item.className = "progress-chip progress-chip-done";
-  }
+  replaceAvatarStatusList(
+    playerList,
+    publicState.voteProgress ?? [],
+    (player) => player.voted,
+    "Voted",
+  );
   return true;
 }
 
@@ -665,7 +660,15 @@ function createFinalResultsScreen(
   finished.className = "status-message";
   finished.textContent = "The game is complete.";
   screen.append(finished);
-  if (submission.isHost) {
+  if (submission.isResultsViewer) {
+    const returnButton = document.createElement("button");
+    returnButton.className = "primary-button";
+    returnButton.type = "button";
+    returnButton.disabled = submission.isReturningToLobby;
+    returnButton.textContent = submission.isReturningToLobby ? "Returning to lobby…" : "Return to Lobby";
+    returnButton.addEventListener("click", onReturnFromResults);
+    screen.append(returnButton);
+  } else if (submission.isHost) {
     const returnButton = document.createElement("button");
     returnButton.className = "primary-button";
     returnButton.type = "button";
@@ -674,14 +677,6 @@ function createFinalResultsScreen(
       ? "Returning to lobby…"
       : "Return to lobby";
     returnButton.addEventListener("click", onReturnToLobby);
-    screen.append(returnButton);
-  } else if (submission.isResultsViewer) {
-    const returnButton = document.createElement("button");
-    returnButton.className = "primary-button";
-    returnButton.type = "button";
-    returnButton.disabled = submission.isReturningToLobby;
-    returnButton.textContent = submission.isReturningToLobby ? "Returning to lobby…" : "Return to Lobby";
-    returnButton.addEventListener("click", onReturnFromResults);
     screen.append(returnButton);
   } else {
     const waiting = document.createElement("p");
@@ -824,9 +819,9 @@ export function renderFakeAnswerGame(
     const progress = document.createElement("p");
     progress.className = "vote-progress";
     const playerList = document.createElement("ul");
-    playerList.className = "vote-player-list progress-chip-list";
+    playerList.className = "vote-player-list avatar-status-list";
     screen.append(waiting, progress, playerList);
-    updateFakeAnswerVoteProgress(screen, publicState, submission.currentPlayerId);
+    updateFakeAnswerVoteProgress(screen, publicState);
     return screen;
   }
 
@@ -851,7 +846,6 @@ export function renderFakeAnswerGame(
       publicState.submissionCount,
       publicState.playerCount,
       publicState.submissionProgress ?? [],
-      submission.currentPlayerId,
     );
     if (viewerHasSubmitted) {
       screen.append(progress, playerList);
@@ -860,7 +854,7 @@ export function renderFakeAnswerGame(
       submitted.className = "status-message";
       const waitingCount = publicState.playerCount - publicState.submissionCount;
       submitted.textContent = waitingCount > 0
-        ? `Answer submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}.`
+        ? `Answer submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}...`
         : "Answer submitted. Preparing the answers…";
       screen.append(submitted);
       return screen;
@@ -912,16 +906,17 @@ export function renderFakeAnswerGame(
     ) === true;
     screen.append(instructions);
 
+    const voteProgress = createVoteProgress(
+      publicState.voteCount ?? 0,
+      publicState.playerCount,
+      publicState.voteProgress ?? [],
+    );
+    screen.append(...voteProgress);
+
     if (viewerHasVoted) {
-      screen.append(...createVoteProgress(
-        publicState.voteCount ?? 0,
-        publicState.playerCount,
-        publicState.voteProgress ?? [],
-        submission.currentPlayerId,
-      ));
-      updateFakeAnswerVoteProgress(screen, publicState, submission.currentPlayerId);
+      updateFakeAnswerVoteProgress(screen, publicState);
       const waiting = document.createElement("p");
-      waiting.className = "status-message vote-accepted";
+      waiting.className = "status-message";
       const waitingCount = publicState.playerCount - (publicState.voteCount ?? 0);
       waiting.textContent = waitingCount > 0
         ? `Vote submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}…`

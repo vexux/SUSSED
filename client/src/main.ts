@@ -1,12 +1,28 @@
 import "./style.css";
 import {
   createInitialAppState,
+  persistThemePreference,
   type GameSessionState,
+  type LobbyGame,
   type LobbyState,
+  type PublicRoom,
 } from "./appState";
-import { socket } from "./socket";
+import { socket, socketConfigurationError } from "./socket";
 import { renderApp } from "./views";
 import type { AppActions } from "./views";
+import {
+  copyText,
+  createInvitationQrDataUrl,
+  createInvitationUrl,
+  normalizeInvitationCode,
+  parseInvitationCode,
+  shareOrCopyInvitation,
+} from "./invitations";
+import { validatePlayerName } from "./playerName";
+import {
+  isPublicRoomJoinable,
+  reconcilePublicRooms,
+} from "./publicRoomState";
 import {
   isFakeAnswerPublicState,
   updateFakeAnswerProgress,
@@ -45,6 +61,16 @@ interface RoomOperationResponse {
   };
 }
 
+interface GameListResponse {
+  games?: LobbyGame[];
+  error?: { code: string; message: string };
+}
+
+interface PublicRoomsResponse {
+  rooms?: PublicRoom[];
+  error?: { code: string; message: string };
+}
+
 const app = document.querySelector<HTMLElement>("#app");
 if (!app) {
   throw new Error("The application root element was not found.");
@@ -52,7 +78,24 @@ if (!app) {
 const appRoot: HTMLElement = app;
 
 const state = createInitialAppState();
-state.connectionStatus = socket.connected ? "connected" : "connecting";
+const invitationCode = parseInvitationCode(window.location.search);
+if (invitationCode.status === "valid") {
+  state.joinRoomCode = invitationCode.code;
+  state.invitationMessage = "Invitation code ready. Enter your name, then join the room.";
+} else if (invitationCode.status === "invalid") {
+  state.invitationMessage = "This invitation link has an invalid room code. You can enter a room code manually.";
+}
+state.connectionStatus = socketConfigurationError
+  ? "disconnected"
+  : socket.connected
+    ? "connected"
+    : "connecting";
+if (socketConfigurationError) {
+  state.errorMessage = socketConfigurationError;
+}
+document.documentElement.dataset.theme = state.theme;
+const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+if (themeColor) themeColor.content = state.theme === "dark" ? "#17131c" : "#f7f4fa";
 let fakeAnswerHasSubmitted = false;
 let fakeAnswerIsSubmitting = false;
 let fakeAnswerErrorMessage: string | null = null;
@@ -68,7 +111,10 @@ let fakeAnswerReturnToLobbyError: string | null = null;
 let allRoundHistoryOpen = false;
 let allRoundHistoryPage = -1;
 let fakeAnswerFeedbackDismissedIdentity: string | null = null;
-let resultsReminderFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
+let resultsReminderSuccessTimeout: ReturnType<typeof setTimeout> | null = null;
+let invitationFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
+let playerActionFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
+let publicRoomsRequestId = 0;
 let bruhAnswerDraft = "";
 let bruhIsSubmitting = false;
 let bruhSubmitError: string | null = null;
@@ -106,25 +152,79 @@ function resetFakeAnswerViewState(): void {
   bruhContinueError = null;
 }
 
-function clearResultsReminderFeedback(): void {
-  if (resultsReminderFeedbackTimeout) {
-    clearTimeout(resultsReminderFeedbackTimeout);
-    resultsReminderFeedbackTimeout = null;
+function clearResultsReminderSuccess(): void {
+  if (resultsReminderSuccessTimeout) {
+    clearTimeout(resultsReminderSuccessTimeout);
+    resultsReminderSuccessTimeout = null;
   }
-  state.resultsReminderFeedback = null;
+  state.resultsReminderSentSessionId = null;
 }
 
-function showResultsReminderFeedback(message: string): void {
-  clearResultsReminderFeedback();
-  state.resultsReminderFeedback = message;
-  resultsReminderFeedbackTimeout = setTimeout(() => {
-    state.resultsReminderFeedback = null;
-    resultsReminderFeedbackTimeout = null;
+function showResultsReminderSuccess(roomCode: string, sessionId: string): void {
+  clearResultsReminderSuccess();
+  state.resultsReminderSentSessionId = sessionId;
+  resultsReminderSuccessTimeout = setTimeout(() => {
+    resultsReminderSuccessTimeout = null;
+    if (
+      state.currentView !== "lobby" ||
+      state.lobby?.roomCode !== roomCode ||
+      state.lobby.reminderSessionId !== sessionId
+    ) return;
+    state.resultsReminderSentSessionId = null;
     render();
-  }, 3500);
+  }, 2500);
+}
+
+function clearInvitationFeedback(): void {
+  if (invitationFeedbackTimeout) {
+    clearTimeout(invitationFeedbackTimeout);
+    invitationFeedbackTimeout = null;
+  }
+  state.invitationFeedback = null;
+  state.roomCodeCopied = false;
+}
+
+function showInvitationFeedback(message: string, roomCodeCopied = false): void {
+  clearInvitationFeedback();
+  state.invitationFeedback = message;
+  state.roomCodeCopied = roomCodeCopied;
+  invitationFeedbackTimeout = setTimeout(() => {
+    state.invitationFeedback = null;
+    state.roomCodeCopied = false;
+    invitationFeedbackTimeout = null;
+    render();
+  }, 2400);
+}
+
+function showPlayerActionFeedback(message: string): void {
+  clearPlayerActionFeedback();
+  state.kickFeedback = message;
+  playerActionFeedbackTimeout = setTimeout(() => {
+    state.kickFeedback = null;
+    playerActionFeedbackTimeout = null;
+    render();
+  }, 3000);
+}
+
+function clearPlayerActionFeedback(): void {
+  if (playerActionFeedbackTimeout) {
+    clearTimeout(playerActionFeedbackTimeout);
+    playerActionFeedbackTimeout = null;
+  }
+  state.kickFeedback = null;
 }
 
 function render(): void {
+  if (state.currentView !== "lobby") {
+    state.isInvitationDialogOpen = false;
+  }
+  if (
+    state.resultsReminderSentSessionId &&
+    (state.currentView !== "lobby" ||
+      state.lobby?.reminderSessionId !== state.resultsReminderSentSessionId)
+  ) {
+    clearResultsReminderSuccess();
+  }
   renderApp(appRoot, state, actions, {
     hasSubmitted: fakeAnswerHasSubmitted,
     completionDraft: fakeAnswerCompletionDraft,
@@ -179,8 +279,107 @@ function render(): void {
   });
   document.body.classList.toggle(
     "modal-open",
-    appRoot.querySelector(".round-feedback-backdrop") !== null,
+    appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop, .invitation-dialog, .player-detail-dialog[aria-modal='true'], .results-reminder-dialog[open]") !== null,
   );
+}
+
+function focusCurrentScreen(): void {
+  const target = appRoot.querySelector<HTMLElement>(
+    ".lobby-screen h1, .starting-screen > h1, .final-results-screen h1, .question-screen:not(.final-results-screen)",
+  );
+  if (!target) return;
+  target.tabIndex = -1;
+  target.focus();
+}
+
+function focusPlayerName(id: string): void {
+  appRoot.querySelector<HTMLInputElement>(`#${id}`)?.focus();
+}
+
+function focusPublicRoomJoin(roomId: string): void {
+  const joinButton = Array.from(
+    appRoot.querySelectorAll<HTMLButtonElement>(".public-room-join"),
+  ).find(
+    (button) =>
+      button.closest<HTMLElement>(".public-room-card")?.dataset.roomId === roomId &&
+      !button.disabled,
+  );
+  if (joinButton) {
+    joinButton.focus();
+    return;
+  }
+  const heading = appRoot.querySelector<HTMLElement>(".public-rooms-screen h1");
+  if (heading) {
+    heading.tabIndex = -1;
+    heading.focus();
+  }
+}
+
+function requestAvailableGames(): void {
+  socket.timeout(5000).emit(
+    "list-games",
+    (error: Error | null, response?: GameListResponse) => {
+      if (error || !response || !Array.isArray(response.games)) return;
+      state.availableGames = response.games;
+      if (state.lobby) state.lobby.availableGames = response.games;
+      render();
+    },
+  );
+}
+
+function applyPublicRoomsResponse(
+  requestId: number,
+  error: Error | null,
+  response?: PublicRoomsResponse,
+): void {
+  if (requestId !== publicRoomsRequestId || state.currentView !== "public-rooms") return;
+  state.isLoadingPublicRooms = false;
+  if (error || !response || !Array.isArray(response.rooms)) {
+    state.publicRoomsError = response?.error?.message ?? "Public rooms could not be loaded. Try again.";
+  } else {
+    state.publicRoomsError = null;
+    const pendingRoomId = state.pendingPublicRoomId;
+    if (reconcilePublicRooms(state, response.rooms) && pendingRoomId) {
+      render();
+      focusPublicRoomJoin(pendingRoomId);
+      return;
+    }
+  }
+  render();
+}
+
+function subscribeToPublicRooms(): void {
+  state.isLoadingPublicRooms = true;
+  state.publicRoomsError = null;
+  render();
+  const requestId = ++publicRoomsRequestId;
+  socket.timeout(5000).emit("subscribe-public-rooms", (error: Error | null, response?: PublicRoomsResponse) =>
+    applyPublicRoomsResponse(requestId, error, response));
+}
+
+function refreshPublicRooms(): void {
+  state.isLoadingPublicRooms = true;
+  state.publicRoomsError = null;
+  render();
+  const requestId = ++publicRoomsRequestId;
+  socket.timeout(5000).emit("refresh-public-rooms", (error: Error | null, response?: PublicRoomsResponse) =>
+    applyPublicRoomsResponse(requestId, error, response));
+}
+
+function unsubscribeFromPublicRooms(): void {
+  publicRoomsRequestId += 1;
+  if (socket.connected) socket.emit("unsubscribe-public-rooms");
+}
+
+function clearPublicRoomSelection(): void {
+  state.pendingPublicRoomId = null;
+  state.nameEntryError = null;
+}
+
+function markPublicRoomUnavailable(roomId: string, message: string): void {
+  state.publicRooms = state.publicRooms.filter(({ roomId: candidateId }) => candidateId !== roomId);
+  clearPublicRoomSelection();
+  state.publicRoomsError = `${message} Refresh the list or choose another room.`;
 }
 
 function showOperationError(response: RoomOperationResponse): void {
@@ -236,6 +435,58 @@ function emitRoomOperation(
   }
 }
 
+function fallbackCopy(text: string): boolean {
+  const field = document.createElement("textarea");
+  field.value = text;
+  field.setAttribute("aria-hidden", "true");
+  field.tabIndex = -1;
+  field.style.position = "fixed";
+  field.style.insetInlineStart = "-10000px";
+  document.body.append(field);
+  field.select();
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } finally {
+    field.remove();
+  }
+  return copied;
+}
+
+async function copyInvitationText(text: string): Promise<void> {
+  const clipboard = navigator.clipboard;
+  await copyText(text, {
+    writeText: clipboard ? (value) => clipboard.writeText(value) : undefined,
+    fallbackCopy,
+  });
+}
+
+function buildCurrentInvitationUrl(roomCode: string): string {
+  return createInvitationUrl(
+    roomCode,
+    window.location.href,
+    import.meta.env.VITE_PUBLIC_APP_URL,
+  );
+}
+
+function runInvitationAction(action: () => Promise<string>, roomCodeCopied = false): void {
+  if (state.isBusy || state.isInvitationBusy || !state.lobby) return;
+  clearInvitationFeedback();
+  state.isInvitationBusy = true;
+  state.errorMessage = null;
+  state.errorCode = null;
+  render();
+  void action().then((message) => {
+    showInvitationFeedback(message, roomCodeCopied);
+  }).catch(() => {
+    state.errorMessage = "The invitation could not be copied or shared. Check clipboard or sharing permissions and try again.";
+    state.errorCode = "INVITATION_ACTION_FAILED";
+  }).finally(() => {
+    state.isInvitationBusy = false;
+    render();
+  });
+}
+
 function applyLobbyState(lobby: LobbyState): void {
   if (
     (state.roomCode !== null && lobby.roomCode !== state.roomCode) ||
@@ -253,6 +504,33 @@ function applyLobbyState(lobby: LobbyState): void {
     state.currentView === "game" &&
     state.game?.status === "finished" &&
     localPlayer.isInGame;
+  const dismissedResultsReminder = state.resultsReminderSessionId !== null;
+  const previousReminderSessionId = state.lobby?.reminderSessionId;
+  if (previousReminderSessionId !== lobby.reminderSessionId) {
+    state.isSendingResultsReminder = false;
+    clearResultsReminderSuccess();
+  }
+  const targetIds = new Set(lobby.players.map(({ id }) => id));
+  const pendingPlayerId = state.pendingKickPlayerId ?? state.pendingHostTransferId;
+  const pendingPlayer = lobby.players.find(({ id }) => id === pendingPlayerId);
+  const invalidatedPlayerActionId =
+    pendingPlayerId &&
+    (!pendingPlayer ||
+      pendingPlayer.isHost ||
+      lobby.status !== "lobby" ||
+      !localPlayer.isHost)
+      ? pendingPlayerId
+      : null;
+  const invalidatedCardId =
+    state.selectedPlayerId && !targetIds.has(state.selectedPlayerId)
+      ? state.selectedPlayerId
+      : null;
+  const previousRoomCode = state.lobby?.roomCode;
+  if (previousRoomCode && previousRoomCode !== lobby.roomCode) {
+    clearResultsReminderSuccess();
+    clearInvitationFeedback();
+    clearPlayerActionFeedback();
+  }
   if ((lobby.status === "lobby" && !remainsOnFinishedResults) || (lobby.status === "starting" && localPlayer.isInGame === false && state.game?.status === "finished")) {
     if (state.game) {
       retiredGameSessionIds.add(state.game.sessionId);
@@ -273,10 +551,57 @@ function applyLobbyState(lobby: LobbyState): void {
   state.localPlayerId = localPlayer.id;
   state.playerName = localPlayer.name;
   state.lobby = lobby;
+  state.invitationMessage = null;
+  if (
+    state.pendingKickPlayerId &&
+    (!pendingPlayer || pendingPlayer.isHost || lobby.status !== "lobby" || !localPlayer.isHost)
+  ) {
+    state.pendingKickPlayerId = null;
+  }
+  if (
+    state.pendingHostTransferId &&
+    (!pendingPlayer || pendingPlayer.isHost || lobby.status !== "lobby" || !localPlayer.isHost)
+  ) {
+    state.pendingHostTransferId = null;
+  }
+  if (invalidatedCardId) {
+    state.selectedPlayerId = null;
+  }
+  if (lobby.status !== "lobby") {
+    state.pendingKickPlayerId = null;
+    state.pendingHostTransferId = null;
+  }
+  if (!localPlayer.isHost) {
+    state.pendingKickPlayerId = null;
+    state.pendingHostTransferId = null;
+  }
+  state.availableGames = lobby.availableGames;
+  state.pendingGameId = null;
   state.errorMessage = null;
   state.errorCode = null;
   state.isBusy = false;
   render();
+  if (invalidatedPlayerActionId || invalidatedCardId) {
+    focusPlayerCardTrigger(invalidatedPlayerActionId ?? invalidatedCardId ?? "");
+  } else if (dismissedResultsReminder) {
+    focusCurrentScreen();
+  }
+}
+
+function focusPlayerCardTrigger(playerId: string): void {
+  const cards = Array.from(appRoot.querySelectorAll<HTMLButtonElement>(".player-card"));
+  const target = cards
+    .find(({ dataset }) => dataset.playerId === playerId)
+    ?? cards[0];
+  if (target) {
+    target.focus();
+    return;
+  }
+  const heading = appRoot.querySelector<HTMLElement>(".lobby-screen h1");
+  if (heading) {
+    heading.tabIndex = -1;
+    heading.focus();
+  }
 }
 
 function currentFakeAnswerIdentity(): { sessionId: string; roundId: string } | null {
@@ -444,7 +769,7 @@ function applyGameState(game: GameSessionState): void {
   }
   if (
     isVoteProgressOnly &&
-    updateFakeAnswerVoteProgress(appRoot, game.state, state.localPlayerId)
+    updateFakeAnswerVoteProgress(appRoot, game.state)
   ) {
     return;
   }
@@ -454,17 +779,67 @@ function applyGameState(game: GameSessionState): void {
 const actions: AppActions = {
   onPlayerNameChange(name) {
     state.playerName = name;
+    state.nameEntryError = null;
     state.errorMessage = null;
     state.errorCode = null;
+    if (state.currentView === "game-selection" || (state.currentView === "public-rooms" && state.pendingPublicRoomId)) {
+      render();
+    }
+  },
+  onRoomCodeChange(code) {
+    state.joinRoomCode = normalizeInvitationCode(code).slice(0, 4);
+    state.invitationMessage = null;
+    if (state.errorCode === "INVALID_ROOM_CODE") {
+      state.errorMessage = null;
+      state.errorCode = null;
+    }
   },
   onCreateRoom() {
+    state.currentView = "game-selection";
+    state.errorMessage = null;
+    state.errorCode = null;
+    state.nameEntryError = null;
+    render();
+  },
+  onChooseGame(gameId) {
+    if (state.isBusy) return;
+    if (!state.availableGames.some((game) => game.id === gameId)) return;
+    if (state.lobby) {
+      const localPlayer = state.lobby.players.find(({ id }) => id === state.localPlayerId);
+      if (localPlayer?.isHost !== true || state.lobby.status !== "lobby") return;
+      actions.onSelectGame(gameId);
+      return;
+    }
+    state.pendingGameId = gameId;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+  },
+  onChooseRoomVisibility(visibility) {
+    state.pendingRoomVisibility = visibility;
+    render();
+  },
+  onConfirmCreateRoom(gameId) {
+    if (
+      state.isBusy ||
+      gameId !== state.pendingGameId ||
+      !state.availableGames.some((game) => game.id === gameId)
+    ) return;
+    const nameError = validatePlayerName(state.playerName);
+    if (nameError) {
+      state.nameEntryError = nameError;
+      render();
+      focusPlayerName("selection-player-name");
+      return;
+    }
+    state.nameEntryError = null;
     state.errorMessage = null;
     state.errorCode = null;
     state.isBusy = true;
     render();
     emitRoomOperation(
       "create-room",
-      { playerName: state.playerName },
+      { playerName: state.playerName, gameId, visibility: state.pendingRoomVisibility },
       (response) => {
         if (response.error) {
           showOperationError(response);
@@ -475,14 +850,144 @@ const actions: AppActions = {
       },
     );
   },
+  onBackToHome() {
+    if (state.isBusy) return;
+    state.currentView = state.lobby ? "lobby" : "home";
+    state.errorMessage = null;
+    state.errorCode = null;
+    state.nameEntryError = null;
+    clearPlayerActionFeedback();
+    render();
+  },
+  onChooseAnotherGame() {
+    const localPlayer = state.lobby?.players.find(({ id }) => id === state.localPlayerId);
+    if (!state.lobby || localPlayer?.isHost !== true || state.lobby.status !== "lobby" || state.isBusy) return;
+    state.currentView = "game-selection";
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+  },
+  onToggleTheme() {
+    state.theme = state.theme === "dark" ? "light" : "dark";
+    persistThemePreference(state.theme);
+    document.documentElement.dataset.theme = state.theme;
+    if (themeColor) themeColor.content = state.theme === "dark" ? "#17131c" : "#f7f4fa";
+    render();
+  },
+  onBrowsePublicRooms() {
+    if (state.connectionStatus !== "connected" || state.isBusy) return;
+    clearPublicRoomSelection();
+    state.currentView = "public-rooms";
+    state.publicRoomsError = null;
+    state.isLoadingPublicRooms = true;
+    subscribeToPublicRooms();
+  },
+  onRefreshPublicRooms() {
+    if (state.connectionStatus === "connected" && !state.isLoadingPublicRooms) refreshPublicRooms();
+  },
+  onJoinPublicRoom(roomId) {
+    if (state.connectionStatus !== "connected" || state.isBusy) return;
+    if (!isPublicRoomJoinable(state.publicRooms, roomId)) {
+      clearPublicRoomSelection();
+      state.publicRoomsError =
+        "That room is no longer available. Refresh the list or choose another room.";
+      render();
+      return;
+    }
+    const nameError = validatePlayerName(state.playerName);
+    if (nameError) {
+      state.pendingPublicRoomId = roomId;
+      state.nameEntryError = nameError;
+      render();
+      focusPlayerName("public-room-player-name");
+      return;
+    }
+    clearPublicRoomSelection();
+    state.isBusy = true;
+    state.publicRoomsError = null;
+    render();
+    socket.timeout(5000).emit(
+      "join-public-room",
+      { publicRoomId: roomId, playerName: state.playerName },
+      (transportError: Error | null, response?: RoomOperationResponse) => {
+      state.isBusy = false;
+      if (transportError || !response) {
+        state.publicRoomsError = "The server did not respond. Refresh the list and try again.";
+        render();
+        focusPublicRoomJoin(roomId);
+        return;
+      }
+      if (response.error) {
+        if (
+          response.error.code === "PUBLIC_ROOM_NOT_FOUND" ||
+          response.error.code === "ROOM_NOT_PUBLIC" ||
+          response.error.code === "ROOM_FULL"
+        ) {
+          markPublicRoomUnavailable(roomId, response.error.message);
+        } else {
+          state.publicRoomsError = response.error.message;
+        }
+        render();
+        focusPublicRoomJoin(roomId);
+        return;
+      }
+      if (!response.lobby) {
+        state.publicRoomsError = "The room joined, but its current state could not be loaded. Refresh and try again.";
+        render();
+        focusPublicRoomJoin(roomId);
+        return;
+      }
+      unsubscribeFromPublicRooms();
+      state.pendingPublicRoomId = null;
+      applyLobbyState(response.lobby);
+      },
+    );
+  },
+  onContinuePublicRoomJoin() {
+    if (!state.isBusy && state.pendingPublicRoomId) actions.onJoinPublicRoom(state.pendingPublicRoomId);
+  },
+  onCancelPublicRoomJoin() {
+    if (state.isBusy || !state.pendingPublicRoomId) return;
+    const roomId = state.pendingPublicRoomId;
+    clearPublicRoomSelection();
+    render();
+    focusPublicRoomJoin(roomId);
+  },
+  onBackFromPublicRooms() {
+    if (state.isBusy) return;
+    unsubscribeFromPublicRooms();
+    state.currentView = "home";
+    state.publicRoomsError = null;
+    clearPublicRoomSelection();
+    state.errorMessage = null;
+    render();
+  },
   onJoinRoom(roomCode) {
+    if (state.isBusy || state.connectionStatus !== "connected") return;
+    const normalizedCode = normalizeInvitationCode(roomCode);
+    if (!/^[A-Z]{4}$/u.test(normalizedCode)) {
+      state.errorMessage = "Enter a four-letter room code.";
+      state.errorCode = "INVALID_ROOM_CODE";
+      render();
+      return;
+    }
+    const nameError = validatePlayerName(state.playerName);
+    if (nameError) {
+      state.errorMessage = nameError;
+      state.errorCode = "INVALID_NAME";
+      render();
+      focusPlayerName("player-name");
+      return;
+    }
+    state.joinRoomCode = normalizedCode;
+    state.invitationMessage = null;
     state.errorMessage = null;
     state.errorCode = null;
     state.isBusy = true;
     render();
     emitRoomOperation(
       "join-room",
-      { roomCode, playerName: state.playerName },
+      { roomCode: normalizedCode, playerName: state.playerName },
       (response) => {
         if (response.error) {
           showOperationError(response);
@@ -513,11 +1018,225 @@ const actions: AppActions = {
       state.lobby = null;
       state.game = null;
       state.isSendingResultsReminder = false;
-      clearResultsReminderFeedback();
+      clearResultsReminderSuccess();
+      clearInvitationFeedback();
+      clearPlayerActionFeedback();
       resetFakeAnswerViewState();
       state.isBusy = false;
       state.errorMessage = null;
       state.errorCode = null;
+      render();
+    });
+  },
+  onSetRoomVisibility(visibility) {
+    state.isBusy = true;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+    emitRoomOperation("set-room-visibility", { visibility }, (response) => {
+      if (response.error) {
+        showOperationError(response);
+        return;
+      }
+      state.isBusy = false;
+      if (response.lobby) applyLobbyState(response.lobby);
+      else render();
+    });
+  },
+  onOpenPlayerCard(playerId) {
+    if (state.isBusy || !state.lobby || !state.lobby.players.some(({ id }) => id === playerId)) return;
+    state.selectedPlayerId = state.selectedPlayerId === playerId ? null : playerId;
+    render();
+    if (state.selectedPlayerId) {
+      appRoot.querySelector<HTMLButtonElement>(".player-detail-close")?.focus();
+    } else {
+      focusPlayerCardTrigger(playerId);
+    }
+  },
+  onClosePlayerCard() {
+    const playerId = state.selectedPlayerId;
+    if (!playerId) return;
+    state.selectedPlayerId = null;
+    render();
+    focusPlayerCardTrigger(playerId);
+  },
+  onRequestKickPlayer(playerId) {
+    const localPlayer = state.lobby?.players.find(({ id }) => id === state.localPlayerId);
+    if (state.isBusy || !state.lobby || state.lobby.status !== "lobby" || !localPlayer?.isHost || playerId === state.localPlayerId) return;
+    const target = state.lobby.players.find(({ id }) => id === playerId);
+    if (!target || target.isHost) return;
+    state.pendingKickPlayerId = playerId;
+    state.pendingHostTransferId = null;
+    state.selectedPlayerId = null;
+    state.kickFeedback = null;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+    appRoot.querySelector<HTMLButtonElement>("#kick-confirmation-cancel")?.focus();
+  },
+  onRequestHostTransfer(playerId) {
+    const localPlayer = state.lobby?.players.find(({ id }) => id === state.localPlayerId);
+    const target = state.lobby?.players.find(({ id }) => id === playerId);
+    if (!state.lobby || state.lobby.status !== "lobby" || !localPlayer?.isHost || !target || target.isHost || playerId === state.localPlayerId || state.isBusy) return;
+    state.pendingHostTransferId = playerId;
+    state.pendingKickPlayerId = null;
+    state.selectedPlayerId = null;
+    state.kickFeedback = null;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+    appRoot.querySelector<HTMLButtonElement>("#kick-confirmation-cancel")?.focus();
+  },
+  onConfirmKickPlayer() {
+    const playerId = state.pendingKickPlayerId;
+    const lobby = state.lobby;
+    const localPlayer = lobby?.players.find(({ id }) => id === state.localPlayerId);
+    if (!playerId || !lobby || lobby.status !== "lobby" || !localPlayer?.isHost || state.isBusy) return;
+    const player = lobby.players.find(({ id }) => id === playerId);
+    if (!player || player.isHost) {
+      state.pendingKickPlayerId = null;
+      render();
+      focusPlayerCardTrigger(playerId);
+      return;
+    }
+    state.isBusy = true;
+    state.errorMessage = null;
+    state.kickFeedback = null;
+    render();
+    emitRoomOperation("kick-player", { targetPlayerId: playerId }, (response) => {
+      state.isBusy = false;
+      state.pendingKickPlayerId = null;
+      if (response.error) {
+        showOperationError(response);
+        focusPlayerCardTrigger(playerId);
+        return;
+      }
+      showPlayerActionFeedback(`${player.name} was removed from the room.`);
+      render();
+    });
+  },
+  onConfirmHostTransfer() {
+    const playerId = state.pendingHostTransferId;
+    const lobby = state.lobby;
+    const localPlayer = lobby?.players.find(({ id }) => id === state.localPlayerId);
+    const player = lobby?.players.find(({ id }) => id === playerId);
+    if (!playerId || !lobby || lobby.status !== "lobby" || !localPlayer?.isHost || state.isBusy) return;
+    if (!player || player.isHost) {
+      state.pendingHostTransferId = null;
+      render();
+      focusPlayerCardTrigger(playerId);
+      return;
+    }
+    state.isBusy = true;
+    state.errorMessage = null;
+    state.kickFeedback = null;
+    render();
+    emitRoomOperation("transfer-host", { targetPlayerId: playerId }, (response) => {
+      state.isBusy = false;
+      state.pendingHostTransferId = null;
+      if (response.error) {
+        showOperationError(response);
+        focusPlayerCardTrigger(playerId);
+        return;
+      }
+      state.selectedPlayerId = null;
+      if (response.lobby) applyLobbyState(response.lobby);
+      showPlayerActionFeedback(`${player.name} is now the host.`);
+      render();
+      focusPlayerCardTrigger(playerId);
+    });
+  },
+  onCancelKickPlayer() {
+    if (state.isBusy) return;
+    const cancelledPlayerId = state.pendingKickPlayerId ?? state.pendingHostTransferId;
+    state.pendingKickPlayerId = null;
+    state.pendingHostTransferId = null;
+    render();
+    if (cancelledPlayerId) focusPlayerCardTrigger(cancelledPlayerId);
+  },
+  onCopyRoomCode() {
+    const roomCode = state.lobby?.roomCode;
+    if (!roomCode) return;
+    runInvitationAction(async () => {
+      await copyInvitationText(roomCode);
+      return "Room code copied.";
+    }, true);
+  },
+  onOpenInvitationDialog() {
+    if (!state.lobby || state.lobby.status !== "lobby" || state.isBusy) return;
+    try {
+      const url = buildCurrentInvitationUrl(state.lobby.roomCode);
+      if (state.invitationUrl !== url) {
+        state.invitationQrDataUrl = null;
+        state.isInvitationQrVisible = false;
+      }
+      state.invitationUrl = url;
+      state.isInvitationDialogOpen = true;
+      state.errorMessage = null;
+      state.errorCode = null;
+    } catch {
+      state.errorMessage = "The invitation link could not be created. Check the public app URL configuration.";
+      state.errorCode = "INVITATION_URL_INVALID";
+    }
+    render();
+  },
+  onCloseInvitationDialog() {
+    if (!state.isInvitationDialogOpen) return;
+    state.isInvitationDialogOpen = false;
+    render();
+    appRoot.querySelector<HTMLButtonElement>(".invite-friends-button")?.focus();
+  },
+  onCopyInvitationLink() {
+    const url = state.invitationUrl;
+    if (!url) return;
+    runInvitationAction(async () => {
+      await copyInvitationText(url);
+      return "Invitation link copied.";
+    });
+  },
+  onShareInvitationLink() {
+    const roomCode = state.lobby?.roomCode;
+    const url = state.invitationUrl;
+    if (!roomCode || !url) return;
+    runInvitationAction(async () => {
+      const result = await shareOrCopyInvitation(
+        { title: "Join my SUSSED! room", text: `Join my SUSSED! room with code ${roomCode}.`, url },
+        {
+          share: typeof navigator.share === "function"
+            ? (data) => navigator.share(data)
+            : undefined,
+          copy: copyInvitationText,
+        },
+      );
+      return result === "shared"
+        ? "Share sheet opened. Delivery is not confirmed."
+        : "Sharing was unavailable; invitation link copied.";
+    });
+  },
+  onToggleInvitationQr() {
+    if (state.isBusy || state.isInvitationBusy || !state.invitationUrl) return;
+    if (state.isInvitationQrVisible) {
+      state.isInvitationQrVisible = false;
+      render();
+      return;
+    }
+    if (state.invitationQrDataUrl) {
+      state.isInvitationQrVisible = true;
+      render();
+      return;
+    }
+    state.isInvitationBusy = true;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
+    void createInvitationQrDataUrl(state.invitationUrl).then((dataUrl) => {
+      state.invitationQrDataUrl = dataUrl;
+      state.isInvitationQrVisible = true;
+    }).catch(() => {
+      state.errorMessage = "The QR code could not be created. Copy the invitation link instead.";
+      state.errorCode = "INVITATION_QR_FAILED";
+    }).finally(() => {
+      state.isInvitationBusy = false;
       render();
     });
   },
@@ -540,6 +1259,16 @@ const actions: AppActions = {
     );
   },
   onSelectGame(gameId) {
+    const localPlayer = state.lobby?.players.find(({ id }) => id === state.localPlayerId);
+    if (
+      !state.lobby ||
+      localPlayer?.isHost !== true ||
+      state.lobby.status !== "lobby" ||
+      gameId === state.lobby.selectedGameId ||
+      !state.availableGames.some((game) => game.id === gameId)
+    ) {
+      return;
+    }
     state.errorMessage = null;
     state.errorCode = null;
     state.isBusy = true;
@@ -876,17 +1605,23 @@ const actions: AppActions = {
     render();
   },
   onAskResultsViewersToReturn() {
+    const roomCode = state.lobby?.roomCode;
     const sessionId = state.lobby?.reminderSessionId;
-    if (!sessionId || state.isSendingResultsReminder) return;
+    if (!roomCode || !sessionId || state.isSendingResultsReminder || state.isBusy) return;
     state.errorCode = null;
     state.errorMessage = null;
-    clearResultsReminderFeedback();
+    clearResultsReminderSuccess();
     state.isSendingResultsReminder = true;
     render();
     socket.timeout(5000).emit(
       "ask-results-viewers-to-return",
       { sessionId },
       (error: Error | null, response?: RoomOperationResponse) => {
+        if (
+          state.currentView !== "lobby" ||
+          state.lobby?.roomCode !== roomCode ||
+          state.lobby.reminderSessionId !== sessionId
+        ) return;
         state.isSendingResultsReminder = false;
         if (error || !response) {
           state.errorCode = "SERVER_TIMEOUT";
@@ -895,10 +1630,7 @@ const actions: AppActions = {
           state.errorCode = response.error.code;
           state.errorMessage = response.error.message;
         } else if (typeof response.sent === "number") {
-          const feedback = response.sent === 0
-            ? "Everyone has returned."
-            : `Reminder sent to ${response.sent} ${response.sent === 1 ? "player" : "players"}.`;
-          showResultsReminderFeedback(feedback);
+          showResultsReminderSuccess(roomCode, sessionId);
         } else {
           state.errorCode = "INVALID_RESPONSE";
           state.errorMessage = "The reminder result was unclear. Please try again.";
@@ -908,17 +1640,30 @@ const actions: AppActions = {
     );
   },
   onDismissResultsReminder() {
+    if (state.isBusy) return;
     state.resultsReminderSessionId = null;
+    state.errorMessage = null;
+    state.errorCode = null;
     render();
+    focusCurrentScreen();
   },
   onAcceptResultsReminder() {
     const sessionId = state.resultsReminderSessionId;
-    if (!sessionId) return;
+    if (!sessionId || state.isBusy) return;
+    state.isBusy = true;
+    state.errorMessage = null;
+    state.errorCode = null;
+    render();
     emitRoomOperation("return-from-results", { sessionId }, (response) => {
       if (response.error) {
-        state.resultsReminderSessionId = null;
+        state.isBusy = false;
         state.errorCode = response.error.code;
         state.errorMessage = response.error.message;
+        render();
+      } else if (response.returned !== true) {
+        state.isBusy = false;
+        state.errorCode = "INVALID_RESPONSE";
+        state.errorMessage = "The room could not be returned to its current state. Please try again.";
         render();
       }
     });
@@ -938,6 +1683,43 @@ const actions: AppActions = {
 
 socket.on("lobby-state", (lobby: LobbyState) => {
   applyLobbyState(lobby);
+});
+
+socket.on("public-rooms-updated", (payload: PublicRoomsResponse) => {
+  if (state.currentView !== "public-rooms" || !Array.isArray(payload.rooms)) return;
+  publicRoomsRequestId += 1;
+  state.isLoadingPublicRooms = false;
+  state.publicRoomsError = null;
+  const pendingRoomId = state.pendingPublicRoomId;
+  const selectionInvalidated = reconcilePublicRooms(state, payload.rooms);
+  render();
+  if (selectionInvalidated && pendingRoomId) {
+    focusPublicRoomJoin(pendingRoomId);
+  }
+});
+
+socket.on("removed-from-room", (payload: { roomCode?: string; reason?: string; message?: string }) => {
+  if (!payload || payload.roomCode !== state.roomCode || payload.reason !== "kicked") return;
+  if (state.game) retiredGameSessionIds.add(state.game.sessionId);
+  state.currentView = "home";
+  state.roomCode = null;
+  state.localPlayerId = null;
+  state.lobby = null;
+  state.game = null;
+  state.pendingKickPlayerId = null;
+  state.pendingHostTransferId = null;
+  state.selectedPlayerId = null;
+  state.invitationMessage = null;
+  state.isBusy = false;
+  state.isInvitationBusy = false;
+  state.isSendingResultsReminder = false;
+  clearResultsReminderSuccess();
+  clearInvitationFeedback();
+  clearPlayerActionFeedback();
+  state.errorMessage = payload.message ?? "The host removed you from this room.";
+  state.errorCode = "REMOVED_FROM_ROOM";
+  resetFakeAnswerViewState();
+  render();
 });
 
 socket.on(
@@ -978,21 +1760,30 @@ socket.on("connect", () => {
   connectionWasLost = false;
   hasConnectedOnce = true;
   render();
+  requestAvailableGames();
+  if (state.currentView === "public-rooms") subscribeToPublicRooms();
 });
 
 socket.on("disconnect", () => {
   connectionWasLost = true;
   state.connectionStatus = "disconnected";
-  state.currentView = "home";
+  const wasBrowsingPublicRooms = state.currentView === "public-rooms";
+  state.currentView = wasBrowsingPublicRooms ? "public-rooms" : "home";
   state.roomCode = null;
   state.localPlayerId = null;
   state.lobby = null;
   state.game = null;
   state.isSendingResultsReminder = false;
-  clearResultsReminderFeedback();
+  clearResultsReminderSuccess();
   resetFakeAnswerViewState();
   state.isBusy = false;
   state.errorMessage = "Connection lost. Reconnect to create or join a room.";
+  state.isLoadingPublicRooms = false;
+  clearPublicRoomSelection();
+  clearResultsReminderSuccess();
+  clearInvitationFeedback();
+  clearPlayerActionFeedback();
+  if (wasBrowsingPublicRooms) state.publicRoomsError = "Connection lost. Reconnect to browse public rooms.";
   state.errorCode = null;
   render();
 });
@@ -1002,8 +1793,14 @@ socket.on("connect_error", () => {
   state.connectionStatus = "disconnected";
   state.isBusy = false;
   state.errorMessage = "Unable to connect to the server. Retrying…";
+  if (state.currentView === "public-rooms") {
+    state.isLoadingPublicRooms = false;
+    clearPublicRoomSelection();
+    state.publicRoomsError = "Unable to connect. Reconnect to browse public rooms.";
+  }
   state.errorCode = null;
   render();
 });
 
 render();
+if (socket.connected) requestAvailableGames();

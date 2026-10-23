@@ -1,6 +1,7 @@
 const factOrCap = require("./games/fact-or-cap/game");
 const factOrCapAnime = require("./games/fact-or-cap/anime");
 const bruhWtf = require("./games/bruh-wtf/game");
+const { MAX_ROOM_CAPACITY } = require("./roomConfiguration");
 
 const games = new Map([
     [factOrCap.id, factOrCap],
@@ -18,9 +19,7 @@ function list() {
         displayName: game.displayName,
         description: game.description,
         minPlayers: game.supportedPlayers.min,
-        ...(game.supportedPlayers.max === undefined
-            ? {}
-            : { maxPlayers: game.supportedPlayers.max })
+        maxPlayers: Math.min(MAX_ROOM_CAPACITY, game.supportedPlayers.max ?? MAX_ROOM_CAPACITY)
     }));
 }
 

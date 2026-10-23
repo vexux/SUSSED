@@ -1,5 +1,6 @@
-const { randomInt } = require("node:crypto");
+const { randomInt, randomUUID } = require("node:crypto");
 const gameRegistry = require("./gameRegistry");
+const { MAX_ROOM_CAPACITY } = require("./roomConfiguration");
 const {
     DEFAULT_ROUND_COUNT,
     isSupportedRoundCount
@@ -81,22 +82,49 @@ function generateRoomCode() {
     throw new RoomError("NO_ROOM_CODES", "No room codes are available.");
 }
 
-function createRoom(playerId, playerName) {
+function validateVisibility(visibility) {
+    if (visibility !== "public" && visibility !== "private") {
+        throw new RoomError("INVALID_VISIBILITY", "Room visibility must be public or private.");
+    }
+    return visibility;
+}
+
+function getRoomCapacity(room) {
+    const gameMaximum = gameRegistry.get(room.selectedGameId)?.supportedPlayers.max;
+    return Math.min(MAX_ROOM_CAPACITY, gameMaximum ?? MAX_ROOM_CAPACITY);
+}
+
+function validateRoomCanAcceptPlayer(room) {
+    if (room.status !== "lobby") {
+        throw new RoomError("ROOM_NOT_IN_LOBBY", "That room is no longer accepting players.");
+    }
+    if (room.players.length >= getRoomCapacity(room)) {
+        throw new RoomError("ROOM_FULL", "That room is full.");
+    }
+}
+
+function createRoom(playerId, playerName, selectedGameId = gameRegistry.DEFAULT_GAME_ID, visibility = "private") {
     validatePlayerId(playerId);
+    if (typeof selectedGameId !== "string" || !gameRegistry.get(selectedGameId)) {
+        throw new RoomError("GAME_NOT_FOUND", "That game is not available.");
+    }
     if (playerRooms.has(playerId)) {
         throw new RoomError("ALREADY_IN_ROOM", "You are already in a room.");
     }
     if (rooms.size >= ROOM_CODE_COUNT) {
         throw new RoomError("NO_ROOM_CODES", "No room codes are available.");
     }
+    validateVisibility(visibility);
 
     const host = { id: playerId, name: normalizePlayerName(playerName), isReady: false, viewingResultsSessionId: null };
     const room = {
         code: generateRoomCode(),
+        publicRoomId: randomUUID(),
         revision: 0,
         hostId: playerId,
         status: "lobby",
-        selectedGameId: gameRegistry.DEFAULT_GAME_ID,
+        visibility,
+        selectedGameId,
         selectedRoundCount: DEFAULT_ROUND_COUNT,
         players: [host],
         finishedMatches: new Map(),
@@ -122,14 +150,32 @@ function joinRoom(roomCode, playerId, playerName) {
     if (!room) {
         throw new RoomError("ROOM_NOT_FOUND", "That room code was not found.");
     }
+    return addPlayerToRoom(room, playerId, playerName);
+}
+
+function findPublicRoom(publicRoomId) {
+    if (typeof publicRoomId !== "string" || !publicRoomId) return null;
+    return [...rooms.values()].find((room) => room.publicRoomId === publicRoomId) ?? null;
+}
+
+function joinPublicRoom(publicRoomId, playerId, playerName) {
+    const room = findPublicRoom(publicRoomId);
+    if (!room) {
+        throw new RoomError("PUBLIC_ROOM_NOT_FOUND", "That public room is no longer available.");
+    }
+    if (room.visibility !== "public") {
+        throw new RoomError("ROOM_NOT_PUBLIC", "That room is no longer public.");
+    }
+    return addPlayerToRoom(room, playerId, playerName);
+}
+
+function addPlayerToRoom(room, playerId, playerName) {
+    validatePlayerId(playerId);
     if (playerRooms.has(playerId)) {
         throw new RoomError("ALREADY_IN_ROOM", "You are already in a room.");
     }
-
     const name = normalizePlayerName(playerName);
-    if (room.status !== "lobby") {
-        throw new RoomError("ROOM_NOT_IN_LOBBY", "That room is no longer accepting players.");
-    }
+    validateRoomCanAcceptPlayer(room);
     const comparisonName = name.toLowerCase();
     if (room.players.some((player) => player.name.toLowerCase() === comparisonName)) {
         throw new RoomError(
@@ -138,6 +184,8 @@ function joinRoom(roomCode, playerId, playerName) {
         );
     }
     const player = { id: playerId, name, isReady: false, viewingResultsSessionId: null };
+    // Membership is reserved synchronously with capacity validation. Socket.IO
+    // room joining happens later, but concurrent requests cannot claim this slot.
     room.players.push(player);
     playerRooms.set(playerId, room.code);
     advanceRevision(room);
@@ -218,6 +266,54 @@ function selectGame(playerId, gameId) {
     }
 
     room.selectedGameId = gameId;
+    advanceRevision(room);
+    return room;
+}
+
+function setRoomVisibility(playerId, visibility) {
+    const room = getPlayerRoom(playerId);
+    if (!room) throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
+    if (room.hostId !== playerId) throw new RoomError("NOT_HOST", "Only the host can change room visibility.");
+    if (room.status !== "lobby") throw new RoomError("ROOM_NOT_IN_LOBBY", "Room visibility can only be changed in the lobby.");
+    validateVisibility(visibility);
+    if (room.visibility !== visibility) {
+        room.visibility = visibility;
+        advanceRevision(room);
+    }
+    return room;
+}
+
+function validatePlayerKick(hostId, targetPlayerId) {
+    const room = getPlayerRoom(hostId);
+    if (!room) throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
+    if (room.hostId !== hostId) throw new RoomError("NOT_HOST", "Only the host can remove a player.");
+    if (room.status !== "lobby") throw new RoomError("ROOM_NOT_IN_LOBBY", "Players can only be removed from the lobby.");
+    if (targetPlayerId === hostId) throw new RoomError("CANNOT_KICK_SELF", "The host cannot remove themselves.");
+    const target = room.players.find(({ id }) => id === targetPlayerId);
+    if (!target) throw new RoomError("TARGET_NOT_FOUND", "That player is no longer in this room.");
+    return { room, target };
+}
+
+function transferHost(requesterId, targetPlayerId) {
+    const room = getPlayerRoom(requesterId);
+    if (!room) throw new RoomError("NOT_IN_ROOM", "You are not in a room.");
+    if (room.hostId !== requesterId) throw new RoomError("NOT_HOST", "Only the current host can transfer host status.");
+    if (room.status !== "lobby") throw new RoomError("ROOM_NOT_IN_LOBBY", "Host status can only be transferred in the lobby.");
+    if (typeof targetPlayerId !== "string" || targetPlayerId.length === 0) {
+        throw new RoomError("INVALID_PLAYER", "A valid target player is required.");
+    }
+    if (targetPlayerId === requesterId) {
+        throw new RoomError("CANNOT_TRANSFER_HOST_TO_SELF", "You are already the host.");
+    }
+    const requester = room.players.find(({ id }) => id === requesterId);
+    const target = room.players.find(({ id }) => id === targetPlayerId);
+    if (!requester || playerRooms.get(requesterId) !== room.code) {
+        throw new RoomError("NOT_IN_ROOM", "You are not in this room.");
+    }
+    if (!target || playerRooms.get(targetPlayerId) !== room.code) {
+        throw new RoomError("TARGET_NOT_FOUND", "That player is no longer in this room.");
+    }
+    room.hostId = targetPlayerId;
     advanceRevision(room);
     return room;
 }
@@ -401,6 +497,7 @@ function getPlayerRoom(playerId) {
 
 function createLobbyState(room) {
     const selectedGame = gameRegistry.get(room.selectedGameId);
+    const maxPlayers = getRoomCapacity(room);
     const lobbyPlayers = getLobbyParticipants(room);
     const readinessStatus = room.status !== "lobby"
         ? "starting"
@@ -413,7 +510,9 @@ function createLobbyState(room) {
         roomCode: room.code,
         revision: room.revision,
         status: room.status,
+        visibility: room.visibility,
         playerCount: room.status === "lobby" ? getLobbyParticipants(room).length : room.players.length,
+        maxPlayers,
         readinessStatus,
         selectedGameId: room.selectedGameId,
         selectedRoundCount: room.selectedRoundCount,
@@ -423,9 +522,8 @@ function createLobbyState(room) {
             displayName: selectedGame.displayName,
             description: selectedGame.description,
             minPlayers: selectedGame.supportedPlayers.min,
-            ...(selectedGame.supportedPlayers.max === undefined
-                ? {}
-                : { maxPlayers: selectedGame.supportedPlayers.max })
+            maxPlayers,
+            supportsRoundSelection: selectedGame.supportsRoundSelection === true
         },
         availableGames: gameRegistry.list(),
         players: room.players.map((player) => ({
@@ -436,6 +534,30 @@ function createLobbyState(room) {
             isInGame: Boolean(player.viewingResultsSessionId)
         }))
     };
+}
+
+function listPublicRooms() {
+    return [...rooms.values()]
+        .filter((room) => room.visibility === "public" && room.status === "lobby" && room.players.length < getRoomCapacity(room))
+        .map((room) => {
+            const game = gameRegistry.get(room.selectedGameId);
+            const host = room.players.find((player) => player.id === room.hostId);
+            return {
+                roomId: room.publicRoomId,
+                hostName: host.name,
+                gameId: game.id,
+                gameName: game.displayName,
+                gameDescription: game.description,
+                playerCount: room.players.length,
+                maxPlayers: getRoomCapacity(room),
+                status: "lobby"
+            };
+        })
+        .sort((left, right) =>
+            right.playerCount / right.maxPlayers - left.playerCount / left.maxPlayers ||
+            right.playerCount - left.playerCount ||
+            (left.roomId < right.roomId ? -1 : left.roomId > right.roomId ? 1 : 0)
+        );
 }
 
 function removeRoom(roomCode) {
@@ -452,6 +574,7 @@ function removeRoom(roomCode) {
 }
 
 module.exports = {
+    MAX_ROOM_CAPACITY,
     ROOM_CODE_COUNT,
     RoomError,
     createLobbyState,
@@ -460,6 +583,8 @@ module.exports = {
     getPlayerRoom,
     getRoom,
     joinRoom,
+    joinPublicRoom,
+    listPublicRooms,
     normalizePlayerName,
     removePlayer,
     removeRoom,
@@ -470,6 +595,9 @@ module.exports = {
     getFinishedMatch,
     recoverRoomToLobby,
     selectGame,
+    setRoomVisibility,
+    validatePlayerKick,
+    transferHost,
     selectRoundCount,
     setPlayerReady,
     startRoom,

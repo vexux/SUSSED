@@ -4,6 +4,28 @@ SUSSED! can be hosted as a Vercel static frontend and a Render Node.js web
 service. This guide configures the repository for those providers; it does not
 deploy the application.
 
+## Local development
+
+Install dependencies from the repository root:
+
+```sh
+npm ci
+npm --prefix client ci
+npm --prefix server ci
+```
+
+Start the Vite client and Node.js server together with `npm run dev`. The client
+uses `http://localhost:3000` for the server when `VITE_SERVER_URL` is not set in
+development. Vite normally serves the client at `http://localhost:5173`; if
+that port is occupied, Vite selects another available port. Localhost origins
+are allowed by the development server configuration.
+
+Run the server tests with `npm --prefix server test`, client tests with
+`npm --prefix client test`, type-check with `npm --prefix client run typecheck`,
+and build the production client with `npm run build`. The build creates
+`client/dist`; serve that static output through the configured frontend host
+and run the backend with `npm --prefix server start`.
+
 ## Vercel frontend
 
 Create a Vercel project for this repository with:
@@ -13,9 +35,30 @@ Create a Vercel project for this repository with:
 - **Output directory:** `dist`
 - **Environment variable:** `VITE_SERVER_URL`, set to the public URL of the
   Render Socket.IO service (for example, `https://your-service.onrender.com`).
+- **Optional environment variable:** `VITE_PUBLIC_APP_URL`, set to the public
+  frontend origin used in copied invitation links (for example,
+  `https://your-project.vercel.app`). Set an origin only, without a path or
+  query. If omitted, invitations use the current browser origin, which works
+  for production and Preview deployments without embedding a development URL.
 
 Set the variable for both Preview and Production environments as needed. Vite
 embeds it at build time, so trigger a new deployment after changing it.
+Set `VITE_PUBLIC_APP_URL` separately per deployment environment when links
+should point to a canonical frontend domain rather than the domain currently
+open in the browser.
+
+`VITE_` variables are embedded in the client build and visible to every
+visitor. Use them only for public configuration such as service URLs; never
+put secrets in them. Set `VITE_SERVER_URL` to the backend's HTTPS origin in
+production. Socket.IO then uses HTTPS/WSS for its cross-origin connection.
+If a production build is missing `VITE_SERVER_URL`, the client reports the
+configuration error instead of attempting to connect to localhost. Rebuild
+after setting the variable.
+
+The client currently uses the root path and invitation query strings such as
+`/?code=ABCD`; it does not define path-based client routes, so no SPA rewrite is
+needed for the current UI. If path-based routes are added later, configure the
+frontend host to serve `index.html` for those routes.
 
 ## Render backend
 
@@ -67,3 +110,13 @@ restarts.
 No deployment occurs from this repository configuration alone. Provider
 projects, branch settings, and environment variables must be configured
 separately.
+
+Before release, verify from the deployed frontend origin that the Socket.IO
+connection reaches the configured HTTPS backend, public-room discovery and
+cross-origin joining work, visibility changes update the listing, and copied
+invitation links open that frontend with the room code prefilled. Confirm the
+Render health check returns HTTP 200 and that `CLIENT_ORIGIN` lists the exact
+production frontend origin (plus only the previews or custom domains that
+should be allowed). Exercise these checks against the provider deployment;
+local tests cannot verify provider environment variables, DNS, TLS, or CORS
+configuration.

@@ -11,7 +11,7 @@ import {
   createSubmissionProgress,
   createVoteProgress,
   createVotingForm,
-  replaceProgressChipList,
+  replaceAvatarStatusList,
 } from "../ui/gamePresentation.ts";
 
 export interface BruhWtfPublicState {
@@ -106,14 +106,12 @@ export function updateBruhSubmissionProgress(
   const current = publicState.submissionProgress?.find(({ playerId }) => playerId === currentPlayerId);
   if (!progress || !list || !current) return false;
   progress.textContent = `${publicState.submissionCount} of ${publicState.playerCount} answers submitted`;
-  replaceProgressChipList(list, publicState.submissionProgress ?? [], (player) => {
-    const status = player.submitted ? "Submitted" : "Waiting";
-    return player.playerId === currentPlayerId ? `You · ${status}` : `${player.name} · ${status}`;
-  });
-  for (const item of Array.from(list.children)) {
-    const player = publicState.submissionProgress?.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
-    if (player?.submitted) item.classList.add("progress-chip-done");
-  }
+  replaceAvatarStatusList(
+    list,
+    publicState.submissionProgress ?? [],
+    (player) => player.submitted,
+    "Submitted",
+  );
   return !current.submitted;
 }
 
@@ -129,14 +127,12 @@ export function updateBruhVoteProgress(
   if (!progress || !current) return false;
   progress.textContent = `${publicState.voteCount ?? 0} of ${publicState.playerCount} players voted`;
   if (list) {
-    replaceProgressChipList(list, publicState.voteProgress ?? [], (player) => {
-      const label = player.voted ? "Voted" : "Waiting";
-      return player.playerId === currentPlayerId ? `You · ${label}` : `${player.name} · ${label}`;
-    });
-    for (const item of Array.from(list.children)) {
-      const player = publicState.voteProgress?.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
-      if (player?.voted) item.classList.add("progress-chip-done");
-    }
+    replaceAvatarStatusList(
+      list,
+      publicState.voteProgress ?? [],
+      (player) => player.voted,
+      "Voted",
+    );
   }
   return !current.voted;
 }
@@ -223,16 +219,16 @@ export function renderBruhWtfGame(
       };
     });
     screen.append(createRoundHistorySection(history, view.historyPage ?? -1, view.historyOpen === true, onToggleHistory, onHistoryPage));
-    if (isSessionFinished && view.isHost) {
-      const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to lobby");
-      returnButton.disabled = view.isReturningToLobby;
-      returnButton.addEventListener("click", onReturnToLobby);
-      screen.append(returnButton);
-    } else if (isSessionFinished && view.isResultsViewer) {
+    if (isSessionFinished && view.isResultsViewer) {
       const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to Lobby");
       returnButton.type = "button";
       returnButton.disabled = view.isReturningToLobby;
       returnButton.addEventListener("click", onReturnFromResults);
+      screen.append(returnButton);
+    } else if (isSessionFinished && view.isHost) {
+      const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to lobby");
+      returnButton.disabled = view.isReturningToLobby;
+      returnButton.addEventListener("click", onReturnToLobby);
       screen.append(returnButton);
     } else if (isSessionFinished) {
       screen.append(createStatusMessage("Waiting for the host to return everyone to the lobby…"));
@@ -257,14 +253,14 @@ export function renderBruhWtfGame(
 
   if (state.phase === "answer-submission") {
     const submitted = state.submissionProgress?.some(({ playerId, submitted: done }) => playerId === view.currentPlayerId && done) === true;
-    const [progress, list] = createSubmissionProgress(state.submissionCount ?? 0, state.playerCount, state.submissionProgress ?? [], view.currentPlayerId);
+    const [progress, list] = createSubmissionProgress(state.submissionCount ?? 0, state.playerCount, state.submissionProgress ?? []);
     list.classList.add("bruh-submission-player-list");
     screen.append(progress, list);
     updateBruhSubmissionProgress(screen, state, view.currentPlayerId);
     if (submitted) {
       const waitingCount = state.playerCount - (state.submissionCount ?? 0);
       screen.append(createStatusMessage(waitingCount > 0
-        ? `Answer submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}.`
+        ? `Answer submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}...`
         : "Answer submitted. Preparing the answers…"));
     } else {
       screen.append(createStatusMessage("Submit your answer when you’re ready."));
@@ -286,7 +282,7 @@ export function renderBruhWtfGame(
   } else if (state.phase === "voting") {
     const viewerVoted = view.hasVoted || state.voteProgress?.some(({ playerId, voted }) => playerId === view.currentPlayerId && voted) === true;
     screen.append(createStatusMessage("Answers are anonymous. Choose another player’s answer.", "screen-description"));
-    const voteProgress = createVoteProgress(state.voteCount ?? 0, state.playerCount, state.voteProgress ?? [], view.currentPlayerId);
+    const voteProgress = createVoteProgress(state.voteCount ?? 0, state.playerCount, state.voteProgress ?? []);
     voteProgress[0].classList.add("bruh-vote-progress");
     voteProgress[1].classList.add("bruh-vote-player-list");
     if (viewerVoted) {
@@ -294,7 +290,7 @@ export function renderBruhWtfGame(
       const waitingCount = state.playerCount - (state.voteCount ?? 0);
       screen.append(createStatusMessage(waitingCount > 0
         ? `Vote submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}…`
-        : "Vote submitted. Preparing results…", "status-message vote-accepted"));
+        : "Vote submitted. Preparing results…"));
     } else {
       screen.append(createVotingForm({
         answers: state.options ?? [],
@@ -313,7 +309,7 @@ export function renderBruhWtfGame(
     }
   } else if (state.phase === "waiting-for-results") {
     screen.append(createStatusMessage("Waiting for results.", "screen-description"));
-    screen.append(...createVoteProgress(state.voteCount ?? 0, state.playerCount, state.voteProgress ?? [], view.currentPlayerId));
+    screen.append(...createVoteProgress(state.voteCount ?? 0, state.playerCount, state.voteProgress ?? []));
   } else if (state.results) {
     const results = state.results;
     const answersHeading = element("h2", "results-section-heading", "Answers");

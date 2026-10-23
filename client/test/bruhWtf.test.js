@@ -10,11 +10,8 @@ import {
 function withFakeDocument(run) {
   const original = globalThis.document;
   globalThis.document = {
-    createElement() {
-      const item = { dataset: {}, className: "", append() {} };
-      item.classList = { add(...names) { item.className = [...new Set(`${item.className} ${names.join(" ")}`.trim().split(/\s+/u))].join(" "); } };
-      return item;
-    },
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
   };
   try {
     run();
@@ -51,6 +48,11 @@ class FakeElement {
     const found = this.children.find((child) => selector(child));
     return found ?? this.children.map((child) => child.query(selector)).find(Boolean) ?? null;
   }
+  querySelector(selector) {
+    if (!selector.startsWith(".")) return null;
+    const className = selector.slice(1);
+    return this.query((node) => node.className.split(/\s+/u).includes(className));
+  }
   queryAll(selector) {
     return [
       ...this.children.filter(selector),
@@ -61,7 +63,10 @@ class FakeElement {
 
 function withFakeElements(run) {
   const original = globalThis.document;
-  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
   try { run(); }
   finally {
     if (original === undefined) delete globalThis.document;
@@ -135,11 +140,25 @@ test("Bruh wtf remote submission progress retains an unsubmitted answer input", 
     assert.equal(updateBruhSubmissionProgress(root, state, "local"), true);
     assert.equal(progress.textContent, "1 of 2 answers submitted");
     assert.equal(chips.length, 2);
+    assert.deepEqual(chips.map((item) => item.children[1].textContent), ["Alex", "Sam"]);
+    assert.deepEqual(
+      chips.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Waiting", "Submitted"],
+    );
     assert.equal(root.querySelector("#bruh-answer"), input);
     assert.equal(input.value, "unfinished thought");
     assert.equal(input.selectionStart, 10);
     assert.equal(input.selectionEnd, 10);
     assert.equal(input.focused, true);
+
+    state.submissionCount = 2;
+    state.submissionProgress[0].submitted = true;
+    assert.equal(updateBruhSubmissionProgress(root, state, "local"), false);
+    assert.equal(progress.textContent, "2 of 2 answers submitted");
+    assert.deepEqual(
+      chips.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Submitted", "Submitted"],
+    );
   });
 });
 
@@ -177,10 +196,40 @@ test("Bruh wtf vote progress updates in place until the local vote is acknowledg
   assert.equal(updateBruhVoteProgress(root, state, "local"), true);
   assert.equal(progress.textContent, "1 of 2 players voted");
   assert.equal(chips.length, 2);
+  assert.deepEqual(
+    chips.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+    ["Waiting", "Voted"],
+  );
   assert.equal(root.querySelector("#selected-option"), input);
   assert.equal(input.checked, true);
+  state.voteCount = 2;
   state.voteProgress[0].voted = true;
   assert.equal(updateBruhVoteProgress(root, state, "local"), false);
+  assert.equal(progress.textContent, "2 of 2 players voted");
+  assert.deepEqual(
+    chips.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+    ["Voted", "Voted"],
+  );
+  });
+});
+
+test("Bruh wtf voting renders shared avatar statuses while the local player is still choosing", () => {
+  withFakeElements(() => {
+    const root = renderVoting({
+      currentPlayerId: "local", answerDraft: "", isSubmitting: false, submitError: null,
+      selectedOptionId: null, hasVoted: false, isVoting: false, voteError: null,
+      isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null,
+    }, () => {}, () => {});
+    const progress = root.query((node) => node.className.includes("bruh-vote-progress"));
+    const list = root.query((node) => node.className.includes("bruh-vote-player-list"));
+    assert.equal(progress.textContent, "0 of 3 players voted");
+    assert.equal(list.className, "vote-player-list avatar-status-list bruh-vote-player-list");
+    assert.deepEqual(
+      list.children.map((item) => item.query((node) => node.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Waiting", "Waiting", "Waiting"],
+    );
+    assert.ok(root.query((node) => node.className === "vote-form"));
   });
 });
 
@@ -195,7 +244,7 @@ test("Bruh round results show answer details and authoritative round deltas in t
       playerCount: 3,
       continueReadyCount: 1,
       continuePlayerCount: 3,
-      viewerReadyToContinue: false,
+      viewerReadyToContinue: true,
       continueProgress: [
         { playerId: "local", name: "Alex", ready: true },
         { playerId: "p2", name: "Sam", ready: false },
@@ -239,7 +288,24 @@ test("Bruh round results show answer details and authoritative round deltas in t
     assert.doesNotMatch(root.text, /Round points/u);
     assert.match(root.text, /Current leaderboard/u);
     assert.match(root.text, /1 \/ 3 players ready to continue/u);
-    assert.match(root.text, /Alex.*Ready/u);
+    const readiness = root.query((node) => node.className.includes("continue-player-list"));
+    assert.equal(readiness.className, "continue-player-list avatar-status-list");
+    assert.deepEqual(readiness.children.map((item) => item.dataset.playerId), ["local", "p2", "p3"]);
+    assert.deepEqual(readiness.children.map((item) => item.children[0].children[0].textContent), ["AL", "SA", "RI"]);
+    assert.deepEqual(readiness.children.map((item) => item.children[1].textContent), ["Alex", "Sam", "Riley"]);
+    assert.deepEqual(
+      readiness.children.map((item) => item.children[0].children[1].attributes["aria-label"]),
+      ["Ready", "Waiting", "Waiting"],
+    );
+    assert.deepEqual(
+      readiness.children.map((item) => item.children[0].children[1].className),
+      [
+        "avatar-status-badge avatar-status-badge-complete",
+        "avatar-status-badge avatar-status-badge-waiting",
+        "avatar-status-badge avatar-status-badge-waiting",
+      ],
+    );
+    assert.doesNotMatch(readiness.text, /Ready|Waiting/u);
     const answerList = root.query((node) => node.tagName === "ul" && node.className.includes("result-card-list"));
     assert.equal(answerList.children.length, 3);
     assert.doesNotMatch(answerList.children[0].text, /points this round/u);
@@ -252,6 +318,92 @@ test("Bruh round results show answer details and authoritative round deltas in t
     assert.equal(first.children[2].className, "standing-round-score");
     assert.deepEqual(second.children.map(({ textContent }) => textContent), ["#2", "Sam", "+1", "2 points"]);
     assert.equal(second.children[2].className, "standing-round-score standing-round-score-positive");
+
+    state.continueReadyCount = 2;
+    state.continueProgress[1].ready = true;
+    state.viewerReadyToContinue = true;
+    const updatedRoot = renderBruhWtfGame(state, {
+      currentPlayerId: "local", answerDraft: "", isSubmitting: false, submitError: null,
+      selectedOptionId: null, hasVoted: false, isVoting: false, voteError: null,
+      isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null,
+    }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", false);
+    const updatedReadiness = updatedRoot.query((node) => node.className.includes("continue-player-list"));
+    assert.equal(
+      updatedRoot.query((node) => node.className === "continue-progress").textContent,
+      "2 / 3 players ready to continue",
+    );
+    assert.deepEqual(
+      updatedReadiness.children.map((item) => item.children[0].children[1].attributes["aria-label"]),
+      ["Ready", "Ready", "Waiting"],
+    );
+
+    state.phase = "answer-submission";
+    state.currentRound = 3;
+    state.roundId = "round-3";
+    state.submissionCount = 0;
+    state.submissionProgress = [
+      { playerId: "local", name: "Alex", submitted: false },
+      { playerId: "p2", name: "Sam", submitted: false },
+      { playerId: "p3", name: "Riley", submitted: false },
+    ];
+    const nextRound = renderBruhWtfGame(state, {
+      currentPlayerId: "local", answerDraft: "", isSubmitting: false, submitError: null,
+      selectedOptionId: null, hasVoted: false, isVoting: false, voteError: null,
+      isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null,
+    }, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", false);
+    assert.equal(nextRound.query((node) => node.className.includes("continue-player-list")), null);
+    assert.deepEqual(
+      nextRound.query((node) => node.className.includes("bruh-submission-player-list"))
+        .children.map((item) => item.children[0].children[1].attributes["aria-label"]),
+      ["Waiting", "Waiting", "Waiting"],
+    );
+  });
+});
+
+test("Bruh wtf submission and vote status messages retain plain wording", () => {
+  withFakeElements(() => {
+    const view = {
+      currentPlayerId: "local", answerDraft: "", isSubmitting: false, submitError: null,
+      selectedOptionId: null, hasVoted: true, isVoting: false, voteError: null,
+      isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null,
+    };
+    const submissionState = {
+      phase: "answer-submission",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: "What would Alex do?",
+      playerCount: 2,
+      submissionCount: 1,
+      submissionProgress: [
+        { playerId: "local", name: "Alex", submitted: true },
+        { playerId: "remote", name: "Sam", submitted: false },
+      ],
+    };
+    const submissionScreen = renderBruhWtfGame(
+      submissionState, view, () => {}, () => {}, () => {}, () => {}, () => {}, () => {},
+      "Bruh wtf?", false,
+    );
+    assert.equal(
+      submissionScreen.query((node) => node.className === "status-message").textContent,
+      "Answer submitted. Waiting for 1 player...",
+    );
+
+    const votingScreen = renderBruhWtfGame({
+      ...submissionState,
+      phase: "voting",
+      voteCount: 1,
+      voteProgress: [
+        { playerId: "local", name: "Alex", voted: true },
+        { playerId: "remote", name: "Sam", voted: false },
+      ],
+    }, view, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", false);
+    const voteMessage = votingScreen.query((node) => node.textContent.startsWith("Vote submitted."));
+    assert.equal(voteMessage.className, "status-message");
+    assert.equal(voteMessage.textContent, "Vote submitted. Waiting for 1 player…");
   });
 });
 
@@ -282,7 +434,7 @@ test("Bruh final results omit round content and show tied winners, final leaderb
     assert.match(root.text, /Final leaderboard/u);
     assert.match(root.text, /Return to lobby/u);
     assert.doesNotMatch(root.text, /Final prompt|Round 5 of 5|Answers|Round points|final answer|points this round/u);
-    assert.equal(root.query((node) => node.tagName === "h1"), null);
+    assert.equal(root.query((node) => node.tagName === "h1").textContent, "It's a tie!");
     assert.equal(root.queryAll((node) => node.className.split(" ").includes("result-card")).length, 3);
     const leaderboard = root.query((node) => node.tagName === "ol" && node.className.includes("final-leaderboard"));
     assert.deepEqual(leaderboard.children.map((row) => row.children[0].textContent), ["#1", "#1", "#3"]);
@@ -318,17 +470,19 @@ test("Bruh final results preserve return loading/errors and non-host waiting sta
     assert.equal(nonHost.query((node) => node.tagName === "button" && node.textContent === "Return to lobby"), null);
     assert.match(nonHost.text, /Waiting for the host/u);
 
-    let returnCalls = 0;
+    let hostReturnCalls = 0;
+    let resultsReturnCalls = 0;
     const resultsViewer = renderBruhWtfGame(
       state,
-      { ...baseView, isHost: false, isResultsViewer: true, isReturningToLobby: false, returnToLobbyError: null },
-      () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true,
-      undefined, undefined, () => { returnCalls += 1; },
+      { ...baseView, isHost: true, isResultsViewer: true, isReturningToLobby: false, returnToLobbyError: null },
+      () => {}, () => {}, () => {}, () => {}, () => {}, () => { hostReturnCalls += 1; }, "Bruh wtf?", true,
+      undefined, undefined, () => { resultsReturnCalls += 1; },
     );
-    const returnButton = resultsViewer.query((node) => node.tagName === "button" && node.textContent === "Return to Lobby");
+    const returnButton = resultsViewer.query((node) => node.tagName === "button" && node.className === "primary-button");
     assert.ok(returnButton);
     returnButton.dispatch("click");
-    assert.equal(returnCalls, 1);
+    assert.equal(hostReturnCalls, 0);
+    assert.equal(resultsReturnCalls, 1);
   });
 });
 

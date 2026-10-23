@@ -369,6 +369,7 @@ module.exports = {
     id: "bruh-wtf",
     displayName: "Bruh wtf?",
     description: "A multiplayer prompt game where players answer and vote for each other's funniest responses.",
+    supportsRoundSelection: true,
     socketProtocol: "bruh-wtf",
     // Three players are the minimum that allows at least two anonymous vote
     // options after excluding the viewer's own answer.

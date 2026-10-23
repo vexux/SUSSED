@@ -9,6 +9,7 @@ import {
   getRevealAnswerGroups,
   renderFakeAnswerGame,
   updateFakeAnswerProgress,
+  updateFakeAnswerVoteProgress,
 } from "../src/games/fakeAnswer.ts";
 
 class FakeElement {
@@ -34,6 +35,11 @@ class FakeElement {
   dispatch(type, event = {}) { this.listeners[type]?.({ preventDefault() {}, stopPropagation() {}, ...event }); }
   get text() { return this.textContent + this.children.map((child) => child.text).join(""); }
   get firstElementChild() { return this.children.find((child) => !child.isTextNode) ?? null; }
+  querySelector(selector) {
+    if (!selector.startsWith(".")) return null;
+    const className = selector.slice(1);
+    return this.query((node) => node.className.split(/\s+/u).includes(className));
+  }
   query(predicate) {
     return this.children.find(predicate) ?? this.children.map((child) => child.query(predicate)).find(Boolean) ?? null;
   }
@@ -165,13 +171,8 @@ test("remote submission progress updates without changing the active answer inpu
   };
   const originalDocument = globalThis.document;
   globalThis.document = {
-    createElement() {
-      return {
-        dataset: {},
-        className: "",
-        append() {},
-      };
-    },
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
   };
 
   try {
@@ -192,17 +193,225 @@ test("remote submission progress updates without changing the active answer inpu
     assert.equal(updated, true);
     assert.equal(progress.textContent, "1 of 2 answers submitted");
     assert.equal(children.length, 2);
+    assert.deepEqual(children.map((item) => item.children[1].textContent), ["Local", "Remote"]);
+    assert.deepEqual(
+      children.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Waiting", "Submitted"],
+    );
     assert.equal(root.querySelector("#fake-completion"), input);
     assert.equal(input.value, "partial answer");
     assert.equal(input.selectionStart, 7);
     assert.equal(input.selectionEnd, 7);
     assert.equal(input.focused, true);
+
+    const updatedState = {
+      phase: "answer-submission",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: { id: "prompt-1", text: "Complete this sentence." },
+      submissionCount: 2,
+      playerCount: 2,
+      submissionProgress: [
+        { playerId: "local", name: "Local", submitted: true },
+        { playerId: "remote", name: "Remote", submitted: true },
+      ],
+    };
+    assert.equal(updateFakeAnswerProgress(root, updatedState, "local"), false);
+    assert.equal(progress.textContent, "2 of 2 answers submitted");
+    assert.deepEqual(
+      children.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Submitted", "Submitted"],
+    );
   } finally {
     if (originalDocument === undefined) {
       delete globalThis.document;
     } else {
       globalThis.document = originalDocument;
     }
+  }
+});
+
+test("Fact or Cap vote progress changes only from authoritative waiting to voted state", () => {
+  const progress = { textContent: "" };
+  const children = [];
+  const playerList = {
+    replaceChildren() { children.length = 0; },
+    append(child) { children.push(child); },
+    get children() { return children; },
+  };
+  const root = {
+    querySelector(selector) {
+      return selector === ".vote-progress" ? progress : selector === ".vote-player-list" ? playerList : null;
+    },
+  };
+  const originalDocument = globalThis.document;
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
+  try {
+    const state = {
+      phase: "voting",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: { id: "prompt-1", text: "Complete this sentence." },
+      submissionCount: 2,
+      playerCount: 2,
+      voteCount: 1,
+      options: [
+        { id: "own", completion: "Local answer", isOwnAnswer: true },
+        { id: "remote", completion: "Remote answer", isOwnAnswer: false },
+        { id: "correct", completion: "Correct answer", isOwnAnswer: false },
+      ],
+      voteProgress: [
+        { playerId: "local", name: "Local", voted: false },
+        { playerId: "remote", name: "Remote", voted: true },
+      ],
+    };
+    assert.equal(updateFakeAnswerVoteProgress(root, state), true);
+    assert.equal(progress.textContent, "1 of 2 players voted");
+    assert.deepEqual(
+      children.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Waiting", "Voted"],
+    );
+
+    state.voteCount = 2;
+    state.voteProgress[0].voted = true;
+    assert.equal(updateFakeAnswerVoteProgress(root, state), true);
+    assert.equal(progress.textContent, "2 of 2 players voted");
+    assert.deepEqual(
+      children.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Voted", "Voted"],
+    );
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
+test("Fact or Cap voting renders shared avatar progress before the local vote is submitted", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
+  try {
+    const publicState = {
+      phase: "voting",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: { id: "prompt-1", text: "Complete this sentence." },
+      submissionCount: 2,
+      playerCount: 2,
+      voteCount: 0,
+      voteProgress: [
+        { playerId: "local", name: "Local", voted: false },
+        { playerId: "remote", name: "Remote", voted: false },
+      ],
+      options: [
+        { id: "own", completion: "Local answer", isOwnAnswer: true },
+        { id: "remote", completion: "Remote answer", isOwnAnswer: false },
+        { id: "correct", completion: "Correct answer", isOwnAnswer: false },
+      ],
+    };
+    const view = {
+      currentPlayerId: "local", hasSubmitted: true, completionDraft: "", isSubmitting: false,
+      submissionError: null, hasVoted: false, isVoting: false, selectedOptionId: null,
+      voteError: null, isContinuing: false, continueError: null, isHost: false,
+      isReturningToLobby: false, returnToLobbyError: null, isRoundFeedbackDismissed: true,
+    };
+    const root = renderFakeAnswerGame(
+      publicState,
+      view,
+      () => {},
+      () => {},
+      () => {},
+      () => {},
+      () => {},
+      "Fact or Cap",
+      false,
+    );
+    const progress = root.query((element) => element.className === "vote-progress");
+    const list = root.query((element) => element.className.includes("vote-player-list"));
+    assert.equal(progress.textContent, "0 of 2 players voted");
+    assert.equal(list.className, "vote-player-list avatar-status-list");
+    assert.deepEqual(
+      list.children.map((item) => item.query((element) => element.className.includes("avatar-status-badge")).attributes["aria-label"]),
+      ["Waiting", "Waiting"],
+    );
+    assert.ok(root.query((element) => element.className === "vote-form"));
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
+test("Fact or Cap submission and vote status messages retain plain wording", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
+  try {
+    const view = {
+      ...createFinalView(),
+      currentPlayerId: "local",
+      hasVoted: true,
+    };
+    const submissionState = {
+      phase: "answer-submission",
+      currentRound: 1,
+      totalRounds: 5,
+      roundId: "round-1",
+      prompt: { id: "prompt-1", text: "Complete this sentence." },
+      submissionCount: 1,
+      playerCount: 2,
+      submissionProgress: [
+        { playerId: "local", name: "Local", submitted: true },
+        { playerId: "remote", name: "Remote", submitted: false },
+      ],
+    };
+    const submissionScreen = renderFakeAnswerGame(
+      submissionState, view, () => {}, () => {}, () => {}, () => {}, () => {},
+      "Fact or Cap", false,
+    );
+    const submissionMessage = submissionScreen.query((node) => node.className === "status-message");
+    assert.equal(submissionMessage.textContent, "Answer submitted. Waiting for 1 player...");
+
+    const votingScreen = renderFakeAnswerGame({
+      ...submissionState,
+      phase: "voting",
+      submissionCount: 2,
+      voteCount: 1,
+      voteProgress: [
+        { playerId: "local", name: "Local", voted: true },
+        { playerId: "remote", name: "Remote", voted: false },
+      ],
+      options: [
+        { id: "own", completion: "Local answer", isOwnAnswer: true },
+        { id: "remote", completion: "Remote answer", isOwnAnswer: false },
+        { id: "correct", completion: "Correct answer", isOwnAnswer: false },
+      ],
+    }, view, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false);
+    const voteMessage = votingScreen.query((node) => node.textContent.startsWith("Vote submitted."));
+    assert.equal(voteMessage.className, "status-message");
+    assert.equal(voteMessage.textContent, "Vote submitted. Waiting for 1 player…");
+
+    const allSubmittedScreen = renderFakeAnswerGame({
+      ...submissionState,
+      submissionCount: 2,
+      submissionProgress: submissionState.submissionProgress.map((player) => ({ ...player, submitted: true })),
+    }, view, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false);
+    assert.equal(
+      allSubmittedScreen.query((node) => node.className === "status-message").textContent,
+      "Answer submitted. Preparing the answers…",
+    );
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
   }
 });
 
@@ -285,7 +494,10 @@ test("missing or invalid votes produce neutral feedback", () => {
 
 test("Fact-or-Cap voting renderer retains shared voting labels, option markup, and submission callback", () => {
   const originalDocument = globalThis.document;
-  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
   try {
     const publicState = {
       phase: "voting",
@@ -353,7 +565,10 @@ test("Fact-or-Cap voting renderer retains shared voting labels, option markup, a
 
 test("Fact-or-Cap final screens show the shared winner card and leaderboard without a phase heading or round counter", () => {
   const originalDocument = globalThis.document;
-  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
   try {
     const renderFinal = (gameName, state, view = createFinalView(), onReturn = () => {}, onReturnFromResults = () => {}) =>
       renderFakeAnswerGame(state, view, () => {}, () => {}, () => {}, () => {}, () => {}, onReturn, gameName, true, () => {}, undefined, undefined, onReturnFromResults);
@@ -364,7 +579,9 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
     const leaderboardHeading = screen.children[1];
     const leaderboard = screen.children[2];
     assert.equal(winnerCard.className, "final-winner-card");
-    assert.equal(winnerCard.children[0].textContent, "🏆");
+    assert.equal(winnerCard.children[0].className, "final-winner-medal");
+    assert.ok(winnerCard.children[0].query((node) => node.className.includes("final-winner-medal-icon")));
+    assert.equal(winnerCard.children[1].tagName, "h1");
     assert.match(winnerCard.text, /It's a tie!/u);
     assert.match(winnerCard.text, /Player Two, Player One/u);
     assert.match(winnerCard.text, /9 points/u);
@@ -377,12 +594,15 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
 
     const animeScreen = renderFinal("Fact-or-Cap Anime", tieState);
     assert.equal(animeScreen.children[0].className, "final-winner-card");
+    assert.equal(animeScreen.query((node) => node.tagName === "h1").textContent, "It's a tie!");
     assert.match(animeScreen.text, /Player Two, Player One/u);
     assert.doesNotMatch(animeScreen.text, /Final results|Round 5 of 5/u);
     assert.equal(animeScreen.query((node) => node.className === "round-counter"), null);
 
     const singleScreen = renderFinal("Fact or Cap", createFinalPublicState(false));
     const singleWinner = singleScreen.children[0];
+    assert.equal(singleWinner.children[0].className, "final-winner-medal");
+    assert.equal(singleScreen.query((node) => node.tagName === "h1").textContent, "Winner");
     assert.match(singleWinner.text, /Winner/u);
     assert.match(singleWinner.text, /Player Two/u);
     assert.doesNotMatch(singleWinner.text, /Player One/u);
@@ -419,16 +639,18 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
     assert.match(nonHostScreen.text, /Waiting for the host/u);
 
     let viewerReturnCalls = 0;
+    let hostReturnCalls = 0;
     const viewerScreen = renderFinal(
       "Fact or Cap",
       tieState,
-      createFinalView({ isHost: false, isResultsViewer: true }),
-      () => {},
+      createFinalView({ isHost: true, isResultsViewer: true }),
+      () => { hostReturnCalls += 1; },
       () => { viewerReturnCalls += 1; },
     );
-    const viewerReturn = viewerScreen.query((node) => node.tagName === "button" && node.textContent === "Return to Lobby");
+    const viewerReturn = viewerScreen.query((node) => node.tagName === "button" && node.className === "primary-button");
     assert.ok(viewerReturn);
     viewerReturn.dispatch("click");
+    assert.equal(hostReturnCalls, 0);
     assert.equal(viewerReturnCalls, 1);
   } finally {
     if (originalDocument === undefined) delete globalThis.document;
@@ -438,7 +660,10 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
 
 test("ordinary question and round-results screens retain their heading and round counter", () => {
   const originalDocument = globalThis.document;
-  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
   try {
     const submission = createFinalView({ isRoundFeedbackDismissed: true });
     const question = renderFakeAnswerGame({
@@ -473,6 +698,56 @@ test("ordinary question and round-results screens retain their heading and round
     const roundResults = renderFakeAnswerGame(roundState, submission, () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false, () => {});
     assert.equal(roundResults.query((node) => node.tagName === "h1").textContent, "Round results");
     assert.equal(roundResults.query((node) => node.className === "round-counter").textContent, "Round 4 of 5");
+    assert.equal(
+      roundResults.query((node) => node.className === "continue-progress").textContent,
+      "0 / 2 players ready to continue",
+    );
+    const readiness = roundResults.query((node) => node.className.includes("continue-player-list"));
+    assert.equal(readiness.className, "continue-player-list avatar-status-list");
+    assert.deepEqual(readiness.children.map((item) => item.dataset.playerId), ["player-1", "player-2"]);
+    assert.deepEqual(readiness.children.map((item) => item.children[0].children[0].textContent), ["PO", "PT"]);
+    assert.deepEqual(readiness.children.map((item) => item.children[1].textContent), ["Player One", "Player Two"]);
+    assert.deepEqual(
+      readiness.children.map((item) => item.children[0].children[1].attributes["aria-label"]),
+      ["Waiting", "Waiting"],
+    );
+
+    roundState.continueReadyCount = 1;
+    roundState.viewerReadyToContinue = true;
+    roundState.continueProgress[0].ready = true;
+    const updatedRoundResults = renderFakeAnswerGame(roundState, submission, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false, () => {});
+    const updatedReadiness = updatedRoundResults.query((node) => node.className.includes("continue-player-list"));
+    assert.equal(
+      updatedRoundResults.query((node) => node.className === "continue-progress").textContent,
+      "1 / 2 players ready to continue",
+    );
+    assert.deepEqual(
+      updatedReadiness.children.map((item) => item.children[0].children[1].className),
+      [
+        "avatar-status-badge avatar-status-badge-complete",
+        "avatar-status-badge avatar-status-badge-waiting",
+      ],
+    );
+    assert.deepEqual(
+      updatedReadiness.children.map((item) => item.children[0].children[1].attributes["aria-label"]),
+      ["Ready", "Waiting"],
+    );
+
+    roundState.phase = "answer-submission";
+    roundState.currentRound = 5;
+    roundState.roundId = "round-5";
+    roundState.submissionCount = 0;
+    roundState.submissionProgress = [
+      { playerId: "player-1", name: "Player One", submitted: false },
+      { playerId: "player-2", name: "Player Two", submitted: false },
+    ];
+    const nextRound = renderFakeAnswerGame(roundState, submission, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false, () => {});
+    assert.equal(nextRound.query((node) => node.className.includes("continue-player-list")), null);
+    assert.deepEqual(
+      nextRound.query((node) => node.className.includes("submission-player-list"))
+        .children.map((item) => item.children[0].children[1].attributes["aria-label"]),
+      ["Waiting", "Waiting"],
+    );
   } finally {
     if (originalDocument === undefined) delete globalThis.document;
     else globalThis.document = originalDocument;
@@ -548,7 +823,10 @@ test("all-round history opens on the final round and supports bounded page navig
 
 test("Fact-or-Cap historical snapshots render their recorded answers, voters, and leaderboard", () => {
   const originalDocument = globalThis.document;
-  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
   try {
     const state = createFinalPublicState(false);
     state.results.roundHistory = [{

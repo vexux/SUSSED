@@ -49,28 +49,76 @@ export function createStatusMessage(
   return status;
 }
 
-export function createProgressChipList<T extends PresentationPlayer>(
+function getPlayerInitials(name: string): string {
+  const parts = name.trim().split(/\s+/u).filter(Boolean);
+  if (parts.length > 1) {
+    return `${parts[0]?.[0] ?? ""}${parts[parts.length - 1]?.[0] ?? ""}`.toUpperCase();
+  }
+  return (parts[0]?.slice(0, 2) ?? "?").toUpperCase();
+}
+
+function createProgressStatusIcon(isComplete: boolean): SVGSVGElement {
+  const namespace = "http://www.w3.org/2000/svg";
+  const icon = document.createElementNS(namespace, "svg");
+  icon.setAttribute("viewBox", "0 0 16 16");
+  icon.setAttribute("aria-hidden", "true");
+  icon.setAttribute("focusable", "false");
+  const path = document.createElementNS(namespace, "path");
+  path.setAttribute(
+    "d",
+    isComplete
+      ? "m3 8 3.25 3.25L13 4.5"
+      : "M4 2h8M4 14h8M5 2c0 3 1 4 3 6-2 2-3 3-3 6m6-12c0 3-1 4-3 6 2 2 3 3 3 6",
+  );
+  icon.append(path);
+  return icon;
+}
+
+export function createAvatarStatusList<T extends PresentationPlayer>(
   players: T[],
-  statusFor: (player: T) => string,
-  className = "progress-chip-list",
+  isComplete: (player: T) => boolean,
+  completedLabel: string,
+  className: string,
 ): HTMLUListElement {
   const list = document.createElement("ul");
   list.className = className;
-  replaceProgressChipList(list, players, statusFor);
+  replaceAvatarStatusList(list, players, isComplete, completedLabel);
   return list;
 }
 
-export function replaceProgressChipList<T extends PresentationPlayer>(
+export function replaceAvatarStatusList<T extends PresentationPlayer>(
   list: HTMLUListElement,
   players: T[],
-  statusFor: (player: T) => string,
+  isComplete: (player: T) => boolean,
+  completedLabel: string,
 ): void {
   list.replaceChildren();
   for (const player of players) {
+    const complete = isComplete(player);
     const item = document.createElement("li");
-    item.className = "progress-chip";
+    item.className = "avatar-status-player";
     item.dataset.playerId = player.playerId;
-    item.textContent = statusFor(player);
+
+    const avatarWrapper = document.createElement("span");
+    avatarWrapper.className = "avatar-status-wrapper";
+    const avatar = document.createElement("span");
+    avatar.className = "player-avatar avatar-status-avatar";
+    avatar.setAttribute("aria-hidden", "true");
+    avatar.textContent = getPlayerInitials(player.name);
+
+    const badge = document.createElement("span");
+    badge.className = complete
+      ? "avatar-status-badge avatar-status-badge-complete"
+      : "avatar-status-badge avatar-status-badge-waiting";
+    badge.setAttribute("role", "img");
+    badge.setAttribute("aria-label", complete ? completedLabel : "Waiting");
+    badge.append(createProgressStatusIcon(complete));
+
+    avatarWrapper.append(avatar, badge);
+    const name = document.createElement("span");
+    name.className = "avatar-status-name";
+    name.textContent = player.name;
+    item.append(avatarWrapper, name);
     list.append(item);
   }
 }
@@ -79,22 +127,17 @@ export function createSubmissionProgress(
   count: number,
   playerCount: number,
   players: Array<PresentationPlayer & { submitted: boolean }>,
-  currentPlayerId: string | null,
 ): HTMLElement[] {
   const progress = document.createElement("p");
   progress.className = "submission-progress";
   progress.setAttribute("aria-live", "polite");
   progress.textContent = `${count} of ${playerCount} answers submitted`;
-  const list = createProgressChipList(players, (player) => {
-    const label = player.submitted ? "Submitted" : "Waiting";
-    return player.playerId === currentPlayerId
-      ? `You · ${label}`
-      : `${player.name} · ${label}`;
-  }, "submission-player-list progress-chip-list");
-  for (const item of Array.from(list.children)) {
-    const player = players.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
-    if (player?.submitted) item.classList.add("progress-chip-done");
-  }
+  const list = createAvatarStatusList(
+    players,
+    (player) => player.submitted,
+    "Submitted",
+    "submission-player-list avatar-status-list",
+  );
   return [progress, list];
 }
 
@@ -102,21 +145,16 @@ export function createVoteProgress(
   count: number,
   playerCount: number,
   players: Array<PresentationPlayer & { voted: boolean }>,
-  currentPlayerId: string | null,
 ): HTMLElement[] {
   const progress = document.createElement("p");
   progress.className = "vote-progress";
   progress.textContent = `${count} of ${playerCount} players voted`;
-  const list = createProgressChipList(players, (player) => {
-    const label = player.voted ? "Voted" : "Waiting";
-    return player.playerId === currentPlayerId
-      ? `You · ${label}`
-      : `${player.name} · ${label}`;
-  }, "vote-player-list progress-chip-list");
-  for (const item of Array.from(list.children)) {
-    const player = players.find(({ playerId }) => playerId === (item as HTMLLIElement).dataset.playerId);
-    if (player?.voted) item.classList.add("progress-chip-done");
-  }
+  const list = createAvatarStatusList(
+    players,
+    (player) => player.voted,
+    "Voted",
+    "vote-player-list avatar-status-list",
+  );
   return [progress, list];
 }
 
@@ -473,10 +511,12 @@ export function appendContinueReadiness(options: {
   progress.className = "continue-progress";
   progress.textContent = `${options.readyCount} / ${options.playerCount} players ready to continue`;
   options.screen.append(progress);
-  const list = createProgressChipList(options.players, ({ name, ready }) => `${name} · ${ready ? "Ready" : "Waiting"}`, "continue-player-list progress-chip-list");
-  options.players.forEach((player, index) => {
-    if (player.ready) list.children[index]?.classList.add("progress-chip-done");
-  });
+  const list = createAvatarStatusList(
+    options.players,
+    ({ ready }) => ready,
+    "Ready",
+    "continue-player-list avatar-status-list",
+  );
   options.screen.append(list);
   if (options.viewerReady) {
     options.screen.append(createStatusMessage("You’re ready. Waiting for the other players…"));
@@ -504,11 +544,23 @@ export function appendWinnerPresentation(
   const card = document.createElement("section");
   card.className = "final-winner-card";
   card.setAttribute("aria-labelledby", "final-winner-heading");
-  const trophy = document.createElement("span");
-  trophy.className = "final-winner-trophy";
-  trophy.setAttribute("aria-hidden", "true");
-  trophy.textContent = "🏆";
-  const heading = document.createElement("h2");
+  const medal = document.createElement("span");
+  medal.className = "final-winner-medal";
+  medal.setAttribute("aria-hidden", "true");
+  const crown = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  crown.setAttribute("viewBox", "0 0 24 24");
+  crown.setAttribute("focusable", "false");
+  crown.classList.add("final-winner-medal-icon");
+  const crownPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  crownPath.setAttribute("d", "m2 8 5 4 5-8 5 8 5-4-2 12H4L2 8Zm2 15h16");
+  crownPath.setAttribute("fill", "none");
+  crownPath.setAttribute("stroke", "currentColor");
+  crownPath.setAttribute("stroke-width", "1.8");
+  crownPath.setAttribute("stroke-linecap", "round");
+  crownPath.setAttribute("stroke-linejoin", "round");
+  crown.append(crownPath);
+  medal.append(crown);
+  const heading = document.createElement("h1");
   heading.className = "final-winner-heading";
   heading.id = "final-winner-heading";
   heading.textContent = winnerNames.length > 1 ? "It's a tie!" : "Winner";
@@ -518,6 +570,6 @@ export function appendWinnerPresentation(
   const score = document.createElement("p");
   score.className = "final-winner-scores";
   score.textContent = scoreText;
-  card.append(trophy, heading, names, score);
+  card.append(medal, heading, names, score);
   screen.append(card);
 }
