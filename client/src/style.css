@@ -355,81 +355,92 @@ button:disabled {
 }
 
 .lobby-heading-bar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
 }
 
 .lobby-heading-bar > h1 {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: center;
-  text-align: center;
-}
-
-.lobby-heading-bar .visibility-field {
-  grid-column: 3;
-  grid-row: 1;
-  justify-self: end;
-  width: max-content;
-  max-width: 100%;
   margin: 0;
-  gap: var(--space-1);
+  min-width: 0;
+  font-size: clamp(1.8rem, 8vw, 2.75rem);
+  text-align: left;
 }
 
-.lobby-heading-bar .room-visibility-field {
-  width: auto;
-  margin: 0;
+.room-visibility-menu {
+  position: relative;
+  flex: 0 0 auto;
 }
 
-.lobby-heading-bar .visibility-field legend {
-  padding: 0;
-  font-size: 0.78rem;
-}
-
-.lobby-heading-bar .visibility-options {
-  display: flex;
-  gap: 0;
-  overflow: hidden;
-  border: 1px solid var(--color-control-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-}
-
-.lobby-heading-bar .visibility-option {
-  min-height: 44px;
-  align-items: center;
-  gap: 6px;
-  padding: 0 var(--space-2);
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.lobby-heading-bar .visibility-option + .visibility-option {
-  border-left: 1px solid var(--color-control-border);
-}
-
-.lobby-heading-bar .visibility-option input {
-  margin: 0;
-}
-
-.lobby-heading-bar .visibility-option.selected {
-  color: var(--color-accent-light);
-  background: var(--color-accent-surface-strong);
-  box-shadow: inset 0 0 0 1px var(--color-accent-border-strong);
-}
-
-.lobby-heading-bar .visibility-option-title {
+.room-visibility-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-pill);
+  padding: 0 12px;
+  color: var(--color-text-strong);
+  background: var(--color-surface);
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
-.lobby-heading-bar .visibility-option-title svg {
-  width: 16px;
-  height: 16px;
+summary.room-visibility-pill {
+  cursor: pointer;
+  list-style: none;
+}
+
+summary.room-visibility-pill::-webkit-details-marker {
+  display: none;
+}
+
+.room-visibility-pill svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.room-visibility-menu[open] > .room-visibility-pill,
+.room-visibility-pill:focus-visible {
+  border-color: var(--color-accent-border-strong);
+  outline: 2px solid var(--color-accent-border-strong);
+  outline-offset: 2px;
+}
+
+.room-visibility-options {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: max-content;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-md);
+  padding: 5px;
+  background: var(--color-surface-raised);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+}
+
+.room-visibility-menu-action {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  color: var(--color-text-strong);
+  background: transparent;
+  font-weight: 650;
+  text-align: left;
+}
+
+.room-visibility-menu-action:hover:not(:disabled) {
+  background: var(--color-surface-alt);
 }
 
 .room-code-control {
@@ -569,8 +580,7 @@ button:disabled {
   justify-content: stretch;
   align-items: stretch;
   width: 100%;
-  max-width: 640px;
-  margin: 0;
+  margin: var(--space-3) 0 0;
 }
 
 .lobby-screen .lobby-actions > button {
@@ -586,14 +596,8 @@ button:disabled {
   grid-column: 1 / -1;
 }
 
-.lobby-screen .lobby-actions:not(.host-lobby-actions) > button {
-  width: min(100%, 320px);
-}
-
 .lobby-screen .lobby-heading-bar > h1 {
-  margin: 0;
   color: var(--color-text-strong);
-  font-size: clamp(2rem, 5vw, 2.75rem);
 }
 
 .app-screen h1 {
@@ -855,9 +859,10 @@ select:focus:not(:focus-visible) {
 .invitation-dialog {
   position: fixed;
   inset: 0;
-  width: min(calc(100% - 2rem), 34rem);
+  width: min(calc(100vw - 2rem - env(safe-area-inset-left) - env(safe-area-inset-right)), 34rem);
+  box-sizing: border-box;
   max-width: none;
-  max-height: min(90dvh, 42rem);
+  max-height: min(calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)), 42rem);
   overflow-y: auto;
   margin: auto;
   border: 1px solid var(--color-control-border);
@@ -1225,7 +1230,7 @@ select:focus:not(:focus-visible) {
   z-index: 30;
   width: min(calc(100vw - 24px), 300px);
   max-width: none;
-  max-height: min(75vh, 420px);
+  max-height: min(75dvh, 420px);
   overflow-y: auto;
   margin: 0;
   border: 1px solid var(--color-control-border);
@@ -1284,6 +1289,20 @@ select:focus:not(:focus-visible) {
   min-height: 44px;
 }
 
+.player-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.player-action-button svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  color: var(--color-trophy);
+}
+
 .destructive-button {
   min-height: 44px;
   border: 1px solid var(--color-error);
@@ -1325,7 +1344,7 @@ select:focus:not(:focus-visible) {
   border-radius: var(--radius-md);
   background: var(--color-surface-raised);
   box-shadow: 0 0 1.5rem rgb(var(--color-accent-rgb) / 12%);
-  text-align: center;
+  text-align: left;
 }
 
 .kick-confirmation-backdrop {
@@ -1340,13 +1359,22 @@ select:focus:not(:focus-visible) {
 }
 
 .kick-confirmation h2 {
-  margin: 0;
+  margin: 0 0 var(--space-2);
   color: var(--color-text-strong);
+}
+
+.kick-confirmation .screen-description {
+  margin: 0 0 var(--space-4);
+  text-align: left;
+}
+
+.kick-confirmation-actions {
+  justify-content: flex-end;
 }
 
 .kick-confirmation-actions > button {
   min-height: 44px;
-  flex: 1 1 140px;
+  flex: 0 1 150px;
 }
 
 .player-card.local-player {
@@ -1995,10 +2023,6 @@ select:focus:not(:focus-visible) {
   color: var(--color-accent-light);
 }
 
-.room-visibility-field {
-  margin: var(--space-4) 0;
-}
-
 .results-reminder-dialog {
   width: min(100%, 30rem);
   max-height: calc(100% - 2rem);
@@ -2475,24 +2499,6 @@ select:focus:not(:focus-visible) {
 }
 
 @media (max-width: 760px) {
-  .lobby-heading-bar {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: center;
-  }
-
-  .lobby-heading-bar > h1 {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .lobby-heading-bar .visibility-field {
-    grid-column: 1;
-    grid-row: 2;
-    justify-self: center;
-    width: max-content;
-    max-width: 100%;
-  }
-
   .game-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2525,10 +2531,6 @@ select:focus:not(:focus-visible) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-2);
-  }
-
-  .lobby-screen .lobby-actions:not(.host-lobby-actions) > button {
-    grid-column: 1 / -1;
   }
 
   .lobby-screen .lobby-actions > button {
@@ -2645,15 +2647,9 @@ select:focus:not(:focus-visible) {
   }
 
   .invitation-dialog {
-    inset: auto 0 0;
-    width: 100%;
-    max-height: min(90dvh, 42rem);
-    margin: 0;
-    border-right: 0;
-    border-bottom: 0;
-    border-left: 0;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    padding: var(--space-4) var(--space-4) max(var(--space-4), env(safe-area-inset-bottom));
+    width: min(calc(100vw - 1.5rem - env(safe-area-inset-left) - env(safe-area-inset-right)), 34rem);
+    max-height: min(calc(100dvh - 1rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)), 42rem);
+    padding: var(--space-4);
   }
 
   .invitation-dialog-actions {
@@ -2668,23 +2664,21 @@ select:focus:not(:focus-visible) {
     padding: 9px 10px;
   }
 
-  .player-detail-dialog[aria-modal="true"] {
-    inset: auto 0 0;
-    width: 100%;
-    max-height: min(82dvh, 34rem);
-    margin: 0;
-    border-right: 0;
-    border-bottom: 0;
-    border-left: 0;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    padding: var(--space-4) var(--space-4) max(var(--space-4), env(safe-area-inset-bottom));
-  }
-
   .host-badge,
   .ready-badge,
   .not-ready-badge,
   .in-game-badge {
     flex: 0 0 auto;
+  }
+
+  @media (max-width: 380px) {
+    .lobby-screen .lobby-actions {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lobby-screen .lobby-actions .reminder-button {
+      grid-column: auto;
+    }
   }
 
   .app-header {

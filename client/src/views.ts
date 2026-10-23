@@ -63,7 +63,7 @@ export interface AppActions {
   onResultsHistoryPage(page: number): void;
 }
 
-const playerCardDismissRoots = new WeakSet<HTMLElement>();
+const lobbyPopoverRoots = new WeakSet<HTMLElement>();
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
   tagName: K,
@@ -80,7 +80,7 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
   return element;
 }
 
-type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh";
+type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron";
 
 function createIcon(name: IconName): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -102,6 +102,7 @@ function createIcon(name: IconName): SVGSVGElement {
     crown: "m2 8 5 4 5-8 5 8 5-4-2 12H4L2 8Zm2 15h16",
     key: "M21 2 11 12m0 0a5 5 0 1 1-7.1 7.1A5 5 0 0 1 11 12Zm3-3 3 3m-6 0 3 3",
     refresh: "M20 7v5h-5M4 17v-5h5m-4.1-3A8 8 0 0 1 19 7l1 5M4 12l1 5a8 8 0 0 0 14.1-2",
+    chevron: "m6 9 6 6 6-6",
   };
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("d", paths[name]);
@@ -362,6 +363,70 @@ function createVisibilitySelector(options: {
   }
   field.append(choices);
   return field;
+}
+
+function createLobbyVisibilityControl(
+  visibility: "public" | "private",
+  canChange: boolean,
+  isBusy: boolean,
+  onChange: (visibility: "public" | "private") => void,
+): HTMLElement {
+  const label = visibility === "public" ? "Public" : "Private";
+  const icon = visibility === "public" ? "globe" : "lock";
+  if (!canChange) {
+    const value = createElement("span", "room-visibility-pill room-visibility-readonly");
+    value.setAttribute("aria-label", `Room visibility: ${label}`);
+    value.append(createIcon(icon), createElement("span", undefined, label));
+    return value;
+  }
+
+  const details = createElement("details", "room-visibility-menu");
+  const summary = createElement("summary", "room-visibility-pill");
+  summary.setAttribute("aria-label", `Room visibility: ${label}`);
+  summary.setAttribute("aria-haspopup", "menu");
+  summary.setAttribute("aria-expanded", "false");
+  summary.append(createIcon(icon), createElement("span", undefined, label), createIcon("chevron"));
+  details.append(summary);
+
+  const menu = createElement("div", "room-visibility-options");
+  menu.setAttribute("role", "menu");
+  menu.setAttribute("aria-label", "Change room visibility");
+  const nextVisibility = visibility === "public" ? "private" : "public";
+  const nextLabel = nextVisibility === "public" ? "Make public" : "Make private";
+  const option = createElement("button", "room-visibility-menu-action", nextLabel);
+  option.type = "button";
+  option.setAttribute("role", "menuitem");
+  option.disabled = isBusy;
+  option.addEventListener("click", () => {
+    if (isBusy) return;
+    details.open = false;
+    onChange(nextVisibility);
+  });
+  menu.append(option);
+  details.append(menu);
+  details.addEventListener("toggle", () => {
+    summary.setAttribute("aria-expanded", String(details.open));
+  });
+  details.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      details.open = false;
+      summary.focus();
+    } else if (event.key === "ArrowDown" && event.target === summary) {
+      event.preventDefault();
+      option.focus();
+    } else if (event.key === "ArrowUp" && event.target === option) {
+      event.preventDefault();
+      summary.focus();
+    }
+  });
+  details.addEventListener("focusout", (event) => {
+    const nextTarget = (event as FocusEvent).relatedTarget;
+    if (!(nextTarget instanceof Node) || !details.contains(nextTarget)) {
+      details.open = false;
+    }
+  });
+  return details;
 }
 
 function createGameCard(
@@ -674,27 +739,12 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   readinessMessage.setAttribute("role", "status");
   const playerList = createElement("ul", "player-list");
 
-  let visibilityField: HTMLElement;
-  if (isHost && lobby.status === "lobby") {
-    visibilityField = createVisibilitySelector({
-      idPrefix: "room-visibility",
-      visibility: lobby.visibility,
-      disabled: state.isBusy,
-      onChange: actions.onSetRoomVisibility,
-    });
-    visibilityField.classList.add("room-visibility-field");
-  } else {
-    const readOnlyVisibility = createElement("div", "field room-visibility-field");
-    readOnlyVisibility.append(createElement("p", "field-label", "Room visibility"));
-    const readOnlyValue = createElement(
-      "p",
-      "readonly-setting-value",
-      lobby.visibility === "public" ? "Public" : "Private",
-    );
-    readOnlyValue.append(createIcon(lobby.visibility === "public" ? "globe" : "lock"));
-    readOnlyVisibility.append(readOnlyValue);
-    visibilityField = readOnlyVisibility;
-  }
+  const visibilityField = createLobbyVisibilityControl(
+    lobby.visibility,
+    isHost && lobby.status === "lobby",
+    state.isBusy,
+    actions.onSetRoomVisibility,
+  );
 
   const orderedPlayers = [...lobby.players].sort((first, second) =>
     Number(second.isHost) - Number(first.isHost));
@@ -797,9 +847,6 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   const playersHeading = createElement("h2", "lobby-panel-title", "Players");
   playersHeading.id = "lobby-players-title";
   playerSection.append(playersHeading, playerCount, readinessMessage, playerList);
-  if (lobby.status === "lobby" && !isHost) {
-    playerSection.append(readyButton);
-  }
 
   const lobbySettingsRow = createElement("div", "lobby-settings-row");
   const lobbyContent = createElement("div", "lobby-content-grid");
@@ -848,14 +895,14 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
       if (event.target === backdrop) actions.onCancelKickPlayer();
     });
     const isHostTransfer = state.pendingHostTransferId !== null;
-    const title = createElement("h2", undefined, isHostTransfer ? `Make ${pendingPlayer.name} host?` : `Remove ${pendingPlayer.name}?`);
+    const title = createElement("h2", undefined, isHostTransfer ? `Make ${pendingPlayer.name} host?` : `Kick ${pendingPlayer.name}?`);
     title.id = "kick-confirmation-title";
     const description = createElement(
       "p",
       "screen-description",
       isHostTransfer
         ? "They'll gain control of this lobby."
-        : "They'll leave this room and can rejoin with its code.",
+        : "They can rejoin with the room code.",
     );
     description.id = "kick-confirmation-description";
     dialog.append(title, description);
@@ -868,7 +915,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     const confirm = createElement(
       "button",
       isHostTransfer ? "primary-button" : "destructive-button",
-      isHostTransfer ? "Make host" : "Remove from room",
+      isHostTransfer ? "Yes" : "Kick!",
     );
     confirm.type = "button";
     confirm.disabled = state.isBusy;
@@ -889,6 +936,9 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     `button-group lobby-actions${isHost ? " host-lobby-actions" : ""}`,
   );
 
+  if (!isHost && lobby.status === "lobby") {
+    lobbyActions.append(readyButton);
+  }
   if (isHost) {
     const startButton = createElement("button", "primary-button", "Start game");
     startButton.type = "button";
@@ -909,7 +959,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
 
   lobbyActions.append(leaveButton);
   if (reminderButton) lobbyActions.append(reminderButton);
-  screen.append(lobbyActions);
+  lobbyContent.append(lobbyActions);
   if (state.isBusy) {
     screen.append(createElement("p", "status-message", "Updating room…"));
   }
@@ -1033,20 +1083,22 @@ function createPlayerDetailDialog(
   dialog.append(header);
 
   const status = createElement("div", "player-detail-status");
-  status.append(createElement(
-    "span",
-    player.isInGame ? "in-game-badge" : player.isReady ? "ready-badge" : "not-ready-badge",
-    player.isInGame ? "In-game" : player.isReady ? "Ready" : "Not ready",
-  ));
+  if (player.isInGame) {
+    status.append(createElement("span", "in-game-badge", "In-game"));
+  } else if (!player.isHost) {
+    status.append(createElement("span", player.isReady ? "ready-badge" : "not-ready-badge", player.isReady ? "Ready" : "Not ready"));
+  }
   if (player.isHost) status.append(createElement("span", "host-badge", "Host"));
   dialog.append(status);
 
   if (isHost && state.localPlayerId !== player.id && state.lobby?.status === "lobby") {
     const actionsPanel = createElement("div", "player-detail-actions");
-    const makeHost = createElement("button", "secondary-button", "Make host");
+    const makeHost = createElement("button", "secondary-button player-action-button", "Make host");
     makeHost.type = "button";
     makeHost.disabled = state.isBusy;
+    makeHost.setAttribute("aria-label", `Make ${player.name} host`);
     makeHost.setAttribute("data-player-detail-focus", "make-host");
+    makeHost.append(createIcon("crown"));
     makeHost.addEventListener("click", () => actions.onRequestHostTransfer(player.id));
     const remove = createElement("button", "destructive-button", "Remove from room");
     remove.type = "button";
@@ -1421,11 +1473,8 @@ export function renderApp(
   }
   const playerDialog = root.querySelector<HTMLDialogElement>(".player-detail-dialog");
   if (state.selectedPlayerId && playerDialog) {
-    const mobile = typeof window !== "undefined" && window.matchMedia("(max-width: 560px)").matches;
-    playerDialog.setAttribute("aria-modal", String(mobile));
-    if (mobile && typeof playerDialog.showModal === "function") {
-      if (!playerDialog.open) playerDialog.showModal();
-    } else if (typeof playerDialog.show === "function") {
+    playerDialog.setAttribute("aria-modal", "false");
+    if (typeof playerDialog.show === "function") {
       if (!playerDialog.open) playerDialog.show();
     } else {
       playerDialog.setAttribute("open", "");
@@ -1437,39 +1486,34 @@ export function renderApp(
     } else {
       playerDialog.querySelector<HTMLButtonElement>(".player-detail-close")?.focus();
     }
-    if (!mobile && typeof window !== "undefined") {
-      const trigger = Array.from(root.querySelectorAll<HTMLButtonElement>(".player-card"))
-        .find(({ dataset }) => dataset.playerId === state.selectedPlayerId);
-      if (trigger) {
-        const anchor = trigger.getBoundingClientRect();
-        const card = playerDialog.getBoundingClientRect();
-        const margin = 12;
-        const left = Math.max(margin, Math.min(anchor.left, window.innerWidth - card.width - margin));
-        const below = anchor.bottom + 8;
-        const top = below + card.height <= window.innerHeight - margin
-          ? below
-          : Math.max(margin, anchor.top - card.height - 8);
-        playerDialog.style.left = `${left}px`;
-        playerDialog.style.top = `${top}px`;
+    positionPlayerDetailDialog(root);
+  }
+  if (!lobbyPopoverRoots.has(root)) {
+    lobbyPopoverRoots.add(root);
+    root.addEventListener("pointerdown", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const visibilityMenu = root.querySelector<HTMLDetailsElement>(".room-visibility-menu");
+      if (visibilityMenu?.open && !visibilityMenu.contains(target)) {
+        visibilityMenu.open = false;
       }
-    }
-    if (!playerCardDismissRoots.has(root)) {
-      playerCardDismissRoots.add(root);
-      root.addEventListener("pointerdown", (event) => {
-        const activeDialog = root.querySelector<HTMLDialogElement>(".player-detail-dialog");
-        const target = event.target;
-        if (
-          activeDialog?.open &&
-          !activeDialog.matches(":modal") &&
-          target instanceof Element &&
-          !activeDialog.contains(target) &&
-          !target.closest(".player-card")
-        ) {
-          actions.onClosePlayerCard();
-        }
-      });
+      const activeDialog = root.querySelector<HTMLDialogElement>(".player-detail-dialog");
+      if (
+        activeDialog?.open &&
+        !activeDialog.contains(target) &&
+        !target.closest(".player-card")
+      ) {
+        actions.onClosePlayerCard();
+      }
+    });
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", () => positionPlayerDetailDialog(root));
+      window.addEventListener("scroll", () => positionPlayerDetailDialog(root), true);
+      window.visualViewport?.addEventListener("resize", () => positionPlayerDetailDialog(root));
+      window.visualViewport?.addEventListener("scroll", () => positionPlayerDetailDialog(root));
     }
   }
+  positionPlayerDetailDialog(root);
   const resultsReminderDialog = root.querySelector<HTMLDialogElement>(".results-reminder-dialog");
   if (state.resultsReminderSessionId && resultsReminderDialog) {
     if (typeof resultsReminderDialog.showModal === "function") {
@@ -1477,5 +1521,53 @@ export function renderApp(
     } else {
       resultsReminderDialog.setAttribute("open", "");
     }
+  }
+
+  function positionPlayerDetailDialog(root: HTMLElement): void {
+    if (typeof window === "undefined") return;
+    const dialog = root.querySelector<HTMLDialogElement>(".player-detail-dialog");
+    if (!dialog?.open) return;
+    const trigger = Array.from(root.querySelectorAll<HTMLButtonElement>(".player-card"))
+      .find(({ dataset }) => dataset.playerId === dialog.dataset.playerId);
+    if (!trigger) return;
+
+    const viewport = window.visualViewport;
+    const viewportLeft = viewport?.offsetLeft ?? 0;
+    const viewportTop = viewport?.offsetTop ?? 0;
+    const viewportWidth = viewport?.width ?? window.innerWidth;
+    const viewportHeight = viewport?.height ?? window.innerHeight;
+    const margin = 12;
+    const gap = 8;
+    dialog.style.maxHeight = `${Math.max(120, viewportHeight - margin * 2)}px`;
+    dialog.style.maxWidth = `${Math.max(0, viewportWidth - margin * 2)}px`;
+
+    const anchor = trigger.getBoundingClientRect();
+    const card = dialog.getBoundingClientRect();
+    const rightSpace = viewportLeft + viewportWidth - anchor.right - gap - margin;
+    const leftSpace = anchor.left - viewportLeft - gap - margin;
+    let left: number;
+    if (rightSpace >= card.width) {
+      left = anchor.right + gap;
+    } else if (leftSpace >= card.width) {
+      left = anchor.left - card.width - gap;
+    } else {
+      left = Math.max(viewportLeft + margin, Math.min(
+        anchor.left,
+        viewportLeft + viewportWidth - card.width - margin,
+      ));
+    }
+
+    const below = anchor.bottom + gap;
+    const above = anchor.top - card.height - gap;
+    const top = below + card.height <= viewportTop + viewportHeight - margin
+      ? below
+      : above >= viewportTop + margin
+        ? above
+        : Math.max(viewportTop + margin, Math.min(
+          below,
+          viewportTop + viewportHeight - card.height - margin,
+        ));
+    dialog.style.left = `${left}px`;
+    dialog.style.top = `${top}px`;
   }
 }
