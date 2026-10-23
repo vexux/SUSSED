@@ -422,16 +422,18 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
     assert.match(nonHostScreen.text, /Waiting for the host/u);
 
     let viewerReturnCalls = 0;
+    let hostReturnCalls = 0;
     const viewerScreen = renderFinal(
       "Fact or Cap",
       tieState,
-      createFinalView({ isHost: false, isResultsViewer: true }),
-      () => {},
+      createFinalView({ isHost: true, isResultsViewer: true }),
+      () => { hostReturnCalls += 1; },
       () => { viewerReturnCalls += 1; },
     );
-    const viewerReturn = viewerScreen.query((node) => node.tagName === "button" && node.textContent === "Return to Lobby");
+    const viewerReturn = viewerScreen.query((node) => node.tagName === "button" && node.className === "primary-button");
     assert.ok(viewerReturn);
     viewerReturn.dispatch("click");
+    assert.equal(hostReturnCalls, 0);
     assert.equal(viewerReturnCalls, 1);
   } finally {
     if (originalDocument === undefined) delete globalThis.document;

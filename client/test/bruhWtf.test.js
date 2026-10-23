@@ -318,17 +318,19 @@ test("Bruh final results preserve return loading/errors and non-host waiting sta
     assert.equal(nonHost.query((node) => node.tagName === "button" && node.textContent === "Return to lobby"), null);
     assert.match(nonHost.text, /Waiting for the host/u);
 
-    let returnCalls = 0;
+    let hostReturnCalls = 0;
+    let resultsReturnCalls = 0;
     const resultsViewer = renderBruhWtfGame(
       state,
-      { ...baseView, isHost: false, isResultsViewer: true, isReturningToLobby: false, returnToLobbyError: null },
-      () => {}, () => {}, () => {}, () => {}, () => {}, () => {}, "Bruh wtf?", true,
-      undefined, undefined, () => { returnCalls += 1; },
+      { ...baseView, isHost: true, isResultsViewer: true, isReturningToLobby: false, returnToLobbyError: null },
+      () => {}, () => {}, () => {}, () => {}, () => {}, () => { hostReturnCalls += 1; }, "Bruh wtf?", true,
+      undefined, undefined, () => { resultsReturnCalls += 1; },
     );
-    const returnButton = resultsViewer.query((node) => node.tagName === "button" && node.textContent === "Return to Lobby");
+    const returnButton = resultsViewer.query((node) => node.tagName === "button" && node.className === "primary-button");
     assert.ok(returnButton);
     returnButton.dispatch("click");
-    assert.equal(returnCalls, 1);
+    assert.equal(hostReturnCalls, 0);
+    assert.equal(resultsReturnCalls, 1);
   });
 });
 

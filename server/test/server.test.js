@@ -3200,6 +3200,129 @@ test("return-to-lobby is host-only and requires a finished game", async (context
     assert.equal(gameManager.getPublicGameState(game.roomCode, game.host.id).status, "active");
 });
 
+test("a transferred host viewing finished results returns from results instead of repeating the room transition", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, { playerCount: 3 });
+    const clients = [game.host, ...game.players];
+    let gameState = game.gameState;
+
+    for (let round = 1; round <= gameState.state.totalRounds; round += 1) {
+        const results = await completeSocketRound(game.host, game.players, gameState);
+        assert.equal(results[0].state.currentRound, round);
+        if (round < gameState.state.totalRounds) {
+            const nextSubmissionStates = clients.map((client) =>
+                waitForGameState(client, (state) =>
+                    state.state.phase === "answer-submission" &&
+                    state.state.currentRound === round + 1
+                )
+            );
+            for (const client of clients) {
+                const response = await emitWithAck(client, "fake-answer:continue", {
+                    sessionId: gameState.sessionId,
+                    roundId: gameState.state.roundId
+                });
+                assert.equal(response.error, undefined);
+            }
+            gameState = (await Promise.all(nextSubmissionStates))[0];
+        }
+    }
+
+    const finishedSessionId = gameState.sessionId;
+    assert.equal(roomManager.getRoom(game.roomCode).status, "starting");
+    const blockedDuringGame = await emitWithAck(game.host, "transfer-host", {
+        targetPlayerId: game.players[0].id
+    });
+    assert.equal(blockedDuringGame.error.code, "ROOM_NOT_IN_LOBBY");
+
+    const hostLobby = waitForLobby(game.host, (lobby) => lobby.status === "lobby");
+    const guestResultsLobby = waitForLobby(game.players[0], (lobby) =>
+        lobby.status === "lobby" &&
+        lobby.players.find(({ id }) => id === game.players[0].id)?.isInGame === true
+    );
+    const remainingResultsLobby = waitForLobby(game.players[1], (lobby) =>
+        lobby.status === "lobby" &&
+        lobby.players.find(({ id }) => id === game.players[1].id)?.isInGame === true
+    );
+    assert.deepEqual(await emitWithAck(game.host, "return-to-lobby", {
+        sessionId: finishedSessionId
+    }), { returned: true });
+    const [hostLobbyState, guestResultsState, remainingResultsState] = await Promise.all([
+        hostLobby,
+        guestResultsLobby,
+        remainingResultsLobby
+    ]);
+    assert.equal(hostLobbyState.players.find(({ id }) => id === game.host.id).isHost, true);
+    assert.equal(guestResultsState.players.find(({ id }) => id === game.players[0].id).isInGame, true);
+    assert.equal(remainingResultsState.players.find(({ id }) => id === game.players[1].id).isInGame, true);
+
+    const newHostLobby = waitForLobby(game.players[0], (lobby) =>
+        lobby.players.find(({ id }) => id === game.players[0].id)?.isHost === true
+    );
+    const formerHostLobby = waitForLobby(game.host, (lobby) =>
+        lobby.players.find(({ id }) => id === game.players[0].id)?.isHost === true
+    );
+    const otherPlayerLobby = waitForLobby(game.players[1], (lobby) =>
+        lobby.players.find(({ id }) => id === game.players[0].id)?.isHost === true
+    );
+    assert.equal((await emitWithAck(game.host, "transfer-host", {
+        targetPlayerId: game.players[0].id
+    })).transferred, true);
+    const [newHostState, formerHostState, otherPlayerState] = await Promise.all([
+        newHostLobby,
+        formerHostLobby,
+        otherPlayerLobby
+    ]);
+    assert.equal(newHostState.players.find(({ id }) => id === game.players[0].id).isHost, true);
+    assert.equal(newHostState.players.find(({ id }) => id === game.players[0].id).isInGame, true);
+    assert.equal(formerHostState.players.find(({ id }) => id === game.host.id).isHost, false);
+    assert.equal(otherPlayerState.players.find(({ id }) => id === game.players[0].id).isHost, true);
+    assert.equal(roomManager.getRoom(game.roomCode).hostId, game.players[0].id);
+
+    const staleHostAction = await emitWithAck(game.players[0], "return-to-lobby", {
+        sessionId: finishedSessionId
+    });
+    assert.deepEqual(staleHostAction.error, {
+        code: "ROOM_NOT_IN_GAME",
+        message: "The room is not in a game."
+    });
+    assert.equal((await emitWithAck(game.host, "return-to-lobby", {
+        sessionId: finishedSessionId
+    })).error.code, "NOT_HOST");
+    assert.equal((await emitWithAck(game.players[1], "return-to-lobby", {
+        sessionId: finishedSessionId
+    })).error.code, "NOT_HOST");
+    const roomAfterRejectedAction = roomManager.getRoom(game.roomCode);
+    assert.equal(roomAfterRejectedAction.status, "lobby");
+    assert.equal(roomAfterRejectedAction.hostId, game.players[0].id);
+    assert.equal(roomAfterRejectedAction.players.find(
+        ({ id }) => id === game.players[0].id
+    ).viewingResultsSessionId, finishedSessionId);
+    assert.equal(roomAfterRejectedAction.players.find(
+        ({ id }) => id === game.players[1].id
+    ).viewingResultsSessionId, finishedSessionId);
+    assert.throws(
+        () => gameManager.getPublicGameState(game.roomCode, game.players[0].id),
+        { code: "GAME_NOT_ACTIVE" }
+    );
+
+    const newHostReturned = waitForLobby(game.players[0], (lobby) =>
+        lobby.players.find(({ id }) => id === game.players[0].id)?.isInGame === false
+    );
+    assert.deepEqual(await emitWithAck(game.players[0], "return-from-results", {
+        sessionId: finishedSessionId
+    }), { returned: true, status: "lobby" });
+    assert.equal((await newHostReturned).status, "lobby");
+    assert.equal(roomManager.getRoom(game.roomCode).players.find(
+        ({ id }) => id === game.players[0].id
+    ).viewingResultsSessionId, null);
+    assert.equal(roomManager.getRoom(game.roomCode).players.find(
+        ({ id }) => id === game.players[1].id
+    ).viewingResultsSessionId, finishedSessionId);
+    assert.equal((await emitWithAck(game.players[0], "return-from-results", {
+        sessionId: finishedSessionId
+    })).error.code, "STALE_RESULTS_SESSION");
+});
+
 test("Fact-or-Cap rejects empty, long, duplicate, malformed, and impersonated submissions", async (context) => {
     const harness = await createHarness(context);
     const { host, players, gameState } = await startFakeAnswer(harness);

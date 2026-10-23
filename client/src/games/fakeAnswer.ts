@@ -665,7 +665,15 @@ function createFinalResultsScreen(
   finished.className = "status-message";
   finished.textContent = "The game is complete.";
   screen.append(finished);
-  if (submission.isHost) {
+  if (submission.isResultsViewer) {
+    const returnButton = document.createElement("button");
+    returnButton.className = "primary-button";
+    returnButton.type = "button";
+    returnButton.disabled = submission.isReturningToLobby;
+    returnButton.textContent = submission.isReturningToLobby ? "Returning to lobby…" : "Return to Lobby";
+    returnButton.addEventListener("click", onReturnFromResults);
+    screen.append(returnButton);
+  } else if (submission.isHost) {
     const returnButton = document.createElement("button");
     returnButton.className = "primary-button";
     returnButton.type = "button";
@@ -674,14 +682,6 @@ function createFinalResultsScreen(
       ? "Returning to lobby…"
       : "Return to lobby";
     returnButton.addEventListener("click", onReturnToLobby);
-    screen.append(returnButton);
-  } else if (submission.isResultsViewer) {
-    const returnButton = document.createElement("button");
-    returnButton.className = "primary-button";
-    returnButton.type = "button";
-    returnButton.disabled = submission.isReturningToLobby;
-    returnButton.textContent = submission.isReturningToLobby ? "Returning to lobby…" : "Return to Lobby";
-    returnButton.addEventListener("click", onReturnFromResults);
     screen.append(returnButton);
   } else {
     const waiting = document.createElement("p");

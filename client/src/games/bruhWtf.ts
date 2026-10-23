@@ -223,16 +223,16 @@ export function renderBruhWtfGame(
       };
     });
     screen.append(createRoundHistorySection(history, view.historyPage ?? -1, view.historyOpen === true, onToggleHistory, onHistoryPage));
-    if (isSessionFinished && view.isHost) {
-      const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to lobby");
-      returnButton.disabled = view.isReturningToLobby;
-      returnButton.addEventListener("click", onReturnToLobby);
-      screen.append(returnButton);
-    } else if (isSessionFinished && view.isResultsViewer) {
+    if (isSessionFinished && view.isResultsViewer) {
       const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to Lobby");
       returnButton.type = "button";
       returnButton.disabled = view.isReturningToLobby;
       returnButton.addEventListener("click", onReturnFromResults);
+      screen.append(returnButton);
+    } else if (isSessionFinished && view.isHost) {
+      const returnButton = element("button", "primary-button", view.isReturningToLobby ? "Returning to lobby…" : "Return to lobby");
+      returnButton.disabled = view.isReturningToLobby;
+      returnButton.addEventListener("click", onReturnToLobby);
       screen.append(returnButton);
     } else if (isSessionFinished) {
       screen.append(createStatusMessage("Waiting for the host to return everyone to the lobby…"));
