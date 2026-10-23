@@ -15,6 +15,9 @@ function withFakeDocument(run) {
       item.classList = { add(...names) { item.className = [...new Set(`${item.className} ${names.join(" ")}`.trim().split(/\s+/u))].join(" "); } };
       return item;
     },
+    createElementNS(_namespace, tagName) {
+      return new FakeElement(tagName);
+    },
   };
   try {
     run();
@@ -61,7 +64,10 @@ class FakeElement {
 
 function withFakeElements(run) {
   const original = globalThis.document;
-  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
   try { run(); }
   finally {
     if (original === undefined) delete globalThis.document;

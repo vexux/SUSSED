@@ -504,10 +504,22 @@ export function appendWinnerPresentation(
   const card = document.createElement("section");
   card.className = "final-winner-card";
   card.setAttribute("aria-labelledby", "final-winner-heading");
-  const trophy = document.createElement("span");
-  trophy.className = "final-winner-trophy";
-  trophy.setAttribute("aria-hidden", "true");
-  trophy.textContent = "🏆";
+  const medal = document.createElement("span");
+  medal.className = "final-winner-medal";
+  medal.setAttribute("aria-hidden", "true");
+  const crown = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  crown.setAttribute("viewBox", "0 0 24 24");
+  crown.setAttribute("focusable", "false");
+  crown.classList.add("final-winner-medal-icon");
+  const crownPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  crownPath.setAttribute("d", "m2 8 5 4 5-8 5 8 5-4-2 12H4L2 8Zm2 15h16");
+  crownPath.setAttribute("fill", "none");
+  crownPath.setAttribute("stroke", "currentColor");
+  crownPath.setAttribute("stroke-width", "1.8");
+  crownPath.setAttribute("stroke-linecap", "round");
+  crownPath.setAttribute("stroke-linejoin", "round");
+  crown.append(crownPath);
+  medal.append(crown);
   const heading = document.createElement("h1");
   heading.className = "final-winner-heading";
   heading.id = "final-winner-heading";
@@ -518,6 +530,6 @@ export function appendWinnerPresentation(
   const score = document.createElement("p");
   score.className = "final-winner-scores";
   score.textContent = scoreText;
-  card.append(trophy, heading, names, score);
+  card.append(medal, heading, names, score);
   screen.append(card);
 }

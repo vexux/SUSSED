@@ -80,7 +80,7 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
   return element;
 }
 
-type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron";
+type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door";
 
 function createIcon(name: IconName): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -89,6 +89,7 @@ function createIcon(name: IconName): SVGSVGElement {
   svg.setAttribute("height", "20");
   svg.setAttribute("aria-hidden", "true");
   svg.setAttribute("focusable", "false");
+  svg.classList.add(`icon-${name}`);
   const paths: Record<typeof name, string> = {
     sun: "M12 3v2m0 14v2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42M3 12h2m14 0h2M5.64 18.36l1.42-1.42m9.88-9.88 1.42-1.42M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z",
     moon: "M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z",
@@ -101,8 +102,10 @@ function createIcon(name: IconName): SVGSVGElement {
     lock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
     crown: "m2 8 5 4 5-8 5 8 5-4-2 12H4L2 8Zm2 15h16",
     key: "M21 2 11 12m0 0a5 5 0 1 1-7.1 7.1A5 5 0 0 1 11 12Zm3-3 3 3m-6 0 3 3",
-    refresh: "M20 7v5h-5M4 17v-5h5m-4.1-3A8 8 0 0 1 19 7l1 5M4 12l1 5a8 8 0 0 0 14.1-2",
+    refresh: "M20 7v5h-5M4 17v-5h5M5.64 8A8 8 0 0 1 19 7l1 5M4 12l1 5a8 8 0 0 0 13.36-1",
     chevron: "m6 9 6 6 6-6",
+    switch: "M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4m14-1v2a3 3 0 0 1-3 3H3",
+    door: "M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9M14 3l5 2v14l-5 2M14 3v18m-5-9h.01m12 0H11m4-4 4 4-4 4",
   };
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("d", paths[name]);
@@ -124,6 +127,7 @@ function createNameEntry(state: AppState, inputId: string, actions: AppActions):
   input.name = "playerName";
   input.type = "text";
   input.autocomplete = "name";
+  input.placeholder = "Your name";
   input.required = true;
   input.value = state.playerName;
   if (state.nameEntryError) {
@@ -201,6 +205,19 @@ function createErrorMessage(message: string | null): HTMLElement | null {
   const error = createElement("p", "error-message", message);
   error.setAttribute("role", "alert");
   return error;
+}
+
+function createFloatingNotification(message: string, className: string): HTMLElement {
+  const notification = createElement(
+    "p",
+    `floating-notification floating-notification-success ${className}`,
+  );
+  notification.setAttribute("role", "status");
+  notification.setAttribute("aria-live", "polite");
+  const icon = createIcon("check");
+  icon.classList.add("floating-notification-icon");
+  notification.append(icon, createElement("span", undefined, message));
+  return notification;
 }
 
 function renderHome(
@@ -376,7 +393,9 @@ function createLobbyVisibilityControl(
   if (!canChange) {
     const value = createElement("span", "room-visibility-pill room-visibility-readonly");
     value.setAttribute("aria-label", `Room visibility: ${label}`);
-    value.append(createIcon(icon), createElement("span", undefined, label));
+    const visibilityIcon = createIcon(icon);
+    visibilityIcon.classList.add(`room-visibility-icon-${visibility}`);
+    value.append(visibilityIcon, createElement("span", undefined, label));
     return value;
   }
 
@@ -385,7 +404,9 @@ function createLobbyVisibilityControl(
   summary.setAttribute("aria-label", `Room visibility: ${label}`);
   summary.setAttribute("aria-haspopup", "menu");
   summary.setAttribute("aria-expanded", "false");
-  summary.append(createIcon(icon), createElement("span", undefined, label), createIcon("chevron"));
+  const visibilityIcon = createIcon(icon);
+  visibilityIcon.classList.add(`room-visibility-icon-${visibility}`);
+  summary.append(visibilityIcon, createElement("span", undefined, label), createIcon("chevron"));
   details.append(summary);
 
   const menu = createElement("div", "room-visibility-options");
@@ -575,7 +596,9 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
   refresh.setAttribute("aria-busy", String(state.isLoadingPublicRooms));
   refresh.setAttribute("aria-label", state.isLoadingPublicRooms ? "Refreshing public rooms" : "Refresh public rooms");
   refresh.title = state.isLoadingPublicRooms ? "Refreshing public rooms" : "Refresh public rooms";
-  refresh.append(createIcon("refresh"));
+  const refreshIcon = createIcon("refresh");
+  refreshIcon.classList.add("public-room-refresh-icon");
+  refresh.append(refreshIcon);
   refresh.addEventListener("click", actions.onRefreshPublicRooms);
   controls.append(back, refresh);
   screen.append(controls);
@@ -715,8 +738,8 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
       className: "selected-lobby-game",
       action: isHost && lobby.status === "lobby"
         ? {
-            label: "Change game",
-          icon: "game",
+            label: "Switch game",
+            icon: "switch",
           disabled: state.isBusy,
           onClick: actions.onChooseAnotherGame,
           }
@@ -946,13 +969,26 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     startButton.addEventListener("click", actions.onStartGame);
     lobbyActions.append(startButton);
     if (lobby.reminderSessionId && lobby.status === "lobby") {
-      reminderButton = createElement("button", "secondary-button reminder-button", "Ask everyone to return to lobby");
+      const reminderSent = state.resultsReminderSentSessionId === lobby.reminderSessionId;
+      reminderButton = createElement("button", "secondary-button reminder-button");
       reminderButton.type = "button";
       reminderButton.disabled = state.isBusy || state.isSendingResultsReminder;
       reminderButton.setAttribute("aria-busy", String(state.isSendingResultsReminder));
-      reminderButton.textContent = state.isSendingResultsReminder
-        ? "Sending reminder…"
-        : "Ask everyone to return to lobby";
+      const reminderIcon = createIcon(reminderSent ? "check" : "users");
+      reminderIcon.classList.add("reminder-button-icon");
+      reminderButton.append(
+        reminderIcon,
+        createElement(
+          "span",
+          undefined,
+          state.isSendingResultsReminder
+            ? "Sending reminder…"
+            : reminderSent
+              ? "Reminder sent"
+              : "Ask everyone to return to lobby",
+        ),
+      );
+      if (reminderSent) reminderButton.classList.add("reminder-button-sent");
       reminderButton.addEventListener("click", actions.onAskResultsViewersToReturn);
     }
   }
@@ -962,11 +998,6 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
   lobbyContent.append(lobbyActions);
   if (state.isBusy) {
     screen.append(createElement("p", "status-message", "Updating room…"));
-  }
-  if (state.resultsReminderFeedback) {
-    const feedback = createElement("p", "status-message reminder-feedback", state.resultsReminderFeedback);
-    feedback.setAttribute("role", "status");
-    screen.append(feedback);
   }
   const error = createErrorMessage(state.errorMessage);
   if (error && !state.isInvitationDialogOpen) {
@@ -1041,8 +1072,12 @@ function createInvitationDialog(
     if (error) dialog.append(error);
   }
   if (state.invitationFeedback) {
-    const feedback = createElement("p", "invitation-dialog-feedback", state.invitationFeedback);
+    const feedback = createElement("p", "invitation-dialog-feedback");
     feedback.setAttribute("role", "status");
+    feedback.setAttribute("aria-live", "polite");
+    const feedbackIcon = createIcon("check");
+    feedbackIcon.classList.add("invitation-dialog-feedback-icon");
+    feedback.append(feedbackIcon, createElement("span", undefined, state.invitationFeedback));
     dialog.append(feedback);
   }
   dialog.addEventListener("keydown", (event) => {
@@ -1404,14 +1439,10 @@ export function renderApp(
   screen.dataset.renderScope = getRenderScope(state);
   shell.append(screen);
   if (state.invitationFeedback && !state.isInvitationDialogOpen && !state.roomCodeCopied && state.currentView === "lobby") {
-    const toast = createElement("p", "invitation-toast", state.invitationFeedback);
-    toast.setAttribute("role", "status");
-    shell.append(toast);
+    shell.append(createFloatingNotification(state.invitationFeedback, "invitation-toast"));
   }
   if (state.kickFeedback && state.currentView === "lobby") {
-    const toast = createElement("p", "player-action-toast", state.kickFeedback);
-    toast.setAttribute("role", "status");
-    shell.append(toast);
+    shell.append(createFloatingNotification(state.kickFeedback, "player-action-toast"));
   }
   if (state.resultsReminderSessionId) {
     const dialog = createElement("dialog", "results-reminder-dialog");
@@ -1421,8 +1452,12 @@ export function renderApp(
     title.id = "results-reminder-title";
     const description = createElement("p", "results-reminder-description", "The host is waiting in the lobby.");
     description.id = "results-reminder-description";
-    dialog.append(title, description);
-    const actionsPanel = createElement("div", "button-group");
+    const heading = createElement("div", "results-reminder-heading");
+    const iconBadge = createElement("span", "results-reminder-icon");
+    iconBadge.append(createIcon("door"));
+    heading.append(iconBadge, title);
+    dialog.append(heading, description);
+    const actionsPanel = createElement("div", "button-group results-reminder-actions");
     const waitButton = createElement("button", "secondary-button", "Wait");
     waitButton.type = "button";
     waitButton.disabled = state.isBusy;
@@ -1430,7 +1465,7 @@ export function renderApp(
     const returnButton = createElement(
       "button",
       "primary-button",
-      state.isBusy ? "Returning…" : "Return to lobby",
+      state.isBusy ? "Returning…" : "Yes",
     );
     returnButton.type = "button";
     returnButton.autofocus = true;

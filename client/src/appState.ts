@@ -132,7 +132,7 @@ export interface AppState {
   publicRoomsError: string | null;
   resultsReminderSessionId: string | null;
   isSendingResultsReminder: boolean;
-  resultsReminderFeedback: string | null;
+  resultsReminderSentSessionId: string | null;
 }
 
 export const LANDING_TAGLINE = "Gather your friends. Ruin their self-esteem.";
@@ -174,6 +174,6 @@ export function createInitialAppState(): AppState {
     publicRoomsError: null,
     resultsReminderSessionId: null,
     isSendingResultsReminder: false,
-    resultsReminderFeedback: null,
+    resultsReminderSentSessionId: null,
   };
 }

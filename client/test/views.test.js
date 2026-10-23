@@ -537,7 +537,11 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     state.selectedPlayerId = null;
     state.kickFeedback = "Guest is now the host.";
     renderApp(root, state, actions, {}, {});
-    assert.equal(root.query((element) => element.className.includes("player-action-toast")).textContent, "Guest is now the host.");
+    const notification = root.query((element) => element.className.includes("player-action-toast"));
+    assert.equal(notification.text, "Guest is now the host.");
+    assert.equal(notification.getAttribute("role"), "status");
+    assert.equal(notification.getAttribute("aria-live"), "polite");
+    assert.ok(notification.query((element) => element.className.includes("icon-check")));
   });
 });
 
@@ -636,14 +640,15 @@ test("lobby game card shows authoritative metadata and only hosts can open game 
       assert.match(card.text, /A registered game with its own description\./u);
       assert.match(card.text, /3–6 players/u);
       assert.ok(root.query((element) => element.className.includes("lobby-room-code-panel")));
-      const choose = root.query((element) => element.tagName === "button" && element.textContent === "Change game");
+      const choose = root.query((element) => element.tagName === "button" && element.textContent === "Switch game");
       assert.ok(choose);
+      assert.ok(choose.query((element) => element.className.includes("icon-switch")));
       choose.dispatch("click");
       assert.deepEqual(calls, [["onChooseAnotherGame"]]);
 
       state.localPlayerId = "guest";
       renderApp(root, state, actions, {}, {});
-      assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Change game"), null);
+      assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Switch game"), null);
       assert.equal(root.query((element) => element.textContent === "Select game"), null);
     }
   });
@@ -728,6 +733,8 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.equal(visibilityPill.getAttribute("aria-label"), "Room visibility: Private");
     assert.equal(visibilityPill.getAttribute("aria-haspopup"), "menu");
     assert.equal(visibilityPill.getAttribute("aria-expanded"), "false");
+    assert.ok(visibilityPill.query((element) => element.className.includes("room-visibility-icon-private")));
+    assert.equal(visibilityPill.query((element) => element.className.includes("room-visibility-icon-public")), null);
     const menu = visibilityMenu.query((element) => element.getAttribute("role") === "menu");
     const makePublic = menu.query((element) => element.getAttribute("role") === "menuitem");
     assert.equal(makePublic.textContent, "Make public");
@@ -744,7 +751,7 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.equal(rounds.parentElement.className, "lobby-settings-row");
     assert.equal(root.query((element) => element.className.includes("lobby-settings-panel")), null);
     const hostActions = root.query((element) => element.className.includes("host-lobby-actions"));
-    assert.deepEqual(hostActions.children.map((button) => button.textContent), [
+    assert.deepEqual(hostActions.children.map((button) => button.text), [
       "Start game", "Leave room", "Ask everyone to return to lobby",
     ]);
     assert.equal(hostActions.parentElement.className.includes("lobby-content-grid"), true);
@@ -767,7 +774,11 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     renderApp(root, state, actions, {}, {});
     const publicMenu = root.query((element) => element.className.includes("room-visibility-menu"));
     assert.equal(publicMenu.query((element) => element.tagName === "summary").getAttribute("aria-label"), "Room visibility: Public");
-    assert.equal(publicMenu.query((element) => element.getAttribute("role") === "menuitem").textContent, "Make private");
+    assert.ok(publicMenu.query((element) => element.className.includes("room-visibility-icon-public")));
+    const makePrivate = publicMenu.query((element) => element.getAttribute("role") === "menuitem");
+    assert.equal(makePrivate.textContent, "Make private");
+    makePrivate.dispatch("click");
+    assert.deepEqual(changes.at(-1), ["onSetRoomVisibility", "private"]);
 
     state.isBusy = true;
     renderApp(root, state, actions, {}, {});
@@ -799,10 +810,15 @@ test("game selection provides in-flow name entry and keeps selected creation set
 
     const name = root.query((element) => element.id === "selection-player-name");
     assert.equal(name.value, "Alex");
+    assert.equal(name.placeholder, "Your name");
     assert.equal(name.required, true);
     assert.equal(name.maxLength, -1);
     assert.equal(root.query((element) => element.id === "create-room-visibility-public").checked, true);
     assert.equal(root.query((element) => element.textContent === "Create room").disabled, false);
+    const visibilityField = root.query((element) => element.className.includes("create-visibility-field"));
+    const visibilityOptions = visibilityField.query((element) => element.className.includes("visibility-options"));
+    assert.equal(visibilityOptions.children.length, 2);
+    assert.ok(visibilityOptions.children.every((option) => option.className.includes("visibility-option")));
 
     state.nameEntryError = "Enter a player name between 1 and 20 characters.";
     name.focus();
@@ -928,8 +944,8 @@ test("lobby controls expose compact invitation and visibility hooks and hide uns
     assert.equal(root.query((element) => element.className.includes("lobby-settings-panel")), null);
     assert.equal(root.query((element) => element.className.includes("lobby-heading-bar")).children[1].className.includes("room-visibility-menu"), true);
     assert.doesNotMatch(root.text, /Discoverable while seats are open|Join with a room code/u);
-    const changeGame = root.query((element) => element.textContent === "Change game");
-    assert.ok(changeGame.query((element) => element.tagName === "svg"));
+    const changeGame = root.query((element) => element.textContent === "Switch game");
+    assert.ok(changeGame.query((element) => element.className.includes("icon-switch")));
   });
 });
 
@@ -986,6 +1002,10 @@ test("public room browser renders compact cards, accessible refresh, and a conci
     const render = () => renderApp(root, state, actions, {}, {});
     render();
     assert.match(root.text, /Finding open rooms/u);
+    const pendingRefresh = root.query((element) => element.className.includes("public-room-refresh"));
+    assert.equal(pendingRefresh.disabled, true);
+    assert.equal(pendingRefresh.getAttribute("aria-busy"), "true");
+    assert.ok(pendingRefresh.query((element) => element.className.includes("public-room-refresh-icon")));
 
     state.isLoadingPublicRooms = false;
     render();
@@ -1077,7 +1097,12 @@ test("public room browser renders compact cards, accessible refresh, and a conci
     assert.deepEqual(calls, ["opaque-public-id", "refresh", "back"]);
 
     state.publicRoomsError = "That room is full.";
+    state.isLoadingPublicRooms = true;
     render();
+    assert.equal(root.query((element) => element.className.includes("public-room-refresh")).disabled, true);
+    state.isLoadingPublicRooms = false;
+    render();
+    assert.equal(root.query((element) => element.className.includes("public-room-refresh")).disabled, false);
     assert.equal(root.query((element) => element.attributes.role === "alert").textContent, "That room is full.");
     state.publicRooms = [];
     render();
@@ -1253,24 +1278,37 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     assert.equal(hostCard.children[1].textContent, "Host");
     assert.equal(hostCard.children.some((element) => element.textContent === "Ready" || element.textContent === "Not ready"), false);
     assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Ready"), null);
-    const reminder = root.query((element) => element.textContent === "Ask everyone to return to lobby");
+    const reminder = root.query((element) => element.className.includes("reminder-button"));
     assert.ok(reminder);
     reminder.dispatch("click");
     assert.equal(calls.includes("onAskResultsViewersToReturn"), true);
 
     state.isBusy = true;
     renderApp(root, state, actions, {}, {});
-    assert.equal(root.query((element) => element.textContent === "Ask everyone to return to lobby").disabled, true);
+    assert.equal(root.query((element) => element.className.includes("reminder-button")).disabled, true);
     state.isBusy = false;
     state.isSendingResultsReminder = true;
     renderApp(root, state, actions, {}, {});
-    const sending = root.query((element) => element.textContent === "Sending reminder…");
+    const sending = root.query((element) => element.className.includes("reminder-button"));
+    assert.equal(sending.text, "Sending reminder…");
     assert.equal(sending.disabled, true);
     assert.equal(sending.attributes["aria-busy"], "true");
     state.isSendingResultsReminder = false;
-    state.resultsReminderFeedback = "Reminder sent to 1 player.";
+    state.resultsReminderSentSessionId = "finished-session";
     renderApp(root, state, actions, {}, {});
-    assert.match(root.text, /Reminder sent to 1 player\./u);
+    const sent = root.query((element) => element.className.includes("reminder-button"));
+    assert.equal(sent.text, "Reminder sent");
+    assert.equal(sent.disabled, false);
+    assert.ok(sent.query((element) => element.className.includes("icon-check")));
+    assert.equal(root.query((element) => element.className.includes("floating-notification")), null);
+    sent.dispatch("click");
+    assert.equal(calls.filter((name) => name === "onAskResultsViewersToReturn").length, 2);
+    state.resultsReminderSentSessionId = null;
+    renderApp(root, state, actions, {}, {});
+    const reusableReminder = root.query((element) => element.className.includes("reminder-button"));
+    assert.equal(reusableReminder.text, "Ask everyone to return to lobby");
+    reusableReminder.dispatch("click");
+    assert.equal(calls.filter((name) => name === "onAskResultsViewersToReturn").length, 3);
 
     state.lobby.playerCount = 2;
     state.lobby.readinessStatus = "ready";
@@ -1282,7 +1320,7 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Ready"), null);
 
     state.localPlayerId = "viewer";
-    state.resultsReminderFeedback = null;
+    state.resultsReminderSentSessionId = null;
     state.lobby.players[1].isReady = false;
     renderApp(root, state, actions, {}, {});
     assert.equal(root.query((element) => element.id === "room-visibility-private"), null);
@@ -1294,7 +1332,7 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     state.lobby.readinessStatus = "insufficient-players";
     renderApp(root, state, actions, {}, {});
     assert.equal(root.query((element) => element.tagName === "button" && element.textContent === "Ready").disabled, true);
-    assert.equal(root.query((element) => element.textContent === "Ask everyone to return to lobby"), null);
+    assert.equal(root.query((element) => element.className.includes("reminder-button")), null);
 
     state.currentView = "game";
     state.resultsReminderSessionId = "finished-session";
@@ -1306,10 +1344,14 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     assert.equal(reminderDialog.getAttribute("aria-labelledby"), "results-reminder-title");
     assert.equal(reminderDialog.getAttribute("aria-describedby"), "results-reminder-description");
     assert.equal(reminderDialog.getAttribute("open"), "");
+    assert.ok(reminderDialog.query((element) => element.className.includes("icon-door")));
+    assert.equal(reminderDialog.query((element) => element.tagName === "h2").textContent, "Return to Lobby?");
+    assert.equal(reminderDialog.query((element) => element.textContent === "Yes").textContent, "Yes");
+    assert.ok(reminderDialog.query((element) => element.className.includes("results-reminder-actions")));
     reminderDialog.dispatch("keydown", { key: "Escape", preventDefault() {} });
     reminderDialog.dispatch("cancel", { preventDefault() {} });
     root.query((element) => element.textContent === "Wait").dispatch("click");
-    root.query((element) => element.textContent === "Return to lobby").dispatch("click");
+    root.query((element) => element.textContent === "Yes").dispatch("click");
     assert.equal(calls.includes("onDismissResultsReminder"), true);
     assert.equal(calls.includes("onAcceptResultsReminder"), true);
 

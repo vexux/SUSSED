@@ -353,7 +353,10 @@ test("Fact-or-Cap voting renderer retains shared voting labels, option markup, a
 
 test("Fact-or-Cap final screens show the shared winner card and leaderboard without a phase heading or round counter", () => {
   const originalDocument = globalThis.document;
-  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
   try {
     const renderFinal = (gameName, state, view = createFinalView(), onReturn = () => {}, onReturnFromResults = () => {}) =>
       renderFakeAnswerGame(state, view, () => {}, () => {}, () => {}, () => {}, onReturn, gameName, true, () => {}, undefined, undefined, onReturnFromResults);
@@ -364,7 +367,8 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
     const leaderboardHeading = screen.children[1];
     const leaderboard = screen.children[2];
     assert.equal(winnerCard.className, "final-winner-card");
-    assert.equal(winnerCard.children[0].textContent, "🏆");
+    assert.equal(winnerCard.children[0].className, "final-winner-medal");
+    assert.ok(winnerCard.children[0].query((node) => node.className.includes("final-winner-medal-icon")));
     assert.equal(winnerCard.children[1].tagName, "h1");
     assert.match(winnerCard.text, /It's a tie!/u);
     assert.match(winnerCard.text, /Player Two, Player One/u);
@@ -385,6 +389,7 @@ test("Fact-or-Cap final screens show the shared winner card and leaderboard with
 
     const singleScreen = renderFinal("Fact or Cap", createFinalPublicState(false));
     const singleWinner = singleScreen.children[0];
+    assert.equal(singleWinner.children[0].className, "final-winner-medal");
     assert.equal(singleScreen.query((node) => node.tagName === "h1").textContent, "Winner");
     assert.match(singleWinner.text, /Winner/u);
     assert.match(singleWinner.text, /Player Two/u);
@@ -553,7 +558,10 @@ test("all-round history opens on the final round and supports bounded page navig
 
 test("Fact-or-Cap historical snapshots render their recorded answers, voters, and leaderboard", () => {
   const originalDocument = globalThis.document;
-  globalThis.document = { createElement: (tagName) => new FakeElement(tagName) };
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
   try {
     const state = createFinalPublicState(false);
     state.results.roundHistory = [{

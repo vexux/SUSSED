@@ -111,7 +111,7 @@ let fakeAnswerReturnToLobbyError: string | null = null;
 let allRoundHistoryOpen = false;
 let allRoundHistoryPage = -1;
 let fakeAnswerFeedbackDismissedIdentity: string | null = null;
-let resultsReminderFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
+let resultsReminderSuccessTimeout: ReturnType<typeof setTimeout> | null = null;
 let invitationFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
 let playerActionFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
 let publicRoomsRequestId = 0;
@@ -152,22 +152,27 @@ function resetFakeAnswerViewState(): void {
   bruhContinueError = null;
 }
 
-function clearResultsReminderFeedback(): void {
-  if (resultsReminderFeedbackTimeout) {
-    clearTimeout(resultsReminderFeedbackTimeout);
-    resultsReminderFeedbackTimeout = null;
+function clearResultsReminderSuccess(): void {
+  if (resultsReminderSuccessTimeout) {
+    clearTimeout(resultsReminderSuccessTimeout);
+    resultsReminderSuccessTimeout = null;
   }
-  state.resultsReminderFeedback = null;
+  state.resultsReminderSentSessionId = null;
 }
 
-function showResultsReminderFeedback(message: string): void {
-  clearResultsReminderFeedback();
-  state.resultsReminderFeedback = message;
-  resultsReminderFeedbackTimeout = setTimeout(() => {
-    state.resultsReminderFeedback = null;
-    resultsReminderFeedbackTimeout = null;
+function showResultsReminderSuccess(roomCode: string, sessionId: string): void {
+  clearResultsReminderSuccess();
+  state.resultsReminderSentSessionId = sessionId;
+  resultsReminderSuccessTimeout = setTimeout(() => {
+    resultsReminderSuccessTimeout = null;
+    if (
+      state.currentView !== "lobby" ||
+      state.lobby?.roomCode !== roomCode ||
+      state.lobby.reminderSessionId !== sessionId
+    ) return;
+    state.resultsReminderSentSessionId = null;
     render();
-  }, 3500);
+  }, 2500);
 }
 
 function clearInvitationFeedback(): void {
@@ -212,6 +217,13 @@ function clearPlayerActionFeedback(): void {
 function render(): void {
   if (state.currentView !== "lobby") {
     state.isInvitationDialogOpen = false;
+  }
+  if (
+    state.resultsReminderSentSessionId &&
+    (state.currentView !== "lobby" ||
+      state.lobby?.reminderSessionId !== state.resultsReminderSentSessionId)
+  ) {
+    clearResultsReminderSuccess();
   }
   renderApp(appRoot, state, actions, {
     hasSubmitted: fakeAnswerHasSubmitted,
@@ -496,7 +508,7 @@ function applyLobbyState(lobby: LobbyState): void {
   const previousReminderSessionId = state.lobby?.reminderSessionId;
   if (previousReminderSessionId !== lobby.reminderSessionId) {
     state.isSendingResultsReminder = false;
-    clearResultsReminderFeedback();
+    clearResultsReminderSuccess();
   }
   const targetIds = new Set(lobby.players.map(({ id }) => id));
   const pendingPlayerId = state.pendingKickPlayerId ?? state.pendingHostTransferId;
@@ -515,7 +527,7 @@ function applyLobbyState(lobby: LobbyState): void {
       : null;
   const previousRoomCode = state.lobby?.roomCode;
   if (previousRoomCode && previousRoomCode !== lobby.roomCode) {
-    clearResultsReminderFeedback();
+    clearResultsReminderSuccess();
     clearInvitationFeedback();
     clearPlayerActionFeedback();
   }
@@ -1006,7 +1018,7 @@ const actions: AppActions = {
       state.lobby = null;
       state.game = null;
       state.isSendingResultsReminder = false;
-      clearResultsReminderFeedback();
+      clearResultsReminderSuccess();
       clearInvitationFeedback();
       clearPlayerActionFeedback();
       resetFakeAnswerViewState();
@@ -1593,7 +1605,7 @@ const actions: AppActions = {
     if (!roomCode || !sessionId || state.isSendingResultsReminder || state.isBusy) return;
     state.errorCode = null;
     state.errorMessage = null;
-    clearResultsReminderFeedback();
+    clearResultsReminderSuccess();
     state.isSendingResultsReminder = true;
     render();
     socket.timeout(5000).emit(
@@ -1613,10 +1625,7 @@ const actions: AppActions = {
           state.errorCode = response.error.code;
           state.errorMessage = response.error.message;
         } else if (typeof response.sent === "number") {
-          const feedback = response.sent === 0
-            ? "Everyone has returned."
-            : `Reminder sent to ${response.sent} ${response.sent === 1 ? "player" : "players"}.`;
-          showResultsReminderFeedback(feedback);
+          showResultsReminderSuccess(roomCode, sessionId);
         } else {
           state.errorCode = "INVALID_RESPONSE";
           state.errorMessage = "The reminder result was unclear. Please try again.";
@@ -1699,7 +1708,7 @@ socket.on("removed-from-room", (payload: { roomCode?: string; reason?: string; m
   state.isBusy = false;
   state.isInvitationBusy = false;
   state.isSendingResultsReminder = false;
-  clearResultsReminderFeedback();
+  clearResultsReminderSuccess();
   clearInvitationFeedback();
   clearPlayerActionFeedback();
   state.errorMessage = payload.message ?? "The host removed you from this room.";
@@ -1760,13 +1769,13 @@ socket.on("disconnect", () => {
   state.lobby = null;
   state.game = null;
   state.isSendingResultsReminder = false;
-  clearResultsReminderFeedback();
+  clearResultsReminderSuccess();
   resetFakeAnswerViewState();
   state.isBusy = false;
   state.errorMessage = "Connection lost. Reconnect to create or join a room.";
   state.isLoadingPublicRooms = false;
   clearPublicRoomSelection();
-  clearResultsReminderFeedback();
+  clearResultsReminderSuccess();
   clearInvitationFeedback();
   clearPlayerActionFeedback();
   if (wasBrowsingPublicRooms) state.publicRoomsError = "Connection lost. Reconnect to browse public rooms.";
