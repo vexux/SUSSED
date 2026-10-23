@@ -102,7 +102,7 @@ function createIcon(name: IconName): SVGSVGElement {
     lock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
     crown: "m2 8 5 4 5-8 5 8 5-4-2 12H4L2 8Zm2 15h16",
     key: "M21 2 11 12m0 0a5 5 0 1 1-7.1 7.1A5 5 0 0 1 11 12Zm3-3 3 3m-6 0 3 3",
-    refresh: "M20 7v5h-5M4 17v-5h5M5.64 8A8 8 0 0 1 19 7l1 5M4 12l1 5a8 8 0 0 0 13.36-1",
+    refresh: "M21 2v6h-6M21 13a9 9 0 1 1-2.64-6.36L21 8",
     chevron: "m6 9 6 6 6-6",
     switch: "M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4m14-1v2a3 3 0 0 1-3 3H3",
     door: "M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9M14 3l5 2v14l-5 2M14 3v18m-5-9h.01m12 0H11m4-4 4 4-4 4",
@@ -861,7 +861,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     roundsField.append(roundOptions);
   } else if (supportsRoundSelection) {
     roundsField.append(
-      createElement("p", "readonly-setting-value", `${lobby.selectedRoundCount} rounds`),
+      createElement("p", "readonly-setting-value", `Number of rounds: ${lobby.selectedRoundCount}`),
     );
   }
 

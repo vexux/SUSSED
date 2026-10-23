@@ -749,6 +749,10 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.equal(headingBar.children[0].textContent, "Lobby");
     const rounds = root.query((element) => element.className.includes("round-selector"));
     assert.equal(rounds.parentElement.className, "lobby-settings-row");
+    assert.equal(
+      rounds.query((element) => element.className.includes("round-options")).children.map((button) => button.textContent).join(", "),
+      "5, 7, 10",
+    );
     assert.equal(root.query((element) => element.className.includes("lobby-settings-panel")), null);
     const hostActions = root.query((element) => element.className.includes("host-lobby-actions"));
     assert.deepEqual(hostActions.children.map((button) => button.text), [
@@ -764,7 +768,8 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.doesNotMatch(root.text, /Room visibility/u);
     assert.equal(root.query((element) => element.getAttribute("aria-label") === "5 rounds"), null);
     assert.ok(root.query((element) => element.className.includes("readonly-setting-value")));
-    assert.match(root.text, /5 rounds/u);
+    assert.match(root.text, /Number of rounds: 5/u);
+    assert.doesNotMatch(root.text, /Rounds\s+5 rounds/u);
     const guestActions = root.query((element) => element.className.includes("lobby-actions"));
     assert.deepEqual(guestActions.children.map((button) => button.textContent), ["Ready", "Leave room"]);
     assert.equal(root.queryAll((element) => element.tagName === "button" && element.textContent === "Ready").length, 1);
@@ -816,9 +821,15 @@ test("game selection provides in-flow name entry and keeps selected creation set
     assert.equal(root.query((element) => element.id === "create-room-visibility-public").checked, true);
     assert.equal(root.query((element) => element.textContent === "Create room").disabled, false);
     const visibilityField = root.query((element) => element.className.includes("create-visibility-field"));
+    assert.equal(visibilityField.children[0].tagName, "legend");
+    assert.equal(visibilityField.children[0].textContent, "Room visibility");
     const visibilityOptions = visibilityField.query((element) => element.className.includes("visibility-options"));
     assert.equal(visibilityOptions.children.length, 2);
     assert.ok(visibilityOptions.children.every((option) => option.className.includes("visibility-option")));
+    assert.equal(visibilityOptions.children[0].query((child) => child.tagName === "input").value, "public");
+    assert.equal(visibilityOptions.children[1].query((child) => child.tagName === "input").value, "private");
+    assert.ok(visibilityOptions.children[0].className.includes("selected"));
+    assert.equal(visibilityOptions.children[1].className.includes("selected"), false);
 
     state.nameEntryError = "Enter a player name between 1 and 20 characters.";
     name.focus();
@@ -1017,6 +1028,10 @@ test("public room browser renders compact cards, accessible refresh, and a conci
     assert.equal(refresh.title, "Refresh public rooms");
     assert.equal(refresh.children[0].tagName, "svg");
     assert.equal(refresh.children[0].attributes["aria-hidden"], "true");
+    const refreshPath = refresh.children[0].query((element) => element.tagName === "path");
+    assert.match(refreshPath.attributes.d, /M21 2v6h-6/u);
+    assert.match(refreshPath.attributes.d, /a9 9 0 1 1/u);
+    assert.doesNotMatch(refreshPath.attributes.d, /M4 17/u);
 
     state.publicRooms = [{
       roomId: "opaque-public-id",

@@ -2009,6 +2009,10 @@ select:focus:not(:focus-visible) {
   gap: var(--space-3);
 }
 
+.create-visibility-field > legend {
+  margin-bottom: var(--space-2);
+}
+
 .create-visibility-field .visibility-options {
   width: 100%;
 }
@@ -2915,6 +2919,10 @@ select:focus:not(:focus-visible) {
 
   .invite-label-short {
     display: inline;
+  }
+
+  .create-selected-game {
+    min-width: 0;
   }
 }
 
