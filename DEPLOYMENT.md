@@ -20,16 +20,59 @@ development. Vite normally serves the client at `http://localhost:5173`; if
 that port is occupied, Vite selects another available port. Localhost origins
 are allowed by the development server configuration.
 
-Copy `client/.env.example` to `client/.env.local` and `server/.env.example` to
-`server/.env` when configuring local environment variables. Both examples leave
-Supabase values blank, which keeps guest play available. For authenticated
-connections, set the same project URL and publishable (or legacy anon) key in
-both files using `VITE_SUPABASE_URL` /
-`VITE_SUPABASE_PUBLISHABLE_KEY` on the client and `SUPABASE_URL` /
-`SUPABASE_PUBLISHABLE_KEY` on the server. The server loads its `.env` for the
-`start` and `dev` scripts; Vite loads the client `.env.local` automatically.
-Only the public publishable/anon key is needed. Never put a Supabase secret key,
-service-role key, or database password in a `VITE_` variable or frontend file.
+Local files have been initialized from the examples:
+
+- `client/.env.local` is loaded by Vite. Keep `VITE_SERVER_URL=http://localhost:3000`
+  for the local backend. To enable Supabase on the client, fill in
+  `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
+- `server/.env` is loaded by the server's `start` and `dev` scripts. To enable
+  token verification, fill in `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`.
+  `PORT=3000`, `NODE_ENV=development`, and the blank `CLIENT_ORIGIN` are suitable
+  for local development.
+
+To find the values in the Supabase dashboard, open the project and copy its
+**Project URL** from **Project Settings > API**. Copy its **Publishable key**
+from **Project Settings > API Keys** (a legacy `anon` public key is also
+supported). Paste the same Project URL and public key into the client and server
+variables listed above. Variable names are intentionally different on the client
+(`VITE_` prefix) and server, but both must point to the same project.
+
+These local files are ignored by Git. The `.env.example` files contain blank
+values and remain tracked. The publishable/anon key is designed for public
+clients; never use a Supabase secret key, service-role key, or database password
+in the client or any `VITE_` variable. No privileged key is needed by this
+server verifier.
+
+After changing either file, restart the affected process so it reloads its
+environment. Stop the combined development command with Ctrl+C, then run
+`npm run dev` again from the repository root. Or run the server and client in
+separate terminals with `npm run dev:server` and `npm run dev:client`. Vite
+loads `.env.local` at startup; the server's `start` and `dev` scripts load
+`server/.env`.
+
+Run relevant checks from the repository root:
+
+```sh
+npm --prefix server test
+npm --prefix client test
+npm --prefix client run typecheck
+npm run build
+```
+
+Automated server tests mock Supabase responses and need no project credentials.
+Phase 1 does not include a sign-in UI, so configuring these values alone does
+not create an authenticated browser session or send a real user token. Guest
+connections remain available. To verify a real authenticated handshake, first
+obtain a valid access token from a separately authenticated Supabase client
+(for example, a temporary local test harness using the public key and a test
+account), then connect a Socket.IO client with
+`auth: { accessToken: "<test access token>" }`. Confirm the connection succeeds
+and, in a local server debugger, inspect
+`io.sockets.sockets.get(socketId).data.accountId` for the verified account UUID.
+Also confirm an expired or invalid token produces the
+`Invalid or expired access token.` connection error. Do not commit or share the
+test token. A real Supabase integration check cannot be performed until the
+project values and a valid test-user session are available.
 
 Run the server tests with `npm --prefix server test`, client tests with
 `npm --prefix client test`, type-check with `npm --prefix client run typecheck`,
