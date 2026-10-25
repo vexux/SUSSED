@@ -8,8 +8,18 @@ import {
   type PublicRoom,
 } from "./appState";
 import { socket, socketConfigurationError } from "./socket";
+import {
+  createAuthService,
+  getAuthErrorMessage,
+  getAuthRedirectUrl,
+  getRecoveryLinkError,
+} from "./auth";
+import {
+  createSocketSessionChangeHandler,
+} from "./socketAuth";
+import { supabaseClient, supabaseConfigurationError } from "./supabase";
 import { renderApp } from "./views";
-import type { AppActions } from "./views";
+import type { AppActions, AuthViewState } from "./views";
 import {
   copyText,
   createInvitationQrDataUrl,
@@ -78,6 +88,44 @@ if (!app) {
 const appRoot: HTMLElement = app;
 
 const state = createInitialAppState();
+const authService = supabaseClient
+  ? createAuthService(
+      supabaseClient,
+      getAuthRedirectUrl(import.meta.env.VITE_AUTH_REDIRECT_URL, window.location.origin),
+    )
+  : null;
+const recoveryLinkError = getRecoveryLinkError(
+  window.location.hash,
+  window.location.search,
+);
+const authCallbackParameters = new URLSearchParams(window.location.search);
+for (const [key, value] of new URLSearchParams(
+  window.location.hash.replace(/^#/u, ""),
+)) {
+  authCallbackParameters.set(key, value);
+}
+const authViewState: AuthViewState = {
+  mode: recoveryLinkError ? "recovery" : "sign-in",
+  email: "",
+  password: "",
+  passwordConfirmation: "",
+  userEmail: null as string | null,
+  isBusy: false,
+  errorMessage: null as string | null,
+  statusMessage: null as string | null,
+  verificationRequired: false,
+  resendAvailableAt: null as number | null,
+  hasRecoverySession: false,
+  configurationError: supabaseConfigurationError ?? (!supabaseClient
+    ? "Account authentication is not configured. Set both Supabase client variables to enable accounts. Guest play remains available."
+    : null),
+  recoveryError: recoveryLinkError,
+};
+if (!recoveryLinkError && authCallbackParameters.has("error")) {
+  authViewState.errorMessage =
+    "Google sign-in could not finish. Confirm Google is enabled in Supabase and its redirect URLs are configured.";
+}
+let resendCooldownTimer: ReturnType<typeof setInterval> | null = null;
 const invitationCode = parseInvitationCode(window.location.search);
 if (invitationCode.status === "valid") {
   state.joinRoomCode = invitationCode.code;
@@ -276,7 +324,7 @@ function render(): void {
     returnToLobbyError: fakeAnswerReturnToLobbyError,
     historyOpen: allRoundHistoryOpen,
     historyPage: allRoundHistoryPage,
-  });
+  }, authViewState);
   document.body.classList.toggle(
     "modal-open",
     appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop, .invitation-dialog, .player-detail-dialog[aria-modal='true'], .results-reminder-dialog[open]") !== null,
@@ -774,6 +822,32 @@ function applyGameState(game: GameSessionState): void {
     return;
   }
   render();
+}
+
+async function runAuthAction(
+  operation: () => Promise<void>,
+  onSuccess?: () => void,
+): Promise<void> {
+  if (!authService || authViewState.isBusy) return;
+  authViewState.isBusy = true;
+  authViewState.errorMessage = null;
+  authViewState.statusMessage = null;
+  render();
+  try {
+    await operation();
+    onSuccess?.();
+  } catch (error) {
+    const message = error instanceof Error
+      ? error.message
+      : getAuthErrorMessage(error);
+    authViewState.errorMessage = message;
+    if (message.toLowerCase().includes("verify your email")) {
+      authViewState.verificationRequired = true;
+    }
+  } finally {
+    authViewState.isBusy = false;
+    render();
+  }
 }
 
 const actions: AppActions = {
@@ -1674,7 +1748,131 @@ const actions: AppActions = {
       render();
     }
   },
+  onAuthModeChange(mode) {
+    if (authViewState.isBusy) return;
+    authViewState.mode = mode;
+    authViewState.errorMessage = null;
+    authViewState.statusMessage = null;
+    authViewState.password = "";
+    authViewState.passwordConfirmation = "";
+    render();
+  },
+  onAuthFieldChange(field, value) {
+    authViewState[field] = value;
+    authViewState.errorMessage = null;
+  },
+  onAuthSubmit() {
+    if (!authService) return;
+    void runAuthAction(async () => {
+      if (authViewState.mode === "sign-up") {
+        const result = await authService.signUp(
+          authViewState.email,
+          authViewState.password,
+        );
+        authViewState.password = "";
+        authViewState.verificationRequired =
+          result.requiresEmailVerification === true;
+        authViewState.userEmail = result.requiresEmailVerification
+          ? null
+          : result.user?.email ?? authViewState.userEmail;
+        authViewState.statusMessage = result.requiresEmailVerification
+          ? "Check your inbox for a verification link before signing in."
+          : "Your account is ready.";
+        return;
+      }
+      if (authViewState.mode === "sign-in") {
+        const result = await authService.signIn(
+          authViewState.email,
+          authViewState.password,
+        );
+        authViewState.password = "";
+        authViewState.verificationRequired = false;
+        authViewState.userEmail = result.user?.email ?? null;
+        authViewState.statusMessage = "You’re signed in.";
+        return;
+      }
+      if (authViewState.mode === "forgot-password") {
+        await authService.requestPasswordRecovery(authViewState.email);
+        authViewState.statusMessage =
+          "If an account exists for that address, a password recovery email is on its way.";
+        return;
+      }
+      if (authViewState.password !== authViewState.passwordConfirmation) {
+        throw new Error("The new passwords do not match.");
+      }
+      if (!authViewState.hasRecoverySession) {
+        throw new Error("This recovery link is invalid or expired. Request a new recovery email.");
+      }
+      await authService.updatePassword(authViewState.password);
+      authViewState.password = "";
+      authViewState.passwordConfirmation = "";
+      authViewState.hasRecoverySession = false;
+      authViewState.mode = "sign-in";
+      authViewState.recoveryError = null;
+      authViewState.statusMessage = "Your password was updated. You’re signed in.";
+    });
+  },
+  onAuthGoogle() {
+    if (!authService) return;
+    void runAuthAction(() => authService.signInWithGoogle());
+  },
+  onAuthResendVerification() {
+    if (!authService || authViewState.isBusy) return;
+    void runAuthAction(
+      () => authService.resendVerification(authViewState.email),
+      () => {
+        authViewState.statusMessage = "A new verification email has been sent.";
+        authViewState.resendAvailableAt = Date.now() + 60_000;
+        if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+        resendCooldownTimer = setInterval(() => {
+          if (
+            authViewState.resendAvailableAt === null ||
+            authViewState.resendAvailableAt <= Date.now()
+          ) {
+            if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+            resendCooldownTimer = null;
+          }
+          render();
+        }, 1000);
+      },
+    );
+  },
+  onAuthSignOut() {
+    if (!authService) return;
+    void runAuthAction(async () => {
+      await authService.signOut();
+      authViewState.userEmail = null;
+      authViewState.statusMessage = "You’re signed out. Guest play is still available.";
+    });
+  },
 };
+
+const handleSocketSessionChange = createSocketSessionChangeHandler(socket);
+if (supabaseClient) {
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    handleSocketSessionChange(event, session);
+    authViewState.userEmail = session?.user.email ?? null;
+    if (event === "PASSWORD_RECOVERY") {
+      authViewState.mode = "recovery";
+      authViewState.hasRecoverySession = true;
+      authViewState.recoveryError = null;
+      authViewState.errorMessage = null;
+      authViewState.statusMessage = null;
+    } else if (event === "SIGNED_OUT") {
+      authViewState.hasRecoverySession = false;
+      authViewState.password = "";
+      authViewState.passwordConfirmation = "";
+    }
+    render();
+  });
+  void authService?.restoreSession().then(({ user }) => {
+    authViewState.userEmail = user?.email ?? null;
+    render();
+  }).catch((error: unknown) => {
+    authViewState.errorMessage = getAuthErrorMessage(error);
+    render();
+  });
+}
 
 socket.on("lobby-state", (lobby: LobbyState) => {
   applyLobbyState(lobby);

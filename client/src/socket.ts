@@ -1,5 +1,6 @@
 import { io } from "socket.io-client";
 import { resolveSocketConfiguration } from "./socketConfig";
+import { createSocketAuthPayloadProvider } from "./socketAuth";
 import { supabaseClient, supabaseConfigurationError } from "./supabase";
 
 const configuration = resolveSocketConfiguration(
@@ -10,30 +11,11 @@ const configuration = resolveSocketConfiguration(
 export const socket =
   configuration.serverUrl && !supabaseConfigurationError
     ? io(configuration.serverUrl, {
-        auth: (callback) => {
-          if (!supabaseClient) {
-            callback({});
-            return;
-          }
-
-          void supabaseClient.auth.getSession().then(({ data, error }) => {
-            if (error) {
-              console.error(
-                "Unable to load Supabase session for Socket.IO authentication.",
-                error,
-              );
-              callback({ accessToken: null });
-              return;
-            }
-            callback(data.session ? { accessToken: data.session.access_token } : {});
-          }).catch((error: unknown) => {
-            console.error(
-              "Unable to load Supabase session for Socket.IO authentication.",
-              error,
-            );
-            callback({ accessToken: null });
-          });
-        },
+        auth: createSocketAuthPayloadProvider(
+          () => supabaseClient
+            ? supabaseClient.auth.getSession()
+            : Promise.resolve({ data: { session: null }, error: null }),
+        ),
       })
     : io({ autoConnect: false });
 

@@ -171,6 +171,53 @@ function createActions() {
   return new Proxy({}, { get: () => () => {} });
 }
 
+test("authentication panel renders verification, recovery, OAuth, and signed-in states", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    const root = new FakeElement("root");
+    const authState = {
+      mode: "sign-up",
+      email: "player@example.com",
+      password: "",
+      passwordConfirmation: "",
+      userEmail: null,
+      isBusy: false,
+      errorMessage: null,
+      statusMessage: "Check your inbox for a verification link.",
+      verificationRequired: true,
+      resendAvailableAt: Date.now() + 10_000,
+      hasRecoverySession: false,
+      configurationError: null,
+      recoveryError: null,
+    };
+    const render = () => renderApp(root, state, createActions(), {}, {}, authState);
+
+    render();
+    let panel = root.query((element) => element.classList.contains("auth-panel"));
+    assert.ok(panel);
+    assert.match(panel.text, /Create account/u);
+    assert.match(panel.text, /Continue with Google/u);
+    assert.match(panel.text, /Resend verification email/u);
+    assert.ok(panel.query((element) => element.id === "auth-email"));
+
+    authState.mode = "recovery";
+    authState.userEmail = "player@example.com";
+    authState.hasRecoverySession = true;
+    render();
+    panel = root.query((element) => element.classList.contains("auth-panel"));
+    assert.match(panel.text, /Choose a new password/u);
+    assert.ok(panel.query((element) => element.id === "auth-passwordConfirmation"));
+
+    authState.mode = "sign-in";
+    authState.userEmail = "player@example.com";
+    render();
+    panel = root.query((element) => element.classList.contains("auth-panel"));
+    assert.match(panel.text, /player@example.com/u);
+    assert.match(panel.text, /Sign out/u);
+    assert.equal(panel.query((element) => element.id === "auth-password"), null);
+  });
+});
+
 function createSubmissionView(gameId) {
   return gameId === "bruh-wtf"
     ? {

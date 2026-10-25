@@ -10,5 +10,11 @@ export const supabaseConfigurationError =
 
 export const supabaseClient =
   supabaseUrl && publishableKey
-    ? createClient(supabaseUrl, publishableKey)
+    ? createClient(supabaseUrl, publishableKey, {
+        auth: {
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          persistSession: true,
+        },
+      })
     : null;

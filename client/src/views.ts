@@ -1,4 +1,5 @@
 import type { AppState, LobbyPlayer } from "./appState.ts";
+import type { AuthFormMode } from "./auth.ts";
 import {
   renderFakeAnswerGame,
   type FakeAnswerViewState,
@@ -61,6 +62,28 @@ export interface AppActions {
   onDismissRoundFeedback(): void;
   onToggleResultsHistory(): void;
   onResultsHistoryPage(page: number): void;
+  onAuthModeChange(mode: AuthFormMode): void;
+  onAuthFieldChange(field: "email" | "password" | "passwordConfirmation", value: string): void;
+  onAuthSubmit(): void;
+  onAuthGoogle(): void;
+  onAuthResendVerification(): void;
+  onAuthSignOut(): void;
+}
+
+export interface AuthViewState {
+  mode: AuthFormMode;
+  email: string;
+  password: string;
+  passwordConfirmation: string;
+  userEmail: string | null;
+  isBusy: boolean;
+  errorMessage: string | null;
+  statusMessage: string | null;
+  verificationRequired: boolean;
+  resendAvailableAt: number | null;
+  hasRecoverySession: boolean;
+  configurationError: string | null;
+  recoveryError: string | null;
 }
 
 const lobbyPopoverRoots = new WeakSet<HTMLElement>();
@@ -223,6 +246,7 @@ function createFloatingNotification(message: string, className: string): HTMLEle
 function renderHome(
   state: AppState,
   actions: AppActions,
+  authState: AuthViewState,
 ): HTMLElement {
   const screen = createElement("section", "app-screen home-screen");
   const title = createElement("h1", "landing-wordmark");
@@ -317,6 +341,7 @@ function renderHome(
     invitationMessage.setAttribute("role", state.joinRoomCode ? "status" : "alert");
     screen.append(invitationMessage);
   }
+  screen.append(renderAuthenticationPanel(authState, actions));
   if (state.isBusy) {
     screen.append(createElement("p", "status-message", "Connecting to room…"));
   }
@@ -327,6 +352,214 @@ function renderHome(
     screen.append(error);
   }
   return screen;
+}
+
+function renderAuthenticationPanel(
+  state: AuthViewState,
+  actions: AppActions,
+): HTMLElement {
+  const panel = createElement("section", "auth-panel");
+  panel.setAttribute("aria-labelledby", "auth-panel-title");
+  const title = createElement(
+    "h2",
+    "landing-action-heading",
+    state.userEmail ? "Your account" : "Sign in or create an account",
+  );
+  title.id = "auth-panel-title";
+  panel.append(title);
+
+  if (state.configurationError) {
+    const error = createErrorMessage(state.configurationError);
+    if (error) panel.append(error);
+  } else if (state.userEmail && state.mode !== "recovery") {
+    const identity = createElement("p", "auth-account-email", state.userEmail);
+    const signOut = createElement(
+      "button",
+      "secondary-button",
+      state.isBusy ? "Signing out…" : "Sign out",
+    );
+    signOut.type = "button";
+    signOut.disabled = state.isBusy;
+    signOut.addEventListener("click", actions.onAuthSignOut);
+    panel.append(identity, signOut);
+  } else {
+    if (state.mode !== "recovery" && state.mode !== "forgot-password") {
+      const modeChoices = createElement("div", "auth-mode-choices");
+      for (const [mode, label] of [
+        ["sign-in", "Sign in"],
+        ["sign-up", "Create account"],
+      ] as const) {
+        const button = createElement(
+          "button",
+          mode === state.mode ? "secondary-button is-selected" : "secondary-button",
+          label,
+        );
+        button.type = "button";
+        button.disabled = state.isBusy;
+        button.setAttribute("aria-pressed", String(mode === state.mode));
+        button.addEventListener("click", () => actions.onAuthModeChange(mode));
+        modeChoices.append(button);
+      }
+      panel.append(modeChoices);
+    }
+
+    const form = createElement("form", "auth-form");
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      actions.onAuthSubmit();
+    });
+
+    const addField = (
+      field: "email" | "password" | "passwordConfirmation",
+      labelText: string,
+      type: "email" | "password",
+      value: string,
+      autocomplete: "email" | "new-password" | "current-password",
+    ) => {
+      const fieldContainer = createElement("div", "field");
+      const label = createElement("label", "field-label", labelText);
+      const input = createElement("input", "text-input");
+      input.id = `auth-${field}`;
+      input.name = field;
+      input.type = type;
+      input.autocomplete = autocomplete;
+      input.required = true;
+      input.value = value;
+      if (type === "password") input.minLength = 8;
+      label.htmlFor = input.id;
+      input.addEventListener("input", () =>
+        actions.onAuthFieldChange(field, input.value),
+      );
+      fieldContainer.append(label, input);
+      form.append(fieldContainer);
+    };
+
+    if (state.mode === "recovery") {
+      const heading = createElement("p", "auth-help-text", state.recoveryError ?? (state.hasRecoverySession
+        ? "Choose a new password for your account."
+        : "The recovery link is invalid or expired. Request a new recovery email."));
+      panel.append(heading);
+      if (state.hasRecoverySession) {
+        addField("password", "New password", "password", state.password, "new-password");
+        addField(
+          "passwordConfirmation",
+          "Confirm new password",
+          "password",
+          state.passwordConfirmation,
+          "new-password",
+        );
+        form.append(createAuthSubmitButton(
+          state.isBusy ? "Updating password…" : "Update password",
+          state.isBusy,
+        ));
+        panel.append(form);
+      } else {
+        const requestLink = createElement(
+          "button",
+          "secondary-button",
+          "Request a new recovery email",
+        );
+        requestLink.type = "button";
+        requestLink.disabled = state.isBusy;
+        requestLink.addEventListener("click", () => {
+          actions.onAuthModeChange("forgot-password");
+        });
+        panel.append(requestLink);
+      }
+    } else {
+      if (state.mode === "forgot-password") {
+        panel.append(createElement(
+          "p",
+          "auth-help-text",
+          "We’ll email you a link to reset your password.",
+        ));
+      }
+      addField("email", "Email", "email", state.email, "email");
+      if (state.mode !== "forgot-password") {
+        addField(
+          "password",
+          "Password",
+          "password",
+          state.password,
+          state.mode === "sign-up" ? "new-password" : "current-password",
+        );
+      }
+      form.append(createAuthSubmitButton(
+        state.isBusy
+          ? "Please wait…"
+          : state.mode === "forgot-password"
+            ? "Send recovery email"
+            : state.mode === "sign-up"
+              ? "Create account"
+              : "Sign in",
+        state.isBusy,
+      ));
+      panel.append(form);
+
+      if (state.mode === "sign-in") {
+        const forgot = createElement("button", "auth-text-button", "Forgot password?");
+        forgot.type = "button";
+        forgot.disabled = state.isBusy;
+        forgot.addEventListener("click", () =>
+          actions.onAuthModeChange("forgot-password"),
+        );
+        panel.append(forgot);
+      }
+      if (state.mode === "forgot-password") {
+        const back = createElement("button", "auth-text-button", "Back to sign in");
+        back.type = "button";
+        back.disabled = state.isBusy;
+        back.addEventListener("click", () => actions.onAuthModeChange("sign-in"));
+        panel.append(back);
+      }
+      if (state.mode !== "forgot-password") {
+        const divider = createElement("p", "auth-divider", "or");
+        const google = createElement(
+          "button",
+          "secondary-button auth-google-button",
+          state.isBusy ? "Please wait…" : "Continue with Google",
+        );
+        google.type = "button";
+        google.disabled = state.isBusy;
+        google.addEventListener("click", actions.onAuthGoogle);
+        panel.append(divider, google);
+      }
+    }
+
+    if (state.verificationRequired) {
+      const resend = createElement(
+        "button",
+        "auth-text-button",
+        state.resendAvailableAt && state.resendAvailableAt > Date.now()
+          ? `Resend verification email (${Math.ceil((state.resendAvailableAt - Date.now()) / 1000)}s)`
+          : "Resend verification email",
+      );
+      resend.type = "button";
+      resend.disabled = state.isBusy ||
+        (state.resendAvailableAt !== null && state.resendAvailableAt > Date.now());
+      resend.addEventListener("click", actions.onAuthResendVerification);
+      panel.append(resend);
+    }
+  }
+
+  if (state.errorMessage) {
+    const error = createErrorMessage(state.errorMessage);
+    if (error) panel.append(error);
+  }
+  if (state.statusMessage) {
+    const status = createElement("p", "auth-status-message", state.statusMessage);
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+    panel.append(status);
+  }
+  return panel;
+}
+
+function createAuthSubmitButton(label: string, disabled: boolean): HTMLButtonElement {
+  const button = createElement("button", "primary-button", label);
+  button.type = "submit";
+  button.disabled = disabled;
+  return button;
 }
 
 function createGameCardArt(gameId: string): HTMLElement {
@@ -1414,6 +1647,21 @@ export function renderApp(
   actions: AppActions,
   fakeAnswerSubmission: FakeAnswerViewState,
   bruhWtfSubmission: BruhWtfViewState,
+  authState: AuthViewState = {
+    mode: "sign-in",
+    email: "",
+    password: "",
+    passwordConfirmation: "",
+    userEmail: null,
+    isBusy: false,
+    errorMessage: null,
+    statusMessage: null,
+    verificationRequired: false,
+    resendAvailableAt: null,
+    hasRecoverySession: false,
+    configurationError: null,
+    recoveryError: null,
+  },
 ): void {
   const previousDialog = root.querySelector<HTMLDialogElement>(".invitation-dialog");
   const previousFocus = root.ownerDocument.activeElement;
@@ -1440,7 +1688,7 @@ export function renderApp(
             ? renderGameSelection(state, actions)
           : state.currentView === "public-rooms"
             ? renderPublicRooms(state, actions)
-            : renderHome(state, actions);
+            : renderHome(state, actions, authState);
   screen.dataset.renderScope = getRenderScope(state);
   shell.append(screen);
   if (state.invitationFeedback && !state.isInvitationDialogOpen && !state.roomCodeCopied && state.currentView === "lobby") {
