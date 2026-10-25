@@ -1,6 +1,11 @@
 const admin = require("firebase-admin");
+const {
+    resolveFirebaseAuthConfig,
+    FIREBASE_AUTH_EMULATOR_HOST,
+    FIREBASE_AUTH_EMULATOR_PROJECT_ID,
+    FIREBASE_PROJECT_ID,
+} = require("./firebaseAuthConfig");
 
-const FIREBASE_PROJECT_ID = "sussed-167f0";
 const INVALID_TOKEN_MESSAGE = "Invalid or expired access token.";
 const VERIFICATION_UNAVAILABLE_MESSAGE =
     "Authentication verification is temporarily unavailable.";
@@ -49,7 +54,7 @@ function getFirebaseCredentialConfig(projectId) {
     return null;
 }
 
-function initializeFirebaseAdmin(projectId) {
+function initializeFirebaseAdmin(projectId, emulatorEnabled = false) {
     const existingApp = admin.apps.find(({ name }) => name === "[DEFAULT]");
     if (existingApp) {
         if (existingApp.options.projectId !== projectId) {
@@ -61,7 +66,9 @@ function initializeFirebaseAdmin(projectId) {
     }
 
     if (!admin.apps.length) {
-        const credentialConfig = getFirebaseCredentialConfig(projectId);
+        const credentialConfig = emulatorEnabled
+            ? null
+            : getFirebaseCredentialConfig(projectId);
         if (credentialConfig) {
             admin.initializeApp({
                 projectId,
@@ -77,15 +84,23 @@ function initializeFirebaseAdmin(projectId) {
 function createFirebaseTokenVerifier({
     projectId = process.env.FIREBASE_PROJECT_ID,
     verifyIdToken = null,
+    emulatorEnabled = process.env.FIREBASE_AUTH_EMULATOR_ENABLED,
+    nodeEnv = process.env.NODE_ENV,
+    emulatorHost = process.env.FIREBASE_AUTH_EMULATOR_HOST,
 } = {}) {
-    const configuredProjectId = projectId?.trim() || FIREBASE_PROJECT_ID;
-    if (configuredProjectId !== FIREBASE_PROJECT_ID) {
-        throw new Error(
-            `FIREBASE_PROJECT_ID must be ${FIREBASE_PROJECT_ID}.`
-        );
+    const firebaseConfig = resolveFirebaseAuthConfig({
+        emulatorEnabled,
+        nodeEnv,
+        projectId,
+        emulatorHost,
+    });
+    const configuredProjectId = firebaseConfig.projectId;
+    if (firebaseConfig.emulatorEnabled) {
+        process.env.FIREBASE_AUTH_EMULATOR_HOST = FIREBASE_AUTH_EMULATOR_HOST;
     }
     const hasFirebaseConfig = Boolean(
         verifyIdToken ||
+        firebaseConfig.emulatorEnabled ||
         process.env.FIREBASE_PROJECT_ID ||
         process.env.FIREBASE_CLIENT_EMAIL ||
         process.env.GOOGLE_APPLICATION_CREDENTIALS ||
@@ -109,7 +124,7 @@ function createFirebaseTokenVerifier({
         };
     }
 
-    initializeFirebaseAdmin(configuredProjectId);
+    initializeFirebaseAdmin(configuredProjectId, firebaseConfig.emulatorEnabled);
 
     return async (accessToken) => {
         if (typeof accessToken !== "string" || accessToken.length === 0) {
@@ -173,6 +188,7 @@ module.exports = {
     createFirebaseTokenVerifier,
     createSupabaseTokenVerifier,
     FIREBASE_PROJECT_ID,
+    FIREBASE_AUTH_EMULATOR_PROJECT_ID,
     INVALID_TOKEN_MESSAGE,
     VERIFICATION_UNAVAILABLE_MESSAGE,
 };

@@ -5,3 +5,6 @@ node_modules/
 dist/
 .vite/
 .DS_Store
+firebase-debug.log
+ui-debug.log
+.firebase/

@@ -46,6 +46,66 @@ values and remain tracked. The Firebase web config is designed for public
 clients; never place a Firebase service-account private key, database password,
 or other privileged secret in the client or any `VITE_` variable.
 
+## Local Firebase Authentication Emulator
+
+The Auth Emulator runs as a demo project and does not contact or modify the
+production Firebase project. Emulator mode is opt-in, requires a Vite
+development server and `NODE_ENV=development`, and refuses to start with the
+production project ID. The server sets the Admin SDK's
+`FIREBASE_AUTH_EMULATOR_HOST` internally only after those checks pass. Do not set
+that Admin SDK variable yourself.
+
+Install Firebase CLI globally if it is not already installed:
+
+```sh
+npm install --global firebase-tools
+firebase --version
+```
+
+No Firebase login or project creation is needed for the demo project. From the
+repository root, start the Auth Emulator and its UI:
+
+```sh
+firebase emulators:start --project demo-sussed-167f0 --only auth
+```
+
+The emulator listens on `http://127.0.0.1:9099`; its UI is at
+`http://127.0.0.1:4000`. Keep this terminal running.
+
+In `client/.env.local`, set `VITE_FIREBASE_PROJECT_ID=demo-sussed-167f0` and
+`VITE_FIREBASE_AUTH_EMULATOR_ENABLED=true`. Keep the other Firebase web config
+fields present so Firebase can initialize; the emulator intercepts Auth
+requests. In `server/.env`, set `NODE_ENV=development`,
+`FIREBASE_PROJECT_ID=demo-sussed-167f0`, and
+`FIREBASE_AUTH_EMULATOR_ENABLED=true`. Emulator mode does not require a service
+account. Leave the emulator flag false or unset for normal Firebase project
+authentication. Never set the emulator flag in Vercel, Render, or other
+production environments.
+
+Start the server and client in separate terminals from the repository root:
+
+```sh
+npm run dev:server
+npm run dev:client
+```
+
+Restart both after editing environment files. Register a test user using the
+SUSSED! account panel; that creates an emulator-only user and requests its
+verification email. The Auth Emulator writes the generated verification action
+link to the emulator terminal output. Open that local action link in a browser
+to verify the test account. The Emulator UI at `http://127.0.0.1:4000` lets you
+inspect and manage emulator users; users can also be added there for testing.
+One-time action links are sensitive: use them only locally and do not share
+them. Password recovery links are emitted to the emulator output in the same
+way.
+
+To stop the emulator, press Ctrl+C in its terminal. After testing, set both
+emulator flags to `false` (or remove them) and restore the real
+`FIREBASE_PROJECT_ID` and client project ID before using normal Firebase Auth.
+The production build rejects the client emulator flag, and the server rejects
+emulator mode unless it is explicitly enabled with `NODE_ENV=development` and
+the demo project ID.
+
 After changing either file, restart the affected process so it reloads its
 environment. Stop the combined development command with Ctrl+C, then run
 `npm run dev` again from the repository root. Or run the server and client in

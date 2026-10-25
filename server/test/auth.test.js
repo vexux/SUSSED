@@ -4,6 +4,11 @@ const {
     createFirebaseTokenVerifier,
     FIREBASE_PROJECT_ID,
 } = require("../auth");
+const {
+    FIREBASE_AUTH_EMULATOR_HOST,
+    FIREBASE_AUTH_EMULATOR_PROJECT_ID,
+    resolveFirebaseAuthConfig,
+} = require("../firebaseAuthConfig");
 
 test("requires Firebase project configuration to verify authenticated sockets", () => {
     assert.equal(createFirebaseTokenVerifier({ projectId: "" }), null);
@@ -41,5 +46,63 @@ test("rejects server configuration for a different Firebase project", () => {
     assert.throws(
         () => createFirebaseTokenVerifier({ projectId: "another-project" }),
         /FIREBASE_PROJECT_ID must be sussed-167f0/,
+    );
+});
+
+test("resolves Auth Emulator configuration only for explicit local demo-project mode", () => {
+    assert.deepEqual(
+        resolveFirebaseAuthConfig({
+            emulatorEnabled: "true",
+            nodeEnv: "development",
+            projectId: FIREBASE_AUTH_EMULATOR_PROJECT_ID,
+        }),
+        {
+            emulatorEnabled: true,
+            projectId: FIREBASE_AUTH_EMULATOR_PROJECT_ID,
+            emulatorHost: FIREBASE_AUTH_EMULATOR_HOST,
+        },
+    );
+});
+
+test("rejects Auth Emulator mode in production or when the host is set implicitly", () => {
+    assert.throws(
+        () => resolveFirebaseAuthConfig({
+            emulatorEnabled: "true",
+            nodeEnv: "production",
+            projectId: FIREBASE_AUTH_EMULATOR_PROJECT_ID,
+        }),
+        /only be enabled when NODE_ENV=development/,
+    );
+    assert.throws(
+        () => resolveFirebaseAuthConfig({
+            emulatorEnabled: "false",
+            nodeEnv: "development",
+            projectId: FIREBASE_PROJECT_ID,
+            emulatorHost: FIREBASE_AUTH_EMULATOR_HOST,
+        }),
+        /without FIREBASE_AUTH_EMULATOR_ENABLED=true/,
+    );
+    assert.throws(
+        () => resolveFirebaseAuthConfig({
+            emulatorEnabled: "true",
+            nodeEnv: "development",
+            projectId: FIREBASE_PROJECT_ID,
+        }),
+        /demo-sussed-167f0/,
+    );
+});
+
+test("normal server verification uses the production Firebase project when emulator mode is off", () => {
+    assert.deepEqual(
+        resolveFirebaseAuthConfig({
+            emulatorEnabled: "false",
+            nodeEnv: "development",
+            projectId: FIREBASE_PROJECT_ID,
+        }),
+        {
+            emulatorEnabled: false,
+            projectId: FIREBASE_PROJECT_ID,
+            emulatorHost: null,
+        },
     );
 });
