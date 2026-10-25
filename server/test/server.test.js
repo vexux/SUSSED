@@ -85,8 +85,8 @@ test("Socket.IO polling allows the deployed frontend origins and rejects unliste
     }
 });
 
-async function createHarness(context) {
-    const io = startServer(0);
+async function createHarness(context, { verifyAccessToken } = {}) {
+    const io = startServer(0, { verifyAccessToken });
     const clients = [];
     const roomCodes = new Set();
 
@@ -112,8 +112,9 @@ async function createHarness(context) {
 
     return {
         io,
-        async connect() {
+        async connect({ auth } = {}) {
             const client = createClient(`http://127.0.0.1:${address.port}`, {
+                auth,
                 reconnection: false,
                 timeout: 3000,
             });
@@ -129,6 +130,96 @@ async function createHarness(context) {
         },
     };
 }
+
+test("guest sockets retain socket.id as their room player identity", async (context) => {
+    const harness = await createHarness(context);
+    const guest = await harness.connect();
+    const serverSocket = harness.io.sockets.sockets.get(guest.id);
+    assert.ok(serverSocket);
+    assert.equal(serverSocket.data.accountId, undefined);
+
+    const created = await emitWithAck(guest, "create-room", {
+        playerName: "Guest",
+    });
+    harness.trackRoom(created.roomCode);
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, guest.id);
+});
+
+test("valid access tokens attach the verified account UUID without changing player IDs", async (context) => {
+    const accountId = "55e27c31-6d85-4a12-a0ac-fd8062206372";
+    let verifiedToken;
+    const harness = await createHarness(context, {
+        verifyAccessToken: async (token) => {
+            verifiedToken = token;
+            return accountId;
+        },
+    });
+    const authenticated = await harness.connect({
+        auth: { accessToken: "valid-access-token" },
+    });
+    const serverSocket = harness.io.sockets.sockets.get(authenticated.id);
+    assert.ok(serverSocket);
+    assert.equal(verifiedToken, "valid-access-token");
+    assert.equal(serverSocket.data.accountId, accountId);
+
+    const created = await emitWithAck(authenticated, "create-room", {
+        playerName: "Account holder",
+    });
+    harness.trackRoom(created.roomCode);
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, authenticated.id);
+    assert.notEqual(serverSocket.data.accountId, authenticated.id);
+});
+
+for (const [label, accessToken] of [
+    ["invalid", "invalid-access-token"],
+    ["expired", "expired-access-token"],
+]) {
+    test(`${label} access tokens are rejected instead of becoming guest connections`, async (context) => {
+        let verifiedToken;
+        const harness = await createHarness(context, {
+            verifyAccessToken: async (token) => {
+                verifiedToken = token;
+                throw new Error("Supabase rejected the token.");
+            },
+        });
+        const client = createClient(
+            `http://127.0.0.1:${harness.io.httpServer.address().port}`,
+            {
+                auth: { accessToken },
+                reconnection: false,
+                timeout: 3000,
+            }
+        );
+        const connectError = new Promise((resolve) => {
+            client.once("connect_error", resolve);
+        });
+        context.after(() => client.close());
+        const error = await connectError;
+        assert.equal(verifiedToken, accessToken);
+        assert.equal(error.message, "Invalid or expired access token.");
+        assert.equal(client.connected, false);
+    });
+}
+
+test("a supplied token is rejected when server-side Supabase verification is not configured", async (context) => {
+    const harness = await createHarness(context);
+    const client = createClient(
+        `http://127.0.0.1:${harness.io.httpServer.address().port}`,
+        {
+            auth: { accessToken: "unverifiable-access-token" },
+            reconnection: false,
+            timeout: 3000,
+        }
+    );
+    const connectError = new Promise((resolve) => {
+        client.once("connect_error", resolve);
+    });
+    context.after(() => client.close());
+
+    const error = await connectError;
+    assert.equal(error.message, "Invalid or expired access token.");
+    assert.equal(client.connected, false);
+});
 
 function emitWithAck(client, event, payload, timeoutMs = 3000) {
     return new Promise((resolve, reject) => {

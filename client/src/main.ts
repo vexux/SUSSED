@@ -1783,11 +1783,13 @@ socket.on("disconnect", () => {
   render();
 });
 
-socket.on("connect_error", () => {
+socket.on("connect_error", (error) => {
   connectionWasLost = true;
   state.connectionStatus = "disconnected";
   state.isBusy = false;
-  state.errorMessage = "Unable to connect to the server. Retrying…";
+  state.errorMessage = error.message === "Invalid or expired access token."
+    ? "Your Supabase session is invalid or expired. Sign in again before reconnecting."
+    : "Unable to connect to the server. Retrying…";
   if (state.currentView === "public-rooms") {
     state.isLoadingPublicRooms = false;
     clearPublicRoomSelection();

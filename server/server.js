@@ -1,5 +1,6 @@
 const { createServer } = require("node:http");
 const { Server } = require("socket.io");
+const { createSocketAuthMiddleware, createSupabaseTokenVerifier } = require("./auth");
 const { isOriginAllowed, port: defaultPort } = require("./config");
 const { handleDisconnect, registerRoomHandlers } = require("./roomHandlers");
 
@@ -17,7 +18,7 @@ function handleHttpRequest(request, response) {
     response.end(JSON.stringify({ error: "Not found" }));
 }
 
-function startServer(port = defaultPort) {
+function startServer(port = defaultPort, { verifyAccessToken } = {}) {
     const httpServer = createServer(handleHttpRequest);
     const io = new Server(httpServer, {
         cors: {
@@ -30,6 +31,9 @@ function startServer(port = defaultPort) {
             },
         }
     });
+
+    const tokenVerifier = verifyAccessToken ?? createSupabaseTokenVerifier();
+    io.use(createSocketAuthMiddleware(tokenVerifier));
 
     io.on("connection", (socket) => {
         console.log("Player connected:", socket.id);

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
+    "start": "node --env-file-if-exists=.env server.js",
+    "dev": "node --env-file-if-exists=.env --watch server.js",
     "test": "node --test",
     "validate:questions": "node games/fact-or-cap/scripts/validate-question-pack.js",
     "validate:canonical": "node games/fact-or-cap/scripts/validate-canonical-content.js",
@@ -24,6 +24,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "socket.io": "^4.8.4"
   },
   "devDependencies": {
