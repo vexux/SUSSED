@@ -9,157 +9,203 @@ import {
 import {
   createSocketAuthPayloadProvider,
   createSocketSessionChangeHandler,
+  createSocketTokenRefreshRetry,
+  getFirebaseSocketAuthPayload,
 } from "../src/socketAuth.ts";
 
-const account = { id: "account-1", email: "player@example.com" };
-
-function createMockAuth(overrides = {}) {
-  const calls = [];
-  const auth = {
-    async getSession() {
-      calls.push(["getSession"]);
-      return {
-        data: {
-          session: {
-            access_token: "mock-access-token",
-            user: account,
-          },
-        },
-        error: null,
-      };
+function createUser({
+  uid = "firebase-user-1",
+  email = "player@example.com",
+  emailVerified = false,
+  providerId = "password",
+} = {}) {
+  return {
+    uid,
+    email,
+    emailVerified,
+    providerData: [{ providerId }],
+    async getIdToken(forceRefresh = false) {
+      return forceRefresh ? "fresh-id-token" : "current-id-token";
     },
-    async signInWithPassword(payload) {
-      calls.push(["signInWithPassword", payload]);
-      return { data: { user: account }, error: null };
-    },
-    async signUp(payload) {
-      calls.push(["signUp", payload]);
-      return {
-        data: { user: account, session: null },
-        error: null,
-      };
-    },
-    async signOut() {
-      calls.push(["signOut"]);
-      return { error: null };
-    },
-    async resend(payload) {
-      calls.push(["resend", payload]);
-      return { error: null };
-    },
-    async resetPasswordForEmail(email, options) {
-      calls.push(["resetPasswordForEmail", email, options]);
-      return { error: null };
-    },
-    async updateUser(payload) {
-      calls.push(["updateUser", payload]);
-      return { error: null };
-    },
-    async signInWithOAuth(payload) {
-      calls.push(["signInWithOAuth", payload]);
-      return { data: { url: "https://accounts.google.com/oauth" }, error: null };
-    },
-    ...overrides,
   };
-  return { client: { auth }, calls };
 }
 
-test("registration uses redirect URL and exposes email-verification-required outcome", async () => {
-  const { client, calls } = createMockAuth();
-  const service = createAuthService(client, "http://localhost:5173");
-
-  const result = await service.signUp(" player@example.com ", "long-enough-password");
-  assert.equal(result.requiresEmailVerification, true);
-  assert.deepEqual(calls[0], [
-    "signUp",
-    {
-      email: "player@example.com",
-      password: "long-enough-password",
-      options: { emailRedirectTo: "http://localhost:5173" },
+function createMockFirebase({ user = createUser(), apiOverrides = {} } = {}) {
+  const calls = [];
+  const client = {
+    currentUser: user,
+    async authStateReady() {
+      calls.push(["authStateReady"]);
     },
+  };
+  const api = {
+    async createUserWithEmailAndPassword(auth, email, password) {
+      calls.push(["createUserWithEmailAndPassword", auth, email, password]);
+      return { user };
+    },
+    async signInWithEmailAndPassword(auth, email, password) {
+      calls.push(["signInWithEmailAndPassword", auth, email, password]);
+      return { user };
+    },
+    async sendEmailVerification(currentUser, settings) {
+      calls.push(["sendEmailVerification", currentUser, settings]);
+    },
+    async reload(currentUser) {
+      calls.push(["reload", currentUser]);
+    },
+    async sendPasswordResetEmail(auth, email, settings) {
+      calls.push(["sendPasswordResetEmail", auth, email, settings]);
+    },
+    async signOut(auth) {
+      calls.push(["signOut", auth]);
+    },
+    async updatePassword(currentUser, password) {
+      calls.push(["updatePassword", currentUser, password]);
+    },
+    GoogleAuthProvider: class {},
+    async signInWithPopup(auth, provider) {
+      calls.push(["signInWithPopup", auth, provider]);
+      return { user };
+    },
+    ...apiOverrides,
+  };
+  return { client, api, calls };
+}
+
+const REDIRECT_URL = "http://localhost:5173";
+
+test("registration sends Firebase verification email before reporting success", async () => {
+  const { client, api, calls } = createMockFirebase();
+  const result = await createAuthService(client, REDIRECT_URL, api)
+    .signUp(" player@example.com ", "long-enough-password");
+
+  assert.equal(result.requiresEmailVerification, true);
+  assert.deepEqual(
+    calls.map(([method]) => method),
+    ["createUserWithEmailAndPassword", "sendEmailVerification"],
+  );
+  assert.deepEqual(calls[1], [
+    "sendEmailVerification",
+    client.currentUser,
+    { url: REDIRECT_URL },
   ]);
 });
 
-test("sign-in validates credentials and maps unconfirmed email to a resend-friendly message", async () => {
-  const { client } = createMockAuth({
-    async signInWithPassword() {
-      return { data: { user: null }, error: new Error("Email not confirmed") };
+test("registration surfaces verification delivery errors instead of reporting success", async () => {
+  const { client, api } = createMockFirebase({
+    apiOverrides: {
+      async sendEmailVerification() {
+        throw Object.assign(new Error("network failed"), {
+          code: "auth/network-request-failed",
+        });
+      },
     },
   });
-  const service = createAuthService(client, "http://localhost:5173");
+
   await assert.rejects(
-    service.signIn("player@example.com", "long-enough-password"),
-    /Verify your email before signing in/,
+    createAuthService(client, REDIRECT_URL, api)
+      .signUp("player@example.com", "long-enough-password"),
+    /Could not reach Firebase/,
   );
-  await assert.rejects(service.signIn("not-an-email", "long-enough-password"), /valid email/);
-  await assert.rejects(service.signIn("player@example.com", "short"), /at least 8 characters/);
 });
 
-test("sign-out and verification resend call official Supabase auth methods", async () => {
-  const { client, calls } = createMockAuth();
-  const service = createAuthService(client, "http://localhost:5173");
-  await service.signOut();
-  await service.resendVerification("player@example.com");
-  assert.equal(calls[0][0], "signOut");
-  assert.deepEqual(calls[1], [
-    "resend",
-    {
-      type: "signup",
-      email: "player@example.com",
-      options: { emailRedirectTo: "http://localhost:5173" },
+test("email/password sign-in requires verification for unverified password accounts", async () => {
+  const { client, api } = createMockFirebase();
+  const result = await createAuthService(client, REDIRECT_URL, api)
+    .signIn("player@example.com", "long-enough-password");
+
+  assert.equal(result.requiresEmailVerification, true);
+  assert.equal(result.user?.id, client.currentUser.uid);
+  await assert.rejects(
+    createAuthService(client, REDIRECT_URL, api).signIn("not-an-email", "long-enough-password"),
+    /valid email/,
+  );
+  await assert.rejects(
+    createAuthService(client, REDIRECT_URL, api).signIn("player@example.com", "short"),
+    /at least 8 characters/,
+  );
+});
+
+test("resend requires a signed-in password account and sends only when unverified", async () => {
+  const missing = createMockFirebase({ user: null });
+  await assert.rejects(
+    createAuthService(missing.client, REDIRECT_URL, missing.api)
+      .resendVerification("player@example.com"),
+    /No signed-in account/,
+  );
+
+  const google = createMockFirebase({
+    user: createUser({ providerId: "google.com", emailVerified: true }),
+  });
+  await assert.rejects(
+    createAuthService(google.client, REDIRECT_URL, google.api)
+      .resendVerification("player@example.com"),
+    /does not use email\/password/,
+  );
+
+  const account = createMockFirebase();
+  const result = await createAuthService(account.client, REDIRECT_URL, account.api)
+    .resendVerification("player@example.com");
+  assert.equal(result, "sent");
+  assert.deepEqual(account.calls.map(([method]) => method), ["reload", "sendEmailVerification"]);
+
+  const verified = createMockFirebase({
+    apiOverrides: {
+      async reload(user) {
+        user.emailVerified = true;
+      },
     },
-  ]);
+  });
+  assert.equal(
+    await createAuthService(verified.client, REDIRECT_URL, verified.api)
+      .resendVerification("player@example.com"),
+    "already-verified",
+  );
+  assert.equal(
+    verified.calls.some(([method]) => method === "sendEmailVerification"),
+    false,
+  );
 });
 
-test("password recovery request and completion use the configured redirect and update password", async () => {
-  const { client, calls } = createMockAuth();
-  const service = createAuthService(client, "https://sussed.example/auth/callback");
+test("Google users do not enter the email-verification flow", async () => {
+  const { client, api, calls } = createMockFirebase({
+    user: createUser({ providerId: "google.com", emailVerified: true }),
+  });
+  const service = createAuthService(client, REDIRECT_URL, api);
+  await service.signInWithGoogle();
+  assert.equal(calls.some(([method]) => method === "sendEmailVerification"), false);
+});
+
+test("sign-out, password recovery, and password change use Firebase APIs", async () => {
+  const { client, api, calls } = createMockFirebase();
+  const service = createAuthService(client, "https://sussed.example/auth/callback", api);
+  await service.signOut();
   await service.requestPasswordRecovery("player@example.com");
   await service.updatePassword("new-long-password");
-  assert.deepEqual(calls, [
-    [
-      "resetPasswordForEmail",
-      "player@example.com",
-      { redirectTo: "https://sussed.example/auth/callback" },
-    ],
-    ["updateUser", { password: "new-long-password" }],
+  assert.deepEqual(calls.map(([method]) => method), [
+    "signOut",
+    "sendPasswordResetEmail",
+    "updatePassword",
   ]);
-  await assert.rejects(service.updatePassword("short"), /at least 8 characters/);
-});
-
-test("Google sign-in initiates OAuth with a configured callback and reports disabled provider", async () => {
-  const { client, calls } = createMockAuth();
-  await createAuthService(client, "http://localhost:5173").signInWithGoogle();
-  assert.deepEqual(calls[0], [
-    "signInWithOAuth",
-    {
-      provider: "google",
-      options: { redirectTo: "http://localhost:5173" },
-    },
+  assert.deepEqual(calls[1].slice(2), [
+    "player@example.com",
+    { url: "https://sussed.example/auth/callback" },
   ]);
-
-  const disabled = createMockAuth({
-    async signInWithOAuth() {
-      return { data: { url: null }, error: new Error("provider is not enabled") };
-    },
-  });
-  await assert.rejects(
-    createAuthService(disabled.client, "http://localhost:5173").signInWithGoogle(),
-    /Google sign-in is not enabled/,
-  );
 });
 
-test("session restoration returns the active user without exposing its access token to UI state", async () => {
-  const { client } = createMockAuth();
-  const restored = await createAuthService(client, "http://localhost:5173").restoreSession();
-  assert.equal(restored.user.email, account.email);
-  assert.equal(restored.accessToken, "mock-access-token");
+test("session restoration waits for Firebase Auth and returns the current ID token", async () => {
+  const { client, api, calls } = createMockFirebase();
+  const restored = await createAuthService(client, REDIRECT_URL, api).restoreSession();
+  assert.equal(restored.user?.email, "player@example.com");
+  assert.equal(restored.requiresEmailVerification, true);
+  assert.equal(restored.accessToken, "current-id-token");
+  assert.deepEqual(calls.map(([method]) => method), ["authStateReady", "reload"]);
 });
 
-test("redirect selection and expired recovery-link handling are deterministic", () => {
-  assert.equal(getAuthRedirectUrl("", "http://localhost:5173"), "http://localhost:5173");
+test("redirect selection, recovery-link errors, and Firebase error mapping are deterministic", () => {
+  assert.equal(getAuthRedirectUrl("", REDIRECT_URL), REDIRECT_URL);
   assert.equal(
-    getAuthRedirectUrl(" https://sussed.example/auth/callback ", "http://localhost:5173"),
+    getAuthRedirectUrl(" https://sussed.example/auth/callback ", REDIRECT_URL),
     "https://sussed.example/auth/callback",
   );
   assert.match(
@@ -171,19 +217,44 @@ test("redirect selection and expired recovery-link handling are deterministic", 
     /invalid or has expired/,
   );
   assert.equal(getRecoveryLinkError("#access_token=valid-token&type=recovery"), null);
+  assert.match(getAuthErrorMessage({ code: "auth/too-many-requests" }), /temporarily limited/);
+  assert.match(getAuthErrorMessage({ code: "auth/network-request-failed" }), /internet connection/);
+  assert.match(getAuthErrorMessage({ code: "auth/unauthorized-continue-uri" }), /authorized domains/);
+  assert.match(getAuthErrorMessage({ code: "auth/operation-not-allowed" }), /Enable it in Firebase/);
 });
 
-test("auth errors are presented safely without exposing arbitrary service messages", () => {
-  assert.match(getAuthErrorMessage(new Error("invalid login credentials")), /not recognized/);
-  assert.match(getAuthErrorMessage(new Error("provider_disabled")), /Google sign-in is not enabled/);
-  assert.match(getAuthErrorMessage(new Error("unexpected internal detail")), /Authentication could not be completed/);
+test("Socket.IO sends the refreshed Firebase ID token, allows guests, and excludes unverified email users", async () => {
+  const authenticated = createMockFirebase({
+    user: createUser({ emailVerified: true }),
+  });
+  assert.deepEqual(
+    await getFirebaseSocketAuthPayload(authenticated.client, async () => {}),
+    { accessToken: "current-id-token" },
+  );
+  assert.deepEqual(authenticated.calls, [["authStateReady"]]);
+
+  const guest = createMockFirebase({ user: null });
+  assert.deepEqual(await getFirebaseSocketAuthPayload(guest.client), {});
+
+  const unverified = createMockFirebase();
+  assert.deepEqual(
+    await getFirebaseSocketAuthPayload(unverified.client, async () => {}),
+    {},
+  );
+
+  const verifiedAfterReload = createMockFirebase({
+    user: createUser({ emailVerified: true }),
+  });
+  assert.deepEqual(
+    await getFirebaseSocketAuthPayload(verifiedAfterReload.client),
+    { accessToken: "current-id-token" },
+  );
 });
 
-test("Socket.IO auth callback sends the current token, guest payload, and rejects session-read failures", async () => {
+test("Socket.IO auth callback uses latest tokens and fails closed when session loading fails", async () => {
   let currentToken = "initial-token";
   const provideAuth = createSocketAuthPayloadProvider(async () => ({
-    data: { session: { access_token: currentToken } },
-    error: null,
+    accessToken: currentToken,
   }));
   const readPayload = () => new Promise((resolve) => provideAuth(resolve));
   assert.deepEqual(await readPayload(), { accessToken: "initial-token" });
@@ -191,17 +262,16 @@ test("Socket.IO auth callback sends the current token, guest payload, and reject
   assert.deepEqual(await readPayload(), { accessToken: "refreshed-token" });
 
   const guest = await new Promise((resolve) => {
-    createSocketAuthPayloadProvider(async () => ({
-      data: { session: null },
-      error: null,
-    }))(resolve);
+    createSocketAuthPayloadProvider(async () => null)(resolve);
   });
   assert.deepEqual(guest, {});
 
   const logs = [];
   const failure = await new Promise((resolve) => {
     createSocketAuthPayloadProvider(
-      async () => ({ data: { session: null }, error: new Error("storage failed") }),
+      async () => {
+        throw new Error("session unavailable");
+      },
       (message) => logs.push(message),
     )(resolve);
   });
@@ -209,7 +279,29 @@ test("Socket.IO auth callback sends the current token, guest payload, and reject
   assert.equal(logs.length, 1);
 });
 
-test("Socket.IO reconnects cleanly when account identity changes but not on token refresh", async () => {
+test("invalid-token retry forces a fresh Firebase ID token once before reconnecting", async () => {
+  const operations = [];
+  const socket = {
+    disconnect() { operations.push("disconnect"); },
+    connect() { operations.push("connect"); },
+  };
+  const tokenRequests = [];
+  const retry = createSocketTokenRefreshRetry(socket, () => ({
+    async getIdToken(forceRefresh) {
+      tokenRequests.push(forceRefresh);
+      return "fresh-token";
+    },
+  }));
+
+  assert.equal(await retry.refreshAndReconnect(), true);
+  assert.equal(await retry.refreshAndReconnect(), false);
+  assert.deepEqual(tokenRequests, [true]);
+  assert.deepEqual(operations, ["disconnect", "connect"]);
+  retry.reset();
+  assert.equal(await retry.refreshAndReconnect(), true);
+});
+
+test("Socket.IO reconnects when account identity changes but not on token refresh", async () => {
   const operations = [];
   const socket = {
     disconnect() { operations.push("disconnect"); },

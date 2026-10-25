@@ -17,6 +17,7 @@ import {
 } from "./auth";
 import {
   createSocketSessionChangeHandler,
+  createSocketTokenRefreshRetry,
 } from "./socketAuth";
 import { firebaseClient, firebaseConfigurationError } from "./supabase";
 import { renderApp } from "./views";
@@ -1787,9 +1788,14 @@ const actions: AppActions = {
           authViewState.password,
         );
         authViewState.password = "";
-        authViewState.verificationRequired = false;
-        authViewState.userEmail = result.user?.email ?? null;
-        authViewState.statusMessage = "You’re signed in.";
+        authViewState.verificationRequired =
+          result.requiresEmailVerification === true;
+        authViewState.userEmail = authViewState.verificationRequired
+          ? null
+          : result.user?.email ?? null;
+        authViewState.statusMessage = authViewState.verificationRequired
+          ? "Verify your email before using this account. You can resend the verification email below."
+          : "You’re signed in.";
         return;
       }
       if (authViewState.mode === "forgot-password") {
@@ -1819,24 +1825,28 @@ const actions: AppActions = {
   },
   onAuthResendVerification() {
     if (!authService || authViewState.isBusy) return;
-    void runAuthAction(
-      () => authService.resendVerification(authViewState.email),
-      () => {
-        authViewState.statusMessage = "A new verification email has been sent.";
-        authViewState.resendAvailableAt = Date.now() + 60_000;
-        if (resendCooldownTimer) clearInterval(resendCooldownTimer);
-        resendCooldownTimer = setInterval(() => {
-          if (
-            authViewState.resendAvailableAt === null ||
-            authViewState.resendAvailableAt <= Date.now()
-          ) {
-            if (resendCooldownTimer) clearInterval(resendCooldownTimer);
-            resendCooldownTimer = null;
-          }
-          render();
-        }, 1000);
-      },
-    );
+    void runAuthAction(async () => {
+      const result = await authService.resendVerification(authViewState.email);
+      if (result === "already-verified") {
+        authViewState.verificationRequired = false;
+        authViewState.userEmail = firebaseClient?.currentUser?.email ?? null;
+        authViewState.statusMessage = "This email is already verified. You can sign in now.";
+        return;
+      }
+      authViewState.statusMessage = "A new verification email has been sent.";
+      authViewState.resendAvailableAt = Date.now() + 60_000;
+      if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+      resendCooldownTimer = setInterval(() => {
+        if (
+          authViewState.resendAvailableAt === null ||
+          authViewState.resendAvailableAt <= Date.now()
+        ) {
+          if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+          resendCooldownTimer = null;
+        }
+        render();
+      }, 1000);
+    });
   },
   onAuthSignOut() {
     if (!authService) return;
@@ -1849,21 +1859,36 @@ const actions: AppActions = {
 };
 
 const handleSocketSessionChange = createSocketSessionChangeHandler(socket);
+const retrySocketWithFreshIdToken = createSocketTokenRefreshRetry(
+  socket,
+  () => firebaseClient?.currentUser ?? null,
+);
 if (firebaseClient) {
   onAuthStateChanged(firebaseClient, (user) => {
     handleSocketSessionChange(user ? "SIGNED_IN" : "SIGNED_OUT", user ? { user: { id: user.uid } } : null);
-    authViewState.userEmail = user?.email ?? null;
-    if (user) {
-      authViewState.hasRecoverySession = false;
-    } else {
+    const requiresEmailVerification = Boolean(
+      user &&
+      user.providerData.some(({ providerId }) => providerId === "password") &&
+      !user.emailVerified,
+    );
+    authViewState.verificationRequired = requiresEmailVerification;
+    authViewState.userEmail = requiresEmailVerification ? null : user?.email ?? null;
+    if (user && requiresEmailVerification && user.email) {
+      authViewState.email = user.email;
+    }
+    if (!user) {
       authViewState.hasRecoverySession = false;
       authViewState.password = "";
       authViewState.passwordConfirmation = "";
     }
     render();
   });
-  void authService?.restoreSession().then(({ user }) => {
-    authViewState.userEmail = user?.email ?? null;
+  void authService?.restoreSession().then(({ user, requiresEmailVerification }) => {
+    authViewState.verificationRequired = requiresEmailVerification;
+    authViewState.userEmail = requiresEmailVerification ? null : user?.email ?? null;
+    if (requiresEmailVerification && user?.email) {
+      authViewState.email = user.email;
+    }
     render();
   }).catch((error: unknown) => {
     authViewState.errorMessage = getAuthErrorMessage(error);
@@ -1942,6 +1967,7 @@ socket.on("results-return-reminder", (payload: { sessionId: string }) => {
 let connectionWasLost = false;
 let hasConnectedOnce = false;
 socket.on("connect", () => {
+  retrySocketWithFreshIdToken.reset();
   state.connectionStatus = "connected";
   state.errorMessage = hasConnectedOnce && connectionWasLost
     ? "Connection restored. Create or join a room to continue."
@@ -1982,9 +2008,19 @@ socket.on("connect_error", (error) => {
   connectionWasLost = true;
   state.connectionStatus = "disconnected";
   state.isBusy = false;
-  state.errorMessage = error.message === "Invalid or expired access token."
-    ? "Your Firebase session is invalid or expired. Sign in again before reconnecting."
-    : "Unable to connect to the server. Retrying…";
+  if (error.message === "Invalid or expired access token.") {
+    void retrySocketWithFreshIdToken.refreshAndReconnect().then((retried) => {
+      if (retried) return;
+      state.errorMessage =
+        "Your Firebase ID token was rejected. Refresh your sign-in and try again.";
+      state.errorCode = null;
+      render();
+    });
+  } else {
+    state.errorMessage = error.message === "Authentication verification is temporarily unavailable."
+      ? "The server could not verify your Firebase sign-in right now. Check the server's Firebase Admin configuration and try again."
+      : "Unable to connect to the server. Retrying…";
+  }
   if (state.currentView === "public-rooms") {
     state.isLoadingPublicRooms = false;
     clearPublicRoomSelection();

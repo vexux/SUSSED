@@ -1,6 +1,9 @@
 import { io } from "socket.io-client";
 import { resolveSocketConfiguration } from "./socketConfig";
-import { createSocketAuthPayloadProvider } from "./socketAuth";
+import {
+  createSocketAuthPayloadProvider,
+  getFirebaseSocketAuthPayload,
+} from "./socketAuth";
 import { firebaseClient, firebaseConfigurationError } from "./supabase";
 
 const configuration = resolveSocketConfiguration(
@@ -11,17 +14,9 @@ const configuration = resolveSocketConfiguration(
 export const socket =
   configuration.serverUrl && !firebaseConfigurationError
     ? io(configuration.serverUrl, {
-        auth: createSocketAuthPayloadProvider(async () => {
-          if (!firebaseClient) {
-            return { data: { session: null }, error: null };
-          }
-          const user = firebaseClient.currentUser;
-          if (!user) {
-            return { data: { session: null }, error: null };
-          }
-          const accessToken = await user.getIdToken().catch(() => null);
-          return accessToken ? { accessToken } : { data: { session: null }, error: null };
-        }),
+        auth: createSocketAuthPayloadProvider(() =>
+          getFirebaseSocketAuthPayload(firebaseClient),
+        ),
       })
     : io({ autoConnect: false });
 

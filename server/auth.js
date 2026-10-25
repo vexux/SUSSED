@@ -1,24 +1,45 @@
 const admin = require("firebase-admin");
 
+const FIREBASE_PROJECT_ID = "sussed-167f0";
 const INVALID_TOKEN_MESSAGE = "Invalid or expired access token.";
+const VERIFICATION_UNAVAILABLE_MESSAGE =
+    "Authentication verification is temporarily unavailable.";
+const INVALID_TOKEN_CODES = new Set([
+    "auth/argument-error",
+    "auth/id-token-expired",
+    "auth/id-token-revoked",
+    "auth/invalid-id-token",
+    "auth/user-disabled",
+]);
 
-function getFirebaseCredentialConfig() {
-    const projectId = process.env.FIREBASE_PROJECT_ID?.trim();
+function invalidTokenError() {
+    return Object.assign(new Error(INVALID_TOKEN_MESSAGE), {
+        code: "auth/invalid-id-token",
+    });
+}
+
+function getFirebaseCredentialConfig(projectId) {
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
     const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
+    if (Boolean(clientEmail) !== Boolean(privateKey)) {
+        throw new Error(
+            "FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY must both be configured."
+        );
+    }
+
     if (clientEmail && privateKey) {
         return {
-            projectId,
+            projectId: projectId || FIREBASE_PROJECT_ID,
             credential: admin.credential.cert({
-                projectId,
+                projectId: projectId || FIREBASE_PROJECT_ID,
                 clientEmail,
                 privateKey,
             }),
         };
     }
 
-    if (projectId || process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim()) {
         return {
             projectId,
             credential: admin.credential.applicationDefault(),
@@ -28,18 +49,26 @@ function getFirebaseCredentialConfig() {
     return null;
 }
 
-function initializeFirebaseAdmin(projectId = process.env.FIREBASE_PROJECT_ID) {
+function initializeFirebaseAdmin(projectId) {
+    const existingApp = admin.apps.find(({ name }) => name === "[DEFAULT]");
+    if (existingApp) {
+        if (existingApp.options.projectId !== projectId) {
+            throw new Error(
+                `Firebase Admin is initialized for a different project; expected ${FIREBASE_PROJECT_ID}.`
+            );
+        }
+        return existingApp;
+    }
+
     if (!admin.apps.length) {
-        const credentialConfig = getFirebaseCredentialConfig();
+        const credentialConfig = getFirebaseCredentialConfig(projectId);
         if (credentialConfig) {
             admin.initializeApp({
-                projectId: credentialConfig.projectId || projectId,
+                projectId,
                 credential: credentialConfig.credential,
             });
-        } else if (projectId) {
-            admin.initializeApp({ projectId });
         } else {
-            admin.initializeApp();
+            admin.initializeApp({ projectId });
         }
     }
     return admin.app();
@@ -49,9 +78,15 @@ function createFirebaseTokenVerifier({
     projectId = process.env.FIREBASE_PROJECT_ID,
     verifyIdToken = null,
 } = {}) {
-    const configuredProjectId = projectId?.trim();
+    const configuredProjectId = projectId?.trim() || FIREBASE_PROJECT_ID;
+    if (configuredProjectId !== FIREBASE_PROJECT_ID) {
+        throw new Error(
+            `FIREBASE_PROJECT_ID must be ${FIREBASE_PROJECT_ID}.`
+        );
+    }
     const hasFirebaseConfig = Boolean(
-        configuredProjectId ||
+        verifyIdToken ||
+        process.env.FIREBASE_PROJECT_ID ||
         process.env.FIREBASE_CLIENT_EMAIL ||
         process.env.GOOGLE_APPLICATION_CREDENTIALS ||
         process.env.FIREBASE_PRIVATE_KEY,
@@ -64,11 +99,11 @@ function createFirebaseTokenVerifier({
     if (verifyIdToken) {
         return async (accessToken) => {
             if (typeof accessToken !== "string" || accessToken.length === 0) {
-                throw new Error(INVALID_TOKEN_MESSAGE);
+                throw invalidTokenError();
             }
-            const decoded = await verifyIdToken(accessToken);
+            const decoded = await verifyIdToken(accessToken, configuredProjectId);
             if (typeof decoded?.uid !== "string" || decoded.uid.length === 0) {
-                throw new Error(INVALID_TOKEN_MESSAGE);
+                throw invalidTokenError();
             }
             return decoded.uid;
         };
@@ -78,12 +113,12 @@ function createFirebaseTokenVerifier({
 
     return async (accessToken) => {
         if (typeof accessToken !== "string" || accessToken.length === 0) {
-            throw new Error(INVALID_TOKEN_MESSAGE);
+            throw invalidTokenError();
         }
 
         const decoded = await admin.app().auth().verifyIdToken(accessToken);
         if (typeof decoded.uid !== "string" || decoded.uid.length === 0) {
-            throw new Error(INVALID_TOKEN_MESSAGE);
+            throw invalidTokenError();
         }
 
         return decoded.uid;
@@ -92,7 +127,12 @@ function createFirebaseTokenVerifier({
 
 const createSupabaseTokenVerifier = createFirebaseTokenVerifier;
 
-function createSocketAuthMiddleware(verifyAccessToken) {
+function createSocketAuthMiddleware(
+    verifyAccessToken,
+    reportVerificationFailure = (errorCode) => {
+        console.error("Firebase ID token verification failed:", errorCode);
+    },
+) {
     return (socket, next) => {
         const auth = socket.handshake.auth;
         if (!auth || !Object.hasOwn(auth, "accessToken")) {
@@ -110,12 +150,21 @@ function createSocketAuthMiddleware(verifyAccessToken) {
             .then(() => verifyAccessToken(accessToken))
             .then((accountId) => {
                 if (typeof accountId !== "string" || accountId.length === 0) {
-                    throw new Error(INVALID_TOKEN_MESSAGE);
+                    throw invalidTokenError();
                 }
                 socket.data.accountId = accountId;
                 next();
             })
-            .catch(() => next(new Error(INVALID_TOKEN_MESSAGE)));
+            .catch((error) => {
+                const errorCode =
+                    error && typeof error.code === "string" ? error.code : "unknown";
+                reportVerificationFailure(errorCode);
+                next(new Error(
+                    INVALID_TOKEN_CODES.has(errorCode)
+                        ? INVALID_TOKEN_MESSAGE
+                        : VERIFICATION_UNAVAILABLE_MESSAGE
+                ));
+            });
     };
 }
 
@@ -123,4 +172,7 @@ module.exports = {
     createSocketAuthMiddleware,
     createFirebaseTokenVerifier,
     createSupabaseTokenVerifier,
+    FIREBASE_PROJECT_ID,
+    INVALID_TOKEN_MESSAGE,
+    VERIFICATION_UNAVAILABLE_MESSAGE,
 };

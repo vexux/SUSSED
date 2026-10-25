@@ -179,7 +179,9 @@ for (const [label, accessToken] of [
         const harness = await createHarness(context, {
             verifyAccessToken: async (token) => {
                 verifiedToken = token;
-                throw new Error("Firebase rejected the token.");
+                throw Object.assign(new Error("Firebase rejected the token."), {
+                    code: "auth/invalid-id-token",
+                });
             },
         });
         const client = createClient(
@@ -218,6 +220,32 @@ test("a supplied token is rejected when server-side Firebase verification is not
 
     const error = await connectError;
     assert.equal(error.message, "Invalid or expired access token.");
+    assert.equal(client.connected, false);
+});
+
+test("Firebase verification service failures are not misreported as invalid tokens", async (context) => {
+    const harness = await createHarness(context, {
+        verifyAccessToken: async () => {
+            throw Object.assign(new Error("Firebase network unavailable."), {
+                code: "app/network-error",
+            });
+        },
+    });
+    const client = createClient(
+        `http://127.0.0.1:${harness.io.httpServer.address().port}`,
+        {
+            auth: { accessToken: "valid-format-token" },
+            reconnection: false,
+            timeout: 3000,
+        }
+    );
+    const connectError = new Promise((resolve) => {
+        client.once("connect_error", resolve);
+    });
+    context.after(() => client.close());
+
+    const error = await connectError;
+    assert.equal(error.message, "Authentication verification is temporarily unavailable.");
     assert.equal(client.connected, false);
 });
 

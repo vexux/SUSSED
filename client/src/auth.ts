@@ -1,3 +1,17 @@
+import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  reload,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  updatePassword,
+  type Auth,
+  type User,
+} from "firebase/auth";
+
 export type AuthFormMode =
   | "sign-in"
   | "sign-up"
@@ -5,13 +19,14 @@ export type AuthFormMode =
   | "recovery";
 
 export interface AuthResult {
-  user: { id?: string; email?: string | null } | null;
+  user: { id: string; email: string | null } | null;
   requiresEmailVerification?: boolean;
 }
 
 export interface RestoredAuthSession {
-  user: { id?: string; email?: string | null } | null;
+  user: { id: string; email: string | null } | null;
   accessToken: string | null;
+  requiresEmailVerification: boolean;
 }
 
 export interface AuthService {
@@ -19,11 +34,36 @@ export interface AuthService {
   signIn(email: string, password: string): Promise<AuthResult>;
   signUp(email: string, password: string): Promise<AuthResult>;
   signOut(): Promise<void>;
-  resendVerification(email: string): Promise<void>;
+  resendVerification(email: string): Promise<"sent" | "already-verified">;
   requestPasswordRecovery(email: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
   signInWithGoogle(): Promise<void>;
 }
+
+type FirebaseAuthApi = Pick<
+  typeof import("firebase/auth"),
+  | "createUserWithEmailAndPassword"
+  | "GoogleAuthProvider"
+  | "reload"
+  | "sendEmailVerification"
+  | "sendPasswordResetEmail"
+  | "signInWithEmailAndPassword"
+  | "signInWithPopup"
+  | "signOut"
+  | "updatePassword"
+>;
+
+const defaultFirebaseAuthApi: FirebaseAuthApi = {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  reload,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  updatePassword,
+};
 
 export function getAuthRedirectUrl(
   configuredRedirectUrl: string | undefined,
@@ -33,72 +73,76 @@ export function getAuthRedirectUrl(
   return redirectUrl || currentOrigin;
 }
 
-function getErrorMessage(error: unknown): string {
-  if (typeof error !== "object" || error === null) {
-    return "";
-  }
-  if ("message" in error && typeof error.message === "string") {
-    return error.message.toLowerCase();
-  }
-  if ("code" in error && typeof error.code === "string") {
-    return error.code.toLowerCase();
-  }
-  return "";
+function getErrorCode(error: unknown): string {
+  return typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof error.code === "string"
+    ? error.code.toLowerCase()
+    : "";
 }
 
 export function getAuthErrorMessage(error: unknown): string {
-  const message = getErrorMessage(error);
+  const code = getErrorCode(error);
+  const message =
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+      ? error.message.toLowerCase()
+      : "";
+  const detail = `${code} ${message}`;
 
   if (
-    message.includes("invalid login credentials") ||
-    message.includes("wrong-password") ||
-    message.includes("user-not-found")
+    detail.includes("invalid-login-credentials") ||
+    detail.includes("wrong-password") ||
+    detail.includes("user-not-found")
   ) {
     return "That email and password combination was not recognized.";
   }
-  if (
-    message.includes("email not confirmed") ||
-    message.includes("email_not_confirmed") ||
-    message.includes("email-not-verified")
-  ) {
+  if (detail.includes("email-not-verified") || detail.includes("email not confirmed")) {
     return "Verify your email before signing in. You can request a new verification email below.";
   }
-  if (
-    message.includes("already registered") ||
-    message.includes("already been registered") ||
-    message.includes("email-already-in-use")
-  ) {
+  if (detail.includes("email-already-in-use") || detail.includes("already registered")) {
     return "An account already exists for this email. Try signing in instead.";
   }
-  if (
-    message.includes("password") &&
-    (message.includes("weak") || message.includes("short") || message.includes("too-short"))
-  ) {
+  if (detail.includes("weak-password") || detail.includes("password-too-short")) {
     return "Choose a stronger password with at least 8 characters.";
   }
-  if (message.includes("rate limit") || message.includes("too many requests") || message.includes("too-many-requests")) {
-    return "Too many attempts. Wait a little while, then try again.";
+  if (detail.includes("too-many-requests") || detail.includes("rate limit")) {
+    return "Firebase has temporarily limited email requests. Wait a little while, then try again.";
+  }
+  if (detail.includes("network-request-failed") || detail.includes("network")) {
+    return "Could not reach Firebase. Check your internet connection and try again.";
   }
   if (
-    message.includes("provider is not enabled") ||
-    message.includes("unsupported provider") ||
-    message.includes("provider_disabled") ||
-    message.includes("popup-closed-by-user") ||
-    message.includes("auth/popup-closed-by-user")
+    detail.includes("unauthorized-continue-uri") ||
+    detail.includes("invalid-continue-uri")
   ) {
-    return "Google sign-in is not enabled for this project or was cancelled. Configure the Google provider and try again.";
+    return "Firebase rejected the verification link destination. Add this app's domain to Firebase Authentication's authorized domains.";
+  }
+  if (detail.includes("operation-not-allowed")) {
+    return "Email/password authentication is disabled. Enable it in Firebase Authentication sign-in settings.";
   }
   if (
-    message.includes("expired") ||
-    message.includes("invalid") ||
-    message.includes("otp") ||
-    message.includes("invalid-action-code") ||
-    message.includes("expired-action-code")
+    detail.includes("expired-action-code") ||
+    detail.includes("invalid-action-code") ||
+    detail.includes("expired") ||
+    detail.includes("otp")
   ) {
     return "This authentication link is invalid or has expired. Request a new link and try again.";
   }
-  if (message.includes("fetch") || message.includes("network")) {
-    return "Could not reach the authentication service. Check your connection and try again.";
+  if (detail.includes("requires-recent-login")) {
+    return "For security, sign in again before changing your password.";
+  }
+  if (detail.includes("popup-blocked")) {
+    return "The Google sign-in popup was blocked. Allow popups for this site and try again.";
+  }
+  if (detail.includes("popup-closed-by-user")) {
+    return "Google sign-in was cancelled.";
+  }
+  if (detail.includes("provider-already-linked") || detail.includes("account-exists-with-different-credential")) {
+    return "This email is already associated with another sign-in method. Sign in using that method.";
   }
   return "Authentication could not be completed. Check your details and Firebase configuration, then try again.";
 }
@@ -111,187 +155,147 @@ function validateCredentials(email: string, password?: string): void {
 }
 
 function validatePassword(password: string): void {
-  if (password.length < 8) throw new Error("Choose a password with at least 8 characters.");
+  if (password.length < 8) {
+    throw new Error("Choose a password with at least 8 characters.");
+  }
 }
 
-function resolveFirebaseUserValue(user: unknown): { id?: string; email?: string | null } | null {
-  if (!user || typeof user !== "object") return null;
-  const record = user as { uid?: string; id?: string; email?: string | null };
-  return {
-    id: record.uid ?? record.id,
-    email: record.email ?? null,
-  };
+function isEmailPasswordUser(user: User): boolean {
+  return user.providerData.some(({ providerId }) => providerId === "password");
 }
 
-async function getCurrentFirebaseSession(client: any): Promise<RestoredAuthSession> {
-  const auth = client?.auth ?? client;
-  if (auth && typeof auth.currentUser !== "undefined" && auth.currentUser !== null) {
-    const user = auth.currentUser;
-    const accessToken = typeof user.getIdToken === "function"
-      ? await user.getIdToken().catch(() => null)
-      : null;
-    return { user: resolveFirebaseUserValue(user), accessToken };
-  }
-
-  if (auth && typeof auth.getSession === "function") {
-    const { data, error } = await auth.getSession();
-    if (error) throw new Error(getAuthErrorMessage(error));
-    return {
-      user: resolveFirebaseUserValue(data?.session?.user ?? data?.user ?? null),
-      accessToken: data?.session?.access_token ?? null,
-    };
-  }
-
-  return { user: null, accessToken: null };
+function toAuthUser(user: User | null): AuthResult["user"] {
+  return user ? { id: user.uid, email: user.email } : null;
 }
 
 export function createAuthService(
-  client: any,
+  client: Auth,
   redirectUrl: string,
+  api: FirebaseAuthApi = defaultFirebaseAuthApi,
 ): AuthService {
-  const auth = client?.auth ?? client;
-  const supportsFirebase = Boolean(auth && typeof auth === "object" && "currentUser" in auth);
-
   return {
     async restoreSession() {
-      if (supportsFirebase) {
-        return getCurrentFirebaseSession(client);
+      await client.authStateReady();
+      const user = client.currentUser;
+      if (user) {
+        await api.reload(user);
       }
-      const { data, error } = await client.auth.getSession();
-      if (error) throw new Error(getAuthErrorMessage(error));
       return {
-        user: data.session?.user ?? null,
-        accessToken: data.session?.access_token ?? null,
+        user: toAuthUser(user),
+        accessToken: user ? await user.getIdToken() : null,
+        requiresEmailVerification:
+          Boolean(user && isEmailPasswordUser(user) && !user.emailVerified),
       };
     },
 
     async signIn(email, password) {
       validateCredentials(email, password);
-      if (supportsFirebase) {
-        const { signInWithEmailAndPassword } = await import("firebase/auth");
-        const result = await signInWithEmailAndPassword(auth, email.trim(), password).catch((error: unknown) => {
-          throw new Error(getAuthErrorMessage(error));
-        });
+      try {
+        const { user } = await api.signInWithEmailAndPassword(
+          client,
+          email.trim(),
+          password,
+        );
+        await api.reload(user);
         return {
-          user: resolveFirebaseUserValue(result?.user ?? null),
-          requiresEmailVerification: false,
+          user: toAuthUser(user),
+          requiresEmailVerification:
+            isEmailPasswordUser(user) && !user.emailVerified,
         };
+      } catch (error) {
+        throw new Error(getAuthErrorMessage(error));
       }
-      const { data, error } = await client.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-      if (error) throw new Error(getAuthErrorMessage(error));
-      return { user: data.user, requiresEmailVerification: false };
     },
 
     async signUp(email, password) {
       validateCredentials(email, password);
-      if (supportsFirebase) {
-        const { createUserWithEmailAndPassword } = await import("firebase/auth");
-        const result = await createUserWithEmailAndPassword(auth, email.trim(), password).catch((error: unknown) => {
-          throw new Error(getAuthErrorMessage(error));
-        });
-        const user = result?.user ?? null;
-        const firebaseUser = user as { sendEmailVerification?: (settings?: { url?: string }) => Promise<void> } | null;
-        if (firebaseUser && typeof firebaseUser.sendEmailVerification === "function") {
-          await firebaseUser.sendEmailVerification({ url: redirectUrl }).catch(() => undefined);
-        }
+      try {
+        const { user } = await api.createUserWithEmailAndPassword(
+          client,
+          email.trim(),
+          password,
+        );
+        await api.sendEmailVerification(user, { url: redirectUrl });
         return {
-          user: resolveFirebaseUserValue(user),
+          user: toAuthUser(user),
           requiresEmailVerification: true,
         };
+      } catch (error) {
+        throw new Error(getAuthErrorMessage(error));
       }
-      const { data, error } = await client.auth.signUp({
-        email: email.trim(),
-        password,
-        options: { emailRedirectTo: redirectUrl },
-      });
-      if (error) throw new Error(getAuthErrorMessage(error));
-      return {
-        user: data.user,
-        requiresEmailVerification: data.session === null,
-      };
     },
 
     async signOut() {
-      if (supportsFirebase) {
-        await auth.signOut().catch((error: unknown) => {
-          throw new Error(getAuthErrorMessage(error));
-        });
-        return;
+      try {
+        await api.signOut(client);
+      } catch (error) {
+        throw new Error(getAuthErrorMessage(error));
       }
-      const { error } = await client.auth.signOut();
-      if (error) throw new Error(getAuthErrorMessage(error));
     },
 
     async resendVerification(email) {
       validateCredentials(email);
-      if (supportsFirebase) {
-        const user = auth.currentUser as { sendEmailVerification?: (settings?: { url?: string }) => Promise<void> } | null;
-        if (user && typeof user.sendEmailVerification === "function") {
-          await user.sendEmailVerification({ url: redirectUrl }).catch((error: unknown) => {
-            throw new Error(getAuthErrorMessage(error));
-          });
-          return;
-        }
+      const user = client.currentUser;
+      if (!user) {
+        throw new Error("No signed-in account is available. Sign in with email and password before resending verification.");
       }
-      const { error } = await client.auth.resend({
-        type: "signup",
-        email: email.trim(),
-        options: { emailRedirectTo: redirectUrl },
-      });
-      if (error) throw new Error(getAuthErrorMessage(error));
+      if (!isEmailPasswordUser(user)) {
+        throw new Error("This account does not use email/password sign-in, so it does not need a verification email.");
+      }
+      if (
+        !user.email ||
+        user.email.trim().toLowerCase() !== email.trim().toLowerCase()
+      ) {
+        throw new Error("The entered email does not match the signed-in account. Use that account's email to resend verification.");
+      }
+
+      try {
+        await api.reload(user);
+        if (user.emailVerified) {
+          return "already-verified";
+        }
+        await api.sendEmailVerification(user, { url: redirectUrl });
+        return "sent";
+      } catch (error) {
+        throw new Error(getAuthErrorMessage(error));
+      }
     },
 
     async requestPasswordRecovery(email) {
       validateCredentials(email);
-      if (supportsFirebase) {
-        const { sendPasswordResetEmail } = await import("firebase/auth");
-        await sendPasswordResetEmail(auth, email.trim(), { url: redirectUrl }).catch((error: unknown) => {
-          throw new Error(getAuthErrorMessage(error));
+      try {
+        await api.sendPasswordResetEmail(client, email.trim(), {
+          url: redirectUrl,
         });
-        return;
+      } catch (error) {
+        throw new Error(getAuthErrorMessage(error));
       }
-      const { error } = await client.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: redirectUrl,
-      });
-      if (error) throw new Error(getAuthErrorMessage(error));
     },
 
     async updatePassword(password) {
       validatePassword(password);
-      if (supportsFirebase && auth.currentUser && typeof auth.currentUser.updatePassword === "function") {
-        await auth.currentUser.updatePassword(password).catch((error: unknown) => {
-          throw new Error(getAuthErrorMessage(error));
-        });
-        return;
+      const user = client.currentUser;
+      if (!user) {
+        throw new Error("Sign in again before changing your password.");
       }
-      const { error } = await client.auth.updateUser({ password });
-      if (error) throw new Error(getAuthErrorMessage(error));
+      try {
+        await api.updatePassword(user, password);
+      } catch (error) {
+        throw new Error(getAuthErrorMessage(error));
+      }
     },
 
     async signInWithGoogle() {
-      if (supportsFirebase) {
-        const { GoogleAuthProvider, signInWithPopup } = await import("firebase/auth");
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider).catch((error: unknown) => {
-          throw new Error(getAuthErrorMessage(error));
-        });
-        if (!result?.user) {
-          throw new Error("Google sign-in could not start. Confirm the Google provider is configured and enabled.");
+      try {
+        const provider = new api.GoogleAuthProvider();
+        await api.signInWithPopup(client, provider);
+      } catch (error) {
+        if (getErrorCode(error) === "auth/operation-not-allowed") {
+          throw new Error(
+            "Google sign-in is not enabled. Enable the Google provider in Firebase Authentication.",
+          );
         }
-        return;
-      }
-      const { data, error } = await client.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: redirectUrl },
-      });
-      if (error) throw new Error(getAuthErrorMessage(error));
-      if (!data.url) {
-        throw new Error(
-          "Google sign-in could not start. Confirm the Google provider is configured in Firebase.",
-        );
+        throw new Error(getAuthErrorMessage(error));
       }
     },
   };

@@ -1,3 +1,5 @@
+import { reload, type Auth, type User } from "firebase/auth";
+
 interface SessionResult {
   data?: { session?: { access_token?: string | null } | null; user?: { id?: string } | null };
   accessToken?: string | null;
@@ -45,6 +47,75 @@ export function createSocketAuthPayloadProvider(
         reportError("Unable to load the current auth session for Socket.IO authentication.");
         callback({ accessToken: null });
       });
+  };
+}
+
+export async function getFirebaseSocketAuthPayload(
+  auth: Auth | null,
+  reloadUser: typeof reload = reload,
+): Promise<{ accessToken?: string }> {
+  if (!auth) {
+    return {};
+  }
+
+  await auth.authStateReady();
+  const user = auth.currentUser;
+  if (!user) {
+    return {};
+  }
+
+  const isEmailPasswordUser = user.providerData.some(
+    ({ providerId }) => providerId === "password",
+  );
+  if (isEmailPasswordUser && !user.emailVerified) {
+    await reloadUser(user);
+    if (!user.emailVerified) {
+      return {};
+    }
+  }
+
+  const accessToken = await user.getIdToken();
+  if (!accessToken) {
+    throw new Error("Firebase returned an empty ID token.");
+  }
+  return { accessToken };
+}
+
+export interface SocketTokenRefreshLifecycle {
+  disconnect(): unknown;
+  connect(): unknown;
+}
+
+export function createSocketTokenRefreshRetry(
+  socket: SocketTokenRefreshLifecycle,
+  getCurrentUser: () => Pick<User, "getIdToken"> | null,
+): { refreshAndReconnect(): Promise<boolean>; reset(): void } {
+  let attemptedRefresh = false;
+
+  return {
+    async refreshAndReconnect() {
+      if (attemptedRefresh) {
+        return false;
+      }
+      attemptedRefresh = true;
+      const user = getCurrentUser();
+      if (!user) {
+        return false;
+      }
+
+      try {
+        await user.getIdToken(true);
+      } catch {
+        return false;
+      }
+      socket.disconnect();
+      socket.connect();
+      return true;
+    },
+
+    reset() {
+      attemptedRefresh = false;
+    },
   };
 }
 
