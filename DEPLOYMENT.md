@@ -23,27 +23,28 @@ are allowed by the development server configuration.
 Local files have been initialized from the examples:
 
 - `client/.env.local` is loaded by Vite. Keep `VITE_SERVER_URL=http://localhost:3000`
-  for the local backend. To enable Supabase on the client, fill in
-  `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Optionally set
-  `VITE_AUTH_REDIRECT_URL=http://localhost:5173/`; if unset, the current browser
-  origin is used.
+  for the local backend. To enable Firebase on the client, fill in the Firebase
+  web config values: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`,
+  `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`, and any optional config
+  values you use (`VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`).
+  Optionally set `VITE_AUTH_REDIRECT_URL=http://localhost:5173/`; if unset, the
+  current browser origin is used.
 - `server/.env` is loaded by the server's `start` and `dev` scripts. To enable
-  token verification, fill in `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`.
-  `PORT=3000`, `NODE_ENV=development`, and the blank `CLIENT_ORIGIN` are suitable
-  for local development.
+  token verification, fill in `FIREBASE_PROJECT_ID`. For local Admin SDK auth,
+  either rely on Application Default Credentials (`GOOGLE_APPLICATION_CREDENTIALS`
+  or a local gcloud login) or provide `FIREBASE_CLIENT_EMAIL` and
+  `FIREBASE_PRIVATE_KEY`. `PORT=3000`, `NODE_ENV=development`, and the blank
+  `CLIENT_ORIGIN` are suitable for local development.
 
-To find the values in the Supabase dashboard, open the project and copy its
-**Project URL** from **Project Settings > API**. Copy its **Publishable key**
-from **Project Settings > API Keys** (a legacy `anon` public key is also
-supported). Paste the same Project URL and public key into the client and server
-variables listed above. Variable names are intentionally different on the client
-(`VITE_` prefix) and server, but both must point to the same project.
+To find the values in the Firebase console, open the project and copy the web
+config values from **Project settings > General > Your apps**. Use the same
+project ID on the server. Do not paste any private key or service-account JSON
+into a frontend variable; keep private credentials server-side only.
 
 These local files are ignored by Git. The `.env.example` files contain blank
-values and remain tracked. The publishable/anon key is designed for public
-clients; never use a Supabase secret key, service-role key, or database password
-in the client or any `VITE_` variable. No privileged key is needed by this
-server verifier.
+values and remain tracked. The Firebase web config is designed for public
+clients; never place a Firebase service-account private key, database password,
+or other privileged secret in the client or any `VITE_` variable.
 
 After changing either file, restart the affected process so it reloads its
 environment. Stop the combined development command with Ctrl+C, then run
@@ -61,41 +62,30 @@ npm --prefix client run typecheck
 npm run build
 ```
 
-## Supabase Auth setup
+## Firebase Auth setup
 
-Configure email/password in **Authentication > Sign In / Providers > Email**.
-Keep email confirmation enabled if accounts should verify their addresses.
-Configure the email sender under **Authentication > SMTP Settings** if using a
-custom sender such as Resend: verify a sender domain in Resend, create an SMTP
-credential there, and enter the SMTP host (`smtp.resend.com`), supported TLS
-port, username (`resend`), password/API key, and verified sender address in
-Supabase. SMTP credentials belong only in Supabase's dashboard, never in this
-repository, a client environment variable, or chat.
-Review the confirmation, recovery, and magic-link templates under
-**Authentication > Email Templates** and ensure their links return to the
-configured app origin.
+Configure email/password in the Firebase console under **Authentication > Sign-in method > Email/Password**.
+Keep email verification enabled if accounts should verify their addresses.
+Use Firebase's built-in email verification and password-reset flow. Do not add a
+custom SMTP provider or Resend credentials for the standard email auth flow.
 
-Keep the Supabase **Site URL** set to the canonical frontend URL you use as the
-default (or localhost for a local-only project), and add
-`http://localhost:5173/` to the allowed **Redirect URLs** under
-**Authentication > URL Configuration**. If Vite chooses another port, use that
-origin instead and update `VITE_AUTH_REDIRECT_URL`. A configured
-`VITE_AUTH_REDIRECT_URL` is passed to email verification, password recovery, and
-Google OAuth; if blank, the page's current origin is used. Add each local,
-Preview, and production callback origin to Supabase's allowlist.
+Add the local app origin (for example `http://localhost:5173/`) and any Preview
+or production callback origins to the authorized redirect URLs used by your
+configured auth providers. A configured `VITE_AUTH_REDIRECT_URL` is passed to
+email verification and password recovery flows; if blank, the page's current
+origin is used.
 
 To enable Google sign-in:
 
 1. In Google Cloud Console, configure the OAuth consent screen and create a
    **Web application** OAuth client.
-2. Add the Supabase Auth callback URL shown in the Supabase Google provider
-   settings (normally `https://<project-ref>.supabase.co/auth/v1/callback`) as
-   an authorized redirect URI in Google Cloud.
-3. In Supabase, open **Authentication > Sign In / Providers > Google**, enable
-   the provider, and enter the Google OAuth client ID and client secret there.
-   Do not add either value to Vite variables or frontend code.
-4. Add the app's redirect URL (for local development,
-   `http://localhost:5173/`) to Supabase **Authentication > URL Configuration**.
+2. Add the primary app redirect/callback URL used by your Firebase Auth sign-in
+   flow to the Google OAuth authorized redirect URIs.
+3. In Firebase, open **Authentication > Sign-in method > Google** and enable the
+   provider, then add the Google OAuth client ID and secret to the Firebase
+   project configuration.
+4. Keep the app's redirect URL (for local development, `http://localhost:5173/`)
+   in the allowed origins and callback URLs for the configured Firebase app.
 
 No extra Google OAuth environment variable is required by this client. If the
 provider is not enabled, the UI reports a configuration error rather than
@@ -103,8 +93,8 @@ showing a false successful sign-in.
 
 ## Local account-flow smoke test
 
-After filling both the client and server Supabase URL/publishable-key pairs,
-start the server and client from separate repository-root terminals:
+After filling the client and server Firebase configuration values, start the
+server and client from separate repository-root terminals:
 
 ```sh
 npm run dev:server
@@ -119,7 +109,7 @@ Restart both processes after changing environment values. In the browser:
    button has a 60-second cooldown.
 2. Sign in and verify the account email is shown on the home screen. The
    Socket.IO handshake fetches the current session token; the server verifies
-   it with Supabase Auth before setting `socket.data.accountId`. Never inspect,
+   it with Firebase Auth before setting `socket.data.accountId`. Never inspect,
    paste, or log the token. For server-side confirmation, inspect only the
    socket's `data.accountId` using a local debugger.
 3. Create/join a room as a guest and verify room/game behavior remains
@@ -130,8 +120,8 @@ Restart both processes after changing environment values. In the browser:
    then sign in with it. Try an expired link to confirm the app offers a new
    recovery email. Try Google after completing the dashboard setup.
 
-The automated client auth tests mock Supabase methods; server token tests also
-use mocked responses. They do not verify real email delivery, Google OAuth
+The automated client auth tests mock Firebase Auth methods; server token tests
+also use mocked responses. They do not verify real email delivery, Google OAuth
 credentials, provider redirect allowlists, or a live test-user token. Do not
 claim those integrations work until this smoke test succeeds against the
 configured project.
@@ -156,12 +146,12 @@ Create a Vercel project for this repository with:
   `https://your-project.vercel.app`). Set an origin only, without a path or
   query. If omitted, invitations use the current browser origin, which works
   for production and Preview deployments without embedding a development URL.
-- **Optional environment variables:** `VITE_SUPABASE_URL` and
-  `VITE_SUPABASE_PUBLISHABLE_KEY`, set to the Supabase project URL and its
-  public publishable key (or legacy anon key) to enable authenticated socket
-  handshakes. Leave both unset for guest-only operation.
+- **Optional environment variables:** `VITE_FIREBASE_API_KEY`,
+  `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, and
+  `VITE_FIREBASE_APP_ID`, set to the Firebase web configuration for
+  authenticated socket handshakes. Leave them unset for guest-only operation.
 - **Optional environment variable:** `VITE_AUTH_REDIRECT_URL`, set to an
-  absolute app callback URL that is allowlisted in Supabase (for example,
+  absolute app callback URL that is allowlisted for the Firebase app (for example,
   `https://your-project.vercel.app/`). If unset, the current page origin is
   used.
 
@@ -205,8 +195,9 @@ Configure these environment variables in Render:
 
 - `NODE_ENV=production`
 - `CLIENT_ORIGIN=https://your-project.vercel.app`
-- `SUPABASE_URL=https://your-project.supabase.co`
-- `SUPABASE_PUBLISHABLE_KEY=<the same public publishable or legacy anon key>`
+- `FIREBASE_PROJECT_ID=your-firebase-project-id`
+- `GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json` (optional when
+  running with default application credentials on supported hosts)
 
 `CLIENT_ORIGIN` must be the exact frontend origin, including the scheme and
 without a path or trailing slash. Multiple explicit origins can be
@@ -214,14 +205,12 @@ comma-separated, for example a production Vercel domain and a custom domain.
 Do not use `*`. Render supplies `PORT` to the service; the server uses that
 value and defaults to port `3000` for local development.
 
-The two Supabase variables are optional together for guest-only service. Set
-both to enable authenticated sockets; setting only one prevents server startup.
-The server validates every supplied access token by calling Supabase Auth's
-`getUser(token)` endpoint and only then records the verified UUID in
-`socket.data.accountId`. It does not trust a client-provided account ID. A token
-that is invalid, expired, or unverifiable is rejected, not treated as a guest.
-Use only the project's public publishable/anon key here; a service-role/secret
-key and database password are neither required nor appropriate.
+The Firebase project configuration is optional for guest-only service. When set,
+server-side Socket.IO auth verifies each supplied ID token with Firebase Admin,
+then records the verified UID in `socket.data.accountId`. It does not trust a
+client-provided account ID. A token that is invalid, expired, or unverifiable is
+rejected, not treated as a guest. Keep any service-account credentials on the
+server only and do not expose them in frontend config or Vite variables.
 
 Verify the service by opening `https://your-service.onrender.com/healthz`. A
 healthy instance responds with HTTP 200 and `{"status":"ok"}`.
@@ -264,10 +253,10 @@ should be allowed). Exercise these checks against the provider deployment;
 local tests cannot verify provider environment variables, DNS, TLS, or CORS
 configuration.
 
-Phase 2 adds email/password, recovery, and Google sign-in UI on top of Phase 1's
-server token verification. Supabase project settings, SMTP/email delivery, and
-Google Cloud credentials remain operator-configured as described above.
-Automated tests mock Supabase interactions; real email delivery, Google OAuth,
+Phase 2 adds email/password, recovery, and Google sign-in UI on top of the
+server token verification. Firebase project settings and Google Cloud credentials
+remain operator-configured as described above.
+Automated tests mock Firebase interactions; real email delivery, Google OAuth,
 and live project token verification require the local account-flow smoke test.
 Profile storage, account linking, and persistent reconnect are not part of this
 phase.

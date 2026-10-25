@@ -1,24 +1,50 @@
-import type { Session } from "@supabase/supabase-js";
-
 interface SessionResult {
-  data: { session: Session | null };
-  error: unknown;
+  data?: { session?: { access_token?: string | null } | null; user?: { id?: string } | null };
+  accessToken?: string | null;
+  error?: unknown;
+}
+
+function extractAccessToken(result: unknown): string | null {
+  if (typeof result === "string") {
+    return result || null;
+  }
+  if (!result || typeof result !== "object") {
+    return null;
+  }
+  const record = result as SessionResult;
+  if (typeof record.accessToken === "string") {
+    return record.accessToken || null;
+  }
+  if (record.data && typeof record.data === "object") {
+    const session = record.data.session;
+    if (session && typeof session.access_token === "string") {
+      return session.access_token || null;
+    }
+    if (record.data.user && typeof (record.data.user as { id?: string }).id === "string") {
+      return null;
+    }
+  }
+  return null;
 }
 
 export function createSocketAuthPayloadProvider(
-  getSession: () => Promise<SessionResult>,
+  getSession: () => Promise<unknown>,
   reportError: (message: string) => void = console.error,
 ): (callback: (payload: { accessToken?: string | null }) => void) => void {
   return (callback) => {
-    void getSession().then(({ data, error }) => {
-      if (error) {
-        throw error;
-      }
-      callback(data.session ? { accessToken: data.session.access_token } : {});
-    }).catch(() => {
-      reportError("Unable to load Supabase session for Socket.IO authentication.");
-      callback({ accessToken: null });
-    });
+    void Promise.resolve()
+      .then(() => getSession())
+      .then((result) => {
+        if (result && typeof result === "object" && "error" in result && result.error) {
+          throw result.error;
+        }
+        const token = extractAccessToken(result);
+        callback(token ? { accessToken: token } : {});
+      })
+      .catch(() => {
+        reportError("Unable to load the current auth session for Socket.IO authentication.");
+        callback({ accessToken: null });
+      });
   };
 }
 

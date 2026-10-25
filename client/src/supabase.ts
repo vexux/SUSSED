@@ -1,20 +1,35 @@
-import { createClient } from "@supabase/supabase-js";
+import { initializeApp, getApps } from "firebase/app";
+import { getAuth } from "firebase/auth";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
-const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY?.trim(),
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN?.trim(),
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim(),
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET?.trim(),
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID?.trim(),
+  appId: import.meta.env.VITE_FIREBASE_APP_ID?.trim(),
+};
 
-export const supabaseConfigurationError =
-  Boolean(supabaseUrl) !== Boolean(publishableKey)
-    ? "Set both VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to enable Supabase authentication."
+const hasFirebaseConfig =
+  Boolean(firebaseConfig.apiKey) &&
+  Boolean(firebaseConfig.authDomain) &&
+  Boolean(firebaseConfig.projectId) &&
+  Boolean(firebaseConfig.appId);
+
+export const firebaseConfigurationError =
+  hasFirebaseConfig ||
+  (!firebaseConfig.apiKey && !firebaseConfig.authDomain && !firebaseConfig.projectId && !firebaseConfig.appId)
+    ? null
+    : "Set the Firebase client variables (VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID, and VITE_FIREBASE_APP_ID) to enable account authentication.";
+
+export const firebaseApp =
+  hasFirebaseConfig
+    ? getApps().length > 0
+      ? getApps()[0]
+      : initializeApp(firebaseConfig)
     : null;
 
-export const supabaseClient =
-  supabaseUrl && publishableKey
-    ? createClient(supabaseUrl, publishableKey, {
-        auth: {
-          autoRefreshToken: true,
-          detectSessionInUrl: true,
-          persistSession: true,
-        },
-      })
-    : null;
+export const firebaseClient = firebaseApp ? getAuth(firebaseApp) : null;
+
+export const supabaseClient = firebaseClient;
+export const supabaseConfigurationError = firebaseConfigurationError;

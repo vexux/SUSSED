@@ -145,8 +145,8 @@ test("guest sockets retain socket.id as their room player identity", async (cont
     assert.equal(roomManager.getRoom(created.roomCode).hostId, guest.id);
 });
 
-test("valid access tokens attach the verified account UUID without changing player IDs", async (context) => {
-    const accountId = "55e27c31-6d85-4a12-a0ac-fd8062206372";
+test("valid access tokens attach the verified account UID without changing player IDs", async (context) => {
+    const accountId = "firebase-user-123";
     let verifiedToken;
     const harness = await createHarness(context, {
         verifyAccessToken: async (token) => {
@@ -179,7 +179,7 @@ for (const [label, accessToken] of [
         const harness = await createHarness(context, {
             verifyAccessToken: async (token) => {
                 verifiedToken = token;
-                throw new Error("Supabase rejected the token.");
+                throw new Error("Firebase rejected the token.");
             },
         });
         const client = createClient(
@@ -201,7 +201,7 @@ for (const [label, accessToken] of [
     });
 }
 
-test("a supplied token is rejected when server-side Supabase verification is not configured", async (context) => {
+test("a supplied token is rejected when server-side Firebase verification is not configured", async (context) => {
     const harness = await createHarness(context);
     const client = createClient(
         `http://127.0.0.1:${harness.io.httpServer.address().port}`,

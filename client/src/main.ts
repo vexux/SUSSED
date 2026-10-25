@@ -1,4 +1,5 @@
 import "./style.css";
+import { onAuthStateChanged } from "firebase/auth";
 import {
   createInitialAppState,
   persistThemePreference,
@@ -17,7 +18,7 @@ import {
 import {
   createSocketSessionChangeHandler,
 } from "./socketAuth";
-import { supabaseClient, supabaseConfigurationError } from "./supabase";
+import { firebaseClient, firebaseConfigurationError } from "./supabase";
 import { renderApp } from "./views";
 import type { AppActions, AuthViewState } from "./views";
 import {
@@ -88,9 +89,9 @@ if (!app) {
 const appRoot: HTMLElement = app;
 
 const state = createInitialAppState();
-const authService = supabaseClient
+const authService = firebaseClient
   ? createAuthService(
-      supabaseClient,
+      firebaseClient,
       getAuthRedirectUrl(import.meta.env.VITE_AUTH_REDIRECT_URL, window.location.origin),
     )
   : null;
@@ -116,14 +117,14 @@ const authViewState: AuthViewState = {
   verificationRequired: false,
   resendAvailableAt: null as number | null,
   hasRecoverySession: false,
-  configurationError: supabaseConfigurationError ?? (!supabaseClient
-    ? "Account authentication is not configured. Set both Supabase client variables to enable accounts. Guest play remains available."
+  configurationError: firebaseConfigurationError ?? (!firebaseClient
+    ? "Account authentication is not configured. Set the Firebase client variables to enable accounts. Guest play remains available."
     : null),
   recoveryError: recoveryLinkError,
 };
 if (!recoveryLinkError && authCallbackParameters.has("error")) {
   authViewState.errorMessage =
-    "Google sign-in could not finish. Confirm Google is enabled in Supabase and its redirect URLs are configured.";
+    "Google sign-in could not finish. Confirm Google is enabled in Firebase and its redirect URLs are configured.";
 }
 let resendCooldownTimer: ReturnType<typeof setInterval> | null = null;
 const invitationCode = parseInvitationCode(window.location.search);
@@ -1848,17 +1849,13 @@ const actions: AppActions = {
 };
 
 const handleSocketSessionChange = createSocketSessionChangeHandler(socket);
-if (supabaseClient) {
-  supabaseClient.auth.onAuthStateChange((event, session) => {
-    handleSocketSessionChange(event, session);
-    authViewState.userEmail = session?.user.email ?? null;
-    if (event === "PASSWORD_RECOVERY") {
-      authViewState.mode = "recovery";
-      authViewState.hasRecoverySession = true;
-      authViewState.recoveryError = null;
-      authViewState.errorMessage = null;
-      authViewState.statusMessage = null;
-    } else if (event === "SIGNED_OUT") {
+if (firebaseClient) {
+  onAuthStateChanged(firebaseClient, (user) => {
+    handleSocketSessionChange(user ? "SIGNED_IN" : "SIGNED_OUT", user ? { user: { id: user.uid } } : null);
+    authViewState.userEmail = user?.email ?? null;
+    if (user) {
+      authViewState.hasRecoverySession = false;
+    } else {
       authViewState.hasRecoverySession = false;
       authViewState.password = "";
       authViewState.passwordConfirmation = "";
@@ -1986,7 +1983,7 @@ socket.on("connect_error", (error) => {
   state.connectionStatus = "disconnected";
   state.isBusy = false;
   state.errorMessage = error.message === "Invalid or expired access token."
-    ? "Your Supabase session is invalid or expired. Sign in again before reconnecting."
+    ? "Your Firebase session is invalid or expired. Sign in again before reconnecting."
     : "Unable to connect to the server. Retrying…";
   if (state.currentView === "public-rooms") {
     state.isLoadingPublicRooms = false;

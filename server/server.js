@@ -1,6 +1,6 @@
 const { createServer } = require("node:http");
 const { Server } = require("socket.io");
-const { createSocketAuthMiddleware, createSupabaseTokenVerifier } = require("./auth");
+const { createSocketAuthMiddleware, createFirebaseTokenVerifier } = require("./auth");
 const { isOriginAllowed, port: defaultPort } = require("./config");
 const { handleDisconnect, registerRoomHandlers } = require("./roomHandlers");
 
@@ -32,7 +32,7 @@ function startServer(port = defaultPort, { verifyAccessToken } = {}) {
         }
     });
 
-    const tokenVerifier = verifyAccessToken ?? createSupabaseTokenVerifier();
+    const tokenVerifier = verifyAccessToken ?? createFirebaseTokenVerifier();
     io.use(createSocketAuthMiddleware(tokenVerifier));
 
     io.on("connection", (socket) => {

@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import { resolveSocketConfiguration } from "./socketConfig";
 import { createSocketAuthPayloadProvider } from "./socketAuth";
-import { supabaseClient, supabaseConfigurationError } from "./supabase";
+import { firebaseClient, firebaseConfigurationError } from "./supabase";
 
 const configuration = resolveSocketConfiguration(
   import.meta.env.VITE_SERVER_URL,
@@ -9,15 +9,24 @@ const configuration = resolveSocketConfiguration(
 );
 
 export const socket =
-  configuration.serverUrl && !supabaseConfigurationError
+  configuration.serverUrl && !firebaseConfigurationError
     ? io(configuration.serverUrl, {
-        auth: createSocketAuthPayloadProvider(
-          () => supabaseClient
-            ? supabaseClient.auth.getSession()
-            : Promise.resolve({ data: { session: null }, error: null }),
-        ),
+        auth: createSocketAuthPayloadProvider(async () => {
+          if (!firebaseClient) {
+            return { data: { session: null }, error: null };
+          }
+          const user = firebaseClient.currentUser;
+          if (!user) {
+            return { data: { session: null }, error: null };
+          }
+          const accessToken = await user.getIdToken().catch(() => null);
+          return accessToken ? { accessToken } : { data: { session: null }, error: null };
+        }),
       })
     : io({ autoConnect: false });
 
 export const socketConfigurationError =
-  supabaseConfigurationError ?? configuration.errorMessage;
+  firebaseConfigurationError ?? configuration.errorMessage;
+
+export const supabaseClient = firebaseClient;
+export const supabaseConfigurationError = firebaseConfigurationError;
