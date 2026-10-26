@@ -129,7 +129,7 @@
   --color-text-muted: #5f5368;
   --color-text-subtle: #73677a;
   --color-border: #8f8198;
-  --color-border-subtle: #ddd4e2;
+  --color-border-subtle: #cfc3d7;
   --color-control-border: #8f8198;
   --color-accent: #7c3aed;
   --color-accent-light: #6d28d9;
@@ -260,6 +260,16 @@ button:disabled {
   background: var(--color-surface-alt);
 }
 
+.theme-toggle:hover:not(:disabled) {
+  border-color: var(--color-accent-border-strong);
+  background: var(--color-accent-surface-strong);
+  box-shadow: 0 0.25rem 0.85rem rgb(var(--color-accent-rgb) / 16%);
+}
+
+.theme-toggle:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
 .theme-toggle-icons {
   position: relative;
   display: block;
@@ -272,6 +282,8 @@ button:disabled {
   inset: 0;
   width: 24px;
   height: 24px;
+  pointer-events: none;
+  stroke-width: 1.9;
   transition: opacity 180ms ease, transform 180ms ease;
 }
 
@@ -279,16 +291,19 @@ button:disabled {
 .theme-toggle[aria-pressed="true"] .theme-toggle-sun {
   z-index: 1;
   opacity: 1;
+  color: var(--color-accent-light);
   transform: translate(0, 0) scale(1);
 }
 
 .theme-toggle[aria-pressed="false"] .theme-toggle-sun {
   opacity: 0.62;
+  color: var(--color-text-muted);
   transform: translate(6px, -5px) scale(0.66);
 }
 
 .theme-toggle[aria-pressed="true"] .theme-toggle-moon {
   opacity: 0.62;
+  color: var(--color-text-muted);
   transform: translate(-6px, 5px) scale(0.66);
 }
 
@@ -321,6 +336,7 @@ button:disabled {
 .room-code-chip:hover:not(:disabled) {
   border-color: var(--color-accent);
   background: var(--color-surface-alt);
+  box-shadow: 0 0.25rem 0.85rem rgb(var(--color-accent-rgb) / 14%);
 }
 
 .room-code-chip:active:not(:disabled) {
@@ -977,6 +993,7 @@ select:focus:not(:focus-visible) {
 .secondary-button.invite-friends-button:hover:not(:disabled) {
   border-color: var(--color-accent);
   background: var(--color-surface);
+  box-shadow: 0 0.25rem 0.85rem rgb(var(--color-accent-rgb) / 14%);
 }
 
 .icon-button {
