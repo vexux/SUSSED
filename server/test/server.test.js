@@ -85,8 +85,8 @@ test("Socket.IO polling allows the deployed frontend origins and rejects unliste
     }
 });
 
-async function createHarness(context, { verifyAccessToken } = {}) {
-    const io = startServer(0, { verifyAccessToken });
+async function createHarness(context, { verifyAccessToken, profileRepository } = {}) {
+    const io = startServer(0, { verifyAccessToken, profileRepository });
     const clients = [];
     const roomCodes = new Set();
 
@@ -132,11 +132,29 @@ async function createHarness(context, { verifyAccessToken } = {}) {
 }
 
 test("guest sockets retain socket.id as their room player identity", async (context) => {
-    const harness = await createHarness(context);
+    let profileRepositoryCalls = 0;
+    const harness = await createHarness(context, {
+        profileRepository: {
+            async getOrCreateProfile() {
+                profileRepositoryCalls += 1;
+                throw new Error("guest must not request profiles");
+            },
+            async updateDisplayName() {
+                profileRepositoryCalls += 1;
+                throw new Error("guest must not request profiles");
+            },
+        },
+    });
     const guest = await harness.connect();
     const serverSocket = harness.io.sockets.sockets.get(guest.id);
     assert.ok(serverSocket);
     assert.equal(serverSocket.data.accountId, undefined);
+
+    const profileResponse = await new Promise((resolve) => {
+        guest.emit("get-profile", resolve);
+    });
+    assert.equal(profileResponse.error.code, "AUTH_REQUIRED");
+    assert.equal(profileRepositoryCalls, 0);
 
     const created = await emitWithAck(guest, "create-room", {
         playerName: "Guest",
@@ -168,6 +186,64 @@ test("valid access tokens attach the verified account UID without changing playe
     harness.trackRoom(created.roomCode);
     assert.equal(roomManager.getRoom(created.roomCode).hostId, authenticated.id);
     assert.notEqual(serverSocket.data.accountId, authenticated.id);
+});
+
+test("authenticated profile socket operations use only the verified Firebase UID", async (context) => {
+    const verifiedUid = "firebase-custom:uid-123";
+    const profileCalls = [];
+    const profileRepository = {
+        async getOrCreateProfile(accountId) {
+            profileCalls.push(["get", accountId]);
+            return {
+                id: accountId,
+                display_name: "Player",
+                created_at: "2026-01-01T00:00:00.000Z",
+                updated_at: "2026-01-01T00:00:00.000Z",
+            };
+        },
+        async updateDisplayName(accountId, displayName) {
+            profileCalls.push(["update", accountId, displayName]);
+            return {
+                id: accountId,
+                display_name: displayName,
+                created_at: "2026-01-01T00:00:00.000Z",
+                updated_at: "2026-01-02T00:00:00.000Z",
+            };
+        },
+    };
+    const harness = await createHarness(context, {
+        verifyAccessToken: async (token) => {
+            assert.equal(token, "valid-profile-token");
+            return verifiedUid;
+        },
+        profileRepository,
+    });
+    const authenticated = await harness.connect({
+        auth: { accessToken: "valid-profile-token" },
+    });
+    const profile = await new Promise((resolve, reject) => {
+        authenticated.emit("get-profile", (response) => {
+            if (response.error) reject(new Error(response.error.message));
+            else resolve(response.profile);
+        });
+    });
+    assert.equal(profile.id, verifiedUid);
+
+    const updated = await new Promise((resolve, reject) => {
+        authenticated.emit(
+            "update-profile-display-name",
+            { displayName: "New Name", accountId: "client-supplied-victim" },
+            (response) => {
+                if (response.error) reject(new Error(response.error.message));
+                else resolve(response.profile);
+            },
+        );
+    });
+    assert.equal(updated.id, verifiedUid);
+    assert.deepEqual(profileCalls, [
+        ["get", verifiedUid],
+        ["update", verifiedUid, "New Name"],
+    ]);
 });
 
 for (const [label, accessToken] of [

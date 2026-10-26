@@ -34,7 +34,10 @@ Local files have been initialized from the examples:
   either rely on Application Default Credentials (`GOOGLE_APPLICATION_CREDENTIALS`
   or a local gcloud login) or provide `FIREBASE_CLIENT_EMAIL` and
   `FIREBASE_PRIVATE_KEY`. `PORT=3000`, `NODE_ENV=development`, and the blank
-  `CLIENT_ORIGIN` are suitable for local development.
+  `CLIENT_ORIGIN` are suitable for local development. Profiles additionally
+  require server-only `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`; leave both
+  unset to keep profile persistence disabled while guest and room play remain
+  available.
 
 To find the values in the Firebase console, open the project and copy the web
 config values from **Project settings > General > Your apps**. Use the same
@@ -45,6 +48,42 @@ These local files are ignored by Git. The `.env.example` files contain blank
 values and remain tracked. The Firebase web config is designed for public
 clients; never place a Firebase service-account private key, database password,
 or other privileged secret in the client or any `VITE_` variable.
+
+## Persistent account profiles
+
+The profiles table stores minimal account metadata independently from Firebase
+Auth and multiplayer sessions. `profiles.id` is `TEXT` and stores the verified
+Firebase UID exactly; it is not a UUID, Socket.IO ID, or room player ID.
+`display_name` is editable metadata (defaulting to `Player`), with `created_at`
+and trigger-maintained `updated_at` timestamps. No credentials or auth tokens
+are stored. Guests do not receive profile rows.
+
+The non-destructive migration is
+[`supabase/migrations/202610260001_profiles.sql`](./supabase/migrations/202610260001_profiles.sql).
+Review it and apply it manually in the intended Supabase project's SQL Editor,
+or use your established migration workflow. It creates the table only if
+missing, enables RLS without client-facing policies, revokes `anon` and
+`authenticated` table access, and grants access to `service_role`. Do not apply
+it automatically to a live database without reviewing the target and taking
+your normal backup/safety steps.
+
+To enable profile operations on the server, set `SUPABASE_URL` to the project's
+Project URL and `SUPABASE_SERVICE_ROLE_KEY` to its server-side service-role
+secret. Find the URL in **Supabase Project Settings > API** and the service-role
+key in **Project Settings > API Keys**. These values are used only by the Node
+server. Never add the service-role key to a `VITE_` variable, the client env
+file, or browser code. If either setting is absent, profile operations return a
+controlled unavailable response; authentication, guests, and room play remain
+available.
+
+The server verifies each Firebase ID token before profile operations, obtains
+the UID only from the verified socket metadata, and scopes all profile writes
+to that UID. The client sends only profile fields such as the display name.
+Creating a profile is idempotent and preserves an existing display name.
+Profile fetches happen after the socket connects and never block room creation,
+joining, or gameplay. A player's `socket.id` continues to be the multiplayer
+identity; guest players are transient and no account profile is created for
+them.
 
 ## Local Firebase Authentication Emulator
 
@@ -81,6 +120,12 @@ requests. In `server/.env`, set `NODE_ENV=development`,
 account. Leave the emulator flag false or unset for normal Firebase project
 authentication. Never set the emulator flag in Vercel, Render, or other
 production environments.
+
+To test profile persistence while using the Auth Emulator, also configure
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `server/.env` and apply the
+profiles migration to a non-production Supabase project. Emulator users are
+isolated test identities; their Firebase UIDs are stored as text profile IDs.
+Do not use a production service-role key for emulator tests.
 
 Start the server and client in separate terminals from the repository root:
 
@@ -229,13 +274,12 @@ If a production build is missing `VITE_SERVER_URL`, the client reports the
 configuration error instead of attempting to connect to localhost. Rebuild
 after setting the variable.
 
-The client obtains the current Supabase session when Socket.IO connects and
-sends its access token in the handshake. It sends no token if there is no
-session, preserving guest play. Supabase refreshes sessions automatically; a
-new handshake always reads the latest session. A change between signed-in and
+The client obtains the current Firebase ID token when Socket.IO connects and
+sends it in the handshake. It sends no token if there is no eligible signed-in
+user, preserving guest play. Firebase refreshes tokens automatically; a new
+handshake always reads the latest token. A change between signed-in and
 guest/account identities disconnects the old socket so server cleanup runs
-before a fresh connection. A partial Supabase client configuration prevents
-the connection rather than silently downgrading to guest mode.
+before a fresh connection.
 
 The client currently uses the root path and invitation query strings such as
 `/?code=ABCD`; it does not define path-based client routes, so no SPA rewrite is
@@ -255,9 +299,14 @@ Configure these environment variables in Render:
 
 - `NODE_ENV=production`
 - `CLIENT_ORIGIN=https://your-project.vercel.app`
-- `FIREBASE_PROJECT_ID=your-firebase-project-id`
+- `FIREBASE_PROJECT_ID=sussed-167f0`
 - `GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json` (optional when
   running with default application credentials on supported hosts)
+- `SUPABASE_URL=https://your-project.supabase.co` (required to enable profiles)
+- `SUPABASE_SERVICE_ROLE_KEY=<server-only service-role secret>` (required to
+  enable profiles)
+- Do not set `FIREBASE_AUTH_EMULATOR_ENABLED` or
+  `FIREBASE_AUTH_EMULATOR_HOST` in production.
 
 `CLIENT_ORIGIN` must be the exact frontend origin, including the scheme and
 without a path or trailing slash. Multiple explicit origins can be
@@ -271,6 +320,11 @@ then records the verified UID in `socket.data.accountId`. It does not trust a
 client-provided account ID. A token that is invalid, expired, or unverifiable is
 rejected, not treated as a guest. Keep any service-account credentials on the
 server only and do not expose them in frontend config or Vite variables.
+
+The Supabase URL and service-role key are used only for persistent account
+profiles and must remain server-side. They are not needed for guest or room
+play. See [Persistent account profiles](#persistent-account-profiles) for the
+schema and safe manual migration steps.
 
 Verify the service by opening `https://your-service.onrender.com/healthz`. A
 healthy instance responds with HTTP 200 and `{"status":"ok"}`.

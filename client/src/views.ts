@@ -64,6 +64,8 @@ export interface AppActions {
   onResultsHistoryPage(page: number): void;
   onAuthModeChange(mode: AuthFormMode): void;
   onAuthFieldChange(field: "email" | "password" | "passwordConfirmation", value: string): void;
+  onProfileDisplayNameChange(value: string): void;
+  onSaveProfileDisplayName(): void;
   onAuthSubmit(): void;
   onAuthGoogle(): void;
   onAuthResendVerification(): void;
@@ -80,6 +82,9 @@ export interface AuthViewState {
   errorMessage: string | null;
   statusMessage: string | null;
   verificationRequired: boolean;
+  profileDisplayName: string | null;
+  profileLoading: boolean;
+  profileSaving: boolean;
   resendAvailableAt: number | null;
   hasRecoverySession: boolean;
   configurationError: string | null;
@@ -373,6 +378,41 @@ function renderAuthenticationPanel(
     if (error) panel.append(error);
   } else if (state.userEmail && state.mode !== "recovery") {
     const identity = createElement("p", "auth-account-email", state.userEmail);
+    panel.append(identity);
+    if (state.profileLoading) {
+      panel.append(createElement("p", "auth-help-text", "Loading profile…"));
+    } else if (state.profileDisplayName !== null) {
+      const profileForm = createElement("form", "auth-form auth-profile-form");
+      profileForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        actions.onSaveProfileDisplayName();
+      });
+      const field = createElement("div", "field");
+      const label = createElement("label", "field-label", "Display name");
+      const input = createElement("input", "text-input");
+      input.id = "profile-display-name";
+      input.name = "displayName";
+      input.type = "text";
+      input.autocomplete = "name";
+      input.required = true;
+      input.maxLength = 32;
+      input.value = state.profileDisplayName;
+      label.htmlFor = input.id;
+      input.addEventListener("input", () =>
+        actions.onProfileDisplayNameChange(input.value),
+      );
+      field.append(label, input);
+      profileForm.append(field);
+      const saveProfile = createElement(
+        "button",
+        "secondary-button",
+        state.profileSaving ? "Saving…" : "Save display name",
+      );
+      saveProfile.type = "submit";
+      saveProfile.disabled = state.profileSaving;
+      profileForm.append(saveProfile);
+      panel.append(profileForm);
+    }
     const signOut = createElement(
       "button",
       "secondary-button",
@@ -381,7 +421,7 @@ function renderAuthenticationPanel(
     signOut.type = "button";
     signOut.disabled = state.isBusy;
     signOut.addEventListener("click", actions.onAuthSignOut);
-    panel.append(identity, signOut);
+    panel.append(signOut);
   } else {
     if (state.mode !== "recovery" && state.mode !== "forgot-password") {
       const modeChoices = createElement("div", "auth-mode-choices");
@@ -1657,6 +1697,9 @@ export function renderApp(
     errorMessage: null,
     statusMessage: null,
     verificationRequired: false,
+    profileDisplayName: null,
+    profileLoading: false,
+    profileSaving: false,
     resendAvailableAt: null,
     hasRecoverySession: false,
     configurationError: null,

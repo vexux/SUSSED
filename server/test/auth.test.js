@@ -2,11 +2,11 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const {
     createFirebaseTokenVerifier,
+    FIREBASE_AUTH_EMULATOR_PROJECT_ID,
     FIREBASE_PROJECT_ID,
 } = require("../auth");
 const {
     FIREBASE_AUTH_EMULATOR_HOST,
-    FIREBASE_AUTH_EMULATOR_PROJECT_ID,
     resolveFirebaseAuthConfig,
 } = require("../firebaseAuthConfig");
 
@@ -105,4 +105,31 @@ test("normal server verification uses the production Firebase project when emula
             emulatorHost: null,
         },
     );
+});
+
+test("Firebase Auth Emulator token verification uses the demo project ID", async () => {
+    const originalEmulatorHost = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+    let receivedProjectId;
+    try {
+        const verify = createFirebaseTokenVerifier({
+            emulatorEnabled: "true",
+            nodeEnv: "development",
+            projectId: FIREBASE_AUTH_EMULATOR_PROJECT_ID,
+            verifyIdToken: async (token, projectId) => {
+                assert.equal(token, "emulator-id-token");
+                receivedProjectId = projectId;
+                return { uid: "emulator-user-123" };
+            },
+        });
+
+        assert.equal(await verify("emulator-id-token"), "emulator-user-123");
+        assert.equal(receivedProjectId, FIREBASE_AUTH_EMULATOR_PROJECT_ID);
+        assert.equal(process.env.FIREBASE_AUTH_EMULATOR_HOST, "127.0.0.1:9099");
+    } finally {
+        if (originalEmulatorHost === undefined) {
+            delete process.env.FIREBASE_AUTH_EMULATOR_HOST;
+        } else {
+            process.env.FIREBASE_AUTH_EMULATOR_HOST = originalEmulatorHost;
+        }
+    }
 });

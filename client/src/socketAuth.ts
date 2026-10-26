@@ -124,6 +124,7 @@ export interface SocketSession {
 }
 
 export interface SocketSessionLifecycle {
+  connected?: boolean;
   disconnect(): unknown;
   connect(): unknown;
 }
@@ -137,12 +138,18 @@ export function createSocketSessionChangeHandler(
     const nextUserId = session?.user.id ?? null;
     if (event === "INITIAL_SESSION") {
       currentUserId = nextUserId;
+      if (nextUserId && socket.connected) {
+        queueMicrotask(() => {
+          socket.disconnect();
+          socket.connect();
+        });
+      }
       return;
     }
 
     const identityChanged = currentUserId !== undefined && currentUserId !== nextUserId;
     currentUserId = nextUserId;
-    if (!identityChanged || event === "TOKEN_REFRESHED") {
+    if (!identityChanged) {
       return;
     }
 

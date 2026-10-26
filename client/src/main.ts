@@ -1,5 +1,5 @@
 import "./style.css";
-import { onAuthStateChanged } from "firebase/auth";
+import { onIdTokenChanged } from "firebase/auth";
 import {
   createInitialAppState,
   persistThemePreference,
@@ -83,6 +83,14 @@ interface PublicRoomsResponse {
   error?: { code: string; message: string };
 }
 
+interface ProfileResponse {
+  profile?: {
+    id: string;
+    display_name: string;
+  };
+  error?: { code: string; message: string };
+}
+
 const app = document.querySelector<HTMLElement>("#app");
 if (!app) {
   throw new Error("The application root element was not found.");
@@ -116,6 +124,9 @@ const authViewState: AuthViewState = {
   errorMessage: null as string | null,
   statusMessage: null as string | null,
   verificationRequired: false,
+  profileDisplayName: null as string | null,
+  profileLoading: false,
+  profileSaving: false,
   resendAvailableAt: null as number | null,
   hasRecoverySession: false,
   configurationError: firebaseConfigurationError ?? (!firebaseClient
@@ -850,6 +861,84 @@ async function runAuthAction(
     authViewState.isBusy = false;
     render();
   }
+}
+
+let profileAccountId: string | null = null;
+let profileRequestId = 0;
+let profileRequestAccountId: string | null = null;
+
+function loadCurrentProfile(): void {
+  const user = firebaseClient?.currentUser;
+  if (!user?.emailVerified || user.providerData.length === 0 || !socket.connected) {
+    authViewState.profileLoading = false;
+    return;
+  }
+  if (profileAccountId === user.uid && authViewState.profileDisplayName !== null) {
+    return;
+  }
+  if (profileRequestAccountId === user.uid) return;
+
+  const requestId = ++profileRequestId;
+  profileRequestAccountId = user.uid;
+  authViewState.profileLoading = true;
+  authViewState.errorMessage = null;
+  render();
+  socket.timeout(5000).emit(
+    "get-profile",
+    (transportError: Error | null, response?: ProfileResponse) => {
+      if (requestId !== profileRequestId) return;
+      profileRequestAccountId = null;
+      authViewState.profileLoading = false;
+      if (transportError || !response || response.error || !response.profile) {
+        authViewState.errorMessage =
+          response?.error?.message ??
+          "Your profile could not be loaded. Check the server's Supabase configuration and try again.";
+      } else if (response.profile.id !== user.uid) {
+        authViewState.errorMessage =
+          "The server returned a profile for a different account. Sign out and sign in again.";
+      } else {
+        profileAccountId = user.uid;
+        authViewState.profileDisplayName = response.profile.display_name;
+      }
+      render();
+    },
+  );
+}
+
+function saveProfileDisplayName(): void {
+  const user = firebaseClient?.currentUser;
+  if (
+    !user?.emailVerified ||
+    user.providerData.length === 0 ||
+    !socket.connected ||
+    !authViewState.profileDisplayName ||
+    authViewState.profileSaving
+  ) {
+    return;
+  }
+
+  authViewState.profileSaving = true;
+  authViewState.errorMessage = null;
+  render();
+  socket.timeout(5000).emit(
+    "update-profile-display-name",
+    { displayName: authViewState.profileDisplayName },
+    (transportError: Error | null, response?: ProfileResponse) => {
+      authViewState.profileSaving = false;
+      if (transportError || !response || response.error || !response.profile) {
+        authViewState.errorMessage =
+          response?.error?.message ??
+          "Your display name could not be saved. Try again.";
+      } else if (response.profile.id !== user.uid) {
+        authViewState.errorMessage =
+          "The server returned a profile for a different account. Sign out and sign in again.";
+      } else {
+        authViewState.profileDisplayName = response.profile.display_name;
+        authViewState.statusMessage = "Profile updated.";
+      }
+      render();
+    },
+  );
 }
 
 const actions: AppActions = {
@@ -1763,6 +1852,13 @@ const actions: AppActions = {
     authViewState[field] = value;
     authViewState.errorMessage = null;
   },
+  onProfileDisplayNameChange(value) {
+    authViewState.profileDisplayName = value;
+    authViewState.errorMessage = null;
+  },
+  onSaveProfileDisplayName() {
+    saveProfileDisplayName();
+  },
   onAuthSubmit() {
     if (!authService) return;
     void runAuthAction(async () => {
@@ -1853,6 +1949,10 @@ const actions: AppActions = {
     void runAuthAction(async () => {
       await authService.signOut();
       authViewState.userEmail = null;
+      authViewState.profileDisplayName = null;
+      profileAccountId = null;
+      profileRequestAccountId = null;
+      profileRequestId += 1;
       authViewState.statusMessage = "You’re signed out. Guest play is still available.";
     });
   },
@@ -1864,15 +1964,38 @@ const retrySocketWithFreshIdToken = createSocketTokenRefreshRetry(
   () => firebaseClient?.currentUser ?? null,
 );
 if (firebaseClient) {
-  onAuthStateChanged(firebaseClient, (user) => {
-    handleSocketSessionChange(user ? "SIGNED_IN" : "SIGNED_OUT", user ? { user: { id: user.uid } } : null);
+  let isInitialFirebaseAuthState = true;
+  onIdTokenChanged(firebaseClient, (user) => {
     const requiresEmailVerification = Boolean(
       user &&
       user.providerData.some(({ providerId }) => providerId === "password") &&
       !user.emailVerified,
     );
+    const eligibleForAuthenticatedSocket = Boolean(
+      user?.emailVerified && user.providerData.length > 0,
+    );
+    handleSocketSessionChange(
+      isInitialFirebaseAuthState
+        ? "INITIAL_SESSION"
+        : user
+          ? "SIGNED_IN"
+          : "SIGNED_OUT",
+      eligibleForAuthenticatedSocket && user
+        ? { user: { id: user.uid } }
+        : null,
+    );
+    isInitialFirebaseAuthState = false;
     authViewState.verificationRequired = requiresEmailVerification;
     authViewState.userEmail = requiresEmailVerification ? null : user?.email ?? null;
+    if (profileAccountId && profileAccountId !== user?.uid) {
+      profileAccountId = null;
+      authViewState.profileDisplayName = null;
+    }
+    if (profileRequestAccountId && profileRequestAccountId !== user?.uid) {
+      profileRequestId += 1;
+      profileRequestAccountId = null;
+      authViewState.profileLoading = false;
+    }
     if (user && requiresEmailVerification && user.email) {
       authViewState.email = user.email;
     }
@@ -1977,6 +2100,7 @@ socket.on("connect", () => {
   hasConnectedOnce = true;
   render();
   requestAvailableGames();
+  loadCurrentProfile();
   if (state.currentView === "public-rooms") subscribeToPublicRooms();
 });
 

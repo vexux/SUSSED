@@ -5,9 +5,16 @@ The server remains authoritative for room visibility, capacity, and join eligibi
 ## Socket authentication
 
 - Socket.IO clients may connect without an access token and continue to play as guests.
-- Authenticated clients provide `{ accessToken }` in the Socket.IO connection `auth` payload. When configured, the server verifies that token with Supabase Auth before accepting the connection.
-- Invalid, expired, or unverifiable supplied tokens are rejected; they are never downgraded to guest connections. If server-side Supabase configuration is absent, guests remain allowed but supplied tokens are rejected.
-- After successful verification, the server stores the account UUID in `socket.data.accountId`. This metadata does not replace or affect `socket.id`, which remains the room/player identity for this phase.
+- Authenticated clients provide `{ accessToken }` in the Socket.IO connection `auth` payload. The server verifies the Firebase ID token with Firebase Admin before accepting the connection.
+- Invalid, expired, or unverifiable supplied tokens are rejected; they are never downgraded to guest connections. If Firebase Admin configuration is absent, guests remain allowed but supplied tokens are rejected.
+- After successful verification, the server stores the Firebase UID in `socket.data.accountId`. This metadata does not replace or affect `socket.id`, which remains the room/player identity.
+
+## Account profiles
+
+- `get-profile` creates a missing profile for the verified `socket.data.accountId` and returns `{ profile }`. It is available only to authenticated sockets.
+- `update-profile-display-name` accepts `{ displayName }` and updates only the calling socket's verified account profile. A client-supplied UID is ignored.
+- Profile operations use the server-only Supabase service-role client. If database configuration or access is unavailable, the event returns a controlled `PROFILE_UNAVAILABLE` error. These events are separate from room creation, joining, and gameplay.
+- Guests receive `AUTH_REQUIRED` for profile requests and never create persistent profile records. Profile IDs are Firebase UIDs stored as text and are distinct from socket IDs and multiplayer player IDs.
 
 ## Capacity
 

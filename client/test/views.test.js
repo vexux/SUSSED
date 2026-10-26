@@ -185,6 +185,9 @@ test("authentication panel renders verification, recovery, OAuth, and signed-in 
       errorMessage: null,
       statusMessage: "Check your inbox for a verification link.",
       verificationRequired: true,
+      profileDisplayName: null,
+      profileLoading: false,
+      profileSaving: false,
       resendAvailableAt: Date.now() + 10_000,
       hasRecoverySession: false,
       configurationError: null,
@@ -210,11 +213,13 @@ test("authentication panel renders verification, recovery, OAuth, and signed-in 
 
     authState.mode = "sign-in";
     authState.userEmail = "player@example.com";
+    authState.profileDisplayName = "Player one";
     render();
     panel = root.query((element) => element.classList.contains("auth-panel"));
     assert.match(panel.text, /player@example.com/u);
     assert.match(panel.text, /Sign out/u);
     assert.equal(panel.query((element) => element.id === "auth-password"), null);
+    assert.equal(panel.query((element) => element.id === "profile-display-name").value, "Player one");
   });
 });
 
