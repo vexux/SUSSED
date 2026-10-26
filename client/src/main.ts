@@ -4,6 +4,7 @@ import {
   createInitialAppState,
   persistThemePreference,
   resolveAuthEntryView,
+  type AppView,
   type GameSessionState,
   type LobbyGame,
   type LobbyState,
@@ -23,7 +24,12 @@ import {
 } from "./socketAuth";
 import { firebaseClient, firebaseConfigurationError } from "./supabase";
 import { renderApp } from "./views";
-import type { AppActions, AuthViewState } from "./views";
+import type {
+  AppActions,
+  AuthViewState,
+  PublicProfile,
+  SocialViewState,
+} from "./views";
 import {
   copyText,
   createInvitationQrDataUrl,
@@ -86,6 +92,17 @@ interface PublicRoomsResponse {
   error?: { code: string; message: string };
 }
 
+interface SocialOperationResponse {
+  profile?: PublicProfile & { handleChangeAvailableAt: string | null };
+  profiles?: PublicProfile[];
+  friends?: PublicProfile[];
+  incomingRequests?: Array<PublicProfile & { requestId: string }>;
+  outgoingRequests?: Array<PublicProfile & { requestId: string }>;
+  requestId?: string;
+  ok?: boolean;
+  error?: { code: string; message: string };
+}
+
 const app = document.querySelector<HTMLElement>("#app");
 if (!app) {
   throw new Error("The application root element was not found.");
@@ -93,6 +110,7 @@ if (!app) {
 const appRoot: HTMLElement = app;
 
 const state = createInitialAppState();
+let accountReturnView: AppView = "home";
 const invitationCode = parseInvitationCode(window.location.search);
 const authService = firebaseClient
   ? createAuthService(
@@ -135,6 +153,20 @@ const authViewState: AuthViewState = {
     ? "Account authentication is not configured. Set the Firebase client variables to enable accounts. Guest play remains available."
     : null),
   recoveryError: recoveryLinkError,
+};
+const socialViewState: SocialViewState = {
+  profile: null,
+  selectedProfile: null,
+  friends: [],
+  incomingRequests: [],
+  outgoingRequests: [],
+  searchMode: "handle",
+  searchQuery: "",
+  searchResults: [],
+  isLoading: false,
+  isBusy: false,
+  errorMessage: null,
+  statusMessage: null,
 };
 state.currentView = resolveAuthEntryView({
   restored: !firebaseClient,
@@ -367,7 +399,7 @@ function render(): void {
     returnToLobbyError: fakeAnswerReturnToLobbyError,
     historyOpen: allRoundHistoryOpen,
     historyPage: allRoundHistoryPage,
-  }, authViewState);
+  }, authViewState, socialViewState);
   document.body.classList.toggle(
     "modal-open",
     appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop, .invitation-dialog, .player-detail-dialog[aria-modal='true'], .results-reminder-dialog[open]") !== null,
@@ -893,6 +925,53 @@ async function runAuthAction(
   }
 }
 
+function runSocialOperation(
+  eventName: string,
+  payload: unknown | undefined,
+  onSuccess: (response: SocialOperationResponse) => void,
+  focusScreenHeading = false,
+): void {
+  if (!authViewState.isAuthenticated || socialViewState.isBusy) return;
+  socialViewState.isBusy = true;
+  socialViewState.errorMessage = null;
+  socialViewState.statusMessage = null;
+  render();
+  const finish = (error: Error | null, response?: SocialOperationResponse) => {
+    socialViewState.isBusy = false;
+    socialViewState.isLoading = false;
+    if (error || !response) {
+      socialViewState.errorMessage =
+        "Social features are temporarily unavailable. Your room play is unaffected.";
+    } else if (response.error) {
+      socialViewState.errorMessage = response.error.message;
+    } else {
+      onSuccess(response);
+    }
+    render();
+    if (focusScreenHeading) {
+      const heading = appRoot.querySelector<HTMLElement>(".account-screen-title");
+      if (heading) {
+        heading.tabIndex = -1;
+        heading.focus();
+      }
+    }
+  };
+  if (payload === undefined) {
+    socket.timeout(5000).emit(eventName, finish);
+  } else {
+    socket.timeout(5000).emit(eventName, payload, finish);
+  }
+}
+
+function loadSocialData(): void {
+  socialViewState.isLoading = true;
+  runSocialOperation("get-social-data", undefined, (response) => {
+    socialViewState.friends = response.friends ?? [];
+    socialViewState.incomingRequests = response.incomingRequests ?? [];
+    socialViewState.outgoingRequests = response.outgoingRequests ?? [];
+  });
+}
+
 const actions: AppActions = {
   onPlayerNameChange(name) {
     state.playerName = name;
@@ -1018,6 +1097,167 @@ const actions: AppActions = {
     state.currentView = authViewState.isAuthenticated ? "home" : "welcome";
     authViewState.errorMessage = null;
     render();
+  },
+  onNavigateAccount(view) {
+    if (!authViewState.isAuthenticated) return;
+    if (!["profile", "friends", "public-profile", "achievements"].includes(state.currentView)) {
+      accountReturnView = state.currentView;
+    }
+    state.currentView = view;
+    socialViewState.errorMessage = null;
+    socialViewState.statusMessage = null;
+    socialViewState.selectedProfile = null;
+    socialViewState.isLoading = view === "profile" || view === "friends";
+    if (view === "profile") {
+      runSocialOperation("get-profile", undefined, (response) => {
+        if (!response.profile) {
+          socialViewState.errorMessage = "Your profile could not be loaded.";
+          return;
+        }
+        socialViewState.profile = response.profile;
+      }, true);
+    } else if (view === "friends") {
+      runSocialOperation("get-social-data", undefined, (response) => {
+        socialViewState.friends = response.friends ?? [];
+        socialViewState.incomingRequests = response.incomingRequests ?? [];
+        socialViewState.outgoingRequests = response.outgoingRequests ?? [];
+      }, true);
+    } else {
+      render();
+      const heading = appRoot.querySelector<HTMLElement>(".account-screen-title");
+      if (heading) {
+        heading.tabIndex = -1;
+        heading.focus();
+      }
+    }
+  },
+  onBackFromAccount() {
+    state.currentView = accountReturnView;
+    render();
+  },
+  onBackFromPublicProfile() {
+    state.currentView = "friends";
+    render();
+    appRoot.querySelector<HTMLInputElement>("#player-search")?.focus();
+  },
+  onProfileDisplayNameChange(displayName) {
+    const normalized = displayName.trim();
+    if (normalized.length < 2 || normalized.length > 20) {
+      socialViewState.errorMessage = "Display name must be 2–20 characters.";
+      socialViewState.statusMessage = null;
+      render();
+      return;
+    }
+    runSocialOperation("update-profile-display-name", { displayName: normalized }, (response) => {
+      if (response.profile) socialViewState.profile = response.profile;
+      socialViewState.statusMessage = "Display name updated.";
+    });
+  },
+  onProfileHandleChange(handle) {
+    const normalized = handle.trim().replace(/^@/u, "").toLowerCase();
+    if (!/^[a-z0-9]{3,20}$/u.test(normalized)) {
+      socialViewState.errorMessage = "Handles must contain 3–20 letters or numbers.";
+      socialViewState.statusMessage = null;
+      render();
+      return;
+    }
+    runSocialOperation("update-profile-handle", { handle: normalized }, (response) => {
+      if (response.profile) socialViewState.profile = response.profile;
+      socialViewState.statusMessage = "Handle updated.";
+    });
+  },
+  onCopyProfileHandle() {
+    const handle = socialViewState.profile?.handle;
+    if (!handle) return;
+    void copyInvitationText(`@${handle}`).then(() => {
+      socialViewState.statusMessage = "Handle copied.";
+      render();
+    }).catch(() => {
+      socialViewState.errorMessage = "The handle could not be copied.";
+      render();
+    });
+  },
+  onSearchModeChange(mode) {
+    socialViewState.searchMode = mode;
+    socialViewState.searchQuery = "";
+    socialViewState.searchResults = [];
+    socialViewState.statusMessage = null;
+    socialViewState.errorMessage = null;
+    render();
+  },
+  onSearchProfiles(mode, query) {
+    socialViewState.searchMode = mode;
+    socialViewState.searchResults = [];
+    const trimmed = query.trim();
+    const normalized = mode === "handle"
+      ? trimmed.replace(/^@/u, "").toLowerCase()
+      : trimmed;
+    socialViewState.searchQuery = mode === "handle" ? `@${normalized}` : normalized;
+    const isValidQuery = mode === "handle"
+      ? /^[a-z0-9]{3,20}$/u.test(normalized)
+      : Array.from(normalized).length >= 2 && Array.from(normalized).length <= 20;
+    if (!isValidQuery) {
+      socialViewState.searchResults = [];
+      socialViewState.statusMessage = null;
+      socialViewState.errorMessage = mode === "handle"
+        ? "Enter a handle with 3–20 letters or numbers."
+        : "Enter a display name with 2–20 characters.";
+      render();
+      return;
+    }
+    runSocialOperation("search-profiles", { mode, query: normalized }, (response) => {
+      socialViewState.searchResults = response.profiles ?? [];
+      socialViewState.statusMessage = null;
+    });
+  },
+  onOpenPublicProfile(handle) {
+    socialViewState.selectedProfile = null;
+    socialViewState.errorMessage = null;
+    socialViewState.statusMessage = null;
+    socialViewState.isLoading = true;
+    state.currentView = "public-profile";
+    runSocialOperation("get-public-profile", { handle }, (response) => {
+      socialViewState.selectedProfile = response.profile ?? null;
+      if (!response.profile) socialViewState.statusMessage = "Player not found.";
+    }, true);
+  },
+  onSendFriendRequest(handle) {
+    if (handle === socialViewState.profile?.handle) {
+      socialViewState.errorMessage = "You cannot send a friend request to yourself.";
+      render();
+      return;
+    }
+    runSocialOperation("send-friend-request", { handle }, (response) => {
+      socialViewState.statusMessage = "Friend request sent.";
+      if (typeof response.requestId === "string") {
+        socialViewState.outgoingRequests.push({
+          requestId: response.requestId,
+          handle,
+          displayName: socialViewState.searchResults.find((profile) => profile.handle === handle)?.displayName
+            ?? socialViewState.selectedProfile?.displayName
+            ?? handle,
+        });
+      }
+      loadSocialData();
+    });
+  },
+  onRespondToFriendRequest(requestId, action) {
+    runSocialOperation("respond-friend-request", { requestId, action }, () => {
+      socialViewState.statusMessage = action === "accept" ? "Friend request accepted." : "Friend request declined.";
+      loadSocialData();
+    });
+  },
+  onCancelFriendRequest(requestId) {
+    runSocialOperation("cancel-friend-request", { requestId }, () => {
+      socialViewState.statusMessage = "Friend request cancelled.";
+      loadSocialData();
+    });
+  },
+  onRemoveFriend(handle) {
+    runSocialOperation("remove-friend", { handle }, () => {
+      socialViewState.statusMessage = "Friend removed.";
+      loadSocialData();
+    });
   },
   onChooseAnotherGame() {
     const localPlayer = state.lobby?.players.find(({ id }) => id === state.localPlayerId);

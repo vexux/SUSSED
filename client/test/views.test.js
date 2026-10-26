@@ -266,6 +266,156 @@ test("email authentication is separate and its back control returns to welcome",
   });
 });
 
+test("account menu shows guest sign-in and authenticated profile navigation options", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "home";
+    const root = new FakeElement("root");
+    const calls = [];
+    const actions = new Proxy({}, { get: (_target, name) => (...args) => calls.push([name, ...args]) });
+    const render = (isAuthenticated) => renderApp(root, state, actions, {}, {}, {
+      isAuthenticated,
+      mode: "sign-in",
+      email: "",
+      password: "",
+      passwordConfirmation: "",
+      userEmail: null,
+      isBusy: false,
+      errorMessage: null,
+      statusMessage: null,
+      verificationRequired: false,
+      resendAvailableAt: null,
+      hasRecoverySession: false,
+      configurationError: null,
+      recoveryError: null,
+    });
+    render(false);
+    assert.match(root.query((element) => element.classList.contains("account-menu-trigger")).text, /Guest/u);
+    assert.deepEqual(
+      root.queryAll((element) => element.classList.contains("account-menu-item")).map((item) => item.text),
+      ["Sign in"],
+    );
+    render(true);
+    assert.deepEqual(
+      root.queryAll((element) => element.classList.contains("account-menu-item")).map((item) => item.text),
+      ["Profile", "Friends", "Achievements", "Sign out"],
+    );
+    root.queryAll((element) => element.classList.contains("account-menu-item"))[0].dispatch("click");
+    assert.deepEqual(calls, [["onNavigateAccount", "profile"]]);
+    assert.equal(root.query((element) => element.classList.contains("header-account-button")), null);
+  });
+});
+
+test("profile, friends, public profile, and achievements screens expose safe empty/loading states", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    const root = new FakeElement("root");
+    const actions = createActions();
+    const socialState = {
+      profile: null,
+      selectedProfile: null,
+      friends: [],
+      incomingRequests: [],
+      outgoingRequests: [],
+      searchMode: "handle",
+      searchQuery: "",
+      searchResults: [],
+      isLoading: true,
+      isBusy: false,
+      errorMessage: null,
+      statusMessage: null,
+    };
+    const render = (view) => {
+      state.currentView = view;
+      renderApp(root, state, actions, {}, {}, {
+        isAuthenticated: true,
+        mode: "sign-in",
+        email: "",
+        password: "",
+        passwordConfirmation: "",
+        userEmail: null,
+        isBusy: false,
+        errorMessage: null,
+        statusMessage: null,
+        verificationRequired: false,
+        resendAvailableAt: null,
+        hasRecoverySession: false,
+        configurationError: null,
+        recoveryError: null,
+      }, socialState);
+    };
+    render("profile");
+    assert.match(root.text, /Profile/u);
+    assert.match(root.text, /Loading/u);
+    render("friends");
+    assert.match(root.text, /No friends yet\./u);
+    assert.match(root.text, /No incoming requests\./u);
+    assert.match(root.text, /No sent requests\./u);
+    render("public-profile");
+    assert.match(root.text, /Player/u);
+    render("achievements");
+    assert.match(root.text, /No achievements yet\./u);
+    assert.ok(root.query((element) => element.classList.contains("theme-toggle")));
+  });
+});
+
+test("profile and friend-search controls dispatch their requested updates", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "profile";
+    const root = new FakeElement("root");
+    const calls = [];
+    const socialState = {
+      profile: { displayName: "Alex", handle: "alex123", handleChangeAvailableAt: null },
+      selectedProfile: null,
+      friends: [],
+      incomingRequests: [],
+      outgoingRequests: [],
+      searchMode: "handle",
+      searchQuery: "",
+      searchResults: [],
+      isLoading: false,
+      isBusy: false,
+      errorMessage: null,
+      statusMessage: null,
+    };
+    const actions = new Proxy({}, {
+      get: (_target, name) => (...args) => {
+        calls.push([name, ...args]);
+        if (name === "onSearchModeChange") socialState.searchMode = args[0];
+      },
+    });
+    renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
+    root.query((element) => element.id === "profile-display-name").value = "New Name";
+    root.query((element) => element.textContent === "Save display name").dispatch("click");
+    root.query((element) => element.id === "profile-handle").value = "newhandle";
+    root.query((element) => element.textContent === "Change handle").dispatch("click");
+    root.query((element) => element.classList.contains("copy-profile-handle")).dispatch("click");
+    assert.deepEqual(calls.map(([name]) => name), [
+      "onProfileDisplayNameChange",
+      "onProfileHandleChange",
+      "onCopyProfileHandle",
+    ]);
+    assert.deepEqual(calls.slice(0, 2), [
+      ["onProfileDisplayNameChange", "New Name"],
+      ["onProfileHandleChange", "newhandle"],
+    ]);
+
+    state.currentView = "friends";
+    renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
+    root.queryAll((element) => element.classList.contains("search-mode-button"))[1].dispatch("click");
+    const query = root.query((element) => element.id === "player-search");
+    query.value = "Jordan";
+    root.query((element) => element.classList.contains("player-search-form")).dispatch("submit");
+    assert.deepEqual(calls.slice(3).map(([name]) => name), [
+      "onSearchModeChange",
+      "onSearchProfiles",
+    ]);
+    assert.deepEqual(calls[3], ["onSearchModeChange", "displayName"]);
+    assert.deepEqual(calls[4], ["onSearchProfiles", "displayName", "Jordan"]);
+  });
+});
+
 test("auth entry resolution waits for restored sessions and protects unverified users", () => {
   assert.equal(resolveAuthEntryView({
     restored: false,
@@ -429,7 +579,11 @@ test("game home keeps room controls usable without landing or account panels", (
     assert.equal(root.query((element) => element.classList.contains("landing-tagline")), null);
     assert.equal(root.query((element) => element.classList.contains("auth-panel")), null);
     assert.equal(root.query((element) => element.id === "profile-display-name"), null);
-    assert.equal(root.query((element) => element.classList.contains("header-account-button")).textContent, "Sign in");
+    assert.match(root.query((element) => element.classList.contains("account-menu-trigger")).text, /Guest/u);
+    assert.deepEqual(
+      root.queryAll((element) => element.classList.contains("account-menu-item")).map((item) => item.text),
+      ["Sign in"],
+    );
     assert.equal(codeInput.placeholder, "CODE");
     assert.ok(root.query((element) => element.tagName === "button" && element.textContent === "Choose a game"));
     const actionCards = root.query((element) => element.className.includes("landing-actions")).children;

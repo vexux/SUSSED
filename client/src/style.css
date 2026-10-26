@@ -320,6 +320,213 @@ button:disabled {
   min-height: 44px;
 }
 
+.account-menu {
+  position: relative;
+}
+
+.account-menu-trigger {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-md);
+  padding: 0 12px;
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  list-style: none;
+}
+
+.account-menu-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.account-menu-trigger svg {
+  width: 20px;
+  height: 20px;
+}
+
+.account-menu-trigger:hover {
+  border-color: var(--color-accent-border-strong);
+  background: var(--color-accent-surface-strong);
+}
+
+.account-menu-trigger:focus-visible,
+.account-menu-item:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.account-menu[open] .account-menu-trigger {
+  border-color: var(--color-accent-border-strong);
+}
+
+.account-menu-items {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  min-width: 190px;
+  overflow: hidden;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  background: var(--color-surface);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 20%);
+}
+
+.account-menu-item {
+  min-height: 42px;
+  border: 0;
+  border-radius: calc(var(--radius-md) - 4px);
+  padding: 8px 12px;
+  color: var(--color-text);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.account-menu-item:hover:not(:disabled) {
+  background: var(--color-accent-surface-strong);
+}
+
+.account-menu-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.account-screen {
+  width: min(100%, 680px);
+  align-self: center;
+  gap: var(--space-4);
+}
+
+.account-screen-back {
+  align-self: flex-start;
+}
+
+.account-screen-title,
+.social-section-title {
+  margin: 0;
+}
+
+.account-edit-row {
+  display: flex;
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.account-edit-row > .field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.account-edit-row > button {
+  flex: 0 0 auto;
+  min-height: 48px;
+}
+
+.profile-public-id {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-md);
+  padding: 4px 8px 4px 14px;
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+  font-weight: 750;
+}
+
+.copy-profile-handle {
+  min-height: 40px;
+}
+
+.handle-cooldown,
+.empty-state {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.player-search-form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.search-mode-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.search-mode-button[aria-pressed="true"] {
+  color: var(--color-accent-light);
+  background: var(--color-accent-surface-strong);
+}
+
+.player-search-form > .primary-button {
+  min-height: 48px;
+}
+
+.social-section-title {
+  margin-top: var(--space-3);
+  font-size: 1.2rem;
+}
+
+.social-profile-card {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  background: var(--color-surface-alt);
+}
+
+.social-profile-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+  font-weight: 750;
+}
+
+.social-profile-handle {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+}
+
+.social-profile-open {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.social-request-button,
+.social-remove-friend,
+.social-cancel-request,
+.social-request-actions {
+  align-self: flex-start;
+}
+
+.social-request-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.social-request-actions button,
+.social-request-button {
+  min-height: 44px;
+}
+
 .welcome-screen {
   justify-content: center;
   padding: clamp(24px, 7vh, 64px) 0;
@@ -3094,6 +3301,16 @@ select:focus:not(:focus-visible) {
   }
 
   @media (max-width: 380px) {
+    .connection-status {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      overflow: hidden;
+      border-radius: 50%;
+      background: currentColor;
+      font-size: 0;
+    }
+
     .lobby-screen .lobby-actions {
       grid-template-columns: minmax(0, 1fr);
     }

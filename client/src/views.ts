@@ -71,6 +71,39 @@ export interface AppActions {
   onAuthGoogle(): void;
   onAuthResendVerification(): void;
   onAuthSignOut(): void;
+  onNavigateAccount(view: "profile" | "friends" | "achievements"): void;
+  onBackFromAccount(): void;
+  onBackFromPublicProfile(): void;
+  onProfileDisplayNameChange(displayName: string): void;
+  onProfileHandleChange(handle: string): void;
+  onCopyProfileHandle(): void;
+  onSearchModeChange(mode: "handle" | "displayName"): void;
+  onSearchProfiles(mode: "handle" | "displayName", query: string): void;
+  onOpenPublicProfile(handle: string): void;
+  onSendFriendRequest(handle: string): void;
+  onRespondToFriendRequest(requestId: string, action: "accept" | "decline"): void;
+  onCancelFriendRequest(requestId: string): void;
+  onRemoveFriend(handle: string): void;
+}
+
+export interface PublicProfile {
+  displayName: string;
+  handle: string;
+}
+
+export interface SocialViewState {
+  profile: (PublicProfile & { handleChangeAvailableAt: string | null }) | null;
+  selectedProfile: PublicProfile | null;
+  friends: PublicProfile[];
+  incomingRequests: Array<PublicProfile & { requestId: string }>;
+  outgoingRequests: Array<PublicProfile & { requestId: string }>;
+  searchMode: "handle" | "displayName";
+  searchQuery: string;
+  searchResults: PublicProfile[];
+  isLoading: boolean;
+  isBusy: boolean;
+  errorMessage: string | null;
+  statusMessage: string | null;
 }
 
 export interface AuthViewState {
@@ -107,7 +140,7 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
   return element;
 }
 
-type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door";
+type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door" | "user";
 
 function createIcon(name: IconName): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -133,6 +166,7 @@ function createIcon(name: IconName): SVGSVGElement {
     chevron: "m6 9 6 6 6-6",
     switch: "M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4m14-1v2a3 3 0 0 1-3 3H3",
     door: "M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9M14 3l5 2v14l-5 2M14 3v18m-5-9h.01m12 0H11m4-4 4 4-4 4",
+    user: "M20 21a8 8 0 0 0-16 0m8-10a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z",
   };
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("d", paths[name]);
@@ -218,6 +252,7 @@ function createStatus(state: AppState): HTMLElement {
     state.connectionStatus,
   );
   status.dataset.status = state.connectionStatus;
+  status.setAttribute("aria-label", `Connection ${state.connectionStatus}`);
   return status;
 }
 
@@ -225,6 +260,7 @@ function createHeader(
   state: AppState,
   actions: AppActions,
   authState: AuthViewState,
+  socialState: SocialViewState,
 ): HTMLElement {
   const header = createElement("header", "app-header");
   const controls = createElement("div", "header-controls");
@@ -265,18 +301,49 @@ function createHeader(
   themeButton.addEventListener("click", actions.onToggleTheme);
   if (!isEntryView) {
     controls.append(createStatus(state));
-    const accountButton = createElement(
-      "button",
-      "text-button header-account-button",
-      authState.isAuthenticated ? "Sign out" : "Sign in",
+    const accountMenu = createElement("details", "account-menu");
+    const accountSummary = createElement(
+      "summary",
+      "account-menu-trigger",
+      authState.isAuthenticated ? "" : "Guest",
     );
-    accountButton.type = "button";
-    accountButton.disabled = authState.isBusy;
-    accountButton.addEventListener(
-      "click",
-      authState.isAuthenticated ? actions.onAuthSignOut : actions.onOpenEmailAuth,
+    accountSummary.setAttribute(
+      "aria-label",
+      authState.isAuthenticated ? "Open account menu" : "Guest account menu",
     );
-    controls.append(accountButton);
+    accountSummary.append(createIcon("user"));
+    accountMenu.append(accountSummary);
+    const menu = createElement("div", "account-menu-items");
+    menu.setAttribute("role", "group");
+    menu.setAttribute(
+      "aria-label",
+      authState.isAuthenticated ? "Account navigation" : "Guest account navigation",
+    );
+    if (authState.isAuthenticated) {
+      for (const [view, label] of [
+        ["profile", "Profile"],
+        ["friends", "Friends"],
+        ["achievements", "Achievements"],
+      ] as const) {
+        const item = createElement("button", "account-menu-item", label);
+        item.type = "button";
+        item.disabled = socialState.isBusy;
+        item.addEventListener("click", () => actions.onNavigateAccount(view));
+        menu.append(item);
+      }
+      const signOut = createElement("button", "account-menu-item", "Sign out");
+      signOut.type = "button";
+      signOut.disabled = authState.isBusy || socialState.isBusy;
+      signOut.addEventListener("click", actions.onAuthSignOut);
+      menu.append(signOut);
+    } else {
+      const signIn = createElement("button", "account-menu-item", "Sign in");
+      signIn.type = "button";
+      signIn.addEventListener("click", actions.onOpenEmailAuth);
+      menu.append(signIn);
+    }
+    accountMenu.append(menu);
+    controls.append(accountMenu);
   }
   controls.append(themeButton);
   header.append(controls);
@@ -374,6 +441,279 @@ function renderAuthLoading(): HTMLElement {
   message.setAttribute("role", "status");
   message.setAttribute("aria-live", "polite");
   screen.append(message);
+  return screen;
+}
+
+function renderAccountBackButton(
+  actions: AppActions,
+  label = "Back to game",
+  onBack: () => void = actions.onBackFromAccount,
+): HTMLButtonElement {
+  const backButton = createElement("button", "text-button account-screen-back", label);
+  backButton.type = "button";
+  backButton.addEventListener("click", onBack);
+  return backButton;
+}
+
+function appendSocialFeedback(screen: HTMLElement, socialState: SocialViewState): void {
+  if (socialState.isLoading) {
+    const loading = createElement("p", "status-message", "Loading…");
+    loading.setAttribute("role", "status");
+    screen.append(loading);
+  }
+  if (socialState.errorMessage) {
+    const error = createErrorMessage(socialState.errorMessage);
+    if (error) screen.append(error);
+  }
+  if (socialState.statusMessage) {
+    const status = createElement("p", "status-message", socialState.statusMessage);
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+    screen.append(status);
+  }
+}
+
+function renderProfileScreen(
+  actions: AppActions,
+  socialState: SocialViewState,
+): HTMLElement {
+  const screen = createElement("section", "app-screen account-screen profile-screen");
+  screen.append(renderAccountBackButton(actions));
+  screen.append(createElement("h1", "account-screen-title", "Profile"));
+  if (socialState.profile) {
+    const profile = socialState.profile;
+    const displayNameLabel = createElement("label", "field-label", "Display name");
+    displayNameLabel.htmlFor = "profile-display-name";
+    const displayNameInput = createElement("input", "text-input");
+    displayNameInput.id = "profile-display-name";
+    displayNameInput.name = "displayName";
+    displayNameInput.type = "text";
+    displayNameInput.autocomplete = "name";
+    displayNameInput.minLength = 2;
+    displayNameInput.maxLength = 20;
+    displayNameInput.required = true;
+    displayNameInput.value = profile.displayName;
+    const displayNameSave = createElement("button", "primary-button", "Save display name");
+    displayNameSave.type = "button";
+    displayNameSave.disabled = socialState.isBusy;
+    displayNameSave.addEventListener("click", () =>
+      actions.onProfileDisplayNameChange(displayNameInput.value),
+    );
+    const displayNameForm = createElement("div", "account-edit-row");
+    const displayNameField = createElement("div", "field");
+    displayNameField.append(displayNameLabel, displayNameInput);
+    displayNameForm.append(displayNameField, displayNameSave);
+    screen.append(displayNameForm);
+
+    const handleLabel = createElement("label", "field-label", "Unique handle");
+    handleLabel.htmlFor = "profile-handle";
+    const handleInput = createElement("input", "text-input");
+    handleInput.id = "profile-handle";
+    handleInput.name = "handle";
+    handleInput.type = "text";
+    handleInput.autocomplete = "off";
+    handleInput.minLength = 3;
+    handleInput.maxLength = 20;
+    handleInput.pattern = "[A-Za-z0-9]{3,20}";
+    handleInput.value = profile.handle;
+    const handleChange = createElement("button", "secondary-button", "Change handle");
+    handleChange.type = "button";
+    handleChange.disabled = socialState.isBusy;
+    handleChange.addEventListener("click", () => actions.onProfileHandleChange(handleInput.value));
+    const handleField = createElement("div", "field");
+    handleField.append(handleLabel, handleInput);
+    const handleRow = createElement("div", "account-edit-row");
+    handleRow.append(handleField, handleChange);
+    screen.append(handleRow);
+    if (profile.handleChangeAvailableAt) {
+      const availableAt = new Date(profile.handleChangeAvailableAt);
+      const cooldown = createElement(
+        "p",
+        "helper-text handle-cooldown",
+        availableAt.getTime() > Date.now()
+          ? `You can change your handle again ${new Intl.DateTimeFormat(undefined, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            }).format(availableAt)}.`
+          : "Your handle can be changed now.",
+      );
+      screen.append(cooldown);
+    } else {
+      screen.append(createElement("p", "helper-text handle-cooldown", "You can change your handle now."));
+    }
+    const publicId = createElement("div", "profile-public-id");
+    const publicIdText = createElement("span", undefined, `@${profile.handle}`);
+    const copy = createElement("button", "text-button copy-profile-handle", "Copy");
+    copy.type = "button";
+    copy.setAttribute("aria-label", `Copy handle @${profile.handle}`);
+    copy.addEventListener("click", actions.onCopyProfileHandle);
+    publicId.append(publicIdText, copy);
+    screen.append(publicId);
+  }
+  appendSocialFeedback(screen, socialState);
+  return screen;
+}
+
+function appendPublicProfileCard(
+  target: HTMLElement,
+  profile: PublicProfile,
+  actions: AppActions,
+  buttonText = "View profile",
+): void {
+  const card = createElement("article", "social-profile-card");
+  const name = createElement("span", "social-profile-name", profile.displayName);
+  const handle = createElement("span", "social-profile-handle", `@${profile.handle}`);
+  const open = createElement("button", "text-button social-profile-open", buttonText);
+  open.type = "button";
+  open.addEventListener("click", () => actions.onOpenPublicProfile(profile.handle));
+  card.append(name, handle, open);
+  target.append(card);
+}
+
+function renderFriendsScreen(
+  actions: AppActions,
+  socialState: SocialViewState,
+): HTMLElement {
+  const screen = createElement("section", "app-screen account-screen friends-screen");
+  screen.append(renderAccountBackButton(actions));
+  screen.append(createElement("h1", "account-screen-title", "Friends"));
+
+  const searchForm = createElement("form", "player-search-form");
+  const searchLabel = createElement("label", "field-label", "Find players");
+  searchLabel.htmlFor = "player-search";
+  const searchInput = createElement("input", "text-input");
+  searchInput.id = "player-search";
+  searchInput.name = "query";
+  searchInput.type = "search";
+  searchInput.autocomplete = "off";
+  searchInput.maxLength = 20;
+  searchInput.placeholder = socialState.searchMode === "handle" ? "@handle" : "Display name";
+  searchInput.value = socialState.searchQuery;
+  const searchMode = createElement("div", "search-mode-toggle");
+  searchMode.setAttribute("role", "group");
+  searchMode.setAttribute("aria-label", "Search mode");
+  for (const [mode, label] of [
+    ["handle", "Exact handle"],
+    ["displayName", "Display name"],
+  ] as const) {
+    const button = createElement("button", "text-button search-mode-button", label);
+    button.type = "button";
+    button.setAttribute("aria-pressed", String(socialState.searchMode === mode));
+    button.addEventListener("click", () => actions.onSearchModeChange(mode));
+    searchMode.append(button);
+  }
+  const submit = createElement("button", "primary-button", "Search");
+  submit.type = "submit";
+  submit.disabled = socialState.isBusy;
+  const searchField = createElement("div", "field");
+  searchField.append(searchLabel, searchInput);
+  searchForm.append(searchField, searchMode, submit);
+  searchForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    actions.onSearchProfiles(socialState.searchMode, searchInput.value);
+  });
+  screen.append(searchForm);
+
+  if (socialState.searchResults.length > 0) {
+    screen.append(createElement("h2", "social-section-title", "Search results"));
+    for (const result of socialState.searchResults) {
+      appendPublicProfileCard(screen, result, actions);
+      if (result.handle !== socialState.profile?.handle) {
+        const request = createElement("button", "secondary-button social-request-button", "Add friend");
+        request.type = "button";
+        request.disabled = socialState.isBusy;
+        request.addEventListener("click", () => actions.onSendFriendRequest(result.handle));
+        screen.append(request);
+      }
+    }
+  } else if (
+    socialState.searchQuery &&
+    !socialState.isLoading &&
+    !socialState.isBusy &&
+    !socialState.errorMessage
+  ) {
+    screen.append(createElement("p", "empty-state", "No players found."));
+  }
+
+  const friendsHeading = createElement("h2", "social-section-title", "Friends");
+  screen.append(friendsHeading);
+  if (socialState.friends.length === 0) {
+    screen.append(createElement("p", "empty-state", "No friends yet."));
+  } else {
+    for (const friend of socialState.friends) {
+      appendPublicProfileCard(screen, friend, actions);
+      const remove = createElement("button", "text-button social-remove-friend", "Remove friend");
+      remove.type = "button";
+      remove.disabled = socialState.isBusy;
+      remove.addEventListener("click", () => actions.onRemoveFriend(friend.handle));
+      screen.append(remove);
+    }
+  }
+
+  const incomingHeading = createElement("h2", "social-section-title", "Incoming Requests");
+  screen.append(incomingHeading);
+  if (socialState.incomingRequests.length === 0) {
+    screen.append(createElement("p", "empty-state", "No incoming requests."));
+  }
+  for (const request of socialState.incomingRequests) {
+    appendPublicProfileCard(screen, request, actions);
+    const buttons = createElement("div", "social-request-actions");
+    for (const [action, label] of [["accept", "Accept"], ["decline", "Decline"]] as const) {
+      const button = createElement("button", action === "accept" ? "primary-button" : "text-button", label);
+      button.type = "button";
+      button.disabled = socialState.isBusy;
+      button.addEventListener("click", () => actions.onRespondToFriendRequest(request.requestId, action));
+      buttons.append(button);
+    }
+    screen.append(buttons);
+  }
+
+  screen.append(createElement("h2", "social-section-title", "Sent Requests"));
+  if (socialState.outgoingRequests.length === 0) {
+    screen.append(createElement("p", "empty-state", "No sent requests."));
+  }
+  for (const request of socialState.outgoingRequests) {
+    appendPublicProfileCard(screen, request, actions);
+    const cancel = createElement("button", "text-button social-cancel-request", "Cancel request");
+    cancel.type = "button";
+    cancel.disabled = socialState.isBusy;
+    cancel.addEventListener("click", () => actions.onCancelFriendRequest(request.requestId));
+    screen.append(cancel);
+  }
+  appendSocialFeedback(screen, socialState);
+  return screen;
+}
+
+function renderPublicProfileScreen(
+  actions: AppActions,
+  socialState: SocialViewState,
+): HTMLElement {
+  const screen = createElement("section", "app-screen account-screen public-profile-screen");
+  screen.append(renderAccountBackButton(actions, "Back to friends", actions.onBackFromPublicProfile));
+  screen.append(createElement("h1", "account-screen-title", "Player"));
+  if (socialState.selectedProfile) {
+    appendPublicProfileCard(screen, socialState.selectedProfile, actions);
+    if (socialState.selectedProfile.handle !== socialState.profile?.handle) {
+      const add = createElement("button", "primary-button", "Add friend");
+      add.type = "button";
+      add.disabled = socialState.isBusy;
+      add.addEventListener("click", () =>
+        actions.onSendFriendRequest(socialState.selectedProfile!.handle),
+      );
+      screen.append(add);
+    }
+  }
+  appendSocialFeedback(screen, socialState);
+  return screen;
+}
+
+function renderAchievementsScreen(actions: AppActions): HTMLElement {
+  const screen = createElement("section", "app-screen account-screen achievements-screen");
+  screen.append(renderAccountBackButton(actions));
+  screen.append(
+    createElement("h1", "account-screen-title", "Achievements"),
+    createElement("p", "empty-state", "No achievements yet."),
+  );
   return screen;
 }
 
@@ -1784,6 +2124,20 @@ export function renderApp(
     recoveryError: null,
     isAuthenticated: false,
   },
+  socialState: SocialViewState = {
+    profile: null,
+    selectedProfile: null,
+    friends: [],
+    incomingRequests: [],
+    outgoingRequests: [],
+    searchMode: "handle",
+    searchQuery: "",
+    searchResults: [],
+    isLoading: false,
+    isBusy: false,
+    errorMessage: null,
+    statusMessage: null,
+  },
 ): void {
   const previousDialog = root.querySelector<HTMLDialogElement>(".invitation-dialog");
   const previousFocus = root.ownerDocument.activeElement;
@@ -1798,7 +2152,7 @@ export function renderApp(
       ? previousPlayerFocus.getAttribute("data-player-detail-focus")
       : null;
   const shell = createElement("main", "app-shell");
-  shell.append(createHeader(state, actions, authState));
+  shell.append(createHeader(state, actions, authState, socialState));
   const screen =
     state.currentView === "auth-loading"
       ? renderAuthLoading()
@@ -1806,6 +2160,14 @@ export function renderApp(
         ? renderWelcome(state, actions, authState)
       : state.currentView === "email-auth"
         ? renderEmailAuthentication(actions, authState)
+      : state.currentView === "profile"
+        ? renderProfileScreen(actions, socialState)
+      : state.currentView === "friends"
+        ? renderFriendsScreen(actions, socialState)
+      : state.currentView === "public-profile"
+        ? renderPublicProfileScreen(actions, socialState)
+      : state.currentView === "achievements"
+        ? renderAchievementsScreen(actions)
       : state.currentView === "starting"
       ? renderStarting(state)
       : state.currentView === "game"
@@ -1909,6 +2271,10 @@ export function renderApp(
     root.addEventListener("pointerdown", (event) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
+      const accountMenu = root.querySelector<HTMLDetailsElement>(".account-menu");
+      if (accountMenu?.open && !accountMenu.contains(target)) {
+        accountMenu.open = false;
+      }
       const visibilityMenu = root.querySelector<HTMLDetailsElement>(".room-visibility-menu");
       if (visibilityMenu?.open && !visibilityMenu.contains(target)) {
         visibilityMenu.open = false;
@@ -1921,6 +2287,14 @@ export function renderApp(
       ) {
         actions.onClosePlayerCard();
       }
+    });
+    root.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      const accountMenu = root.querySelector<HTMLDetailsElement>(".account-menu");
+      if (!accountMenu?.open) return;
+      event.preventDefault();
+      accountMenu.open = false;
+      accountMenu.querySelector<HTMLElement>(".account-menu-trigger")?.focus();
     });
     if (typeof window !== "undefined") {
       window.addEventListener("resize", () => positionPlayerDetailDialog(root));

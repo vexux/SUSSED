@@ -55,8 +55,10 @@ The profiles table stores minimal account metadata independently from Firebase
 Auth and multiplayer sessions. `profiles.id` is `TEXT` and stores the verified
 Firebase UID exactly; it is not a UUID, Socket.IO ID, or room player ID.
 `display_name` is editable metadata (defaulting to `Player`), with `created_at`
-and trigger-maintained `updated_at` timestamps. No credentials or auth tokens
-are stored. Guests do not receive profile rows.
+and trigger-maintained `updated_at` timestamps. The initial migration permits
+1–32 characters; the Phase 2 migration below tightens editable display names to
+2–20 trimmed characters. No credentials or auth tokens are stored. Guests do not
+receive profile rows.
 
 The non-destructive migration is
 [`supabase/migrations/202610260001_profiles.sql`](./supabase/migrations/202610260001_profiles.sql).
@@ -76,14 +78,44 @@ file, or browser code. If either setting is absent, profile operations return a
 controlled unavailable response; authentication, guests, and room play remain
 available.
 
-The server verifies each Firebase ID token before profile operations, obtains
-the UID only from the verified socket metadata, and scopes all profile writes
-to that UID. The client sends only profile fields such as the display name.
-Creating a profile is idempotent and preserves an existing display name.
-Profile fetches happen after the socket connects and never block room creation,
-joining, or gameplay. A player's `socket.id` continues to be the multiplayer
-identity; guest players are transient and no account profile is created for
-them.
+The server verifies each Firebase ID token before profile operations and obtains
+the UID only from verified socket metadata. Profile actions run only when a
+user opens the account screens; they are not in the room/game critical path.
+A player's `socket.id` and room membership remain the multiplayer identity;
+guest players are transient and no account profile is created for them.
+
+### Handles, friends, and account screens
+
+Phase 2 extends the existing profile table with a unique handle and handle
+change timestamp, and adds persistent friend requests/friendships. Review
+[`supabase/migrations/202610260002_profiles_handles_friends.sql`](./supabase/migrations/202610260002_profiles_handles_friends.sql)
+and apply it manually after the original profiles migration through the
+intended Supabase project's SQL Editor or your established migration workflow.
+It is forward-only and does not drop or recreate existing profile data. It has
+not been applied automatically; verify the target project, take the normal
+backup/safety steps, and review its SQL before applying, especially in
+production.
+
+Handles are unique lowercase alphanumeric names of 3–20 characters. The `@`
+is presentation-only; a new profile gets a generated handle, and existing
+profiles without one are assigned one safely by the database helper. Handle
+changes are enforced server-side and can occur once per seven-day period.
+Display names are trimmed, 2–20 characters, and can be changed without that
+cooldown.
+
+Profile and social Socket.IO operations require a verified Firebase ID token.
+The server derives the account key from `socket.data.accountId`; clients never
+choose the account ID. Profile, handle, and friendship queries use the
+server-only Supabase service-role credential. RLS remains enabled with no
+`anon` or `authenticated` table access. Public handle/name search and public
+profiles return only display names and handles, never Firebase UIDs, emails,
+or auth data. Guests cannot use these operations and are not linked to accounts.
+Database errors are reported as controlled social/profile errors; they do not
+prevent guests or signed-in users from using rooms and games.
+
+The Friends screen supports public player search, incoming/outgoing requests,
+and the friends list. The Achievements screen currently says “No achievements
+yet”; Phase 2 does not generate achievement data or introduce tracking.
 
 ## Local Firebase Authentication Emulator
 
