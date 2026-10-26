@@ -7,6 +7,7 @@ import {
   createInvitationQrDataUrl,
   createInvitationUrl,
   parseInvitationCode,
+  preserveInvitationCode,
   shareOrCopyInvitation,
 } from "../src/invitations.ts";
 
@@ -30,6 +31,25 @@ test("invitation codes parse once, normalize case, and reject malformed or ambig
   assert.deepEqual(parseInvitationCode("?code="), { status: "invalid", code: null });
   assert.deepEqual(parseInvitationCode("?code=TOOLONG"), { status: "invalid", code: null });
   assert.deepEqual(parseInvitationCode("?code=ATOM&code=BEAM"), { status: "invalid", code: null });
+});
+
+test("invitation room codes survive authentication redirects", () => {
+  assert.equal(
+    preserveInvitationCode(
+      "https://play.example/auth/callback?source=email",
+      "http://localhost:5173",
+      { status: "valid", code: "ZING" },
+    ),
+    "https://play.example/auth/callback?source=email&code=ZING",
+  );
+  assert.equal(
+    preserveInvitationCode(
+      "http://localhost:5173",
+      "http://localhost:5173",
+      { status: "invalid", code: null },
+    ),
+    "http://localhost:5173",
+  );
 });
 
 test("copying falls back after clipboard denial and reports failure if both paths fail", async () => {

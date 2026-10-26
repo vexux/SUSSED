@@ -1,7 +1,31 @@
-export type AppView = "home" | "game-selection" | "public-rooms" | "lobby" | "starting" | "game";
+export type AppView =
+  | "auth-loading"
+  | "welcome"
+  | "email-auth"
+  | "home"
+  | "game-selection"
+  | "public-rooms"
+  | "lobby"
+  | "starting"
+  | "game";
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 export type RoomStatus = "lobby" | "starting";
 export type ThemePreference = "dark" | "light";
+
+export function resolveAuthEntryView(options: {
+  restored: boolean;
+  hasUser: boolean;
+  isAuthenticated: boolean;
+  requiresEmailVerification: boolean;
+  isRecoveryFlow?: boolean;
+}): AppView {
+  if (options.isRecoveryFlow) return "email-auth";
+  if (!options.restored) return "auth-loading";
+  if (!options.hasUser) return "welcome";
+  return options.isAuthenticated && !options.requiresEmailVerification
+    ? "home"
+    : "email-auth";
+}
 
 export const THEME_STORAGE_KEY = "sussed-theme";
 
@@ -135,7 +159,7 @@ export interface AppState {
   resultsReminderSentSessionId: string | null;
 }
 
-export const LANDING_TAGLINE = "Gather your friends. Ruin their self-esteem.";
+export const LANDING_TAGLINE = "Your friends. Your lies. Your problem.";
 
 export function createInitialAppState(): AppState {
   return {

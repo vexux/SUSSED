@@ -19,6 +19,17 @@ export function parseInvitationCode(search: string): InvitationCodeResult {
     : { status: "invalid", code: null };
 }
 
+export function preserveInvitationCode(
+  redirectUrl: string,
+  currentOrigin: string,
+  invitation: InvitationCodeResult,
+): string {
+  if (invitation.status !== "valid") return redirectUrl;
+  const target = new URL(redirectUrl, currentOrigin);
+  target.searchParams.set("code", invitation.code);
+  return target.toString();
+}
+
 export function createInvitationUrl(
   roomCode: string,
   currentHref: string,

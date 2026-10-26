@@ -229,6 +229,10 @@ button:disabled {
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
+.app-header.entry-header-controls-only {
+  justify-content: flex-end;
+}
+
 .brand {
   display: flex;
   align-items: baseline;
@@ -309,6 +313,123 @@ button:disabled {
 
 .theme-toggle:focus-visible {
   outline-offset: 3px;
+}
+
+.header-account-button,
+.auth-back-button {
+  min-height: 44px;
+}
+
+.welcome-screen {
+  justify-content: center;
+  padding: clamp(24px, 7vh, 64px) 0;
+}
+
+.welcome-content {
+  display: grid;
+  justify-items: center;
+  width: min(100%, 400px);
+}
+
+.welcome-wordmark {
+  display: flex;
+  align-items: baseline;
+  margin: 0;
+  font-size: clamp(3.5rem, 16vw, 6.5rem);
+  font-weight: 950;
+  letter-spacing: -0.075em;
+  line-height: 0.95;
+}
+
+.welcome-tagline {
+  margin: 20px 0 32px;
+  color: var(--color-text-secondary);
+  font-size: clamp(1rem, 4vw, 1.15rem);
+  font-weight: 650;
+  text-align: center;
+}
+
+.welcome-actions {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 360px);
+}
+
+.welcome-button {
+  display: inline-flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: var(--radius-md);
+  font-weight: 750;
+}
+
+.welcome-google-button,
+.auth-google-button {
+  border: 1px solid #d0cbd3;
+  color: #29242e;
+  background: #ffffff;
+}
+
+.welcome-google-button:hover:not(:disabled),
+.auth-google-button:hover:not(:disabled) {
+  border-color: #aaa3af;
+  background: #f6f4f8;
+  box-shadow: 0 0.35rem 1rem rgb(30 24 35 / 12%);
+}
+
+.google-mark {
+  display: block;
+  flex: 0 0 20px;
+}
+
+.guest-entry-button {
+  border-color: #514b57;
+  color: #f7f4fa;
+  background: #39343e;
+}
+
+.guest-entry-button:hover:not(:disabled) {
+  border-color: #777080;
+  color: #ffffff;
+  background: #49434f;
+}
+
+.email-auth-screen {
+  justify-content: flex-start;
+  gap: var(--space-3);
+  padding-top: clamp(32px, 8vh, 72px);
+}
+
+.email-auth-title {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: clamp(1.8rem, 7vw, 2.5rem) !important;
+  text-align: center;
+}
+
+.email-auth-screen .auth-panel {
+  margin-top: 0;
+}
+
+.auth-loading-screen {
+  justify-content: center;
+  padding: var(--space-6) 0;
+}
+
+.auth-loading-message {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.game-home-title {
+  width: min(100%, 820px);
+  margin: 0 0 var(--space-2) !important;
+  color: var(--color-text-strong);
+  font-size: clamp(1.75rem, 6vw, 2.5rem) !important;
+  text-align: left;
 }
 
 .room-code-chip svg,
@@ -889,6 +1010,13 @@ select:focus:not(:focus-visible) {
 .auth-mode-choices .is-selected {
   border-color: var(--color-accent-border-strong);
   background: var(--color-accent-surface-strong);
+}
+
+.auth-google-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
 }
 
 .landing-action-card {

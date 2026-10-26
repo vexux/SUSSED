@@ -5,6 +5,7 @@ import {
   LANDING_TAGLINE,
   persistThemePreference,
   readThemePreference,
+  resolveAuthEntryView,
   THEME_STORAGE_KEY,
 } from "../src/appState.ts";
 import { validatePlayerName } from "../src/playerName.ts";
@@ -174,6 +175,7 @@ function createActions() {
 test("authentication panel renders verification, recovery, OAuth, and signed-in states", () => {
   withFakeDocument(() => {
     const state = createInitialAppState();
+    state.currentView = "email-auth";
     const root = new FakeElement("root");
     const authState = {
       mode: "sign-up",
@@ -181,13 +183,11 @@ test("authentication panel renders verification, recovery, OAuth, and signed-in 
       password: "",
       passwordConfirmation: "",
       userEmail: null,
+      isAuthenticated: true,
       isBusy: false,
       errorMessage: null,
       statusMessage: "Check your inbox for a verification link.",
       verificationRequired: true,
-      profileDisplayName: null,
-      profileLoading: false,
-      profileSaving: false,
       resendAvailableAt: Date.now() + 10_000,
       hasRecoverySession: false,
       configurationError: null,
@@ -213,14 +213,84 @@ test("authentication panel renders verification, recovery, OAuth, and signed-in 
 
     authState.mode = "sign-in";
     authState.userEmail = "player@example.com";
-    authState.profileDisplayName = "Player one";
     render();
     panel = root.query((element) => element.classList.contains("auth-panel"));
-    assert.match(panel.text, /player@example.com/u);
-    assert.match(panel.text, /Sign out/u);
-    assert.equal(panel.query((element) => element.id === "auth-password"), null);
-    assert.equal(panel.query((element) => element.id === "profile-display-name").value, "Player one");
+    assert.equal(panel.query((element) => element.id === "auth-password").type, "password");
+    assert.equal(panel.query((element) => element.id === "profile-display-name"), null);
+    assert.equal(root.query((element) => element.classList.contains("auth-account-email")), null);
   });
+});
+
+test("welcome screen presents the three entry actions and exact tagline", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "welcome";
+    const calls = [];
+    const actions = new Proxy({}, {
+      get: (_target, name) => (...args) => calls.push([name, ...args]),
+    });
+    const root = new FakeElement("root");
+    renderApp(root, state, actions, {}, {});
+
+    assert.equal(root.query((element) => element.classList.contains("welcome-tagline")).textContent, "Your friends. Your lies. Your problem.");
+    assert.deepEqual(
+      root.queryAll((element) => element.classList.contains("welcome-button")).map((button) => button.text),
+      ["Continue with Google", "Continue with email", "Play as a guest"],
+    );
+
+    root.query((element) => element.classList.contains("welcome-google-button")).dispatch("click");
+    root.query((element) => element.classList.contains("welcome-email-button")).dispatch("click");
+    root.query((element) => element.classList.contains("guest-entry-button")).dispatch("click");
+    assert.deepEqual(calls.map(([name]) => name), [
+      "onAuthGoogle",
+      "onOpenEmailAuth",
+      "onPlayAsGuest",
+    ]);
+  });
+});
+
+test("email authentication is separate and its back control returns to welcome", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "email-auth";
+    const calls = [];
+    const actions = new Proxy({}, {
+      get: (_target, name) => (...args) => calls.push([name, ...args]),
+    });
+    const root = new FakeElement("root");
+    renderApp(root, state, actions, {}, {});
+    assert.ok(root.query((element) => element.classList.contains("auth-panel")));
+    assert.equal(root.query((element) => element.classList.contains("welcome-screen")), null);
+    root.query((element) => element.classList.contains("auth-back-button")).dispatch("click");
+    assert.deepEqual(calls.map(([name]) => name), ["onBackToWelcome"]);
+  });
+});
+
+test("auth entry resolution waits for restored sessions and protects unverified users", () => {
+  assert.equal(resolveAuthEntryView({
+    restored: false,
+    hasUser: false,
+    isAuthenticated: false,
+    requiresEmailVerification: false,
+  }), "auth-loading");
+  assert.equal(resolveAuthEntryView({
+    restored: true,
+    hasUser: true,
+    isAuthenticated: true,
+    requiresEmailVerification: false,
+  }), "home");
+  assert.equal(resolveAuthEntryView({
+    restored: true,
+    hasUser: true,
+    isAuthenticated: false,
+    requiresEmailVerification: true,
+  }), "email-auth");
+  assert.equal(resolveAuthEntryView({
+    restored: true,
+    hasUser: false,
+    isAuthenticated: false,
+    requiresEmailVerification: false,
+  }), "welcome");
 });
 
 function createSubmissionView(gameId) {
@@ -334,65 +404,51 @@ test("a new game round starts a fresh answer-entry input", () => {
   });
 });
 
-test("landing page uses a stable tagline and keeps its form interactions usable", () => {
+test("game home keeps room controls usable without landing or account panels", () => {
   withFakeDocument(() => {
-    const originalRandom = Math.random;
-    Math.random = () => 0.5;
-    try {
-      const state = createInitialAppState();
-      state.connectionStatus = "connected";
-      const selected = state.landingTagline;
-      assert.equal(selected, LANDING_TAGLINE);
-      Math.random = () => 0;
-      assert.equal(createInitialAppState().landingTagline, LANDING_TAGLINE);
-      Math.random = () => 0.5;
-
-      state.availableGames = [
-        { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
-      ];
-      const calls = { create: 0, join: [], names: [] };
-      const actions = {
-        onPlayerNameChange(name) { state.playerName = name; state.errorMessage = null; state.errorCode = null; calls.names.push(name); },
-        onCreateRoom() { calls.create += 1; },
-        onJoinRoom(code) { calls.join.push(code); },
-        onRoomCodeChange(code) { state.joinRoomCode = code.toUpperCase(); },
-        onBrowsePublicRooms() { calls.browse = true; },
-      };
-      const root = new FakeElement("root");
-      const render = () => renderApp(root, state, actions, {}, {});
-      render();
-      const tagline = root.query((element) => element.className.includes("landing-tagline"));
-      const nameInput = root.query((element) => element.id === "player-name");
-      const codeInput = root.query((element) => element.id === "room-code");
-      assert.equal(tagline.textContent, selected);
-      assert.equal(codeInput.placeholder, "CODE");
-      assert.equal(root.text.includes("Room codes are memorable four-letter words."), false);
-      assert.ok(root.query((element) => element.tagName === "button" && element.textContent === "Choose a game"));
-      const actionCards = root.query((element) => element.className.includes("landing-actions")).children;
-      assert.equal(actionCards.length, 3);
-      assert.deepEqual(actionCards.map((card) => card.query((element) => element.tagName === "h2").text), [
-        "Create a room", "Join with code", "Browse public rooms",
-      ]);
-      assert.ok(actionCards.every((card) => card.className.includes("landing-action-card")));
-      assert.equal(actionCards[0].query((element) => element.tagName === "svg").attributes["aria-hidden"], "true");
-
-      nameInput.value = "Alex";
-      nameInput.dispatch("input");
-      render();
-      assert.equal(state.landingTagline, selected);
-      assert.equal(root.query((element) => element.className.includes("landing-tagline")).textContent, selected);
-      assert.equal(root.query((element) => element.id === "player-name").value, "Alex");
-      root.query((element) => element.textContent === "Choose a game").dispatch("click");
-      root.query((element) => element.id === "room-code").value = "ABCD";
-      root.query((element) => element.textContent === "Join room").dispatch("click");
-      root.query((element) => element.tagName === "button" && element.textContent === "Browse public rooms").dispatch("click");
-      assert.equal(calls.create, 1);
-      assert.deepEqual(calls.join, ["ABCD"]);
-      assert.deepEqual(calls.names, ["Alex"]);
-      assert.equal(calls.browse, true);
-    } finally {
-      Math.random = originalRandom;
-    }
+    const state = createInitialAppState();
+    state.currentView = "home";
+    state.connectionStatus = "connected";
+    assert.equal(state.landingTagline, LANDING_TAGLINE);
+    state.availableGames = [
+      { id: "fact-or-cap", displayName: "Fact or Cap", description: "Bluff with facts.", minPlayers: 2, maxPlayers: 8 },
+    ];
+    const calls = { create: 0, join: [], names: [] };
+    const actions = {
+      onPlayerNameChange(name) { state.playerName = name; state.errorMessage = null; state.errorCode = null; calls.names.push(name); },
+      onCreateRoom() { calls.create += 1; },
+      onJoinRoom(code) { calls.join.push(code); },
+      onRoomCodeChange(code) { state.joinRoomCode = code.toUpperCase(); },
+      onBrowsePublicRooms() { calls.browse = true; },
+    };
+    const root = new FakeElement("root");
+    const render = () => renderApp(root, state, actions, {}, {});
+    render();
+    const nameInput = root.query((element) => element.id === "player-name");
+    const codeInput = root.query((element) => element.id === "room-code");
+    assert.equal(root.query((element) => element.classList.contains("landing-tagline")), null);
+    assert.equal(root.query((element) => element.classList.contains("auth-panel")), null);
+    assert.equal(root.query((element) => element.id === "profile-display-name"), null);
+    assert.equal(root.query((element) => element.classList.contains("header-account-button")).textContent, "Sign in");
+    assert.equal(codeInput.placeholder, "CODE");
+    assert.ok(root.query((element) => element.tagName === "button" && element.textContent === "Choose a game"));
+    const actionCards = root.query((element) => element.className.includes("landing-actions")).children;
+    assert.equal(actionCards.length, 3);
+    assert.deepEqual(actionCards.map((card) => card.query((element) => element.tagName === "h2").text), [
+      "Create a room", "Join with code", "Browse public rooms",
+    ]);
+    nameInput.value = "Alex";
+    nameInput.dispatch("input");
+    render();
+    assert.equal(root.query((element) => element.id === "player-name").value, "Alex");
+    root.query((element) => element.textContent === "Choose a game").dispatch("click");
+    root.query((element) => element.id === "room-code").value = "ABCD";
+    root.query((element) => element.textContent === "Join room").dispatch("click");
+    root.query((element) => element.tagName === "button" && element.textContent === "Browse public rooms").dispatch("click");
+    assert.equal(calls.create, 1);
+    assert.deepEqual(calls.join, ["ABCD"]);
+    assert.deepEqual(calls.names, ["Alex"]);
+    assert.equal(calls.browse, true);
   });
 });
 

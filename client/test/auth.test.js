@@ -4,6 +4,7 @@ import {
   createAuthService,
   getAuthErrorMessage,
   getAuthRedirectUrl,
+  getPasswordResetCode,
   getRecoveryLinkError,
 } from "../src/auth.ts";
 import {
@@ -61,6 +62,13 @@ function createMockFirebase({ user = createUser(), apiOverrides = {} } = {}) {
     },
     async updatePassword(currentUser, password) {
       calls.push(["updatePassword", currentUser, password]);
+    },
+    async verifyPasswordResetCode(auth, code) {
+      calls.push(["verifyPasswordResetCode", auth, code]);
+      return "player@example.com";
+    },
+    async confirmPasswordReset(auth, code, password) {
+      calls.push(["confirmPasswordReset", auth, code, password]);
     },
     GoogleAuthProvider: class {},
     async signInWithPopup(auth, provider) {
@@ -193,6 +201,24 @@ test("sign-out, password recovery, and password change use Firebase APIs", async
   ]);
 });
 
+test("password reset links are verified and completed with Firebase action-code APIs", async () => {
+  const { client, api, calls } = createMockFirebase();
+  const service = createAuthService(client, REDIRECT_URL, api);
+  assert.equal(await service.verifyPasswordResetCode("reset-code"), "player@example.com");
+  await service.confirmPasswordReset("reset-code", "another-long-password");
+  assert.deepEqual(calls.map(([method]) => method), [
+    "verifyPasswordResetCode",
+    "confirmPasswordReset",
+  ]);
+  assert.deepEqual(calls[0], ["verifyPasswordResetCode", client, "reset-code"]);
+  assert.deepEqual(calls[1], [
+    "confirmPasswordReset",
+    client,
+    "reset-code",
+    "another-long-password",
+  ]);
+});
+
 test("session restoration waits for Firebase Auth and returns the current ID token", async () => {
   const { client, api, calls } = createMockFirebase();
   const restored = await createAuthService(client, REDIRECT_URL, api).restoreSession();
@@ -216,6 +242,19 @@ test("redirect selection, recovery-link errors, and Firebase error mapping are d
     getRecoveryLinkError("", "?error=access_denied&error_code=otp_expired"),
     /invalid or has expired/,
   );
+  assert.equal(getRecoveryLinkError("", "?error=access_denied"), null);
+  assert.equal(
+    getRecoveryLinkError("", "?mode=verifyEmail&error_code=invalid_action_code"),
+    null,
+  );
+  assert.match(
+    getRecoveryLinkError("", "?mode=resetPassword&error_code=invalid_action_code"),
+    /invalid or has expired/,
+  );
+  assert.equal(getPasswordResetCode("?mode=resetPassword&oobCode=query-code", ""), "query-code");
+  assert.equal(getPasswordResetCode("", "#mode=resetPassword&oobCode=hash-code"), "hash-code");
+  assert.equal(getPasswordResetCode("?mode=verifyEmail&oobCode=verify-code", ""), null);
+  assert.match(getRecoveryLinkError("", "?mode=resetPassword"), /invalid or has expired/);
   assert.equal(getRecoveryLinkError("#access_token=valid-token&type=recovery"), null);
   assert.match(getAuthErrorMessage({ code: "auth/too-many-requests" }), /temporarily limited/);
   assert.match(getAuthErrorMessage({ code: "auth/network-request-failed" }), /internet connection/);

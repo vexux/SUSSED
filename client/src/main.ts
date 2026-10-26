@@ -3,6 +3,7 @@ import { onIdTokenChanged } from "firebase/auth";
 import {
   createInitialAppState,
   persistThemePreference,
+  resolveAuthEntryView,
   type GameSessionState,
   type LobbyGame,
   type LobbyState,
@@ -13,6 +14,7 @@ import {
   createAuthService,
   getAuthErrorMessage,
   getAuthRedirectUrl,
+  getPasswordResetCode,
   getRecoveryLinkError,
 } from "./auth";
 import {
@@ -28,6 +30,7 @@ import {
   createInvitationUrl,
   normalizeInvitationCode,
   parseInvitationCode,
+  preserveInvitationCode,
   shareOrCopyInvitation,
 } from "./invitations";
 import { validatePlayerName } from "./playerName";
@@ -83,14 +86,6 @@ interface PublicRoomsResponse {
   error?: { code: string; message: string };
 }
 
-interface ProfileResponse {
-  profile?: {
-    id: string;
-    display_name: string;
-  };
-  error?: { code: string; message: string };
-}
-
 const app = document.querySelector<HTMLElement>("#app");
 if (!app) {
   throw new Error("The application root element was not found.");
@@ -98,15 +93,24 @@ if (!app) {
 const appRoot: HTMLElement = app;
 
 const state = createInitialAppState();
+const invitationCode = parseInvitationCode(window.location.search);
 const authService = firebaseClient
   ? createAuthService(
       firebaseClient,
-      getAuthRedirectUrl(import.meta.env.VITE_AUTH_REDIRECT_URL, window.location.origin),
+      preserveInvitationCode(
+        getAuthRedirectUrl(import.meta.env.VITE_AUTH_REDIRECT_URL, window.location.origin),
+        window.location.origin,
+        invitationCode,
+      ),
     )
   : null;
 const recoveryLinkError = getRecoveryLinkError(
   window.location.hash,
   window.location.search,
+);
+let pendingPasswordResetCode = getPasswordResetCode(
+  window.location.search,
+  window.location.hash,
 );
 const authCallbackParameters = new URLSearchParams(window.location.search);
 for (const [key, value] of new URLSearchParams(
@@ -115,18 +119,16 @@ for (const [key, value] of new URLSearchParams(
   authCallbackParameters.set(key, value);
 }
 const authViewState: AuthViewState = {
-  mode: recoveryLinkError ? "recovery" : "sign-in",
+  mode: recoveryLinkError || pendingPasswordResetCode ? "recovery" : "sign-in",
   email: "",
   password: "",
   passwordConfirmation: "",
   userEmail: null as string | null,
+  isAuthenticated: false,
   isBusy: false,
   errorMessage: null as string | null,
   statusMessage: null as string | null,
   verificationRequired: false,
-  profileDisplayName: null as string | null,
-  profileLoading: false,
-  profileSaving: false,
   resendAvailableAt: null as number | null,
   hasRecoverySession: false,
   configurationError: firebaseConfigurationError ?? (!firebaseClient
@@ -134,12 +136,40 @@ const authViewState: AuthViewState = {
     : null),
   recoveryError: recoveryLinkError,
 };
+state.currentView = resolveAuthEntryView({
+  restored: !firebaseClient,
+  hasUser: false,
+  isAuthenticated: false,
+  requiresEmailVerification: false,
+  isRecoveryFlow: Boolean(recoveryLinkError || pendingPasswordResetCode),
+});
+if (pendingPasswordResetCode) {
+  authViewState.isBusy = true;
+}
 if (!recoveryLinkError && authCallbackParameters.has("error")) {
   authViewState.errorMessage =
     "Google sign-in could not finish. Confirm Google is enabled in Firebase and its redirect URLs are configured.";
 }
+if (pendingPasswordResetCode && authService) {
+  const resetCode = pendingPasswordResetCode;
+  void authService.verifyPasswordResetCode(resetCode).then((email) => {
+    if (pendingPasswordResetCode !== resetCode) return;
+    authViewState.email = email;
+    authViewState.hasRecoverySession = true;
+    authViewState.statusMessage = "Choose a new password for your account.";
+  }).catch((error: unknown) => {
+    if (pendingPasswordResetCode !== resetCode) return;
+    authViewState.recoveryError = error instanceof Error
+      ? error.message
+      : getAuthErrorMessage(error);
+  }).finally(() => {
+    authViewState.isBusy = false;
+    render();
+  });
+} else if (pendingPasswordResetCode) {
+  authViewState.isBusy = false;
+}
 let resendCooldownTimer: ReturnType<typeof setInterval> | null = null;
-const invitationCode = parseInvitationCode(window.location.search);
 if (invitationCode.status === "valid") {
   state.joinRoomCode = invitationCode.code;
   state.invitationMessage = "Invitation code ready. Enter your name, then join the room.";
@@ -863,84 +893,6 @@ async function runAuthAction(
   }
 }
 
-let profileAccountId: string | null = null;
-let profileRequestId = 0;
-let profileRequestAccountId: string | null = null;
-
-function loadCurrentProfile(): void {
-  const user = firebaseClient?.currentUser;
-  if (!user?.emailVerified || user.providerData.length === 0 || !socket.connected) {
-    authViewState.profileLoading = false;
-    return;
-  }
-  if (profileAccountId === user.uid && authViewState.profileDisplayName !== null) {
-    return;
-  }
-  if (profileRequestAccountId === user.uid) return;
-
-  const requestId = ++profileRequestId;
-  profileRequestAccountId = user.uid;
-  authViewState.profileLoading = true;
-  authViewState.errorMessage = null;
-  render();
-  socket.timeout(5000).emit(
-    "get-profile",
-    (transportError: Error | null, response?: ProfileResponse) => {
-      if (requestId !== profileRequestId) return;
-      profileRequestAccountId = null;
-      authViewState.profileLoading = false;
-      if (transportError || !response || response.error || !response.profile) {
-        authViewState.errorMessage =
-          response?.error?.message ??
-          "Your profile could not be loaded. Check the server's Supabase configuration and try again.";
-      } else if (response.profile.id !== user.uid) {
-        authViewState.errorMessage =
-          "The server returned a profile for a different account. Sign out and sign in again.";
-      } else {
-        profileAccountId = user.uid;
-        authViewState.profileDisplayName = response.profile.display_name;
-      }
-      render();
-    },
-  );
-}
-
-function saveProfileDisplayName(): void {
-  const user = firebaseClient?.currentUser;
-  if (
-    !user?.emailVerified ||
-    user.providerData.length === 0 ||
-    !socket.connected ||
-    !authViewState.profileDisplayName ||
-    authViewState.profileSaving
-  ) {
-    return;
-  }
-
-  authViewState.profileSaving = true;
-  authViewState.errorMessage = null;
-  render();
-  socket.timeout(5000).emit(
-    "update-profile-display-name",
-    { displayName: authViewState.profileDisplayName },
-    (transportError: Error | null, response?: ProfileResponse) => {
-      authViewState.profileSaving = false;
-      if (transportError || !response || response.error || !response.profile) {
-        authViewState.errorMessage =
-          response?.error?.message ??
-          "Your display name could not be saved. Try again.";
-      } else if (response.profile.id !== user.uid) {
-        authViewState.errorMessage =
-          "The server returned a profile for a different account. Sign out and sign in again.";
-      } else {
-        authViewState.profileDisplayName = response.profile.display_name;
-        authViewState.statusMessage = "Profile updated.";
-      }
-      render();
-    },
-  );
-}
-
 const actions: AppActions = {
   onPlayerNameChange(name) {
     state.playerName = name;
@@ -1022,6 +974,49 @@ const actions: AppActions = {
     state.errorCode = null;
     state.nameEntryError = null;
     clearPlayerActionFeedback();
+    render();
+  },
+  onOpenEmailAuth() {
+    state.currentView = "email-auth";
+    authViewState.errorMessage = null;
+    authViewState.statusMessage = null;
+    if (!authViewState.verificationRequired && authViewState.mode === "recovery") {
+      authViewState.mode = pendingPasswordResetCode || recoveryLinkError
+        ? "recovery"
+        : "sign-in";
+    }
+    render();
+    const title = appRoot.querySelector<HTMLElement>(".email-auth-title");
+    if (title) {
+      title.focus();
+    }
+  },
+  onPlayAsGuest() {
+    const user = firebaseClient?.currentUser;
+    if (user) {
+      const requiresEmailVerification = user.providerData.some(
+        ({ providerId }) => providerId === "password",
+      ) && !user.emailVerified;
+      if (requiresEmailVerification) {
+        authViewState.verificationRequired = true;
+        authViewState.email = user.email ?? authViewState.email;
+        authViewState.errorMessage =
+          "Verify your email before entering the game. Resend the verification email below if needed.";
+        state.currentView = "email-auth";
+      } else {
+        state.currentView = "home";
+      }
+      render();
+      return;
+    }
+    state.currentView = "home";
+    state.errorMessage = null;
+    render();
+  },
+  onBackToWelcome() {
+    if (authViewState.isBusy) return;
+    state.currentView = authViewState.isAuthenticated ? "home" : "welcome";
+    authViewState.errorMessage = null;
     render();
   },
   onChooseAnotherGame() {
@@ -1852,13 +1847,6 @@ const actions: AppActions = {
     authViewState[field] = value;
     authViewState.errorMessage = null;
   },
-  onProfileDisplayNameChange(value) {
-    authViewState.profileDisplayName = value;
-    authViewState.errorMessage = null;
-  },
-  onSaveProfileDisplayName() {
-    saveProfileDisplayName();
-  },
   onAuthSubmit() {
     if (!authService) return;
     void runAuthAction(async () => {
@@ -1906,17 +1894,29 @@ const actions: AppActions = {
       if (!authViewState.hasRecoverySession) {
         throw new Error("This recovery link is invalid or expired. Request a new recovery email.");
       }
-      await authService.updatePassword(authViewState.password);
+      if (!pendingPasswordResetCode) {
+        throw new Error("This recovery link is invalid or expired. Request a new recovery email.");
+      }
+      await authService.confirmPasswordReset(
+        pendingPasswordResetCode,
+        authViewState.password,
+      );
+      pendingPasswordResetCode = null;
       authViewState.password = "";
       authViewState.passwordConfirmation = "";
       authViewState.hasRecoverySession = false;
       authViewState.mode = "sign-in";
       authViewState.recoveryError = null;
-      authViewState.statusMessage = "Your password was updated. You’re signed in.";
+      authViewState.statusMessage = "Your password was updated. Sign in with your new password.";
     });
   },
   onAuthGoogle() {
-    if (!authService) return;
+    if (!authService) {
+      authViewState.errorMessage =
+        authViewState.configurationError ?? "Firebase authentication is not configured.";
+      render();
+      return;
+    }
     void runAuthAction(() => authService.signInWithGoogle());
   },
   onAuthResendVerification() {
@@ -1925,8 +1925,11 @@ const actions: AppActions = {
       const result = await authService.resendVerification(authViewState.email);
       if (result === "already-verified") {
         authViewState.verificationRequired = false;
-        authViewState.userEmail = firebaseClient?.currentUser?.email ?? null;
+        const user = firebaseClient?.currentUser ?? null;
+        authViewState.userEmail = user?.email ?? null;
+        authViewState.isAuthenticated = Boolean(user?.emailVerified && user.providerData.length > 0);
         authViewState.statusMessage = "This email is already verified. You can sign in now.";
+        if (authViewState.isAuthenticated) state.currentView = "home";
         return;
       }
       authViewState.statusMessage = "A new verification email has been sent.";
@@ -1949,11 +1952,9 @@ const actions: AppActions = {
     void runAuthAction(async () => {
       await authService.signOut();
       authViewState.userEmail = null;
-      authViewState.profileDisplayName = null;
-      profileAccountId = null;
-      profileRequestAccountId = null;
-      profileRequestId += 1;
-      authViewState.statusMessage = "You’re signed out. Guest play is still available.";
+      authViewState.isAuthenticated = false;
+      authViewState.statusMessage = null;
+      state.currentView = "welcome";
     });
   },
 };
@@ -1965,6 +1966,9 @@ const retrySocketWithFreshIdToken = createSocketTokenRefreshRetry(
 );
 if (firebaseClient) {
   let isInitialFirebaseAuthState = true;
+  let initialAuthResolved = false;
+  let observedUserId: string | null | undefined;
+  let observedAuthenticated: boolean | null = null;
   onIdTokenChanged(firebaseClient, (user) => {
     const requiresEmailVerification = Boolean(
       user &&
@@ -1974,8 +1978,14 @@ if (firebaseClient) {
     const eligibleForAuthenticatedSocket = Boolean(
       user?.emailVerified && user.providerData.length > 0,
     );
+    const userId = user?.uid ?? null;
+    const identityChanged = observedUserId !== userId;
+    const authenticationChanged = observedAuthenticated !== eligibleForAuthenticatedSocket;
+    const isInitialState = isInitialFirebaseAuthState;
+    observedUserId = userId;
+    observedAuthenticated = eligibleForAuthenticatedSocket;
     handleSocketSessionChange(
-      isInitialFirebaseAuthState
+      isInitialState
         ? "INITIAL_SESSION"
         : user
           ? "SIGNED_IN"
@@ -1987,33 +1997,58 @@ if (firebaseClient) {
     isInitialFirebaseAuthState = false;
     authViewState.verificationRequired = requiresEmailVerification;
     authViewState.userEmail = requiresEmailVerification ? null : user?.email ?? null;
-    if (profileAccountId && profileAccountId !== user?.uid) {
-      profileAccountId = null;
-      authViewState.profileDisplayName = null;
-    }
-    if (profileRequestAccountId && profileRequestAccountId !== user?.uid) {
-      profileRequestId += 1;
-      profileRequestAccountId = null;
-      authViewState.profileLoading = false;
-    }
+    authViewState.isAuthenticated = eligibleForAuthenticatedSocket;
     if (user && requiresEmailVerification && user.email) {
       authViewState.email = user.email;
     }
-    if (!user) {
+    if (!user && !pendingPasswordResetCode) {
       authViewState.hasRecoverySession = false;
       authViewState.password = "";
       authViewState.passwordConfirmation = "";
     }
+    if (
+      initialAuthResolved &&
+      (isInitialState || identityChanged || authenticationChanged) &&
+      !recoveryLinkError &&
+      !pendingPasswordResetCode
+    ) {
+      state.currentView = resolveAuthEntryView({
+        restored: initialAuthResolved,
+        hasUser: Boolean(user),
+        requiresEmailVerification,
+        isAuthenticated: eligibleForAuthenticatedSocket,
+        isRecoveryFlow: Boolean(recoveryLinkError || pendingPasswordResetCode),
+      });
+    }
     render();
   });
-  void authService?.restoreSession().then(({ user, requiresEmailVerification }) => {
+  void authService?.restoreSession().then(({ requiresEmailVerification }) => {
+    initialAuthResolved = true;
+    const user = firebaseClient?.currentUser ?? null;
+    const eligibleForAuthenticatedSocket = Boolean(
+      user?.emailVerified && user.providerData.length > 0,
+    );
     authViewState.verificationRequired = requiresEmailVerification;
     authViewState.userEmail = requiresEmailVerification ? null : user?.email ?? null;
+    authViewState.isAuthenticated = eligibleForAuthenticatedSocket;
     if (requiresEmailVerification && user?.email) {
       authViewState.email = user.email;
     }
+    if (!recoveryLinkError && !pendingPasswordResetCode) {
+      state.currentView = resolveAuthEntryView({
+        restored: true,
+        hasUser: Boolean(user),
+        requiresEmailVerification,
+        isAuthenticated: eligibleForAuthenticatedSocket,
+        isRecoveryFlow: Boolean(recoveryLinkError || pendingPasswordResetCode),
+      });
+    }
     render();
   }).catch((error: unknown) => {
+    initialAuthResolved = true;
+    if (!recoveryLinkError && !pendingPasswordResetCode) {
+      state.currentView = "email-auth";
+    }
     authViewState.errorMessage = getAuthErrorMessage(error);
     render();
   });
@@ -2100,7 +2135,6 @@ socket.on("connect", () => {
   hasConnectedOnce = true;
   render();
   requestAvailableGames();
-  loadCurrentProfile();
   if (state.currentView === "public-rooms") subscribeToPublicRooms();
 });
 

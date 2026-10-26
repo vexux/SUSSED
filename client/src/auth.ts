@@ -1,5 +1,6 @@
 import {
   createUserWithEmailAndPassword,
+  confirmPasswordReset,
   GoogleAuthProvider,
   reload,
   sendEmailVerification,
@@ -8,6 +9,7 @@ import {
   signInWithPopup,
   signOut,
   updatePassword,
+  verifyPasswordResetCode,
   type Auth,
   type User,
 } from "firebase/auth";
@@ -37,12 +39,15 @@ export interface AuthService {
   resendVerification(email: string): Promise<"sent" | "already-verified">;
   requestPasswordRecovery(email: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
+  verifyPasswordResetCode(code: string): Promise<string>;
+  confirmPasswordReset(code: string, password: string): Promise<void>;
   signInWithGoogle(): Promise<void>;
 }
 
 type FirebaseAuthApi = Pick<
   typeof import("firebase/auth"),
   | "createUserWithEmailAndPassword"
+  | "confirmPasswordReset"
   | "GoogleAuthProvider"
   | "reload"
   | "sendEmailVerification"
@@ -51,10 +56,12 @@ type FirebaseAuthApi = Pick<
   | "signInWithPopup"
   | "signOut"
   | "updatePassword"
+  | "verifyPasswordResetCode"
 >;
 
 const defaultFirebaseAuthApi: FirebaseAuthApi = {
   createUserWithEmailAndPassword,
+  confirmPasswordReset,
   GoogleAuthProvider,
   reload,
   sendEmailVerification,
@@ -63,6 +70,7 @@ const defaultFirebaseAuthApi: FirebaseAuthApi = {
   signInWithPopup,
   signOut,
   updatePassword,
+  verifyPasswordResetCode,
 };
 
 export function getAuthRedirectUrl(
@@ -285,6 +293,29 @@ export function createAuthService(
       }
     },
 
+    async verifyPasswordResetCode(code) {
+      if (!code.trim()) {
+        throw new Error("This password recovery link is invalid or expired. Request a new recovery email.");
+      }
+      try {
+        return await api.verifyPasswordResetCode(client, code);
+      } catch (error) {
+        throw new Error(getAuthErrorMessage(error));
+      }
+    },
+
+    async confirmPasswordReset(code, password) {
+      if (!code.trim()) {
+        throw new Error("This password recovery link is invalid or expired. Request a new recovery email.");
+      }
+      validatePassword(password);
+      try {
+        await api.confirmPasswordReset(client, code, password);
+      } catch (error) {
+        throw new Error(getAuthErrorMessage(error));
+      }
+    },
+
     async signInWithGoogle() {
       try {
         const provider = new api.GoogleAuthProvider();
@@ -308,15 +339,29 @@ export function getRecoveryLinkError(hash: string, search = ""): string | null {
   }
   const errorCode = parameters.get("error_code") ?? parameters.get("error");
   const mode = parameters.get("mode");
+  const isRecoveryContext =
+    mode === "resetPassword" || parameters.get("type") === "recovery";
   if (
     errorCode === "otp_expired" ||
-    errorCode === "invalid_action_code" ||
-    errorCode === "expired_action_code" ||
-    errorCode === "access_denied" ||
+    (isRecoveryContext && (
+      errorCode === "invalid_action_code" ||
+      errorCode === "expired_action_code" ||
+      errorCode === "access_denied"
+    )) ||
     (mode === "resetPassword" && !parameters.get("oobCode")) ||
-    (parameters.get("error") && parameters.get("type") === "recovery")
+    (parameters.get("error") && isRecoveryContext)
   ) {
     return "This password recovery link is invalid or has expired. Request a new recovery email.";
   }
   return null;
+}
+
+export function getPasswordResetCode(search: string, hash: string): string | null {
+  const parameters = new URLSearchParams(search.replace(/^\?/u, ""));
+  for (const [key, value] of new URLSearchParams(hash.replace(/^#/u, ""))) {
+    parameters.set(key, value);
+  }
+  return parameters.get("mode") === "resetPassword"
+    ? parameters.get("oobCode")
+    : null;
 }

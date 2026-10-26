@@ -19,6 +19,9 @@ export interface AppActions {
   onBackToHome(): void;
   onChooseAnotherGame(): void;
   onToggleTheme(): void;
+  onOpenEmailAuth(): void;
+  onPlayAsGuest(): void;
+  onBackToWelcome(): void;
   onBrowsePublicRooms(): void;
   onRefreshPublicRooms(): void;
   onJoinPublicRoom(roomId: string): void;
@@ -64,8 +67,6 @@ export interface AppActions {
   onResultsHistoryPage(page: number): void;
   onAuthModeChange(mode: AuthFormMode): void;
   onAuthFieldChange(field: "email" | "password" | "passwordConfirmation", value: string): void;
-  onProfileDisplayNameChange(value: string): void;
-  onSaveProfileDisplayName(): void;
   onAuthSubmit(): void;
   onAuthGoogle(): void;
   onAuthResendVerification(): void;
@@ -78,13 +79,11 @@ export interface AuthViewState {
   password: string;
   passwordConfirmation: string;
   userEmail: string | null;
+  isAuthenticated: boolean;
   isBusy: boolean;
   errorMessage: string | null;
   statusMessage: string | null;
   verificationRequired: boolean;
-  profileDisplayName: string | null;
-  profileLoading: boolean;
-  profileSaving: boolean;
   resendAvailableAt: number | null;
   hasRecoverySession: boolean;
   configurationError: string | null;
@@ -146,6 +145,29 @@ function createIcon(name: IconName): SVGSVGElement {
   return svg;
 }
 
+function createGoogleIcon(): SVGSVGElement {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 48 48");
+  svg.setAttribute("width", "20");
+  svg.setAttribute("height", "20");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  svg.classList.add("google-mark");
+  const paths = [
+    ["#EA4335", "M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"],
+    ["#4285F4", "M46.98 24.55c0-1.57-.14-3.08-.4-4.55H24v9.02h12.89c-.58 2.96-2.26 5.48-4.75 7.18l7.73 6C44.38 38.02 46.98 31.8 46.98 24.55Z"],
+    ["#34A853", "M24 48c6.48 0 11.93-2.15 15.9-5.8l-7.73-6c-2.15 1.45-4.9 2.3-8.17 2.3-6.27 0-11.58-4.22-13.48-9.91l-7.98 6.19C6.5 42.62 14.62 48 24 48Z"],
+    ["#FBBC05", "M10.52 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.77-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.96-6.19Z"],
+  ] as const;
+  for (const [color, pathData] of paths) {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", pathData);
+    path.setAttribute("fill", color);
+    svg.append(path);
+  }
+  return svg;
+}
+
 function createNameEntry(state: AppState, inputId: string, actions: AppActions): HTMLElement {
   const field = createElement("div", "field name-entry-field");
   const label = createElement("label", "field-label", "Player name");
@@ -199,11 +221,34 @@ function createStatus(state: AppState): HTMLElement {
   return status;
 }
 
-function createHeader(state: AppState, actions: AppActions): HTMLElement {
+function createHeader(
+  state: AppState,
+  actions: AppActions,
+  authState: AuthViewState,
+): HTMLElement {
   const header = createElement("header", "app-header");
-  const brand = createElement("span", "brand");
-  appendWordmark(brand);
   const controls = createElement("div", "header-controls");
+  const isEntryView =
+    state.currentView === "welcome" ||
+    state.currentView === "email-auth" ||
+    state.currentView === "auth-loading";
+  if (isEntryView) {
+    header.classList.add("entry-header");
+    if (state.currentView !== "email-auth") {
+      header.classList.add("entry-header-controls-only");
+    }
+  }
+  if (state.currentView === "email-auth") {
+    const backButton = createElement("button", "text-button auth-back-button", "Back");
+    backButton.type = "button";
+    backButton.addEventListener("click", actions.onBackToWelcome);
+    header.append(backButton);
+  }
+  if (!isEntryView) {
+    const brand = createElement("span", "brand");
+    appendWordmark(brand);
+    header.append(brand);
+  }
   const targetTheme = state.theme === "dark" ? "light" : "dark";
   const themeButton = createElement("button", "theme-toggle");
   const themeIcons = createElement("span", "theme-toggle-icons");
@@ -218,11 +263,23 @@ function createHeader(state: AppState, actions: AppActions): HTMLElement {
   themeButton.title = `Switch to ${targetTheme} theme`;
   themeButton.setAttribute("aria-pressed", String(state.theme === "light"));
   themeButton.addEventListener("click", actions.onToggleTheme);
-  controls.append(createStatus(state), themeButton);
-  header.append(
-    brand,
-    controls,
-  );
+  if (!isEntryView) {
+    controls.append(createStatus(state));
+    const accountButton = createElement(
+      "button",
+      "text-button header-account-button",
+      authState.isAuthenticated ? "Sign out" : "Sign in",
+    );
+    accountButton.type = "button";
+    accountButton.disabled = authState.isBusy;
+    accountButton.addEventListener(
+      "click",
+      authState.isAuthenticated ? actions.onAuthSignOut : actions.onOpenEmailAuth,
+    );
+    controls.append(accountButton);
+  }
+  controls.append(themeButton);
+  header.append(controls);
   return header;
 }
 
@@ -248,20 +305,84 @@ function createFloatingNotification(message: string, className: string): HTMLEle
   return notification;
 }
 
-function renderHome(
+function renderWelcome(
   state: AppState,
   actions: AppActions,
   authState: AuthViewState,
 ): HTMLElement {
-  const screen = createElement("section", "app-screen home-screen");
-  const title = createElement("h1", "landing-wordmark");
+  const screen = createElement("section", "app-screen welcome-screen");
+  const content = createElement("div", "welcome-content");
+  const title = createElement("h1", "welcome-wordmark");
   appendWordmark(title);
-  const introduction = createElement(
+  const tagline = createElement(
     "p",
-    "screen-description landing-tagline",
+    "welcome-tagline",
     state.landingTagline,
   );
-  screen.append(title, introduction);
+  const buttons = createElement("div", "welcome-actions");
+  buttons.setAttribute("aria-label", "Get started");
+
+  const google = createElement("button", "welcome-button welcome-google-button");
+  google.type = "button";
+  google.disabled = authState.isBusy;
+  google.append(createGoogleIcon(), createElement("span", undefined, "Continue with Google"));
+  google.addEventListener("click", actions.onAuthGoogle);
+
+  const email = createElement(
+    "button",
+    "primary-button welcome-button welcome-email-button",
+    "Continue with email",
+  );
+  email.type = "button";
+  email.disabled = authState.isBusy;
+  email.addEventListener("click", actions.onOpenEmailAuth);
+
+  const guest = createElement(
+    "button",
+    "secondary-button welcome-button guest-entry-button",
+    "Play as a guest",
+  );
+  guest.type = "button";
+  guest.disabled = authState.isBusy;
+  guest.addEventListener("click", actions.onPlayAsGuest);
+
+  buttons.append(google, email, guest);
+  content.append(title, tagline, buttons);
+  screen.append(content);
+  const message = authState.errorMessage ?? state.errorMessage;
+  if (message) {
+    const error = createErrorMessage(message);
+    if (error) screen.append(error);
+  }
+  return screen;
+}
+
+function renderEmailAuthentication(
+  actions: AppActions,
+  authState: AuthViewState,
+): HTMLElement {
+  const screen = createElement("section", "app-screen email-auth-screen");
+  const title = createElement("h1", "email-auth-title", "Continue with email");
+  title.tabIndex = -1;
+  screen.append(title, renderAuthenticationPanel(authState, actions));
+  return screen;
+}
+
+function renderAuthLoading(): HTMLElement {
+  const screen = createElement("section", "app-screen auth-loading-screen");
+  const message = createElement("p", "auth-loading-message", "Checking your sign-in…");
+  message.setAttribute("role", "status");
+  message.setAttribute("aria-live", "polite");
+  screen.append(message);
+  return screen;
+}
+
+function renderHome(
+  state: AppState,
+  actions: AppActions,
+): HTMLElement {
+  const screen = createElement("section", "app-screen home-screen");
+  screen.append(createElement("h1", "game-home-title", "Play"));
 
   const playerNameLabel = createElement("label", "field-label", "Player name");
   playerNameLabel.htmlFor = "player-name";
@@ -346,7 +467,6 @@ function renderHome(
     invitationMessage.setAttribute("role", state.joinRoomCode ? "status" : "alert");
     screen.append(invitationMessage);
   }
-  screen.append(renderAuthenticationPanel(authState, actions));
   if (state.isBusy) {
     screen.append(createElement("p", "status-message", "Connecting to room…"));
   }
@@ -368,7 +488,7 @@ function renderAuthenticationPanel(
   const title = createElement(
     "h2",
     "landing-action-heading",
-    state.userEmail ? "Your account" : "Sign in or create an account",
+    "Sign in or create an account",
   );
   title.id = "auth-panel-title";
   panel.append(title);
@@ -376,52 +496,6 @@ function renderAuthenticationPanel(
   if (state.configurationError) {
     const error = createErrorMessage(state.configurationError);
     if (error) panel.append(error);
-  } else if (state.userEmail && state.mode !== "recovery") {
-    const identity = createElement("p", "auth-account-email", state.userEmail);
-    panel.append(identity);
-    if (state.profileLoading) {
-      panel.append(createElement("p", "auth-help-text", "Loading profile…"));
-    } else if (state.profileDisplayName !== null) {
-      const profileForm = createElement("form", "auth-form auth-profile-form");
-      profileForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        actions.onSaveProfileDisplayName();
-      });
-      const field = createElement("div", "field");
-      const label = createElement("label", "field-label", "Display name");
-      const input = createElement("input", "text-input");
-      input.id = "profile-display-name";
-      input.name = "displayName";
-      input.type = "text";
-      input.autocomplete = "name";
-      input.required = true;
-      input.maxLength = 32;
-      input.value = state.profileDisplayName;
-      label.htmlFor = input.id;
-      input.addEventListener("input", () =>
-        actions.onProfileDisplayNameChange(input.value),
-      );
-      field.append(label, input);
-      profileForm.append(field);
-      const saveProfile = createElement(
-        "button",
-        "secondary-button",
-        state.profileSaving ? "Saving…" : "Save display name",
-      );
-      saveProfile.type = "submit";
-      saveProfile.disabled = state.profileSaving;
-      profileForm.append(saveProfile);
-      panel.append(profileForm);
-    }
-    const signOut = createElement(
-      "button",
-      "secondary-button",
-      state.isBusy ? "Signing out…" : "Sign out",
-    );
-    signOut.type = "button";
-    signOut.disabled = state.isBusy;
-    signOut.addEventListener("click", actions.onAuthSignOut);
-    panel.append(signOut);
   } else {
     if (state.mode !== "recovery" && state.mode !== "forgot-password") {
       const modeChoices = createElement("div", "auth-mode-choices");
@@ -475,9 +549,16 @@ function renderAuthenticationPanel(
     };
 
     if (state.mode === "recovery") {
-      const heading = createElement("p", "auth-help-text", state.recoveryError ?? (state.hasRecoverySession
-        ? "Choose a new password for your account."
-        : "The recovery link is invalid or expired. Request a new recovery email."));
+      const heading = createElement(
+        "p",
+        "auth-help-text",
+        state.recoveryError ??
+          (state.isBusy
+            ? "Checking your recovery link…"
+            : state.hasRecoverySession
+              ? "Choose a new password for your account."
+              : "The recovery link is invalid or expired. Request a new recovery email."),
+      );
       panel.append(heading);
       if (state.hasRecoverySession) {
         addField("password", "New password", "password", state.password, "new-password");
@@ -554,10 +635,10 @@ function renderAuthenticationPanel(
       }
       if (state.mode !== "forgot-password") {
         const divider = createElement("p", "auth-divider", "or");
-        const google = createElement(
-          "button",
-          "secondary-button auth-google-button",
-          state.isBusy ? "Please wait…" : "Continue with Google",
+        const google = createElement("button", "secondary-button auth-google-button");
+        google.append(
+          createGoogleIcon(),
+          createElement("span", undefined, state.isBusy ? "Please wait…" : "Continue with Google"),
         );
         google.type = "button";
         google.disabled = state.isBusy;
@@ -1697,13 +1778,11 @@ export function renderApp(
     errorMessage: null,
     statusMessage: null,
     verificationRequired: false,
-    profileDisplayName: null,
-    profileLoading: false,
-    profileSaving: false,
     resendAvailableAt: null,
     hasRecoverySession: false,
     configurationError: null,
     recoveryError: null,
+    isAuthenticated: false,
   },
 ): void {
   const previousDialog = root.querySelector<HTMLDialogElement>(".invitation-dialog");
@@ -1719,9 +1798,15 @@ export function renderApp(
       ? previousPlayerFocus.getAttribute("data-player-detail-focus")
       : null;
   const shell = createElement("main", "app-shell");
-  shell.append(createHeader(state, actions));
+  shell.append(createHeader(state, actions, authState));
   const screen =
-    state.currentView === "starting"
+    state.currentView === "auth-loading"
+      ? renderAuthLoading()
+      : state.currentView === "welcome"
+        ? renderWelcome(state, actions, authState)
+      : state.currentView === "email-auth"
+        ? renderEmailAuthentication(actions, authState)
+      : state.currentView === "starting"
       ? renderStarting(state)
       : state.currentView === "game"
         ? renderGame(state, actions, fakeAnswerSubmission, bruhWtfSubmission)
@@ -1731,7 +1816,7 @@ export function renderApp(
             ? renderGameSelection(state, actions)
           : state.currentView === "public-rooms"
             ? renderPublicRooms(state, actions)
-            : renderHome(state, actions, authState);
+            : renderHome(state, actions);
   screen.dataset.renderScope = getRenderScope(state);
   shell.append(screen);
   if (state.invitationFeedback && !state.isInvitationDialogOpen && !state.roomCodeCopied && state.currentView === "lobby") {
