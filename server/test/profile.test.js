@@ -82,6 +82,34 @@ function createMockSupabase({ failOperation = null } = {}) {
                     return { data: publicProfiles.filter((item) => item.handle === args.p_handle), error: null };
                 case "profiles_get_social_data":
                     return { data: socialRows, error: null };
+                case "notifications_list":
+                    return { data: {
+                        notifications: [{
+                            id: "22222222-2222-4222-8222-222222222222",
+                            type: "friend_request",
+                            createdAt: "2026-10-26T00:00:00.000Z",
+                            readAt: null,
+                            actor: { displayName: "A Friend", handle: "friend1" },
+                            requestId: "11111111-1111-4111-8111-111111111111",
+                            invitation: null,
+                        }],
+                        unreadCount: 1,
+                        hasMore: false,
+                    }, error: null };
+                case "notifications_mark_read":
+                    return { data: true, error: null };
+                case "profiles_send_game_invitation":
+                    return { data: "33333333-3333-4333-8333-333333333333", error: null };
+                case "profiles_get_game_invitation":
+                    return { data: [{
+                        invitation_id: args.p_invitation_id,
+                        room_code: "ABCD",
+                        room_instance_id: "44444444-4444-4444-8444-444444444444",
+                        expires_at: "2026-10-27T00:00:00.000Z",
+                        status: "pending",
+                    }], error: null };
+                case "profiles_set_game_invitation_status":
+                    return { data: true, error: null };
                 case "profiles_send_friend_request":
                     return { data: [{ request_id: "request-uuid" }], error: null };
                 case "profiles_respond_friend_request":
@@ -258,6 +286,84 @@ test("social repository mutations call atomic RPCs with the verified account", a
     assert.ok(mock.operations.filter((row) => row[0] === "rpc").every((row) => row[2].p_account_id === "verified-id"));
 });
 
+test("notifications and game invitations use owner-scoped RPCs and safe response fields", async () => {
+    const mock = createMockSupabase();
+    const repository = createRepository(mock);
+    const page = await repository.getNotifications("verified-account", 20, 0);
+    assert.equal(page.unreadCount, 1);
+    assert.equal(page.notifications[0].actor.handle, "friend1");
+    await repository.markNotificationRead("verified-account", "22222222-2222-4222-8222-222222222222");
+    assert.equal(
+        await repository.sendGameInvitation(
+            "verified-account",
+            "friend1",
+            "ABCD",
+            "44444444-4444-4444-8444-444444444444",
+        ),
+        "33333333-3333-4333-8333-333333333333",
+    );
+    assert.deepEqual(await repository.getGameInvitation(
+        "verified-account",
+        "33333333-3333-4333-8333-333333333333",
+    ), {
+        invitationId: "33333333-3333-4333-8333-333333333333",
+        roomCode: "ABCD",
+        roomInstanceId: "44444444-4444-4444-8444-444444444444",
+        expiresAt: "2026-10-27T00:00:00.000Z",
+        status: "pending",
+    });
+    await repository.setGameInvitationStatus(
+        "verified-account",
+        "33333333-3333-4333-8333-333333333333",
+        "accepted",
+    );
+    const calls = mock.operations.filter((row) => row[0] === "rpc");
+    assert.deepEqual(calls.map((row) => row[1]), [
+        "notifications_list",
+        "notifications_mark_read",
+        "profiles_send_game_invitation",
+        "profiles_get_game_invitation",
+        "profiles_set_game_invitation_status",
+    ]);
+    assert.ok(calls.every((row) => row[2].p_account_id === "verified-account"));
+    assert.equal(
+        calls.find((row) => row[1] === "profiles_send_game_invitation")[2].p_room_instance_id,
+        "44444444-4444-4444-8444-444444444444",
+    );
+    await assert.rejects(repository.getNotifications("account", 51, 0), { code: "INVALID_INPUT" });
+    await assert.rejects(
+        repository.sendGameInvitation("account", "friend1", "bad", "44444444-4444-4444-8444-444444444444"),
+        { code: "INVALID_INPUT" },
+    );
+    await assert.rejects(
+        repository.sendGameInvitation("account", "friend1", "ABCD", "invalid-room-id"),
+        { code: "INVALID_INPUT" },
+    );
+});
+
+test("Socket.IO notification operations authorize through verified socket metadata", async () => {
+    const mock = createMockSupabase();
+    const repository = createRepository(mock);
+    const socket = createFakeSocket("verified-firebase-uid");
+    registerProfileHandlers(socket, repository, () => {});
+    const response = await socket.emit("get-notifications", {
+        limit: 20,
+        offset: 0,
+        accountId: "client-supplied-account",
+    });
+    assert.equal(response.notifications.length, 1);
+    assert.equal(response.unreadCount, 1);
+    assert.equal(mock.operations.find((row) => row[1] === "notifications_list")[2].p_account_id, "verified-firebase-uid");
+    assert.deepEqual(await socket.emit("mark-notification-read", {
+        notificationId: "22222222-2222-4222-8222-222222222222",
+        accountId: "client-supplied-account",
+    }), { ok: true });
+    assert.equal(mock.operations.find((row) => row[1] === "notifications_mark_read")[2].p_account_id, "verified-firebase-uid");
+    const guest = createFakeSocket(null);
+    registerProfileHandlers(guest, repository, () => {});
+    assert.equal((await guest.emit("get-notifications", { limit: 20, offset: 0 })).error.code, "AUTH_REQUIRED");
+});
+
 test("Socket.IO profile and social events use socket.data.accountId and exact ack shapes", async () => {
     const mock = createMockSupabase();
     const repository = createRepository(mock);
@@ -369,4 +475,27 @@ test("phase 2 migration is additive, server-only, and defines handles and atomic
     assert.match(migration, /grant execute on function public\.profiles_respond_friend_request.*to service_role/is);
     assert.doesNotMatch(migration, /drop table|truncate table/i);
     assert.equal(fs.existsSync(path.join(__dirname, "../../supabase/migrations/202610260001_profiles.sql")), true);
+});
+
+test("phase 4 migration persists notifications and invitations with server-only access and ownership checks", () => {
+    const migration = fs.readFileSync(
+        path.join(__dirname, "../../supabase/migrations/202610260003_notifications_game_invitations.sql"),
+        "utf8",
+    );
+    assert.match(migration, /create table if not exists public\.notifications/i);
+    assert.match(migration, /create table if not exists public\.game_invitations/i);
+    assert.match(migration, /room_instance_id uuid not null/i);
+    assert.match(migration, /notification_type in \('friend_request', 'accepted_friend_request', 'game_invitation'\)/i);
+    assert.match(migration, /notifications_friend_event_dedupe_idx/i);
+    assert.match(migration, /game_invitations_one_pending_pair_idx/i);
+    assert.match(migration, /new\.recipient_id, new\.requester_id, 'friend_request'/i);
+    assert.match(migration, /new\.requester_id, new\.recipient_id, 'accepted_friend_request'/i);
+    assert.match(migration, /where id = p_notification_id and recipient_id = p_account_id/i);
+    assert.match(migration, /where id = p_invitation_id and recipient_id = p_account_id/i);
+    assert.match(migration, /from public\.friendships f/i);
+    assert.match(migration, /enable row level security/i);
+    assert.match(migration, /revoke all on table public\.game_invitations, public\.notifications from anon, authenticated/i);
+    assert.match(migration, /grant execute on function public\.notifications_list.*to service_role/is);
+    assert.match(migration, /grant execute on function public\.profiles_send_game_invitation.*to service_role/is);
+    assert.match(migration, /grant execute on function public\.profiles_set_game_invitation_status.*to service_role/is);
 });

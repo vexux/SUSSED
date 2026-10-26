@@ -3,12 +3,14 @@ import { onIdTokenChanged } from "firebase/auth";
 import {
   createInitialAppState,
   persistThemePreference,
+  resolveThemePreference,
   resolveAuthEntryView,
   type AppView,
   type GameSessionState,
   type LobbyGame,
   type LobbyState,
   type PublicRoom,
+  type ThemePreference,
 } from "./appState";
 import { socket, socketConfigurationError } from "./socket";
 import {
@@ -27,6 +29,7 @@ import { renderApp } from "./views";
 import type {
   AppActions,
   AuthViewState,
+  AppNotification,
   PublicProfile,
   SocialViewState,
 } from "./views";
@@ -103,6 +106,16 @@ interface SocialOperationResponse {
   error?: { code: string; message: string };
 }
 
+interface NotificationResponse {
+  notifications?: AppNotification[];
+  unreadCount?: number;
+  hasMore?: boolean;
+  ok?: boolean;
+  invitationId?: string;
+  lobby?: LobbyState;
+  error?: { code: string; message: string };
+}
+
 const app = document.querySelector<HTMLElement>("#app");
 if (!app) {
   throw new Error("The application root element was not found.");
@@ -167,6 +180,16 @@ const socialViewState: SocialViewState = {
   isBusy: false,
   errorMessage: null,
   statusMessage: null,
+  friendsTab: "friends",
+  requestsTab: "incoming",
+  notificationPopoverOpen: false,
+  notifications: [],
+  notificationsUnreadCount: 0,
+  notificationsOffset: 0,
+  notificationsHasMore: false,
+  notificationsLoading: false,
+  notificationsError: null,
+  notificationActionBusyId: null,
 };
 state.currentView = resolveAuthEntryView({
   restored: !firebaseClient,
@@ -216,9 +239,21 @@ state.connectionStatus = socketConfigurationError
 if (socketConfigurationError) {
   state.errorMessage = socketConfigurationError;
 }
-document.documentElement.dataset.theme = state.theme;
 const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-if (themeColor) themeColor.content = state.theme === "dark" ? "#17131c" : "#f7f4fa";
+function applyThemePreference(): void {
+  const prefersLight = typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-color-scheme: light)").matches;
+  const systemPreference = prefersLight ? "light" : "dark";
+  const resolvedTheme = resolveThemePreference(state.theme, systemPreference);
+  document.documentElement.dataset.theme = resolvedTheme;
+  if (themeColor) themeColor.content = resolvedTheme === "dark" ? "#17131c" : "#f7f4fa";
+}
+applyThemePreference();
+const systemThemeQuery = window.matchMedia?.("(prefers-color-scheme: light)");
+systemThemeQuery?.addEventListener?.("change", () => {
+  if (state.theme !== "system") return;
+  applyThemePreference();
+});
 let fakeAnswerHasSubmitted = false;
 let fakeAnswerIsSubmitting = false;
 let fakeAnswerErrorMessage: string | null = null;
@@ -236,6 +271,7 @@ let allRoundHistoryPage = -1;
 let fakeAnswerFeedbackDismissedIdentity: string | null = null;
 let resultsReminderSuccessTimeout: ReturnType<typeof setTimeout> | null = null;
 let invitationFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
+let notificationRefreshTimer: ReturnType<typeof setInterval> | null = null;
 let playerActionFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
 let publicRoomsRequestId = 0;
 let bruhAnswerDraft = "";
@@ -973,6 +1009,87 @@ function loadSocialData(successMessage?: string): void {
   });
 }
 
+function loadNotifications(offset = 0, append = false): void {
+  if (!authViewState.isAuthenticated || !socket.connected || socialViewState.notificationsLoading) return;
+  socialViewState.notificationsLoading = true;
+  socialViewState.notificationsError = null;
+  render();
+  socket.timeout(5000).emit(
+    "get-notifications",
+    { limit: 20, offset },
+    (error: Error | null, response?: NotificationResponse) => {
+      socialViewState.notificationsLoading = false;
+      if (error || !response || response.error ||
+        !Array.isArray(response.notifications) ||
+        typeof response.unreadCount !== "number" ||
+        !Number.isInteger(response.unreadCount) ||
+        typeof response.hasMore !== "boolean") {
+        socialViewState.notificationsError =
+          response?.error?.message ?? "Notifications could not be loaded. Please try again.";
+        render();
+        return;
+      }
+      const next = append
+        ? [...socialViewState.notifications, ...response.notifications]
+        : response.notifications;
+      socialViewState.notifications = Array.from(
+        new Map(next.map((notification) => [notification.id, notification])).values(),
+      );
+      socialViewState.notificationsUnreadCount = response.unreadCount;
+      socialViewState.notificationsOffset = socialViewState.notifications.length;
+      socialViewState.notificationsHasMore = response.hasMore;
+      socialViewState.notificationsError = null;
+      render();
+    },
+  );
+}
+
+function updateNotificationRead(notificationId: string): void {
+  if (!authViewState.isAuthenticated || socialViewState.notificationActionBusyId) return;
+  socialViewState.notificationActionBusyId = notificationId;
+  socialViewState.notificationsError = null;
+  render();
+  socket.timeout(5000).emit(
+    "mark-notification-read",
+    { notificationId },
+    (error: Error | null, response?: NotificationResponse) => {
+      socialViewState.notificationActionBusyId = null;
+      if (error || !response || response.error || response.ok !== true) {
+        socialViewState.notificationsError =
+          response?.error?.message ?? "That notification could not be updated.";
+        socialViewState.notificationPopoverOpen = true;
+        render();
+        return;
+      }
+      loadNotifications();
+    },
+  );
+}
+
+function markNotificationReadInBackground(notificationId: string): void {
+  if (!authViewState.isAuthenticated) return;
+  socket.timeout(5000).emit(
+    "mark-notification-read",
+    { notificationId },
+    (error: Error | null, response?: NotificationResponse) => {
+      if (error || !response || response.error || response.ok !== true) {
+        socialViewState.notificationsError =
+          response?.error?.message ?? "That notification could not be updated.";
+        render();
+        return;
+      }
+      const notification = socialViewState.notifications.find(({ id }) => id === notificationId);
+      if (notification && !notification.readAt) {
+        notification.readAt = new Date().toISOString();
+        socialViewState.notificationsUnreadCount = Math.max(0, socialViewState.notificationsUnreadCount - 1);
+      }
+      render();
+    },
+  );
+}
+
+let notificationFocusRequestId: string | null = null;
+
 const actions: AppActions = {
   onPlayerNameChange(name) {
     state.playerName = name;
@@ -984,7 +1101,11 @@ const actions: AppActions = {
     }
   },
   onRoomCodeChange(code) {
-    state.joinRoomCode = normalizeInvitationCode(code).slice(0, 4);
+    const normalizedCode = normalizeInvitationCode(code).slice(0, 4);
+    if (state.pendingGameInvitationId && normalizedCode !== state.joinRoomCode) {
+      state.pendingGameInvitationId = null;
+    }
+    state.joinRoomCode = normalizedCode;
     state.invitationMessage = null;
     if (state.errorCode === "INVALID_ROOM_CODE") {
       state.errorMessage = null;
@@ -1122,6 +1243,16 @@ const actions: AppActions = {
         socialViewState.friends = response.friends ?? [];
         socialViewState.incomingRequests = response.incomingRequests ?? [];
         socialViewState.outgoingRequests = response.outgoingRequests ?? [];
+        if (notificationFocusRequestId) {
+          queueMicrotask(() => {
+            const requestId = notificationFocusRequestId;
+            notificationFocusRequestId = null;
+            const requestCard = Array.from(appRoot.querySelectorAll<HTMLElement>(".social-profile-card"))
+              .find(({ dataset }) => dataset.requestId === requestId);
+            if (requestCard) requestCard.tabIndex = -1;
+            requestCard?.focus();
+          });
+        }
       }, true);
     } else {
       render();
@@ -1157,33 +1288,34 @@ const actions: AppActions = {
   onInviteFriend(handle) {
     const friend = socialViewState.friends.find((entry) => entry.handle === handle);
     const roomCode = state.lobby?.roomCode;
-    const url = state.invitationUrl;
     if (
       !authViewState.isAuthenticated ||
       !friend ||
       !roomCode ||
-      !url ||
       !state.lobby ||
       state.lobby.playerCount >= state.lobby.maxPlayers
     ) return;
-    runInvitationAction(async () => {
-      const result = await shareOrCopyInvitation(
-        {
-          title: `Join ${friend.displayName} in SUSSED!`,
-          text: `Join my SUSSED! room with code ${roomCode}.`,
-          url,
-        },
-        {
-          share: typeof navigator.share === "function"
-            ? (data) => navigator.share(data)
-            : undefined,
-          copy: copyInvitationText,
-        },
-      );
-      return result === "shared"
-        ? `Share sheet opened for @${friend.handle}. Delivery is not confirmed.`
-        : `Invitation link copied for @${friend.handle}.`;
-    });
+    if (state.isInvitationBusy) return;
+    state.isInvitationBusy = true;
+    state.errorMessage = null;
+    state.errorCode = null;
+    state.invitationFeedback = null;
+    render();
+    socket.timeout(5000).emit(
+      "send-game-invitation",
+      { handle: friend.handle },
+      (error: Error | null, response?: NotificationResponse) => {
+        state.isInvitationBusy = false;
+        if (error || !response || response.error || typeof response.invitationId !== "string") {
+          state.errorMessage = response?.error?.message ??
+            "The in-app invitation could not be sent. You can still share the room link.";
+          state.errorCode = response?.error?.code ?? "INVITATION_FAILED";
+        } else {
+          showInvitationFeedback(`Invitation sent to @${friend.handle}.`);
+        }
+        render();
+      },
+    );
   },
   onProfileHandleChange(handle) {
     const normalized = handle.trim().replace(/^@/u, "").toLowerCase();
@@ -1255,6 +1387,7 @@ const actions: AppActions = {
   },
   onFindPlayerFromResults(displayName) {
     state.currentView = "friends";
+    socialViewState.friendsTab = "find";
     socialViewState.searchMode = "displayName";
     socialViewState.searchQuery = displayName;
     socialViewState.searchResults = [];
@@ -1278,11 +1411,13 @@ const actions: AppActions = {
         });
       }
       loadSocialData("Friend request sent.");
+      loadNotifications();
     });
   },
   onRespondToFriendRequest(requestId, action) {
     runSocialOperation("respond-friend-request", { requestId, action }, () => {
       loadSocialData(action === "accept" ? "Friend request accepted." : "Friend request declined.");
+      loadNotifications();
     });
   },
   onCancelFriendRequest(requestId) {
@@ -1306,8 +1441,97 @@ const actions: AppActions = {
   onToggleTheme() {
     state.theme = state.theme === "dark" ? "light" : "dark";
     persistThemePreference(state.theme);
-    document.documentElement.dataset.theme = state.theme;
-    if (themeColor) themeColor.content = state.theme === "dark" ? "#17131c" : "#f7f4fa";
+    applyThemePreference();
+    render();
+  },
+  onSetThemePreference(theme: ThemePreference) {
+    state.theme = theme;
+    persistThemePreference(theme);
+    applyThemePreference();
+    render();
+  },
+  onToggleNotifications() {
+    socialViewState.notificationPopoverOpen = !socialViewState.notificationPopoverOpen;
+    render();
+    if (socialViewState.notificationPopoverOpen) {
+      loadNotifications();
+      if (notificationRefreshTimer) clearInterval(notificationRefreshTimer);
+      notificationRefreshTimer = setInterval(() => loadNotifications(), 30_000);
+    } else {
+      if (notificationRefreshTimer) clearInterval(notificationRefreshTimer);
+      notificationRefreshTimer = null;
+      appRoot.querySelector<HTMLElement>(".notification-trigger")?.focus();
+    }
+  },
+  onReloadNotifications() {
+    if (!socialViewState.notificationsLoading) loadNotifications();
+  },
+  onLoadMoreNotifications() {
+    if (!socialViewState.notificationsLoading && socialViewState.notificationsHasMore) {
+      loadNotifications(socialViewState.notificationsOffset, true);
+    }
+  },
+  onMarkNotificationRead(notificationId) {
+    updateNotificationRead(notificationId);
+  },
+  onNotificationAction(notification) {
+    socialViewState.notificationPopoverOpen = false;
+    if (notificationRefreshTimer) clearInterval(notificationRefreshTimer);
+    notificationRefreshTimer = null;
+    markNotificationReadInBackground(notification.id);
+    if (notification.type === "friend_request") {
+      socialViewState.friendsTab = "requests";
+      socialViewState.requestsTab = "incoming";
+      notificationFocusRequestId = notification.requestId;
+      actions.onNavigateAccount("friends");
+      socialViewState.friendsTab = "requests";
+      socialViewState.requestsTab = "incoming";
+      return;
+    }
+    if (notification.type === "accepted_friend_request") {
+      actions.onOpenPublicProfile(notification.actor.handle);
+      return;
+    }
+    const invitation = notification.invitation;
+    if (!invitation || invitation.status !== "pending" || Date.parse(invitation.expiresAt) <= Date.now()) {
+      socialViewState.notificationPopoverOpen = true;
+      socialViewState.notificationsError = "This game invitation has expired or is no longer available.";
+      render();
+      return;
+    }
+    state.currentView = "home";
+    state.joinRoomCode = invitation.roomCode;
+    state.pendingGameInvitationId = invitation.id;
+    state.invitationMessage = "Game invitation ready. Enter your name, then join the room.";
+    render();
+    focusPlayerName("player-name");
+  },
+  onDeclineGameInvitation(invitationId) {
+    if (socialViewState.notificationActionBusyId) return;
+    socialViewState.notificationActionBusyId = invitationId;
+    render();
+    socket.timeout(5000).emit(
+      "decline-game-invitation",
+      { invitationId },
+      (error: Error | null, response?: NotificationResponse) => {
+        socialViewState.notificationActionBusyId = null;
+        if (error || !response || response.error || response.ok !== true) {
+          socialViewState.notificationsError =
+            response?.error?.message ?? "The game invitation could not be declined.";
+          render();
+          return;
+        }
+        loadNotifications();
+      },
+    );
+  },
+  onFriendsTabChange(tab) {
+    socialViewState.friendsTab = tab;
+    render();
+    if (tab === "find") appRoot.querySelector<HTMLInputElement>("#player-search")?.focus();
+  },
+  onRequestsTabChange(tab) {
+    socialViewState.requestsTab = tab;
     render();
   },
   onBrowsePublicRooms() {
@@ -1422,11 +1646,26 @@ const actions: AppActions = {
     state.isBusy = true;
     render();
     emitRoomOperation(
-      "join-room",
-      { roomCode: normalizedCode, playerName: state.playerName },
+      state.pendingGameInvitationId ? "accept-game-invitation" : "join-room",
+      state.pendingGameInvitationId
+        ? { invitationId: state.pendingGameInvitationId, playerName: state.playerName }
+        : { roomCode: normalizedCode, playerName: state.playerName },
       (response) => {
         if (response.error) {
+          state.pendingGameInvitationId = null;
           showOperationError(response);
+          return;
+        }
+        if (state.pendingGameInvitationId && response.lobby) {
+          state.pendingGameInvitationId = null;
+          applyLobbyState(response.lobby);
+          return;
+        }
+        if (state.pendingGameInvitationId) {
+          state.pendingGameInvitationId = null;
+          showOperationError({
+            error: { code: "INVALID_RESPONSE", message: "The invitation join could not be confirmed." },
+          });
           return;
         }
         state.isBusy = false;
@@ -2281,6 +2520,15 @@ if (firebaseClient) {
     authViewState.verificationRequired = requiresEmailVerification;
     authViewState.userEmail = requiresEmailVerification ? null : user?.email ?? null;
     authViewState.isAuthenticated = eligibleForAuthenticatedSocket;
+    if (!eligibleForAuthenticatedSocket) {
+      socialViewState.notifications = [];
+      socialViewState.notificationsUnreadCount = 0;
+      socialViewState.notificationPopoverOpen = false;
+      socialViewState.notificationsOffset = 0;
+      socialViewState.notificationsHasMore = false;
+      if (notificationRefreshTimer) clearInterval(notificationRefreshTimer);
+      notificationRefreshTimer = null;
+    }
     if (user && requiresEmailVerification && user.email) {
       authViewState.email = user.email;
     }
@@ -2304,6 +2552,7 @@ if (firebaseClient) {
       });
     }
     render();
+    if (eligibleForAuthenticatedSocket && socket.connected) loadNotifications();
   });
   void authService?.restoreSession().then(({ requiresEmailVerification }) => {
     initialAuthResolved = true;
@@ -2327,6 +2576,7 @@ if (firebaseClient) {
       });
     }
     render();
+    if (eligibleForAuthenticatedSocket && socket.connected) loadNotifications();
   }).catch((error: unknown) => {
     initialAuthResolved = true;
     if (!recoveryLinkError && !pendingPasswordResetCode) {
@@ -2419,6 +2669,7 @@ socket.on("connect", () => {
   render();
   requestAvailableGames();
   if (state.currentView === "public-rooms") subscribeToPublicRooms();
+  if (authViewState.isAuthenticated) loadNotifications();
 });
 
 socket.on("disconnect", () => {

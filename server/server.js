@@ -4,6 +4,7 @@ const { createSocketAuthMiddleware, createFirebaseTokenVerifier } = require("./a
 const { isOriginAllowed, port: defaultPort } = require("./config");
 const { registerProfileHandlers } = require("./profileHandlers");
 const { createProfileRepository } = require("./profileRepository");
+const { registerInvitationHandlers } = require("./invitationHandlers");
 const { handleDisconnect, registerRoomHandlers } = require("./roomHandlers");
 
 function handleHttpRequest(request, response) {
@@ -58,6 +59,9 @@ function startServer(
         registerRoomHandlers(io, socket);
         registerProfileHandlers(socket, profileRepository, (errorCode) => {
             console.error("Profile operation failed:", errorCode);
+        });
+        registerInvitationHandlers(io, socket, profileRepository, (errorCode) => {
+            console.error("Invitation operation failed:", errorCode);
         });
 
         socket.on("disconnect", () => {

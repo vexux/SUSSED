@@ -13,6 +13,7 @@ const ERROR_MESSAGES = {
     HANDLE_COLLISION: "That handle is already in use.",
     HANDLE_COOLDOWN: "Your handle can only be changed once every 7 days.",
     INVALID_TRANSITION: "That social action is not currently available.",
+    INVALID_INPUT: "The supplied profile or social data is invalid.",
     PROFILE_UNAVAILABLE: "Profiles are temporarily unavailable. Guest and room play can continue.",
 };
 
@@ -297,6 +298,92 @@ function createProfileRepository({
             await rpc("profiles_remove_friend", {
                 p_account_id: accountId,
                 p_handle: handle,
+            });
+        },
+
+        async getNotifications(accountId, limit = 20, offset = 0) {
+            validateProfileId(accountId);
+            if (!Number.isInteger(limit) || limit < 1 || limit > 50 ||
+                !Number.isInteger(offset) || offset < 0 || offset > 500) {
+                throw createProfileError("INVALID_INPUT");
+            }
+            const result = await rpc("notifications_list", {
+                p_account_id: accountId,
+                p_limit: limit,
+                p_offset: offset,
+            });
+            if (!result || !Array.isArray(result.notifications) ||
+                !Number.isInteger(result.unreadCount) ||
+                typeof result.hasMore !== "boolean") {
+                throw createProfileError("PROFILE_UNAVAILABLE");
+            }
+            return result;
+        },
+
+        async markNotificationRead(accountId, notificationId) {
+            validateProfileId(accountId);
+            if (typeof notificationId !== "string" ||
+                !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(notificationId)) {
+                throw createProfileError("INVALID_INPUT");
+            }
+            await rpc("notifications_mark_read", {
+                p_account_id: accountId,
+                p_notification_id: notificationId,
+            });
+        },
+
+        async sendGameInvitation(accountId, handle, roomCode, roomInstanceId) {
+            validateProfileId(accountId);
+            validateHandle(handle);
+            if (typeof roomCode !== "string" || !/^[A-Z]{4}$/u.test(roomCode) ||
+                typeof roomInstanceId !== "string" ||
+                !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(roomInstanceId)) {
+                throw createProfileError("INVALID_INPUT");
+            }
+            const invitationId = await rpc("profiles_send_game_invitation", {
+                p_account_id: accountId,
+                p_recipient_handle: handle,
+                p_room_code: roomCode,
+                p_room_instance_id: roomInstanceId,
+            });
+            if (typeof invitationId !== "string" ||
+                !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(invitationId)) {
+                throw createProfileError("PROFILE_UNAVAILABLE");
+            }
+            return invitationId;
+        },
+
+        async getGameInvitation(accountId, invitationId) {
+            validateProfileId(accountId);
+            if (typeof invitationId !== "string" ||
+                !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(invitationId)) {
+                throw createProfileError("INVALID_INPUT");
+            }
+            const row = firstRow(await rpc("profiles_get_game_invitation", {
+                p_account_id: accountId,
+                p_invitation_id: invitationId,
+            }));
+            if (!row) return null;
+            return {
+                invitationId: row.invitation_id,
+                roomCode: row.room_code,
+                roomInstanceId: row.room_instance_id,
+                expiresAt: row.expires_at,
+                status: row.status,
+            };
+        },
+
+        async setGameInvitationStatus(accountId, invitationId, status) {
+            validateProfileId(accountId);
+            if (typeof invitationId !== "string" ||
+                !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(invitationId) ||
+                !["accepted", "declined"].includes(status)) {
+                throw createProfileError("INVALID_INPUT");
+            }
+            await rpc("profiles_set_game_invitation_status", {
+                p_account_id: accountId,
+                p_invitation_id: invitationId,
+                p_status: status,
             });
         },
     };

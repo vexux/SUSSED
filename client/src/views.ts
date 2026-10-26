@@ -1,4 +1,4 @@
-import type { AppState, LobbyPlayer } from "./appState.ts";
+import type { AppState, LobbyPlayer, ThemePreference } from "./appState.ts";
 import type { AuthFormMode } from "./auth.ts";
 import {
   renderFakeAnswerGame,
@@ -19,6 +19,15 @@ export interface AppActions {
   onBackToHome(): void;
   onChooseAnotherGame(): void;
   onToggleTheme(): void;
+  onSetThemePreference(theme: ThemePreference): void;
+  onToggleNotifications(): void;
+  onReloadNotifications(): void;
+  onLoadMoreNotifications(): void;
+  onMarkNotificationRead(notificationId: string): void;
+  onNotificationAction(notification: AppNotification): void;
+  onDeclineGameInvitation(invitationId: string): void;
+  onFriendsTabChange(tab: "friends" | "requests" | "find"): void;
+  onRequestsTabChange(tab: "incoming" | "outgoing"): void;
   onOpenEmailAuth(): void;
   onPlayAsGuest(): void;
   onBackToWelcome(): void;
@@ -93,6 +102,21 @@ export interface PublicProfile {
   handle: string;
 }
 
+export interface AppNotification {
+  id: string;
+  type: "friend_request" | "accepted_friend_request" | "game_invitation";
+  createdAt: string;
+  readAt: string | null;
+  actor: PublicProfile;
+  requestId: string | null;
+  invitation: {
+    id: string;
+    roomCode: string;
+    expiresAt: string;
+    status: "pending" | "accepted" | "declined" | "expired";
+  } | null;
+}
+
 export interface SocialViewState {
   profile: (PublicProfile & { handleChangeAvailableAt: string | null }) | null;
   selectedProfile: PublicProfile | null;
@@ -106,6 +130,16 @@ export interface SocialViewState {
   isBusy: boolean;
   errorMessage: string | null;
   statusMessage: string | null;
+  friendsTab: "friends" | "requests" | "find";
+  requestsTab: "incoming" | "outgoing";
+  notificationPopoverOpen: boolean;
+  notifications: AppNotification[];
+  notificationsUnreadCount: number;
+  notificationsOffset: number;
+  notificationsHasMore: boolean;
+  notificationsLoading: boolean;
+  notificationsError: string | null;
+  notificationActionBusyId: string | null;
 }
 
 export interface AuthViewState {
@@ -142,7 +176,7 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
   return element;
 }
 
-type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door" | "user";
+type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door" | "user" | "bell";
 
 function createIcon(name: IconName): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -169,6 +203,7 @@ function createIcon(name: IconName): SVGSVGElement {
     switch: "M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4m14-1v2a3 3 0 0 1-3 3H3",
     door: "M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9M14 3l5 2v14l-5 2M14 3v18m-5-9h.01m12 0H11m4-4 4 4-4 4",
     user: "M20 21a8 8 0 0 0-16 0m8-10a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z",
+    bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12a2 2 0 0 0 4 0",
   };
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("d", paths[name]);
@@ -287,22 +322,32 @@ function createHeader(
     appendWordmark(brand);
     header.append(brand);
   }
-  const targetTheme = state.theme === "dark" ? "light" : "dark";
-  const themeButton = createElement("button", "theme-toggle");
-  const themeIcons = createElement("span", "theme-toggle-icons");
-  const sunIcon = createIcon("sun");
-  sunIcon.classList.add("theme-toggle-sun");
-  const moonIcon = createIcon("moon");
-  moonIcon.classList.add("theme-toggle-moon");
-  themeIcons.append(sunIcon, moonIcon);
-  themeButton.append(themeIcons);
-  themeButton.type = "button";
-  themeButton.setAttribute("aria-label", `Switch to ${targetTheme} theme`);
-  themeButton.title = `Switch to ${targetTheme} theme`;
-  themeButton.setAttribute("aria-pressed", String(state.theme === "light"));
-  themeButton.addEventListener("click", actions.onToggleTheme);
   if (!isEntryView) {
     controls.append(createStatus(state));
+    if (authState.isAuthenticated) {
+      const notificationCenter = createElement("details", "notification-center");
+      notificationCenter.open = socialState.notificationPopoverOpen;
+      const notificationTrigger = createElement("summary", "notification-trigger");
+      notificationTrigger.setAttribute("aria-label", "Notifications");
+      notificationTrigger.setAttribute("aria-expanded", String(socialState.notificationPopoverOpen));
+      notificationTrigger.append(createIcon("bell"));
+      if (socialState.notificationsUnreadCount > 0) {
+        notificationTrigger.append(createElement(
+          "span",
+          "notification-unread-badge",
+          String(socialState.notificationsUnreadCount),
+        ));
+      }
+      notificationTrigger.addEventListener("click", (event) => {
+        event.preventDefault();
+        actions.onToggleNotifications();
+      });
+      notificationCenter.append(notificationTrigger);
+      if (socialState.notificationPopoverOpen) {
+        notificationCenter.append(renderNotificationsPopover(actions, socialState));
+      }
+      controls.append(notificationCenter);
+    }
     const accountMenu = createElement("details", "account-menu");
     const accountSummary = createElement(
       "summary",
@@ -333,6 +378,22 @@ function createHeader(
         item.addEventListener("click", () => actions.onNavigateAccount(view));
         menu.append(item);
       }
+      menu.append(createElement("h3", "account-menu-section-title", "Appearance"));
+      const appearance = createElement("div", "appearance-options");
+      appearance.setAttribute("role", "group");
+      appearance.setAttribute("aria-label", "Appearance");
+      for (const [theme, label] of [
+        ["light", "Light"],
+        ["dark", "Dark"],
+        ["system", "System"],
+      ] as const) {
+        const option = createElement("button", "account-menu-item appearance-option", label);
+        option.type = "button";
+        option.setAttribute("aria-pressed", String(state.theme === theme));
+        option.addEventListener("click", () => actions.onSetThemePreference(theme));
+        appearance.append(option);
+      }
+      menu.append(appearance);
       const signOut = createElement("button", "account-menu-item", "Sign out");
       signOut.type = "button";
       signOut.disabled = authState.isBusy || socialState.isBusy;
@@ -343,13 +404,140 @@ function createHeader(
       signIn.type = "button";
       signIn.addEventListener("click", actions.onOpenEmailAuth);
       menu.append(signIn);
+      menu.append(createElement("h3", "account-menu-section-title", "Appearance"));
+      const appearance = createElement("div", "appearance-options");
+      appearance.setAttribute("role", "group");
+      appearance.setAttribute("aria-label", "Appearance");
+      for (const [theme, label] of [
+        ["light", "Light"],
+        ["dark", "Dark"],
+        ["system", "System"],
+      ] as const) {
+        const option = createElement("button", "account-menu-item appearance-option", label);
+        option.type = "button";
+        option.setAttribute("aria-pressed", String(state.theme === theme));
+        option.addEventListener("click", () => actions.onSetThemePreference(theme));
+        appearance.append(option);
+      }
+      menu.append(appearance);
     }
     accountMenu.append(menu);
     controls.append(accountMenu);
   }
-  controls.append(themeButton);
   header.append(controls);
   return header;
+}
+
+function renderNotificationsPopover(
+  actions: AppActions,
+  socialState: SocialViewState,
+): HTMLElement {
+  const popover = createElement("section", "notification-popover");
+  popover.setAttribute("aria-label", "Notifications");
+  popover.setAttribute("role", "region");
+  const heading = createElement("div", "notification-popover-heading");
+  heading.append(createElement("h2", undefined, "Notifications"));
+  const refresh = createElement("button", "text-button notification-refresh", "Refresh");
+  refresh.type = "button";
+  refresh.disabled = socialState.notificationsLoading;
+  refresh.addEventListener("click", actions.onReloadNotifications);
+  heading.append(refresh);
+  popover.append(heading);
+
+  if (socialState.notificationsLoading && socialState.notifications.length === 0) {
+    const loading = createElement("p", "status-message", "Loading notifications…");
+    loading.setAttribute("role", "status");
+    popover.append(loading);
+  }
+  if (socialState.notificationsError) {
+    const error = createErrorMessage(socialState.notificationsError);
+    if (error) popover.append(error);
+    const retry = createElement("button", "secondary-button notification-retry", "Try again");
+    retry.type = "button";
+    retry.disabled = socialState.notificationsLoading;
+    retry.addEventListener("click", actions.onReloadNotifications);
+    popover.append(retry);
+  } else if (!socialState.notificationsLoading && socialState.notifications.length === 0) {
+    popover.append(createElement("p", "empty-state", "You’re all caught up."));
+  }
+
+  const list = createElement("ul", "notification-list");
+  for (const notification of socialState.notifications) {
+    const item = createElement("li", `notification-item${notification.readAt ? " is-read" : " is-unread"}`);
+    const copy = createElement("div", "notification-copy");
+    let message: string;
+    if (notification.type === "friend_request") {
+      message = `@${notification.actor.handle} sent you a friend request.`;
+    } else if (notification.type === "accepted_friend_request") {
+      message = `@${notification.actor.handle} accepted your friend request.`;
+    } else {
+      message = `@${notification.actor.handle} invited you to room ${notification.invitation?.roomCode ?? "----"}.`;
+    }
+    copy.append(createElement("p", "notification-message", message));
+    const date = new Date(notification.createdAt);
+    const time = createElement(
+      "time",
+      "notification-time",
+      Number.isNaN(date.getTime())
+        ? "Date unavailable"
+        : new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date),
+    );
+    if (!Number.isNaN(date.getTime())) time.setAttribute("datetime", date.toISOString());
+    copy.append(time);
+    item.append(copy);
+
+    const actionsRow = createElement("div", "notification-actions");
+    const busy = socialState.notificationActionBusyId !== null;
+    const invitationPending = notification.type === "game_invitation" &&
+      notification.invitation?.status === "pending" &&
+      Date.parse(notification.invitation.expiresAt) > Date.now();
+    if (notification.type !== "game_invitation" || invitationPending) {
+      const action = createElement(
+        "button",
+        "text-button notification-action",
+        notification.type === "friend_request"
+          ? "Review request"
+          : notification.type === "accepted_friend_request"
+            ? "View profile"
+            : "Join",
+      );
+      action.type = "button";
+      action.disabled = busy;
+      action.addEventListener("click", () => actions.onNotificationAction(notification));
+      actionsRow.append(action);
+    } else if (notification.invitation?.status === "expired") {
+      actionsRow.append(createElement("span", "notification-status", "Expired"));
+    } else if (notification.invitation?.status === "declined") {
+      actionsRow.append(createElement("span", "notification-status", "Declined"));
+    } else if (notification.invitation?.status === "accepted") {
+      actionsRow.append(createElement("span", "notification-status", "Accepted"));
+    }
+    if (notification.type === "game_invitation" && invitationPending) {
+      const decline = createElement("button", "text-button notification-decline", "Decline");
+      decline.type = "button";
+      decline.disabled = busy;
+      decline.addEventListener("click", () => actions.onDeclineGameInvitation(notification.invitation!.id));
+      actionsRow.append(decline);
+    }
+    if (!notification.readAt) {
+      const markRead = createElement("button", "text-button notification-mark-read", "Mark read");
+      markRead.type = "button";
+      markRead.disabled = busy;
+      markRead.addEventListener("click", () => actions.onMarkNotificationRead(notification.id));
+      actionsRow.append(markRead);
+    }
+    item.append(actionsRow);
+    list.append(item);
+  }
+  if (list.children.length > 0) popover.append(list);
+  if (socialState.notificationsHasMore && !socialState.notificationsError) {
+    const more = createElement("button", "text-button notification-load-more", "Show older");
+    more.type = "button";
+    more.disabled = socialState.notificationsLoading;
+    more.addEventListener("click", actions.onLoadMoreNotifications);
+    popover.append(more);
+  }
+  return popover;
 }
 
 function createErrorMessage(message: string | null): HTMLElement | null {
@@ -561,15 +749,18 @@ function appendPublicProfileCard(
   profile: PublicProfile,
   actions: AppActions,
   buttonText = "View profile",
-): void {
+): HTMLElement {
   const card = createElement("article", "social-profile-card");
+  const avatar = createElement("span", "social-profile-avatar", Array.from(profile.displayName)[0]?.toUpperCase() ?? "?");
+  avatar.setAttribute("aria-hidden", "true");
   const name = createElement("span", "social-profile-name", profile.displayName);
   const handle = createElement("span", "social-profile-handle", `@${profile.handle}`);
   const open = createElement("button", "text-button social-profile-open", buttonText);
   open.type = "button";
   open.addEventListener("click", () => actions.onOpenPublicProfile(profile.handle));
-  card.append(name, handle, open);
+  card.append(avatar, name, handle, open);
   target.append(card);
+  return card;
 }
 
 function getFriendshipState(
@@ -618,106 +809,161 @@ function renderFriendsScreen(
   actions: AppActions,
   socialState: SocialViewState,
 ): HTMLElement {
+  const activeTab = socialState.friendsTab ?? "friends";
+  const requestsTab = socialState.requestsTab ?? "incoming";
   const screen = createElement("section", "app-screen account-screen friends-screen");
   screen.append(renderAccountBackButton(actions));
   screen.append(createElement("h1", "account-screen-title", "Friends"));
 
-  const searchForm = createElement("form", "player-search-form");
-  const searchLabel = createElement("label", "field-label", "Find players");
-  searchLabel.htmlFor = "player-search";
-  const searchInput = createElement("input", "text-input");
-  searchInput.id = "player-search";
-  searchInput.name = "query";
-  searchInput.type = "search";
-  searchInput.autocomplete = "off";
-  searchInput.maxLength = 20;
-  searchInput.placeholder = socialState.searchMode === "handle" ? "@handle" : "Display name";
-  searchInput.value = socialState.searchQuery;
-  const searchMode = createElement("div", "search-mode-toggle");
-  searchMode.setAttribute("role", "group");
-  searchMode.setAttribute("aria-label", "Search mode");
-  for (const [mode, label] of [
-    ["handle", "Exact handle"],
-    ["displayName", "Display name"],
+  const tabs = createElement("div", "friends-tabs");
+  tabs.setAttribute("role", "tablist");
+  tabs.setAttribute("aria-label", "Friends sections");
+  for (const [tab, label] of [
+    ["friends", `Friends (${socialState.friends.length})`],
+    ["requests", `Requests${socialState.incomingRequests.length ? ` (${socialState.incomingRequests.length})` : ""}`],
+    ["find", "Find Players"],
   ] as const) {
-    const button = createElement("button", "text-button search-mode-button", label);
+    const button = createElement("button", "friends-tab", label);
     button.type = "button";
-    button.setAttribute("aria-pressed", String(socialState.searchMode === mode));
-    button.addEventListener("click", () => actions.onSearchModeChange(mode));
-    searchMode.append(button);
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", String(activeTab === tab));
+    button.tabIndex = activeTab === tab ? 0 : -1;
+    button.addEventListener("click", () => actions.onFriendsTabChange(tab));
+    tabs.append(button);
   }
-  const submit = createElement("button", "primary-button", "Search");
-  submit.type = "submit";
-  submit.disabled = socialState.isBusy;
-  const searchField = createElement("div", "field");
-  searchField.append(searchLabel, searchInput);
-  searchForm.append(searchField, searchMode, submit);
-  searchForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    actions.onSearchProfiles(socialState.searchMode, searchInput.value);
-  });
-  screen.append(searchForm);
+  screen.append(tabs);
+  const panel = createElement("section", "friends-tab-panel");
+  panel.setAttribute("role", "tabpanel");
 
-  if (socialState.searchResults.length > 0) {
-    screen.append(createElement("h2", "social-section-title", "Search results"));
-    for (const result of socialState.searchResults) {
-      appendPublicProfileCard(screen, result, actions);
-      if (result.handle !== socialState.profile?.handle) appendFriendshipAction(screen, result, actions, socialState);
+  if (activeTab === "friends") {
+    if (socialState.friends.length === 0) {
+      const empty = createElement("div", "friends-empty-state");
+      empty.append(createIcon("users"));
+      empty.append(createElement("h2", undefined, "No friends yet."));
+      empty.append(createElement("p", undefined, "Find players you know and start building your SUSSED! crew."));
+      const find = createElement("button", "secondary-button", "Find Players");
+      find.type = "button";
+      find.addEventListener("click", () => actions.onFriendsTabChange("find"));
+      empty.append(find);
+      panel.append(empty);
+    } else {
+      for (const friend of socialState.friends) {
+        appendPublicProfileCard(panel, friend, actions);
+        const menu = createElement("details", "friend-card-actions");
+        const summary = createElement("summary", "text-button", "Actions");
+        menu.append(summary);
+        const view = createElement("button", "text-button", "View profile");
+        view.type = "button";
+        view.addEventListener("click", () => actions.onOpenPublicProfile(friend.handle));
+        const remove = createElement("button", "text-button social-remove-friend", "Remove friend");
+        remove.type = "button";
+        remove.disabled = socialState.isBusy;
+        remove.addEventListener("click", () => actions.onRemoveFriend(friend.handle));
+        menu.append(view, remove);
+        panel.append(menu);
+      }
     }
-  } else if (
-    socialState.searchQuery &&
-    !socialState.isLoading &&
-    !socialState.isBusy &&
-    !socialState.errorMessage
-  ) {
-    screen.append(createElement("p", "empty-state", "No players found."));
-  }
-
-  const friendsHeading = createElement("h2", "social-section-title", "Friends");
-  screen.append(friendsHeading);
-  if (socialState.friends.length === 0) {
-    screen.append(createElement("p", "empty-state", "No friends yet."));
-  } else {
-    for (const friend of socialState.friends) {
-      appendPublicProfileCard(screen, friend, actions);
-      const remove = createElement("button", "text-button social-remove-friend", "Remove friend");
-      remove.type = "button";
-      remove.disabled = socialState.isBusy;
-      remove.addEventListener("click", () => actions.onRemoveFriend(friend.handle));
-      screen.append(remove);
-    }
-  }
-
-  const incomingHeading = createElement("h2", "social-section-title", "Incoming Requests");
-  screen.append(incomingHeading);
-  if (socialState.incomingRequests.length === 0) {
-    screen.append(createElement("p", "empty-state", "No incoming requests."));
-  }
-  for (const request of socialState.incomingRequests) {
-    appendPublicProfileCard(screen, request, actions);
-    const buttons = createElement("div", "social-request-actions");
-    for (const [action, label] of [["accept", "Accept"], ["decline", "Decline"]] as const) {
-      const button = createElement("button", action === "accept" ? "primary-button" : "text-button", label);
+  } else if (activeTab === "requests") {
+    const requestTabs = createElement("div", "request-tabs");
+    requestTabs.setAttribute("role", "tablist");
+    requestTabs.setAttribute("aria-label", "Friend requests");
+    for (const [tab, label] of [
+      ["incoming", `Incoming (${socialState.incomingRequests.length})`],
+      ["outgoing", `Sent (${socialState.outgoingRequests.length})`],
+    ] as const) {
+      const button = createElement("button", "request-tab", label);
       button.type = "button";
-      button.disabled = socialState.isBusy;
-      button.addEventListener("click", () => actions.onRespondToFriendRequest(request.requestId, action));
-      buttons.append(button);
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-selected", String(requestsTab === tab));
+      button.tabIndex = requestsTab === tab ? 0 : -1;
+      button.addEventListener("click", () => actions.onRequestsTabChange(tab));
+      requestTabs.append(button);
     }
-    screen.append(buttons);
-  }
+    panel.append(requestTabs);
+    const requests = requestsTab === "incoming"
+      ? socialState.incomingRequests
+      : socialState.outgoingRequests;
+    if (requests.length === 0) {
+      panel.append(createElement(
+        "p",
+        "empty-state",
+        requestsTab === "incoming" ? "No incoming requests." : "No sent requests.",
+      ));
+    }
+    for (const request of requests) {
+      const requestCard = appendPublicProfileCard(panel, request, actions);
+      requestCard.dataset.requestId = request.requestId;
+      const buttons = createElement("div", "social-request-actions");
+      if (requestsTab === "incoming") {
+        for (const [action, label] of [["accept", "Accept"], ["decline", "Decline"]] as const) {
+          const button = createElement("button", action === "accept" ? "primary-button" : "text-button", label);
+          button.type = "button";
+          button.disabled = socialState.isBusy;
+          button.addEventListener("click", () => actions.onRespondToFriendRequest(request.requestId, action));
+          buttons.append(button);
+        }
+      } else {
+        const cancel = createElement("button", "text-button social-cancel-request", "Cancel request");
+        cancel.type = "button";
+        cancel.disabled = socialState.isBusy;
+        cancel.addEventListener("click", () => actions.onCancelFriendRequest(request.requestId));
+        buttons.append(cancel);
+      }
+      panel.append(buttons);
+    }
+  } else {
+    const searchForm = createElement("form", "player-search-form");
+    const searchLabel = createElement("label", "field-label", "Find players");
+    searchLabel.htmlFor = "player-search";
+    const searchInput = createElement("input", "text-input");
+    searchInput.id = "player-search";
+    searchInput.name = "query";
+    searchInput.type = "search";
+    searchInput.autocomplete = "off";
+    searchInput.maxLength = 20;
+    searchInput.placeholder = socialState.searchMode === "handle" ? "@handle" : "Display name";
+    searchInput.value = socialState.searchQuery;
+    const searchMode = createElement("div", "search-mode-toggle");
+    searchMode.setAttribute("role", "group");
+    searchMode.setAttribute("aria-label", "Search mode");
+    for (const [mode, label] of [
+      ["handle", "Exact handle"],
+      ["displayName", "Display name"],
+    ] as const) {
+      const button = createElement("button", "text-button search-mode-button", label);
+      button.type = "button";
+      button.setAttribute("aria-pressed", String(socialState.searchMode === mode));
+      button.addEventListener("click", () => actions.onSearchModeChange(mode));
+      searchMode.append(button);
+    }
+    const submit = createElement("button", "primary-button", "Search");
+    submit.type = "submit";
+    submit.disabled = socialState.isBusy;
+    const searchField = createElement("div", "field");
+    searchField.append(searchLabel, searchInput);
+    searchForm.append(searchField, searchMode, submit);
+    searchForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      actions.onSearchProfiles(socialState.searchMode, searchInput.value);
+    });
+    panel.append(searchForm);
 
-  screen.append(createElement("h2", "social-section-title", "Sent Requests"));
-  if (socialState.outgoingRequests.length === 0) {
-    screen.append(createElement("p", "empty-state", "No sent requests."));
+    if (socialState.searchResults.length > 0) {
+      panel.append(createElement("h2", "social-section-title", "Search results"));
+      for (const result of socialState.searchResults) {
+        appendPublicProfileCard(panel, result, actions);
+        if (result.handle !== socialState.profile?.handle) appendFriendshipAction(panel, result, actions, socialState);
+      }
+    } else if (
+      socialState.searchQuery &&
+      !socialState.isLoading &&
+      !socialState.isBusy &&
+      !socialState.errorMessage
+    ) {
+      panel.append(createElement("p", "empty-state", "No players found."));
+    }
   }
-  for (const request of socialState.outgoingRequests) {
-    appendPublicProfileCard(screen, request, actions);
-    const cancel = createElement("button", "text-button social-cancel-request", "Cancel request");
-    cancel.type = "button";
-    cancel.disabled = socialState.isBusy;
-    cancel.addEventListener("click", () => actions.onCancelFriendRequest(request.requestId));
-    screen.append(cancel);
-  }
+  screen.append(panel);
   appendSocialFeedback(screen, socialState);
   return screen;
 }
@@ -1827,7 +2073,7 @@ function createInvitationDialog(
       const invite = createElement(
         "button",
         "text-button invitation-friend-share",
-        `Share with @${friend.handle}`,
+        `Invite @${friend.handle}`,
       );
       invite.type = "button";
       invite.disabled = state.isInvitationBusy || isRoomFull;
@@ -2251,6 +2497,16 @@ export function renderApp(
     isBusy: false,
     errorMessage: null,
     statusMessage: null,
+    friendsTab: "friends",
+    requestsTab: "incoming",
+    notificationPopoverOpen: false,
+    notifications: [],
+    notificationsUnreadCount: 0,
+    notificationsOffset: 0,
+    notificationsHasMore: false,
+    notificationsLoading: false,
+    notificationsError: null,
+    notificationActionBusyId: null,
   },
 ): void {
   const previousDialog = root.querySelector<HTMLDialogElement>(".invitation-dialog");
@@ -2385,6 +2641,10 @@ export function renderApp(
     root.addEventListener("pointerdown", (event) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
+      const notificationCenter = root.querySelector<HTMLDetailsElement>(".notification-center");
+      if (notificationCenter?.open && !notificationCenter.contains(target)) {
+        actions.onToggleNotifications();
+      }
       const accountMenu = root.querySelector<HTMLDetailsElement>(".account-menu");
       if (accountMenu?.open && !accountMenu.contains(target)) {
         accountMenu.open = false;
@@ -2404,6 +2664,13 @@ export function renderApp(
     });
     root.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
+      const notificationCenter = root.querySelector<HTMLDetailsElement>(".notification-center");
+      if (notificationCenter?.open) {
+        event.preventDefault();
+        actions.onToggleNotifications();
+        root.querySelector<HTMLElement>(".notification-trigger")?.focus();
+        return;
+      }
       const accountMenu = root.querySelector<HTMLDetailsElement>(".account-menu");
       if (!accountMenu?.open) return;
       event.preventDefault();

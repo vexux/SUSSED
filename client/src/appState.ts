@@ -14,7 +14,14 @@ export type AppView =
   | "game";
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 export type RoomStatus = "lobby" | "starting";
-export type ThemePreference = "dark" | "light";
+export type ThemePreference = "dark" | "light" | "system";
+
+export function resolveThemePreference(
+  preference: ThemePreference,
+  systemPreference: "dark" | "light",
+): "dark" | "light" {
+  return preference === "system" ? systemPreference : preference;
+}
 
 export function resolveAuthEntryView(options: {
   restored: boolean;
@@ -48,7 +55,7 @@ export function readThemePreference(
 ): ThemePreference {
   try {
     const stored = storage?.getItem(THEME_STORAGE_KEY);
-    return stored === "light" ? "light" : "dark";
+    return stored === "light" || stored === "system" ? stored : "dark";
   } catch {
     return "dark";
   }
@@ -132,6 +139,7 @@ export interface AppState {
   nameEntryError: string | null;
   pendingPublicRoomId: string | null;
   joinRoomCode: string;
+  pendingGameInvitationId: string | null;
   invitationMessage: string | null;
   isInvitationBusy: boolean;
   isInvitationDialogOpen: boolean;
@@ -174,6 +182,7 @@ export function createInitialAppState(): AppState {
     nameEntryError: null,
     pendingPublicRoomId: null,
     joinRoomCode: "",
+    pendingGameInvitationId: null,
     invitationMessage: null,
     isInvitationBusy: false,
     isInvitationDialogOpen: false,

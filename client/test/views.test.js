@@ -5,6 +5,7 @@ import {
   LANDING_TAGLINE,
   persistThemePreference,
   readThemePreference,
+  resolveThemePreference,
   resolveAuthEntryView,
   THEME_STORAGE_KEY,
 } from "../src/appState.ts";
@@ -293,16 +294,169 @@ test("account menu shows guest sign-in and authenticated profile navigation opti
     assert.match(root.query((element) => element.classList.contains("account-menu-trigger")).text, /Guest/u);
     assert.deepEqual(
       root.queryAll((element) => element.classList.contains("account-menu-item")).map((item) => item.text),
-      ["Sign in"],
+      ["Sign in", "Light", "Dark", "System"],
     );
+    assert.equal(root.query((element) => element.classList.contains("notification-center")), null);
     render(true);
     assert.deepEqual(
       root.queryAll((element) => element.classList.contains("account-menu-item")).map((item) => item.text),
-      ["Profile", "Friends", "Achievements", "Sign out"],
+      ["Profile", "Friends", "Achievements", "Light", "Dark", "System", "Sign out"],
     );
+    assert.ok(root.query((element) => element.classList.contains("notification-center")));
     root.queryAll((element) => element.classList.contains("account-menu-item"))[0].dispatch("click");
     assert.deepEqual(calls, [["onNavigateAccount", "profile"]]);
     assert.equal(root.query((element) => element.classList.contains("header-account-button")), null);
+  });
+});
+
+test("notification popover renders the three safe categories, unread count, and per-item actions", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "home";
+    const root = new FakeElement("root");
+    const calls = [];
+    const actions = new Proxy({}, {
+      get: (_target, name) => (...args) => calls.push([name, ...args]),
+    });
+    const socialState = {
+      profile: null,
+      selectedProfile: null,
+      friends: [],
+      incomingRequests: [],
+      outgoingRequests: [],
+      searchMode: "handle",
+      searchQuery: "",
+      searchResults: [],
+      isLoading: false,
+      isBusy: false,
+      errorMessage: null,
+      statusMessage: null,
+      friendsTab: "friends",
+      requestsTab: "incoming",
+      notificationPopoverOpen: true,
+      notifications: [
+        {
+          id: "notice-request",
+          type: "friend_request",
+          createdAt: "2026-10-26T10:00:00.000Z",
+          readAt: null,
+          actor: { displayName: "Sam", handle: "sam123" },
+          requestId: "request-1",
+          invitation: null,
+        },
+        {
+          id: "notice-accepted",
+          type: "accepted_friend_request",
+          createdAt: "2026-10-26T09:00:00.000Z",
+          readAt: "2026-10-26T09:30:00.000Z",
+          actor: { displayName: "Riley", handle: "riley1" },
+          requestId: "request-2",
+          invitation: null,
+        },
+        {
+          id: "notice-invite",
+          type: "game_invitation",
+          createdAt: "2026-10-26T08:00:00.000Z",
+          readAt: null,
+          actor: { displayName: "Taylor", handle: "taylor1" },
+          requestId: null,
+          invitation: {
+            id: "invite-1",
+            roomCode: "ABCD",
+            expiresAt: "2026-10-27T08:00:00.000Z",
+            status: "pending",
+          },
+        },
+      ],
+      notificationsUnreadCount: 2,
+      notificationsOffset: 3,
+      notificationsHasMore: true,
+      notificationsLoading: false,
+      notificationsError: null,
+      notificationActionBusyId: null,
+    };
+    renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
+    const bell = root.query((element) => element.classList.contains("notification-trigger"));
+    assert.ok(bell);
+    assert.equal(bell.getAttribute("aria-expanded"), "true");
+    assert.equal(bell.query((element) => element.classList.contains("notification-unread-badge")).textContent, "2");
+    assert.match(root.text, /@sam123 sent you a friend request/u);
+    assert.match(root.text, /@riley1 accepted your friend request/u);
+    assert.match(root.text, /@taylor1 invited you to room ABCD/u);
+    assert.ok(root.query((element) => element.textContent === "Review request"));
+    assert.ok(root.query((element) => element.textContent === "View profile"));
+    assert.ok(root.query((element) => element.textContent === "Join"));
+    root.query((element) => element.textContent === "Review request").dispatch("click");
+    root.query((element) => element.textContent === "Decline").dispatch("click");
+    root.query((element) => element.textContent === "Mark read").dispatch("click");
+    root.query((element) => element.textContent === "Show older").dispatch("click");
+    assert.deepEqual(calls.map(([name]) => name).sort(), [
+      "onDeclineGameInvitation",
+      "onLoadMoreNotifications",
+      "onMarkNotificationRead",
+      "onNotificationAction",
+    ].sort());
+    assert.equal(calls.find(([name]) => name === "onMarkNotificationRead")[1], "notice-request");
+    assert.equal(calls.find(([name]) => name === "onNotificationAction")[1].type, "friend_request");
+  });
+});
+
+test("notification popover exposes loading, empty, error, retry, and keyboard dismissal states", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    const root = new FakeElement("root");
+    const socialState = {
+      profile: null,
+      selectedProfile: null,
+      friends: [],
+      incomingRequests: [],
+      outgoingRequests: [],
+      searchMode: "handle",
+      searchQuery: "",
+      searchResults: [],
+      isLoading: false,
+      isBusy: false,
+      errorMessage: null,
+      statusMessage: null,
+      friendsTab: "friends",
+      requestsTab: "incoming",
+      notificationPopoverOpen: true,
+      notifications: [],
+      notificationsUnreadCount: 0,
+      notificationsOffset: 0,
+      notificationsHasMore: false,
+      notificationsLoading: true,
+      notificationsError: null,
+      notificationActionBusyId: null,
+    };
+    let toggles = 0;
+    const actions = {
+      onToggleNotifications() {
+        toggles += 1;
+        socialState.notificationPopoverOpen = false;
+        renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
+      },
+      onReloadNotifications() {},
+    };
+    const render = () => renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
+    render();
+    assert.match(root.text, /Loading notifications…/u);
+    socialState.notificationsLoading = false;
+    render();
+    assert.match(root.text, /You’re all caught up\./u);
+    socialState.notificationsError = "Could not load.";
+    render();
+    assert.match(root.text, /Could not load\./u);
+    assert.ok(root.query((element) => element.textContent === "Try again"));
+    socialState.notificationsError = null;
+    render();
+    root.dispatch("keydown", { key: "Escape" });
+    assert.equal(toggles, 1);
+    assert.equal(socialState.notificationPopoverOpen, false);
+    assert.equal(root.ownerDocument.activeElement.classList.contains("notification-trigger"), true);
+    const guestRoot = new FakeElement("root");
+    renderApp(guestRoot, state, actions, {}, {}, { isAuthenticated: false }, socialState);
+    assert.equal(guestRoot.query((element) => element.classList.contains("notification-center")), null);
   });
 });
 
@@ -349,13 +503,22 @@ test("profile, friends, public profile, and achievements screens expose safe emp
     assert.match(root.text, /Loading/u);
     render("friends");
     assert.match(root.text, /No friends yet\./u);
+    socialState.friendsTab = "requests";
+    render("friends");
     assert.match(root.text, /No incoming requests\./u);
+    socialState.requestsTab = "outgoing";
+    render("friends");
     assert.match(root.text, /No sent requests\./u);
+    socialState.friendsTab = "find";
+    socialState.requestsTab = "incoming";
+    render("friends");
+    assert.ok(root.query((element) => element.id === "player-search"));
     render("public-profile");
     assert.match(root.text, /Player/u);
     render("achievements");
     assert.match(root.text, /No achievements yet\./u);
-    assert.ok(root.query((element) => element.classList.contains("theme-toggle")));
+    assert.equal(root.query((element) => element.classList.contains("theme-toggle")), null);
+    assert.ok(root.query((element) => element.classList.contains("appearance-option")));
   });
 });
 
@@ -449,6 +612,7 @@ test("profile and friend-search controls dispatch their requested updates", () =
     ]);
 
     state.currentView = "friends";
+    socialState.friendsTab = "find";
     renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
     root.queryAll((element) => element.classList.contains("search-mode-button"))[1].dispatch("click");
     const query = root.query((element) => element.id === "player-search");
@@ -629,7 +793,7 @@ test("game home keeps room controls usable without landing or account panels", (
     assert.match(root.query((element) => element.classList.contains("account-menu-trigger")).text, /Guest/u);
     assert.deepEqual(
       root.queryAll((element) => element.classList.contains("account-menu-item")).map((item) => item.text),
-      ["Sign in"],
+      ["Sign in", "Light", "Dark", "System"],
     );
     assert.equal(codeInput.placeholder, "CODE");
     assert.ok(root.query((element) => element.tagName === "button" && element.textContent === "Choose a game"));
@@ -764,7 +928,7 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     };
     renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
     const friendInvite = root.query((element) => element.className.includes("invitation-friend-share"));
-    assert.equal(friendInvite.textContent, "Share with @sam123");
+    assert.equal(friendInvite.textContent, "Invite @sam123");
     friendInvite.dispatch("click");
     assert.ok(calls.some(([name, handle]) => name === "onInviteFriend" && handle === "sam123"));
     renderApp(root, state, actions, {}, {}, { isAuthenticated: false }, socialState);
@@ -1623,7 +1787,7 @@ test("room-code copy feedback uses the copied control state without a duplicate 
   });
 });
 
-test("theme preference defaults safely, persists, and the header exposes an accessible toggle", () => {
+test("theme preference persists light, dark, and system choices in the account appearance menu", () => {
   const values = new Map();
   const storage = {
     getItem(key) { return values.get(key) ?? null; },
@@ -1634,41 +1798,32 @@ test("theme preference defaults safely, persists, and the header exposes an acce
   assert.equal(readThemePreference(storage), "dark");
   persistThemePreference("light", storage);
   assert.equal(readThemePreference(storage), "light");
+  persistThemePreference("system", storage);
+  assert.equal(readThemePreference(storage), "system");
+  assert.equal(resolveThemePreference("system", "light"), "light");
+  assert.equal(resolveThemePreference("system", "dark"), "dark");
+  assert.equal(resolveThemePreference("light", "dark"), "light");
   assert.doesNotThrow(() => readThemePreference({ getItem() { throw new Error("storage blocked"); }, setItem() {} }));
 
   withFakeDocument(() => {
     const state = createInitialAppState();
     state.theme = "dark";
-    let toggles = 0;
     const actions = {
-      onToggleTheme() {
-        toggles += 1;
-        state.theme = state.theme === "dark" ? "light" : "dark";
-        persistThemePreference(state.theme, storage);
+      onSetThemePreference(theme) {
+        state.theme = theme;
+        persistThemePreference(theme, storage);
       },
     };
     const root = new FakeElement("root");
     renderApp(root, state, actions, {}, {});
-    const button = root.query((element) => element.className.includes("theme-toggle"));
-    assert.equal(button.attributes["aria-label"], "Switch to light theme");
-    assert.equal(button.title, "Switch to light theme");
-    assert.equal(button.attributes["aria-pressed"], "false");
-    const darkIcons = button.query((element) => element.className.includes("theme-toggle-icons"));
-    assert.equal(darkIcons.children.length, 2);
-    assert.ok(darkIcons.query((element) => element.className.includes("theme-toggle-sun")));
-    assert.ok(darkIcons.query((element) => element.className.includes("theme-toggle-moon")));
-    button.dispatch("click");
-    assert.equal(toggles, 1);
+    assert.equal(root.query((element) => element.className.includes("theme-toggle")), null);
+    const system = root.query((element) => element.classList.contains("appearance-option") && element.textContent === "System");
+    assert.equal(system.attributes["aria-pressed"], "false");
+    system.dispatch("click");
+    assert.equal(state.theme, "system");
     renderApp(root, state, actions, {}, {});
-    const lightThemeButton = root.query((element) => element.className.includes("theme-toggle"));
-    assert.equal(lightThemeButton.attributes["aria-label"], "Switch to dark theme");
-    assert.equal(lightThemeButton.title, "Switch to dark theme");
-    assert.equal(lightThemeButton.attributes["aria-pressed"], "true");
-    assert.equal(
-      lightThemeButton.query((element) => element.className.includes("theme-toggle-moon")).getAttribute("aria-hidden"),
-      "true",
-    );
-    assert.equal(readThemePreference(storage), "light");
+    assert.equal(root.query((element) => element.classList.contains("appearance-option") && element.textContent === "System").attributes["aria-pressed"], "true");
+    assert.equal(readThemePreference(storage), "system");
   });
 });
 

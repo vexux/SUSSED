@@ -114,6 +114,32 @@ function registerProfileHandlers(socket, profileRepository, reportFailure = getE
         );
     });
 
+    socket.on("get-notifications", (payload, acknowledge) => {
+        void execute(
+            acknowledge,
+            (accountId) => profileRepository.getNotifications(
+                accountId,
+                payload && typeof payload === "object" ? payload.limit ?? 20 : 20,
+                payload && typeof payload === "object" ? payload.offset ?? 0 : 0,
+            ),
+            (notifications) => notifications,
+        );
+    });
+
+    socket.on("mark-notification-read", (payload, acknowledge) => {
+        void execute(
+            acknowledge,
+            async (accountId) => {
+                await profileRepository.markNotificationRead(
+                    accountId,
+                    payload && typeof payload === "object" ? payload.notificationId : undefined,
+                );
+                return true;
+            },
+            () => ({ ok: true }),
+        );
+    });
+
     socket.on("send-friend-request", (payload, acknowledge) => {
         void execute(
             acknowledge,
