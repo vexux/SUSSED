@@ -359,6 +359,53 @@ test("profile, friends, public profile, and achievements screens expose safe emp
   });
 });
 
+test("public profiles show friendship state and only offer valid social actions", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "public-profile";
+    const root = new FakeElement("root");
+    const calls = [];
+    const actions = new Proxy({}, {
+      get: (_target, name) => (...args) => calls.push([name, ...args]),
+    });
+    const socialState = {
+      profile: { displayName: "Me", handle: "myhandle", handleChangeAvailableAt: null },
+      selectedProfile: { displayName: "Sam", handle: "sam123" },
+      friends: [],
+      incomingRequests: [],
+      outgoingRequests: [],
+      searchMode: "handle",
+      searchQuery: "",
+      searchResults: [],
+      isLoading: false,
+      isBusy: false,
+      errorMessage: null,
+      statusMessage: null,
+    };
+    const render = () => renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
+
+    render();
+    root.query((element) => element.textContent === "Add friend").dispatch("click");
+    assert.deepEqual(calls.pop(), ["onSendFriendRequest", "sam123"]);
+    socialState.outgoingRequests = [{ requestId: "out-1", displayName: "Sam", handle: "sam123" }];
+    render();
+    assert.match(root.text, /Request pending/u);
+    assert.equal(root.query((element) => element.textContent === "Add friend"), null);
+    socialState.outgoingRequests = [];
+    socialState.incomingRequests = [{ requestId: "in-1", displayName: "Sam", handle: "sam123" }];
+    render();
+    assert.equal(root.query((element) => element.textContent === "Accept") !== null, true);
+    assert.equal(root.query((element) => element.textContent === "Decline") !== null, true);
+    root.query((element) => element.textContent === "Accept").dispatch("click");
+    assert.deepEqual(calls.pop(), ["onRespondToFriendRequest", "in-1", "accept"]);
+    socialState.incomingRequests = [];
+    socialState.friends = [{ displayName: "Sam", handle: "sam123" }];
+    render();
+    assert.match(root.text, /Already friends/u);
+    assert.equal(root.query((element) => element.textContent === "Add friend"), null);
+  });
+});
+
 test("profile and friend-search controls dispatch their requested updates", () => {
   withFakeDocument(() => {
     const state = createInitialAppState();
@@ -701,6 +748,39 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     assert.ok(calls.some(([name]) => name === "onCopyInvitationLink"));
     assert.ok(invitationDialog.query((element) => element.textContent === "Share invite"));
     assert.ok(invitationDialog.query((element) => element.textContent === "Show QR code"));
+    const socialState = {
+      profile: null,
+      selectedProfile: null,
+      friends: [{ displayName: "Sam", handle: "sam123" }],
+      incomingRequests: [],
+      outgoingRequests: [],
+      searchMode: "handle",
+      searchQuery: "",
+      searchResults: [],
+      isLoading: false,
+      isBusy: false,
+      errorMessage: null,
+      statusMessage: null,
+    };
+    renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
+    const friendInvite = root.query((element) => element.className.includes("invitation-friend-share"));
+    assert.equal(friendInvite.textContent, "Share with @sam123");
+    friendInvite.dispatch("click");
+    assert.ok(calls.some(([name, handle]) => name === "onInviteFriend" && handle === "sam123"));
+    renderApp(root, state, actions, {}, {}, { isAuthenticated: false }, socialState);
+    assert.match(root.text, /Sign in to choose a friend/u);
+    socialState.errorMessage = "Social features are temporarily unavailable.";
+    renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
+    assert.match(root.text, /Social features are temporarily unavailable/u);
+    assert.match(root.text, /You can still share the room link/u);
+    socialState.errorMessage = null;
+    state.lobby.playerCount = state.lobby.maxPlayers;
+    renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
+    assert.equal(root.query((element) => element.className.includes("invite-friends-button")).disabled, true);
+    assert.match(root.text, /This room is full and cannot accept new players/u);
+    assert.equal(root.query((element) => element.className.includes("invitation-copy-button")).disabled, true);
+    state.lobby.playerCount = 2;
+    renderApp(root, state, actions, {}, {}, { isAuthenticated: true }, socialState);
     invitationDialog.dispatch("cancel", { preventDefault() {} });
     assert.ok(calls.some(([name]) => name === "onCloseInvitationDialog"));
     state.invitationQrDataUrl = "data:image/png;base64,encoded";
@@ -804,6 +884,53 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     assert.equal(notification.getAttribute("role"), "status");
     assert.equal(notification.getAttribute("aria-live"), "polite");
     assert.ok(notification.query((element) => element.className.includes("icon-check")));
+  });
+
+  test("authenticated players can search results participants without using their game IDs as identity", () => {
+    withFakeDocument(() => {
+      const state = createInitialAppState();
+      state.currentView = "game";
+      state.localPlayerId = "local";
+      state.game = {
+        roomCode: "ABCD",
+        sessionId: "session-1",
+        gameId: "bruh-wtf",
+        displayName: "Bruh wtf?",
+        status: "finished",
+        players: [],
+        state: {
+          phase: "results",
+          currentRound: 1,
+          totalRounds: 1,
+          roundId: "round-1",
+          prompt: "Prompt",
+          playerCount: 2,
+          results: {
+            prompt: "Prompt",
+            answers: [],
+            roundScores: [],
+            leaderboard: [
+              { playerId: "local", name: "Me", score: 3, rank: 1 },
+              { playerId: "other-socket-id", name: "Sam", score: 1, rank: 2 },
+            ],
+            activeLeaderboard: [
+              { playerId: "local", name: "Me", score: 3, rank: 1 },
+              { playerId: "other-socket-id", name: "Sam", score: 1, rank: 2 },
+            ],
+            winners: [{ playerId: "local", name: "Me" }],
+          },
+        },
+      };
+      const calls = [];
+      const actions = new Proxy({}, {
+        get: (_target, name) => (...args) => calls.push([name, ...args]),
+      });
+      const root = new FakeElement("root");
+      renderApp(root, state, actions, {}, {}, { isAuthenticated: true });
+      assert.equal(root.query((element) => element.textContent === "Find Me"), null);
+      root.query((element) => element.textContent === "Find Sam").dispatch("click");
+      assert.deepEqual(calls, [["onFindPlayerFromResults", "Sam"]]);
+    });
   });
 });
 

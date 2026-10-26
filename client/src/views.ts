@@ -43,6 +43,7 @@ export interface AppActions {
   onCloseInvitationDialog(): void;
   onCopyInvitationLink(): void;
   onShareInvitationLink(): void;
+  onInviteFriend(handle: string): void;
   onToggleInvitationQr(): void;
   onSetReady(isReady: boolean): void;
   onSelectGame(gameId: string): void;
@@ -80,6 +81,7 @@ export interface AppActions {
   onSearchModeChange(mode: "handle" | "displayName"): void;
   onSearchProfiles(mode: "handle" | "displayName", query: string): void;
   onOpenPublicProfile(handle: string): void;
+  onFindPlayerFromResults(displayName: string): void;
   onSendFriendRequest(handle: string): void;
   onRespondToFriendRequest(requestId: string, action: "accept" | "decline"): void;
   onCancelFriendRequest(requestId: string): void;
@@ -570,6 +572,48 @@ function appendPublicProfileCard(
   target.append(card);
 }
 
+function getFriendshipState(
+  handle: string,
+  socialState: SocialViewState,
+): "friend" | "incoming" | "outgoing" | "none" {
+  if (socialState.friends.some((friend) => friend.handle === handle)) return "friend";
+  if (socialState.incomingRequests.some((request) => request.handle === handle)) return "incoming";
+  if (socialState.outgoingRequests.some((request) => request.handle === handle)) return "outgoing";
+  return "none";
+}
+
+function appendFriendshipAction(
+  target: HTMLElement,
+  profile: PublicProfile,
+  actions: AppActions,
+  socialState: SocialViewState,
+): void {
+  const state = getFriendshipState(profile.handle, socialState);
+  if (state === "friend") {
+    target.append(createElement("p", "social-friendship-status", "Already friends"));
+  } else if (state === "outgoing") {
+    target.append(createElement("p", "social-friendship-status", "Request pending"));
+  } else if (state === "incoming") {
+    const buttons = createElement("div", "social-request-actions");
+    for (const [action, label] of [["accept", "Accept"], ["decline", "Decline"]] as const) {
+      const request = socialState.incomingRequests.find((item) => item.handle === profile.handle);
+      if (!request) continue;
+      const button = createElement("button", action === "accept" ? "primary-button" : "text-button", label);
+      button.type = "button";
+      button.disabled = socialState.isBusy;
+      button.addEventListener("click", () => actions.onRespondToFriendRequest(request.requestId, action));
+      buttons.append(button);
+    }
+    target.append(buttons);
+  } else {
+    const request = createElement("button", "secondary-button social-request-button", "Add friend");
+    request.type = "button";
+    request.disabled = socialState.isBusy;
+    request.addEventListener("click", () => actions.onSendFriendRequest(profile.handle));
+    target.append(request);
+  }
+}
+
 function renderFriendsScreen(
   actions: AppActions,
   socialState: SocialViewState,
@@ -618,13 +662,7 @@ function renderFriendsScreen(
     screen.append(createElement("h2", "social-section-title", "Search results"));
     for (const result of socialState.searchResults) {
       appendPublicProfileCard(screen, result, actions);
-      if (result.handle !== socialState.profile?.handle) {
-        const request = createElement("button", "secondary-button social-request-button", "Add friend");
-        request.type = "button";
-        request.disabled = socialState.isBusy;
-        request.addEventListener("click", () => actions.onSendFriendRequest(result.handle));
-        screen.append(request);
-      }
+      if (result.handle !== socialState.profile?.handle) appendFriendshipAction(screen, result, actions, socialState);
     }
   } else if (
     socialState.searchQuery &&
@@ -694,13 +732,7 @@ function renderPublicProfileScreen(
   if (socialState.selectedProfile) {
     appendPublicProfileCard(screen, socialState.selectedProfile, actions);
     if (socialState.selectedProfile.handle !== socialState.profile?.handle) {
-      const add = createElement("button", "primary-button", "Add friend");
-      add.type = "button";
-      add.disabled = socialState.isBusy;
-      add.addEventListener("click", () =>
-        actions.onSendFriendRequest(socialState.selectedProfile!.handle),
-      );
-      screen.append(add);
+      appendFriendshipAction(screen, socialState.selectedProfile, actions, socialState);
     }
   }
   appendSocialFeedback(screen, socialState);
@@ -1380,7 +1412,12 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
   return screen;
 }
 
-function renderLobby(state: AppState, actions: AppActions): HTMLElement {
+function renderLobby(
+  state: AppState,
+  actions: AppActions,
+  authState: AuthViewState,
+  socialState: SocialViewState,
+): HTMLElement {
   const lobby = state.lobby;
   const screen = createElement("section", "app-screen lobby-screen");
   if (!lobby) {
@@ -1414,10 +1451,13 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     createElement("span", "invite-label-short", "Invite"),
   );
   inviteButton.type = "button";
-  inviteButton.disabled = state.isBusy || state.isInvitationBusy;
+  inviteButton.disabled = state.isBusy || state.isInvitationBusy || lobby.playerCount >= lobby.maxPlayers;
   inviteButton.addEventListener("click", actions.onOpenInvitationDialog);
   invitationActions.append(roomCodeControl, inviteButton);
   roomCodePanel.append(invitationActions);
+  if (lobby.playerCount >= lobby.maxPlayers) {
+    screen.append(createElement("p", "status-message", "This room is full and cannot accept new players."));
+  }
   const playerCount = createElement(
     "p",
     "player-count",
@@ -1703,7 +1743,7 @@ function renderLobby(state: AppState, actions: AppActions): HTMLElement {
     screen.append(error);
   }
   if (state.isInvitationDialogOpen && state.invitationUrl) {
-    screen.append(createInvitationDialog(state, actions, state.invitationUrl));
+    screen.append(createInvitationDialog(state, actions, state.invitationUrl, authState, socialState));
   }
   return screen;
 }
@@ -1712,7 +1752,10 @@ function createInvitationDialog(
   state: AppState,
   actions: AppActions,
   invitationUrl: string,
+  authState: AuthViewState,
+  socialState: SocialViewState,
 ): HTMLDialogElement {
+  const isRoomFull = state.lobby !== null && state.lobby.playerCount >= state.lobby.maxPlayers;
   const dialog = createElement("dialog", "invitation-dialog");
   dialog.setAttribute("aria-labelledby", "invitation-dialog-title");
   dialog.setAttribute("aria-describedby", "invitation-dialog-description");
@@ -1736,7 +1779,7 @@ function createInvitationDialog(
   const urlRow = createElement("div", "invitation-url-row");
   const copyButton = createElement("button", "secondary-button invitation-copy-button");
   copyButton.type = "button";
-  copyButton.disabled = state.isBusy || state.isInvitationBusy;
+  copyButton.disabled = state.isBusy || state.isInvitationBusy || isRoomFull;
   copyButton.setAttribute("aria-label", state.invitationFeedback === "Invitation link copied." ? "Invitation link copied" : "Copy invitation link");
   copyButton.title = state.invitationFeedback === "Invitation link copied." ? "Invitation link copied" : "Copy invitation link";
   copyButton.setAttribute("data-invitation-focus", "copy");
@@ -1748,17 +1791,52 @@ function createInvitationDialog(
   const actionPanel = createElement("div", "invitation-dialog-actions");
   const shareButton = createElement("button", "primary-button", "Share invite");
   shareButton.type = "button";
-  shareButton.disabled = state.isBusy || state.isInvitationBusy;
+  shareButton.disabled = state.isBusy || state.isInvitationBusy || isRoomFull;
   shareButton.setAttribute("data-invitation-focus", "share");
   shareButton.addEventListener("click", actions.onShareInvitationLink);
   const qrButton = createElement("button", "secondary-button", state.isInvitationQrVisible ? "Hide QR code" : "Show QR code");
   qrButton.type = "button";
-  qrButton.disabled = state.isBusy || state.isInvitationBusy;
+  qrButton.disabled = state.isBusy || state.isInvitationBusy || isRoomFull;
   qrButton.setAttribute("aria-expanded", String(state.isInvitationQrVisible));
   qrButton.setAttribute("data-invitation-focus", "qr");
   qrButton.addEventListener("click", actions.onToggleInvitationQr);
   actionPanel.append(shareButton, qrButton);
   dialog.append(actionPanel);
+
+  const friendSection = createElement("section", "invitation-friends");
+  friendSection.append(createElement("h3", "social-section-title", "Invite a friend"));
+  if (isRoomFull) {
+    friendSection.append(createElement("p", "empty-state", "This room is full and cannot accept new players."));
+  } else if (!authState.isAuthenticated) {
+    friendSection.append(createElement("p", "empty-state", "Sign in to choose a friend, or share this room link."));
+  } else if (socialState.isLoading) {
+    friendSection.append(createElement("p", "status-message", "Loading friends…"));
+  } else if (socialState.errorMessage) {
+    const error = createErrorMessage(socialState.errorMessage);
+    if (error) friendSection.append(error);
+    friendSection.append(createElement("p", "helper-text", "You can still share the room link above."));
+  } else if (socialState.friends.length === 0) {
+    friendSection.append(createElement("p", "empty-state", "No friends yet. Share this room link to invite someone."));
+  } else {
+    for (const friend of socialState.friends) {
+      const row = createElement("div", "invitation-friend-row");
+      row.append(
+        createElement("span", "social-profile-name", friend.displayName),
+        createElement("span", "social-profile-handle", `@${friend.handle}`),
+      );
+      const invite = createElement(
+        "button",
+        "text-button invitation-friend-share",
+        `Share with @${friend.handle}`,
+      );
+      invite.type = "button";
+      invite.disabled = state.isInvitationBusy || isRoomFull;
+      invite.addEventListener("click", () => actions.onInviteFriend(friend.handle));
+      row.append(invite);
+      friendSection.append(row);
+    }
+  }
+  dialog.append(friendSection);
 
   if (state.isInvitationQrVisible && state.invitationQrDataUrl) {
     const qrImage = createElement("img", "invitation-qr-code");
@@ -1876,6 +1954,7 @@ function renderGame(
   actions: AppActions,
   submission: FakeAnswerViewState,
   bruhWtfSubmission: BruhWtfViewState,
+  authState: AuthViewState,
 ): HTMLElement {
   const game = state.game;
   if (!game) {
@@ -1887,10 +1966,11 @@ function renderGame(
     return screen;
   }
 
+  let screen: HTMLElement;
   switch (game.gameId) {
     case "fact-or-cap":
     case "fact-or-cap-anime":
-      return renderFakeAnswerGame(
+      screen = renderFakeAnswerGame(
         game.state,
         submission,
         actions.onSubmitFakeAnswer,
@@ -1905,8 +1985,9 @@ function renderGame(
         actions.onResultsHistoryPage,
         actions.onReturnFromResults,
       );
+      break;
     case "bruh-wtf":
-      return renderBruhWtfGame(
+      screen = renderBruhWtfGame(
         game.state,
         bruhWtfSubmission,
         actions.onSubmitBruhAnswer,
@@ -1921,6 +2002,7 @@ function renderGame(
         actions.onResultsHistoryPage,
         actions.onReturnFromResults,
       );
+      break;
     default: {
       const screen = createElement("section", "app-screen starting-screen");
       screen.append(
@@ -1930,6 +2012,38 @@ function renderGame(
       return screen;
     }
   }
+  const gameState = game.state;
+  if (authState.isAuthenticated &&
+    typeof gameState === "object" &&
+    gameState !== null &&
+    "phase" in gameState &&
+    gameState.phase === "results") {
+    const results = "results" in gameState ? gameState.results : null;
+    const candidates = results && typeof results === "object"
+      ? "activeLeaderboard" in results && Array.isArray(results.activeLeaderboard)
+        ? results.activeLeaderboard
+        : "standings" in results && Array.isArray(results.standings)
+          ? results.standings
+          : "leaderboard" in results && Array.isArray(results.leaderboard)
+            ? results.leaderboard
+            : []
+      : [];
+    const seenNames = new Set<string>();
+    const findPlayers = createElement("section", "results-social-actions");
+    findPlayers.append(createElement("h2", "results-section-heading", "Connect with players"));
+    findPlayers.append(createElement("p", "screen-description", "Search by display name to find a public profile."));
+    for (const candidate of candidates) {
+      if (typeof candidate !== "object" || candidate === null || !("name" in candidate) || typeof candidate.name !== "string") continue;
+      if (("playerId" in candidate && candidate.playerId === state.localPlayerId) || seenNames.has(candidate.name)) continue;
+      seenNames.add(candidate.name);
+      const find = createElement("button", "text-button results-find-player", `Find ${candidate.name}`);
+      find.type = "button";
+      find.addEventListener("click", () => actions.onFindPlayerFromResults(candidate.name));
+      findPlayers.append(find);
+    }
+    if (seenNames.size > 0) screen.append(findPlayers);
+  }
+  return screen;
 }
 
 function getRenderScope(state: AppState): string {
@@ -2171,9 +2285,9 @@ export function renderApp(
       : state.currentView === "starting"
       ? renderStarting(state)
       : state.currentView === "game"
-        ? renderGame(state, actions, fakeAnswerSubmission, bruhWtfSubmission)
+        ? renderGame(state, actions, fakeAnswerSubmission, bruhWtfSubmission, authState)
         : state.currentView === "lobby"
-          ? renderLobby(state, actions)
+          ? renderLobby(state, actions, authState, socialState)
           : state.currentView === "game-selection"
             ? renderGameSelection(state, actions)
           : state.currentView === "public-rooms"

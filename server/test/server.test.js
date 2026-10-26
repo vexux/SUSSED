@@ -8,7 +8,43 @@ const { questions } = require("../games/fact-or-cap/questionBank");
 const { questions: animeQuestions } = require("../games/fact-or-cap/animeQuestionBank");
 const factOrCapSocketHandlers = require("../games/fact-or-cap/socketHandlers");
 const roomManager = require("../roomManager");
+const {
+    ACHIEVEMENT_EVENT_TYPES,
+    createAchievementEvent
+} = require("../achievementEvents");
 const { startServer } = require("../server");
+
+test("achievement lifecycle events are validated, immutable, and contain no client identity", () => {
+    const event = createAchievementEvent(ACHIEVEMENT_EVENT_TYPES.ROUND_COMPLETED, {
+        roomCode: "ABCD",
+        sessionId: "session-1",
+        gameId: "fact-or-cap",
+        occurredAt: "2025-01-01T00:00:00.000Z",
+        round: 2
+    });
+    assert.deepEqual(event, {
+        type: "game.round-completed",
+        roomCode: "ABCD",
+        sessionId: "session-1",
+        gameId: "fact-or-cap",
+        occurredAt: "2025-01-01T00:00:00.000Z",
+        round: 2
+    });
+    assert.equal(Object.isFrozen(event), true);
+    assert.throws(() => createAchievementEvent("game.unlocked", {
+        roomCode: "ABCD",
+        sessionId: "session-1",
+        gameId: "fact-or-cap"
+    }), /Unsupported achievement event type/u);
+    assert.throws(() => createAchievementEvent(ACHIEVEMENT_EVENT_TYPES.ROUND_COMPLETED, {
+        roomCode: "ABCD",
+        sessionId: "session-1",
+        gameId: "fact-or-cap",
+        round: 0
+    }), /positive round number/u);
+    assert.equal("accountId" in event, false);
+    assert.equal("playerId" in event, false);
+});
 
 function collectPublicKeysAndStringValues(value, keys = [], stringValues = []) {
     if (Array.isArray(value)) {

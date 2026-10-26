@@ -963,12 +963,13 @@ function runSocialOperation(
   }
 }
 
-function loadSocialData(): void {
+function loadSocialData(successMessage?: string): void {
   socialViewState.isLoading = true;
   runSocialOperation("get-social-data", undefined, (response) => {
     socialViewState.friends = response.friends ?? [];
     socialViewState.incomingRequests = response.incomingRequests ?? [];
     socialViewState.outgoingRequests = response.outgoingRequests ?? [];
+    if (successMessage) socialViewState.statusMessage = successMessage;
   });
 }
 
@@ -1153,6 +1154,37 @@ const actions: AppActions = {
       socialViewState.statusMessage = "Display name updated.";
     });
   },
+  onInviteFriend(handle) {
+    const friend = socialViewState.friends.find((entry) => entry.handle === handle);
+    const roomCode = state.lobby?.roomCode;
+    const url = state.invitationUrl;
+    if (
+      !authViewState.isAuthenticated ||
+      !friend ||
+      !roomCode ||
+      !url ||
+      !state.lobby ||
+      state.lobby.playerCount >= state.lobby.maxPlayers
+    ) return;
+    runInvitationAction(async () => {
+      const result = await shareOrCopyInvitation(
+        {
+          title: `Join ${friend.displayName} in SUSSED!`,
+          text: `Join my SUSSED! room with code ${roomCode}.`,
+          url,
+        },
+        {
+          share: typeof navigator.share === "function"
+            ? (data) => navigator.share(data)
+            : undefined,
+          copy: copyInvitationText,
+        },
+      );
+      return result === "shared"
+        ? `Share sheet opened for @${friend.handle}. Delivery is not confirmed.`
+        : `Invitation link copied for @${friend.handle}.`;
+    });
+  },
   onProfileHandleChange(handle) {
     const normalized = handle.trim().replace(/^@/u, "").toLowerCase();
     if (!/^[a-z0-9]{3,20}$/u.test(normalized)) {
@@ -1221,6 +1253,14 @@ const actions: AppActions = {
       if (!response.profile) socialViewState.statusMessage = "Player not found.";
     }, true);
   },
+  onFindPlayerFromResults(displayName) {
+    state.currentView = "friends";
+    socialViewState.searchMode = "displayName";
+    socialViewState.searchQuery = displayName;
+    socialViewState.searchResults = [];
+    render();
+    actions.onSearchProfiles("displayName", displayName);
+  },
   onSendFriendRequest(handle) {
     if (handle === socialViewState.profile?.handle) {
       socialViewState.errorMessage = "You cannot send a friend request to yourself.";
@@ -1228,7 +1268,6 @@ const actions: AppActions = {
       return;
     }
     runSocialOperation("send-friend-request", { handle }, (response) => {
-      socialViewState.statusMessage = "Friend request sent.";
       if (typeof response.requestId === "string") {
         socialViewState.outgoingRequests.push({
           requestId: response.requestId,
@@ -1238,25 +1277,22 @@ const actions: AppActions = {
             ?? handle,
         });
       }
-      loadSocialData();
+      loadSocialData("Friend request sent.");
     });
   },
   onRespondToFriendRequest(requestId, action) {
     runSocialOperation("respond-friend-request", { requestId, action }, () => {
-      socialViewState.statusMessage = action === "accept" ? "Friend request accepted." : "Friend request declined.";
-      loadSocialData();
+      loadSocialData(action === "accept" ? "Friend request accepted." : "Friend request declined.");
     });
   },
   onCancelFriendRequest(requestId) {
     runSocialOperation("cancel-friend-request", { requestId }, () => {
-      socialViewState.statusMessage = "Friend request cancelled.";
-      loadSocialData();
+      loadSocialData("Friend request cancelled.");
     });
   },
   onRemoveFriend(handle) {
     runSocialOperation("remove-friend", { handle }, () => {
-      socialViewState.statusMessage = "Friend removed.";
-      loadSocialData();
+      loadSocialData("Friend removed.");
     });
   },
   onChooseAnotherGame() {
@@ -1564,6 +1600,12 @@ const actions: AppActions = {
   },
   onOpenInvitationDialog() {
     if (!state.lobby || state.lobby.status !== "lobby" || state.isBusy) return;
+    if (state.lobby.playerCount >= state.lobby.maxPlayers) {
+      state.errorMessage = "This room is full and cannot accept new players.";
+      state.errorCode = "ROOM_FULL";
+      render();
+      return;
+    }
     try {
       const url = buildCurrentInvitationUrl(state.lobby.roomCode);
       if (state.invitationUrl !== url) {
@@ -1579,6 +1621,7 @@ const actions: AppActions = {
       state.errorCode = "INVITATION_URL_INVALID";
     }
     render();
+    if (authViewState.isAuthenticated) loadSocialData();
   },
   onCloseInvitationDialog() {
     if (!state.isInvitationDialogOpen) return;
@@ -1588,7 +1631,7 @@ const actions: AppActions = {
   },
   onCopyInvitationLink() {
     const url = state.invitationUrl;
-    if (!url) return;
+    if (!url || !state.lobby || state.lobby.playerCount >= state.lobby.maxPlayers) return;
     runInvitationAction(async () => {
       await copyInvitationText(url);
       return "Invitation link copied.";
@@ -1597,7 +1640,7 @@ const actions: AppActions = {
   onShareInvitationLink() {
     const roomCode = state.lobby?.roomCode;
     const url = state.invitationUrl;
-    if (!roomCode || !url) return;
+    if (!roomCode || !url || !state.lobby || state.lobby.playerCount >= state.lobby.maxPlayers) return;
     runInvitationAction(async () => {
       const result = await shareOrCopyInvitation(
         { title: "Join my SUSSED! room", text: `Join my SUSSED! room with code ${roomCode}.`, url },

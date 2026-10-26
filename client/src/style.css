@@ -509,6 +509,42 @@ button:disabled {
   margin-left: auto;
 }
 
+.social-friendship-status {
+  margin: 6px 0;
+  color: var(--color-text-secondary);
+}
+
+.invitation-friends {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.invitation-friend-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  background: var(--color-surface-alt);
+}
+
+.invitation-friend-share {
+  margin-left: auto;
+}
+
+.results-social-actions {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.results-find-player {
+  justify-self: start;
+}
+
 .social-request-button,
 .social-remove-friend,
 .social-cancel-request,
