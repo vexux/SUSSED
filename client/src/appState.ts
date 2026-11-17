@@ -78,6 +78,7 @@ export interface LobbyPlayer {
   isHost: boolean;
   isReady: boolean;
   isInGame: boolean;
+  connected?: boolean;
 }
 
 export interface LobbyState {
@@ -119,6 +120,7 @@ export interface PublicRoom {
 export interface GameParticipant {
   id: string;
   name: string;
+  connected?: boolean;
 }
 
 export interface GameSessionState {

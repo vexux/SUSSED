@@ -54,6 +54,14 @@ function validateGameStart(room, gameId) {
     return game;
 }
 
+function projectPlayers(players) {
+    return players.map(({ id, name, connected }) => ({
+        id,
+        name,
+        ...(connected === false ? { connected: false } : {})
+    }));
+}
+
 function startGame(room, gameId) {
     if (!room || room.status !== "starting") {
         throw new GameSessionError("ROOM_NOT_STARTING", "The room must be starting before the game can begin.");
@@ -75,7 +83,7 @@ function startGame(room, gameId) {
         gameId: game.id,
         displayName: game.displayName,
         status: "active",
-        players: room.players.map(({ id, name }) => ({ id, name })),
+        players: projectPlayers(room.players),
         implementation: game,
         privateState
     };
@@ -90,7 +98,7 @@ function createPublicGameState(session, playerId) {
         gameId: session.gameId,
         displayName: session.displayName,
         status: session.status,
-        players: session.players.map(({ id, name }) => ({ id, name })),
+        players: projectPlayers(session.players),
         state: session.implementation.createPublicState(session.privateState, playerId)
     };
 }
@@ -157,7 +165,14 @@ function removeParticipant(roomCode, playerId, expectedSessionId) {
     if (!result?.removed) {
         throw new GameSessionError("PARTICIPANT_REMOVAL_FAILED", "The player could not be removed from the game session.");
     }
-    session.players = session.privateState.participants.map(({ id, name }) => ({ id, name }));
+    const disconnectedPlayers = new Set(
+        session.players.filter(({ connected }) => connected === false).map(({ id }) => id)
+    );
+    session.players = session.privateState.participants.map(({ id, name }) => ({
+        id,
+        name,
+        ...(disconnectedPlayers.has(id) ? { connected: false } : {})
+    }));
     session.status = session.implementation.isFinished?.(session.privateState) ? "finished" : "active";
     return {
         ...result,
@@ -166,6 +181,24 @@ function removeParticipant(roomCode, playerId, expectedSessionId) {
         status: session.status,
         players: session.players
     };
+}
+
+function setPlayerConnectionStatus(roomCode, playerId, connected) {
+    const session = sessions.get(roomCode);
+    if (!session) return false;
+    const player = session.players.find((candidate) => candidate.id === playerId);
+    if (!player) return false;
+    if (connected) {
+        delete player.connected;
+    } else {
+        player.connected = false;
+    }
+    return true;
+}
+
+function getGamePlayerIds(roomCode) {
+    const session = sessions.get(roomCode);
+    return session ? session.players.map(({ id }) => id) : [];
 }
 
 function getPublicGameState(roomCode, playerId) {
@@ -216,7 +249,7 @@ function retireFinishedGame(roomCode, expectedSessionId) {
         gameId: session.gameId,
         displayName: session.displayName,
         status: session.status,
-        players: session.players.map(({ id, name }) => ({ id, name })),
+        players: projectPlayers(session.players),
         state: session.implementation.createPublicState(session.privateState, null)
     };
     sessions.delete(roomCode);
@@ -240,10 +273,12 @@ module.exports = {
     abortActiveGame,
     GameSessionError,
     getGameDefinition,
+    getGamePlayerIds,
     getPublicGameState,
     isPlayerCountSupported,
     performGameAction,
     removeParticipant,
+    setPlayerConnectionStatus,
     retireFinishedGame,
     removeGame,
     startGame,

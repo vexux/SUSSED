@@ -144,15 +144,18 @@ Round results also give each viewer a dismissible, short-lived personal
 feedback message derived from their own revealed vote. It is hidden until
 results are published and does not affect the normal answer or score breakdown.
 
-The server removes a disconnecting or voluntarily leaving player from the
-active session and reevaluates the current phase against the remaining roster.
-Their submission, vote, score, and statistics are removed. Votes for their
-bluff are invalidated so affected players can vote again; if the remaining
-submission or vote quorum is already complete, the server advances once. If
-one player remains, the session ends and that player returns to the lobby
-unready. An empty room and its session are deleted. Host migration does not
-interrupt an active game. Departed sockets cannot read state or act in the
-session, and session/round IDs continue to guard delayed events.
+An unexpected socket disconnect leaves the player and their game state intact
+for 90 seconds. Reconnecting with the same guest recovery identity during that
+period resumes the existing session. At expiry, the server removes the player
+and reevaluates the current phase against the remaining roster. Their
+submission, vote, score, and statistics are removed. Votes for their bluff are
+invalidated so affected players can vote again; if the remaining submission or
+vote quorum is already complete, the server advances once. If one player
+remains, the session ends and that player returns to the lobby unready. An
+empty room and its session are deleted. Explicit leave and host kick remain
+immediate. Host migration occurs only when departure cleanup runs.
+Disconnected sockets cannot read state or act in the session, and
+session/round IDs continue to guard delayed events.
 
 Bruh wtf? keeps already-published round results as historical data after a
 departure while exposing an active leaderboard for the remaining players.
@@ -160,9 +163,9 @@ Future prompts are restricted to the new roster size. If a selected prompt
 cannot be replaced from the eligible library, the remaining session's round
 count is shortened to the available sequence.
 
-Submission, voting, and between-round continuation phases have no inactivity
-deadline. Players may wait in these phases indefinitely while the remaining
-players are still participating.
+Submission, voting, and between-round continuation phases have no per-action
+inactivity deadline. Connected players may wait in these phases indefinitely;
+the separate 90-second disconnect grace applies only to disconnected players.
 Submission progress exposes player IDs, names, and submitted status only; it
 never includes answer contents or authorship before reveal.
 

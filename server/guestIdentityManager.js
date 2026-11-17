@@ -169,6 +169,10 @@ class GuestIdentityManager {
         return this.activeSockets.get(playerId) ?? null;
     }
 
+    isActiveSocket(playerId, socketId) {
+        return this.activeSockets.get(playerId) === socketId;
+    }
+
     getPlayerId(socketId) {
         return this.socketPlayers.get(socketId) ?? this.pendingSockets.get(socketId) ?? null;
     }

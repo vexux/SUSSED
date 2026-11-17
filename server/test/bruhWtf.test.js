@@ -7,7 +7,9 @@ const roomManager = require("../roomManager");
 const gameManager = require("../gameManager");
 const gameRegistry = require("../gameRegistry");
 const { startServer } = require("../server");
+const { DisconnectGraceManager, DISCONNECT_GRACE_PERIOD_MS } = require("../disconnectGraceManager");
 const bruhWtf = require("../games/bruh-wtf/game");
+const { FakeScheduler } = require("./fakeScheduler");
 const { loadQuestionPacks, validateQuestionPack, validateTemplate } = require("../games/bruh-wtf/questionLibrary");
 
 const CURRENT_RECOVERY_KEY = "sussed:guest-recovery:v1";
@@ -104,7 +106,13 @@ function recordGameStatePhases(client) {
 }
 
 async function createSocketHarness(context) {
-    const io = startServer(0);
+    const scheduler = new FakeScheduler();
+    const disconnectGraceManager = new DisconnectGraceManager({
+        now: () => scheduler.time,
+        setTimeoutFn: scheduler.setTimeout.bind(scheduler),
+        clearTimeoutFn: scheduler.clearTimeout.bind(scheduler)
+    });
+    const io = startServer(0, { disconnectGraceManager });
     await new Promise((resolve, reject) => {
         io.httpServer.once("listening", resolve);
         io.httpServer.once("error", reject);
@@ -162,7 +170,14 @@ async function createSocketHarness(context) {
         });
         return client;
     };
-    return { connect, rooms };
+    return {
+        connect,
+        rooms,
+        async advanceGrace(milliseconds = DISCONNECT_GRACE_PERIOD_MS) {
+            scheduler.advanceBy(milliseconds);
+            await new Promise((resolve) => setImmediate(resolve));
+        }
+    };
 }
 
 async function startBruhResults(context, { roundCount = 5 } = {}) {
@@ -198,7 +213,7 @@ async function startBruhResults(context, { roundCount = 5 } = {}) {
         })).voted, true);
     }
     assert.equal(gameManager.getPublicGameState(created.roomCode, host.id).state.phase, "results");
-    return { clients, host, guest, third, created, sessionId, roundId };
+    return { harness, clients, host, guest, third, created, sessionId, roundId };
 }
 
 async function startBruhVoting(context) {
@@ -557,18 +572,31 @@ test("Bruh results stay published when the host voter explicitly leaves and rema
 });
 
 test("Bruh results preserve a disconnected answer author's published history", async (context) => {
-    const { host, guest, third, created, sessionId, roundId } = await startBruhResults(context, { roundCount: 5 });
+    const { harness, host, guest, third, created, sessionId, roundId } = await startBruhResults(context, { roundCount: 5 });
     const thirdId = third.id;
     const before = gameManager.getPublicGameState(created.roomCode, host.id).state.results;
     const thirdAnswer = before.answers.find(({ authorId }) => authorId === thirdId);
     assert.ok(thirdAnswer);
+    const disconnectedUpdates = [host, guest].map((client) => waitForGameState(client, (state) =>
+        state.sessionId === sessionId &&
+        state.state.phase === "results" &&
+        state.state.playerCount === 3 &&
+        state.players.some(({ id, connected }) => id === thirdId && connected === false)
+    ));
+    const disconnected = new Promise((resolve) => third.once("disconnect", resolve));
+    third.disconnect();
+    await disconnected;
+    const [hostOffline, guestOffline] = await Promise.all(disconnectedUpdates);
+    assert.equal(hostOffline.state.playerCount, 3);
+    assert.equal(guestOffline.players.find(({ id }) => id === thirdId).connected, false);
+
     const hostPhases = recordGameStatePhases(host);
     const guestPhases = recordGameStatePhases(guest);
     const updated = waitForGameState(host, (state) => state.sessionId === sessionId &&
         state.state.phase === "results" && state.state.playerCount === 2);
     const guestUpdated = waitForGameState(guest, (state) => state.sessionId === sessionId &&
         state.state.phase === "results" && state.state.playerCount === 2);
-    third.disconnect();
+    await harness.advanceGrace();
     await Promise.all([updated, guestUpdated]);
     hostPhases.stop();
     guestPhases.stop();
@@ -634,18 +662,28 @@ test("Bruh voting retains an explicit leaver's answer and vote and broadcasts re
 });
 
 test("Bruh disconnect during voting preserves a submitted unvoted answer and the last active vote publishes results", async (context) => {
-    const { host, guest, third, created, sessionId, roundId } = await startBruhVoting(context);
+    const { harness, host, guest, third, created, sessionId, roundId } = await startBruhVoting(context);
     const thirdId = third.id;
     const hostState = gameManager.getPublicGameState(created.roomCode, host.id).state;
     const thirdAnswer = hostState.options.find(({ completion }) => completion === "Third answer");
     assert.ok(thirdAnswer);
     assert.equal((await emitWithAck(host, "bruh-wtf:vote", { sessionId, roundId, optionId: thirdAnswer.id })).voted, true);
 
-    const updates = [host, guest].map((client) => waitForGameState(client, (state) =>
-        state.sessionId === sessionId && state.state.phase === "voting" && state.state.playerCount === 2));
+    const disconnectedUpdates = [host, guest].map((client) => waitForGameState(client, (state) =>
+        state.sessionId === sessionId &&
+        state.state.phase === "voting" &&
+        state.state.playerCount === 3 &&
+        state.players.some(({ id, connected }) => id === thirdId && connected === false)
+    ));
     const disconnected = new Promise((resolve) => third.once("disconnect", resolve));
     third.disconnect();
     await disconnected;
+    const offlineStates = await Promise.all(disconnectedUpdates);
+    assert.ok(offlineStates.every(({ state }) => state.voteCount === 1 && state.playerCount === 3));
+
+    const updates = [host, guest].map((client) => waitForGameState(client, (state) =>
+        state.sessionId === sessionId && state.state.phase === "voting" && state.state.playerCount === 2));
+    await harness.advanceGrace();
     const [hostUpdate, guestUpdate] = await Promise.all(updates);
     for (const update of [hostUpdate, guestUpdate]) {
         assert.equal(update.state.voteCount, 1);

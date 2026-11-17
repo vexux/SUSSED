@@ -1771,13 +1771,16 @@ function renderLobby(
     trigger.dataset.playerId = player.id;
     trigger.setAttribute("aria-haspopup", "dialog");
     trigger.setAttribute("aria-expanded", String(state.selectedPlayerId === player.id));
-    const playerStatus = player.isInGame
+    const currentStatus = player.isInGame
       ? "in game"
       : player.isHost
         ? "host"
         : player.isReady
           ? "ready"
           : "not ready";
+    const playerStatus = player.connected === false
+      ? `disconnected, ${currentStatus}`
+      : currentStatus;
     trigger.setAttribute("aria-label", `${player.name}, ${playerStatus}. View player card.`);
     trigger.addEventListener("click", () => actions.onOpenPlayerCard(player.id));
     const avatar = createElement("span", "player-avatar", getPlayerInitials(player.name));
@@ -1803,6 +1806,9 @@ function renderLobby(
       ));
     }
     if (player.isHost) badges.append(createElement("span", "host-badge", "Host"));
+    if (player.connected === false) {
+      badges.append(createElement("span", "disconnected-badge", "Disconnected"));
+    }
     trigger.append(avatar, name, badges);
     item.append(trigger);
     playerList.append(item);
@@ -2272,6 +2278,19 @@ function renderGame(
     }
   }
   const gameState = game.state;
+  const disconnectedPlayers = game.players.filter(
+    (player) => player.connected === false,
+  );
+  if (disconnectedPlayers.length > 0) {
+    const names = disconnectedPlayers.map(({ name }) => name).join(", ");
+    const notice = createElement(
+      "p",
+      "game-disconnected-notice",
+      `Waiting for ${names} to reconnect. Their place is reserved for 90 seconds.`,
+    );
+    notice.setAttribute("role", "status");
+    screen.insertBefore(notice, screen.firstElementChild);
+  }
   if (authState.isAuthenticated &&
     typeof gameState === "object" &&
     gameState !== null &&

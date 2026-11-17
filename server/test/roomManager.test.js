@@ -160,6 +160,39 @@ test("rooms start with five rounds and enforce the shared eight-player capacity"
     assert.equal(host.players.length, roomManager.MAX_ROOM_CAPACITY);
 });
 
+test("disconnected players retain seats and only expose a connection flag in room projections", (context) => {
+    const room = roomManager.createRoom("offline-capacity-host", "Host", undefined, "public");
+    context.after(() => roomManager.removeRoom(room.code));
+    for (let index = 1; index < roomManager.MAX_ROOM_CAPACITY; index += 1) {
+        roomManager.joinRoom(room.code, `offline-capacity-${index}`, `Player ${index}`);
+    }
+
+    const offlinePlayerId = "offline-capacity-7";
+    roomManager.setPlayerConnectionStatus(offlinePlayerId, false, 1_234_567);
+    const lobby = roomManager.createLobbyState(room);
+    const offlinePlayer = lobby.players.find(({ id }) => id === offlinePlayerId);
+    assert.equal(lobby.playerCount, roomManager.MAX_ROOM_CAPACITY);
+    assert.deepEqual(offlinePlayer, {
+        id: offlinePlayerId,
+        name: "Player 7",
+        isHost: false,
+        isReady: false,
+        isInGame: false,
+        connected: false
+    });
+    assert.equal("disconnectedAt" in offlinePlayer, false);
+    assert.equal(roomManager.listPublicRooms().some(({ roomId }) => roomId === room.publicRoomId), false);
+    assert.throws(
+        () => roomManager.joinRoom(room.code, "offline-capacity-9", "Player 9"),
+        { code: "ROOM_FULL" }
+    );
+
+    roomManager.setPlayerConnectionStatus(offlinePlayerId, true);
+    assert.equal(room.players.find(({ id }) => id === offlinePlayerId).disconnectedAt, undefined);
+    roomManager.removePlayer(offlinePlayerId);
+    assert.equal(roomManager.listPublicRooms().find(({ roomId }) => roomId === room.publicRoomId).playerCount, 7);
+});
+
 test("simultaneous joins reserve only the last available room slot", async (context) => {
     const host = roomManager.createRoom("last-slot-host", "Host");
     context.after(() => roomManager.removeRoom(host.code));

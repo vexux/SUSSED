@@ -13,8 +13,11 @@ const {
     createAchievementEvent
 } = require("../achievementEvents");
 const { startServer } = require("../server");
+const { handleDisconnect } = require("../roomHandlers");
+const { DisconnectGraceManager, DISCONNECT_GRACE_PERIOD_MS } = require("../disconnectGraceManager");
 const { GuestIdentityManager, getPersonalRoomName } = require("../guestIdentityManager");
 const { DISABLED_ACCOUNT_EVENTS } = require("../disabledAccountHandlers");
+const { FakeScheduler } = require("./fakeScheduler");
 
 const CURRENT_RECOVERY_KEY = "sussed:guest-recovery:v1";
 const PENDING_RECOVERY_KEY = "sussed:guest-recovery:v1:pending";
@@ -159,7 +162,19 @@ async function createHarness(context, {
     authEnabled = true,
 } = {}) {
     const identityManager = new GuestIdentityManager();
-    const io = startServer(0, { verifyAccessToken, profileRepository, authEnabled, identityManager });
+    const scheduler = new FakeScheduler();
+    const disconnectGraceManager = new DisconnectGraceManager({
+        now: () => scheduler.time,
+        setTimeoutFn: scheduler.setTimeout.bind(scheduler),
+        clearTimeoutFn: scheduler.clearTimeout.bind(scheduler)
+    });
+    const io = startServer(0, {
+        verifyAccessToken,
+        profileRepository,
+        authEnabled,
+        identityManager,
+        disconnectGraceManager
+    });
     const clients = [];
     const roomCodes = new Set();
 
@@ -185,6 +200,10 @@ async function createHarness(context, {
 
     return {
         io,
+        async advanceGrace(milliseconds = DISCONNECT_GRACE_PERIOD_MS) {
+            scheduler.advanceBy(milliseconds);
+            await new Promise((resolve) => setImmediate(resolve));
+        },
         async connect({ auth, onServerConfiguration, storage = createMemoryStorage() } = {}) {
             const socketClient = createClient(`http://127.0.0.1:${address.port}`, {
                 autoConnect: false,
@@ -315,7 +334,7 @@ test("guest sockets use a stable server-issued player identity", async (context)
     assert.equal(roomManager.getRoom(created.roomCode).hostId, guest.id);
 });
 
-test("recovery restores the stable player ID, rotates the credential, and leaves room state cleared", async (context) => {
+test("recovery restores a disconnected room member and cancels its grace timer", async (context) => {
     const harness = await createHarness(context);
     const original = await harness.connect();
     const originalPlayerId = original.id;
@@ -328,11 +347,23 @@ test("recovery restores the stable player ID, rotates the credential, and leaves
     await emitWithAck(observer, "join-room", { roomCode: created.roomCode, playerName: "Observer" });
     harness.trackRoom(created.roomCode);
 
+    const disconnectedLobbyPromise = waitForLobby(observer, (lobby) =>
+        lobby.playerCount === 2 &&
+        lobby.players.some(({ id, connected }) => id === originalPlayerId && connected === false)
+    );
     const serverDisconnect = new Promise((resolve) => originalServerSocket.once("disconnect", resolve));
     original.disconnect();
     await serverDisconnect;
-    assert.deepEqual(roomManager.getRoom(created.roomCode).players.map(({ id }) => id), [observer.id]);
+    const disconnectedLobby = await disconnectedLobbyPromise;
+    assert.equal(disconnectedLobby.players.find(({ id }) => id === originalPlayerId).isHost, true);
+    assert.equal(roomManager.getRoom(created.roomCode).players.length, 2);
+    assert.equal(harness.io.disconnectGraceManager.size, 1);
+    await harness.advanceGrace(DISCONNECT_GRACE_PERIOD_MS - 1);
 
+    const restoredLobbyPromise = waitForLobby(observer, (lobby) =>
+        lobby.playerCount === 2 &&
+        !lobby.players.some(({ id, connected }) => id === originalPlayerId && connected === false)
+    );
     const recovered = await harness.connect({ storage: original.recoveryStorage });
     assert.equal(recovered.id, originalPlayerId);
     assert.notEqual(recovered.transportId, original.transportId);
@@ -347,6 +378,18 @@ test("recovery restores the stable player ID, rotates the credential, and leaves
         () => harness.io.guestIdentityManager.beginRecovery("replay", originalCredential),
         { code: "RECOVERY_REPLAYED" },
     );
+    assert.equal(harness.io.disconnectGraceManager.size, 0);
+    await harness.advanceGrace(1);
+
+    const restoredLobby = await restoredLobbyPromise;
+    assert.equal(restoredLobby.players.find(({ id }) => id === originalPlayerId).isHost, true);
+    handleDisconnect(
+        harness.io,
+        originalServerSocket,
+        harness.io.guestIdentityManager,
+        harness.io.disconnectGraceManager
+    );
+    assert.equal(harness.io.disconnectGraceManager.size, 0);
 
     let receivedPrivateEvent = false;
     recovered.once("private-player-test", () => {
@@ -356,10 +399,8 @@ test("recovery restores the stable player ID, rotates the credential, and leaves
     await new Promise((resolve) => setImmediate(resolve));
     assert.equal(receivedPrivateEvent, true);
 
-    assert.equal(roomManager.getPlayerRoom(originalPlayerId), null);
-    const newRoom = await emitWithAck(recovered, "create-room", { playerName: "Recovered" });
-    harness.trackRoom(newRoom.roomCode);
-    assert.equal(roomManager.getRoom(newRoom.roomCode).hostId, originalPlayerId);
+    assert.equal(roomManager.getPlayerRoom(originalPlayerId).code, created.roomCode);
+    assert.equal((await emitWithAck(recovered, "create-room", { playerName: "Recovered" })).error.code, "ALREADY_IN_ROOM");
 });
 
 test("a second active connection cannot take over a recovered guest identity", async (context) => {
@@ -882,6 +923,7 @@ test("Socket.IO departure schedules one guarded next-round submission transition
                     const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
                     leaver.disconnect();
                     await disconnected;
+                    await harness.advanceGrace();
                 }
             } finally {
                 scheduled.restore();
@@ -1323,7 +1365,13 @@ test("the former host can leave after explicit transfer without undoing new host
     assert.deepEqual(roomManager.getRoom(created.roomCode).players.map(({ id }) => id), [newHost.id, remainingPlayer.id]);
 
     const transferredHostLeft = waitForLobby(remainingPlayer, (lobby) => lobby.playerCount === 1 && lobby.players[0]?.isHost);
+    const newHostDisconnected = new Promise((resolve) =>
+        harness.io.sockets.sockets.get(newHost.transportId).once("disconnect", resolve)
+    );
     newHost.disconnect();
+    await newHostDisconnected;
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, newHost.id);
+    await harness.advanceGrace();
     await transferredHostLeft;
     assert.equal(roomManager.getRoom(created.roomCode).hostId, remainingPlayer.id);
     assert.deepEqual(await emitWithAck(remainingPlayer, "leave-room", undefined), { left: true });
@@ -1352,7 +1400,13 @@ test("public-room updates follow host transfer and remove a room when its last p
     await joinedCount;
 
     const afterTransfer = waitForPublicRooms(browser, (rooms) => rooms[0]?.playerCount === 1 && rooms[0]?.hostName === "Guest");
+    const hostDisconnected = new Promise((resolve) =>
+        harness.io.sockets.sockets.get(host.transportId).once("disconnect", resolve)
+    );
     host.disconnect();
+    await hostDisconnected;
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, host.id);
+    await harness.advanceGrace();
     assert.equal((await afterTransfer)[0].hostName, "Guest");
     assert.equal(roomManager.getRoom(created.roomCode).hostId, guest.id);
 
@@ -1914,7 +1968,7 @@ test("rejects invalid or empty player names on create and join", async (context)
     assert.equal(invalidCreateResponse.error.code, "INVALID_NAME");
 });
 
-test("room joining enforces unique names atomically and releases names after leave or disconnect", async (context) => {
+test("room joining reserves names through disconnect grace and releases them after expiry or leave", async (context) => {
     const harness = await createHarness(context);
     const host = await harness.connect();
     const firstJoiner = await harness.connect();
@@ -1948,9 +2002,19 @@ test("room joining enforces unique names atomically and releases names after lea
     assert.equal(roomManager.getRoom(created.roomCode).players.length, 2);
 
     const winningClient = simultaneous[0].error ? secondJoiner : firstJoiner;
-    const afterDisconnect = waitForLobby(host, (lobby) => lobby.playerCount === 1);
+    const offline = waitForLobby(host, (lobby) =>
+        lobby.playerCount === 2 &&
+        lobby.players.some(({ id, connected }) => id === winningClient.id && connected === false)
+    );
     winningClient.disconnect();
-    await afterDisconnect;
+    await offline;
+    assert.equal((await emitWithAck(replacement, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "SHARED"
+    })).error.code, "DUPLICATE_PLAYER_NAME");
+    const afterExpiry = waitForLobby(host, (lobby) => lobby.playerCount === 1);
+    await harness.advanceGrace();
+    await afterExpiry;
     const reusedAfterDisconnect = await emitWithAck(replacement, "join-room", {
         roomCode: created.roomCode,
         playerName: "SHARED"
@@ -2076,7 +2140,7 @@ test("removes a newly created room when the creator socket cannot join it", asyn
     assert.equal(roomManager.getRoom(createdRoom.code), null);
 });
 
-test("disconnect removes a player and broadcasts the updated lobby", async (context) => {
+test("disconnect reserves a player seat and expiry removes the player", async (context) => {
     const harness = await createHarness(context);
     const host = await harness.connect();
     const guest = await harness.connect();
@@ -2090,38 +2154,99 @@ test("disconnect removes a player and broadcasts the updated lobby", async (cont
         playerName: "Guest",
     });
 
-    const lobbyUpdate = waitForLobby(host, (lobby) => lobby.playerCount === 1);
+    const disconnectedLobbyUpdate = waitForLobby(host, (lobby) =>
+        lobby.playerCount === 2 &&
+        lobby.players.some(({ id, connected }) => id === guest.id && connected === false)
+    );
     const disconnected = new Promise((resolve) =>
         harness.io.sockets.sockets.get(guest.transportId).once("disconnect", resolve)
     );
     guest.disconnect();
     await disconnected;
-    const lobby = await lobbyUpdate;
+    const disconnectedLobby = await disconnectedLobbyUpdate;
+    assert.equal(disconnectedLobby.players.find(({ id }) => id === guest.id).isHost, false);
+    assert.equal(roomManager.getPlayerRoom(guest.id).code, createResponse.roomCode);
+    assert.equal(roomManager.getRoom(createResponse.roomCode).players.length, 2);
+    assert.ok(hostSocket.rooms.has(createResponse.roomCode));
 
+    const lobbyUpdate = waitForLobby(host, (lobby) => lobby.playerCount === 1);
+    await harness.advanceGrace(DISCONNECT_GRACE_PERIOD_MS - 1);
+    assert.equal(roomManager.getPlayerRoom(guest.id).code, createResponse.roomCode);
+    assert.equal(harness.io.disconnectGraceManager.size, 1);
+    await harness.advanceGrace(1);
+    const lobby = await lobbyUpdate;
     assert.deepEqual(lobby.players, [
         { id: host.id, name: "Host", isHost: true, isReady: false, isInGame: false },
     ]);
     assert.equal(roomManager.getPlayerRoom(guest.id), null);
     assert.equal(roomManager.getRoom(createResponse.roomCode).players.length, 1);
-    assert.ok(hostSocket.rooms.has(createResponse.roomCode));
 });
 
-test("disconnect deletes a room when its last player leaves", async (context) => {
+test("disconnect deletes a room only after every member's grace period expires", async (context) => {
     const harness = await createHarness(context);
     const host = await harness.connect();
+    const guest = await harness.connect();
     const response = await emitWithAck(host, "create-room", {
         playerName: "Host",
     });
     harness.trackRoom(response.roomCode);
-    const serverSocket = harness.io.sockets.sockets.get(host.transportId);
-    const disconnected = new Promise((resolve) =>
-        serverSocket.once("disconnect", resolve)
+    await emitWithAck(guest, "join-room", { roomCode: response.roomCode, playerName: "Guest" });
+    const disconnected = [host, guest].map((client) =>
+        new Promise((resolve) =>
+            harness.io.sockets.sockets.get(client.transportId).once("disconnect", resolve)
+        )
     );
     host.disconnect();
-    await disconnected;
+    guest.disconnect();
+    await Promise.all(disconnected);
 
+    assert.equal(roomManager.getRoom(response.roomCode).players.length, 2);
+    assert.equal(harness.io.disconnectGraceManager.size, 2);
+    await harness.advanceGrace();
     assert.equal(roomManager.getRoom(response.roomCode), null);
     assert.equal(roomManager.getPlayerRoom(host.id), null);
+    assert.equal(harness.io.disconnectGraceManager.size, 0);
+
+    const recovered = await harness.connect({ storage: host.recoveryStorage });
+    assert.equal(recovered.id, host.id);
+    assert.equal(roomManager.getPlayerRoom(host.id), null);
+    const replacementRoom = await emitWithAck(recovered, "create-room", { playerName: "Host again" });
+    assert.equal(replacementRoom.error, undefined);
+    harness.trackRoom(replacementRoom.roomCode);
+});
+
+test("the host can immediately kick a disconnected player and cancel their timer", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const target = await harness.connect();
+    const observer = await harness.connect();
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(target, "join-room", { roomCode: created.roomCode, playerName: "Target" });
+    await emitWithAck(observer, "join-room", { roomCode: created.roomCode, playerName: "Observer" });
+
+    const targetOffline = waitForLobby(host, (lobby) =>
+        lobby.players.some(({ id, connected }) => id === target.id && connected === false)
+    );
+    const disconnected = new Promise((resolve) =>
+        harness.io.sockets.sockets.get(target.transportId).once("disconnect", resolve)
+    );
+    target.disconnect();
+    await disconnected;
+    await targetOffline;
+
+    const targetRemoved = waitForLobby(observer, (lobby) =>
+        !lobby.players.some(({ id }) => id === target.id)
+    );
+    assert.deepEqual(await emitWithAck(host, "kick-player", { targetPlayerId: target.id }), {
+        kicked: true,
+        playerId: target.id
+    });
+    await targetRemoved;
+    assert.equal(roomManager.getPlayerRoom(target.id), null);
+    assert.equal(harness.io.disconnectGraceManager.size, 0);
+    await harness.advanceGrace();
+    assert.equal(roomManager.getRoom(created.roomCode).players.length, 2);
 });
 
 test("host disconnect migrates host to the earliest remaining player", async (context) => {
@@ -2141,14 +2266,21 @@ test("host disconnect migrates host to the earliest remaining player", async (co
         roomCode: created.roomCode,
         playerName: "Last player",
     });
-    const hostUpdate = waitForLobby(nextHost, (lobby) => lobby.playerCount === 2);
-    const lastPlayerUpdate = waitForLobby(lastPlayer, (lobby) => lobby.playerCount === 2);
+    const disconnectedUpdate = waitForLobby(nextHost, (lobby) =>
+        lobby.playerCount === 3 &&
+        lobby.players.some(({ id, connected }) => id === host.id && connected === false)
+    );
     const disconnected = new Promise((resolve) =>
         harness.io.sockets.sockets.get(host.transportId).once("disconnect", resolve)
     );
     host.disconnect();
     await disconnected;
 
+    await disconnectedUpdate;
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, host.id);
+    const hostUpdate = waitForLobby(nextHost, (lobby) => lobby.playerCount === 2);
+    const lastPlayerUpdate = waitForLobby(lastPlayer, (lobby) => lobby.playerCount === 2);
+    await harness.advanceGrace();
     const lobby = await hostUpdate;
     assert.deepEqual(await lastPlayerUpdate, lobby);
     assert.equal(lobby.players[0].id, nextHost.id);
@@ -2157,15 +2289,17 @@ test("host disconnect migrates host to the earliest remaining player", async (co
     assert.equal(roomManager.getRoom(created.roomCode).hostId, nextHost.id);
 });
 
-test("disconnect during an active game removes only that player and the remaining players keep playing", async (context) => {
+test("disconnect preserves active game participation until grace expiry", async (context) => {
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, { playerCount: 3 });
     const originalHostSocket = harness.io.sockets.sockets.get(game.host.transportId);
     const room = roomManager.getRoom(game.roomCode);
     const originalSessionId = game.gameState.sessionId;
-    const activeUpdate = waitForGameState(
+    const disconnectedUpdate = waitForGameState(
         game.players[0],
-        (state) => state.sessionId === originalSessionId && state.state.playerCount === 2
+        (state) => state.sessionId === originalSessionId &&
+            state.state.playerCount === 3 &&
+            state.players.some(({ id, connected }) => id === game.host.id && connected === false)
     );
     const disconnected = new Promise((resolve) =>
         originalHostSocket.once("disconnect", resolve)
@@ -2173,6 +2307,19 @@ test("disconnect during an active game removes only that player and the remainin
 
     game.host.disconnect();
     await disconnected;
+    const disconnectedState = await disconnectedUpdate;
+    assert.equal(disconnectedState.status, "active");
+    assert.equal(disconnectedState.state.playerCount, 3);
+    assert.equal(disconnectedState.players.some(({ id }) => id === game.host.id), true);
+    assert.equal(room.hostId, game.host.id);
+    assert.equal(room.players.length, 3);
+    assert.equal(gameManager.getPublicGameState(game.roomCode, game.host.id).state.playerCount, 3);
+
+    const activeUpdate = waitForGameState(
+        game.players[0],
+        (state) => state.sessionId === originalSessionId && state.state.playerCount === 2
+    );
+    await harness.advanceGrace();
     const active = await activeUpdate;
     assert.equal(active.roomCode, game.roomCode);
     assert.equal(active.sessionId, originalSessionId);
@@ -2199,6 +2346,40 @@ test("disconnect during an active game removes only that player and the remainin
     await emitWithAck(game.players[1], "leave-room");
     assert.equal(roomManager.getRoom(game.roomCode), null);
     assert.throws(() => gameManager.getPublicGameState(game.roomCode, game.players[1].id), { code: "GAME_NOT_ACTIVE" });
+});
+
+test("reconnecting during the grace period restores the same active game session", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, { playerCount: 3 });
+    const sessionId = game.gameState.sessionId;
+    const originalSocket = harness.io.sockets.sockets.get(game.host.transportId);
+    const offlineUpdate = waitForGameState(game.players[0], (state) =>
+        state.sessionId === sessionId &&
+        state.state.playerCount === 3 &&
+        state.players.some(({ id, connected }) => id === game.host.id && connected === false)
+    );
+    const disconnected = new Promise((resolve) => originalSocket.once("disconnect", resolve));
+    game.host.disconnect();
+    await disconnected;
+    await offlineUpdate;
+    await harness.advanceGrace(DISCONNECT_GRACE_PERIOD_MS - 1);
+
+    const onlineUpdate = waitForGameState(game.players[0], (state) =>
+        state.sessionId === sessionId &&
+        state.state.playerCount === 3 &&
+        !state.players.some(({ id, connected }) => id === game.host.id && connected === false)
+    );
+    const recovered = await harness.connect({ storage: game.host.recoveryStorage });
+    assert.equal(recovered.id, game.host.id);
+    const restored = await onlineUpdate;
+    assert.equal(restored.roomCode, game.roomCode);
+    assert.equal(restored.state.phase, game.gameState.state.phase);
+    assert.equal(harness.io.disconnectGraceManager.size, 0);
+
+    await harness.advanceGrace(1);
+    assert.equal(roomManager.getPlayerRoom(game.host.id).code, game.roomCode);
+    assert.equal(gameManager.getPublicGameState(game.roomCode, game.host.id).sessionId, sessionId);
+    assert.equal(gameManager.getPublicGameState(game.roomCode, game.host.id).state.playerCount, 3);
 });
 
 test("explicit leave during a game preserves the same session for remaining players", async (context) => {
@@ -2262,6 +2443,7 @@ test("Fact-or-Cap and Anime preserve current-round votes and answers across an e
             const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
             game.host.disconnect();
             await disconnected;
+            await harness.advanceGrace();
         }
         const remainingStates = await Promise.all(departures);
         updateListeners.forEach((stop) => stop());
@@ -2339,6 +2521,7 @@ test("Fact-or-Cap variants reconcile completed submissions once when the last un
                     const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
                     leaver.disconnect();
                     await disconnected;
+                    await harness.advanceGrace();
                 }
 
                 states = await Promise.all(reconciled);
@@ -2349,7 +2532,11 @@ test("Fact-or-Cap variants reconcile completed submissions once when the last un
             listeners.forEach((stop) => stop());
             assert.deepEqual(beginVotingActions, [{ gameId, sessionId: initial.sessionId }]);
             for (const phaseList of phases) {
-                assert.deepEqual(phaseList, ["voting"], `${gameId} ${departureType} should publish one reconciled state`);
+                assert.deepEqual(
+                    phaseList,
+                    departureType === "disconnect" ? ["answer-submission", "voting"] : ["voting"],
+                    `${gameId} ${departureType} should publish the status and one reconciled state`
+                );
             }
             assert.ok(states.every(({ state }) => state.options.length === 3));
             for (const answer of answers) {
@@ -2405,6 +2592,7 @@ test("Fact-or-Cap and Anime publish when the last active voter votes after an un
         const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
         leaver.disconnect();
         await disconnected;
+        await harness.advanceGrace();
         const currentStates = await Promise.all(remainingUpdates);
         for (const current of currentStates) {
             assert.equal(current.state.voteCount, 1);
@@ -2467,6 +2655,7 @@ test("quick successive voting disconnects preserve both recorded votes and publi
     leaverOne.disconnect();
     leaverTwo.disconnect();
     await Promise.all(disconnected);
+    await harness.advanceGrace();
 
     for (const result of await Promise.all(results)) {
         assert.equal(result.state.currentRound, voting.state.currentRound);

@@ -1130,9 +1130,52 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     assert.equal(notification.getAttribute("aria-live"), "polite");
     assert.ok(notification.query((element) => element.className.includes("icon-check")));
   });
+});
 
-  test("authenticated players can search results participants without using their game IDs as identity", () => {
+test("lobby and game screens identify players within their disconnect grace period", () => {
     withFakeDocument(() => {
+      const state = createInitialAppState();
+      state.connectionStatus = "connected";
+      state.currentView = "lobby";
+      state.localPlayerId = "host";
+      state.lobby = {
+        roomCode: "ZING", revision: 1, playerCount: 2, readinessStatus: "waiting-for-ready",
+        status: "lobby", visibility: "private", maxPlayers: 8, selectedGameId: "fact-or-cap", selectedRoundCount: 5,
+        reminderSessionId: null,
+        selectedGame: { id: "fact-or-cap", displayName: "Fact or Cap", description: "Game", minPlayers: 2, maxPlayers: 8 },
+        availableGames: [],
+        players: [
+          { id: "host", name: "Host", isHost: true, isReady: false, isInGame: false },
+          { id: "offline", name: "Offline", isHost: false, isReady: true, isInGame: false, connected: false },
+        ],
+      };
+      const root = new FakeElement("root");
+      renderApp(root, state, createActions(), {}, {});
+      const offlinePlayer = root.query((element) => element.dataset.playerId === "offline");
+      assert.match(offlinePlayer.getAttribute("aria-label"), /disconnected/u);
+      assert.equal(root.query((element) => element.className === "disconnected-badge").textContent, "Disconnected");
+
+      state.currentView = "game";
+      state.lobby = null;
+      state.game = {
+        roomCode: "ZING",
+        sessionId: "session-1",
+        gameId: "fact-or-cap",
+        displayName: "Fact or Cap",
+        status: "active",
+        players: [{ id: "offline", name: "Offline", connected: false }],
+        state: {},
+      };
+      renderApp(root, state, createActions(), {}, {});
+      const notice = root.query((element) => element.className === "game-disconnected-notice");
+      assert.match(notice.textContent, /Offline/u);
+      assert.match(notice.textContent, /90 seconds/u);
+      assert.equal(notice.getAttribute("role"), "status");
+    });
+  });
+
+test("authenticated players can search results participants without using their game IDs as identity", () => {
+  withFakeDocument(() => {
       const state = createInitialAppState();
       state.currentView = "game";
       state.localPlayerId = "local";
@@ -1175,7 +1218,6 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
       assert.equal(root.query((element) => element.textContent === "Find Me"), null);
       root.query((element) => element.textContent === "Find Sam").dispatch("click");
       assert.deepEqual(calls, [["onFindPlayerFromResults", "Sam"]]);
-    });
   });
 });
 

@@ -225,6 +225,26 @@ function removePlayer(playerId) {
     return room;
 }
 
+function setPlayerConnectionStatus(playerId, connected, disconnectedAt) {
+    const room = getPlayerRoom(playerId);
+    if (!room) return null;
+    const player = room.players.find((candidate) => candidate.id === playerId);
+    if (!player) return null;
+
+    const isConnected = player.connected !== false;
+    if (isConnected === connected) return { room, player, changed: false };
+
+    if (connected) {
+        delete player.connected;
+        delete player.disconnectedAt;
+    } else {
+        player.connected = false;
+        player.disconnectedAt = disconnectedAt;
+    }
+    advanceRevision(room);
+    return { room, player, changed: true };
+}
+
 function setPlayerReady(playerId, isReady) {
     if (typeof isReady !== "boolean") {
         throw new RoomError("INVALID_READY_STATE", "Ready state must be true or false.");
@@ -531,7 +551,8 @@ function createLobbyState(room) {
             name: player.name,
             isHost: player.id === room.hostId,
             isReady: player.isReady,
-            isInGame: Boolean(player.viewingResultsSessionId)
+            isInGame: Boolean(player.viewingResultsSessionId),
+            ...(player.connected === false ? { connected: false } : {})
         }))
     };
 }
@@ -587,6 +608,7 @@ module.exports = {
     listPublicRooms,
     normalizePlayerName,
     removePlayer,
+    setPlayerConnectionStatus,
     removeRoom,
     returnToLobby,
     getLobbyParticipants,

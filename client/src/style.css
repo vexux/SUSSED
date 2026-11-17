@@ -2273,6 +2273,28 @@ select:focus:not(:focus-visible) {
   color: var(--color-not-ready-badge-text);
   background: var(--color-not-ready-background);
 }
+
+.disconnected-badge {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--color-disabled-text);
+  background: var(--color-disabled-background);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.game-disconnected-notice {
+  max-width: min(100%, 620px);
+  margin: 0 auto var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  line-height: 1.5;
+}
+
 .in-game-badge {
   border-radius: 999px;
   padding: 4px 10px;
@@ -3492,7 +3514,8 @@ select:focus:not(:focus-visible) {
   .lobby-screen .host-badge,
   .lobby-screen .ready-badge,
   .lobby-screen .not-ready-badge,
-  .lobby-screen .in-game-badge {
+  .lobby-screen .in-game-badge,
+  .lobby-screen .disconnected-badge {
     padding: 4px 7px;
     font-size: 0.72rem;
   }
@@ -3606,7 +3629,8 @@ select:focus:not(:focus-visible) {
   .host-badge,
   .ready-badge,
   .not-ready-badge,
-  .in-game-badge {
+  .in-game-badge,
+  .disconnected-badge {
     flex: 0 0 auto;
   }
 

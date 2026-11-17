@@ -47,23 +47,38 @@ function broadcastLobbyToAllMembers(io, room) {
     }
 }
 
+function broadcastConnectionState(io, room) {
+    broadcastLobbyToAllMembers(io, room);
+    for (const playerId of gameManager.getGamePlayerIds(room.code)) {
+        io.to(getPersonalRoomName(playerId)).emit(
+            "game-state",
+            gameManager.getPublicGameState(room.code, playerId)
+        );
+    }
+}
+
 function broadcastPublicRooms(io) {
     io.to(PUBLIC_ROOM_BROWSERS).emit("public-rooms-updated", {
         rooms: roomManager.listPublicRooms()
     });
 }
 
-async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
+async function handlePlayerDeparture(io, socket, {
+    leaveSocket = false,
+    disconnectGraceManager
+} = {}) {
     const playerId = socket.data?.playerId;
     if (typeof playerId !== "string" || playerId.length === 0) {
         throw new Error("Cannot reconcile a socket without a server-issued player ID.");
     }
     const room = roomManager.getPlayerRoom(playerId);
     if (!room) {
+        disconnectGraceManager?.cancelPlayer(playerId);
         socket.data.roomCode = undefined;
         return null;
     }
 
+    disconnectGraceManager?.cancelPlayer(playerId, room.publicRoomId);
     const departure = gameManager.removeParticipant(room.code, playerId);
     const updatedRoom = roomManager.removePlayer(playerId);
     socket.data.roomCode = undefined;
@@ -78,6 +93,7 @@ async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
     }
 
     if (!updatedRoom) {
+        disconnectGraceManager?.cancelRoom(room.code, room.publicRoomId);
         gameManager.removeGame(room.code, departure?.sessionId);
         broadcastPublicRooms(io);
         return { room, updatedRoom: null, departure, leaveError: await leavePromise };
@@ -126,7 +142,7 @@ function isAcknowledgement(value) {
     return typeof value === "function";
 }
 
-function registerRoomHandlers(io, socket, identityManager) {
+function registerRoomHandlers(io, socket, identityManager, disconnectGraceManager) {
     const playerId = socket.data.playerId;
     factOrCapSocketHandlers.registerSocketHandlers(io, socket);
     bruhWtfSocketHandlers.registerSocketHandlers(io, socket);
@@ -368,7 +384,10 @@ function registerRoomHandlers(io, socket, identityManager) {
         // sync. A disconnected but not-yet-reconciled socket still loses room
         // membership and game participation.
         const departingSocket = targetSocket ?? { id: targetSocketId ?? target.id, data: { playerId: target.id } };
-        const result = await handlePlayerDeparture(io, departingSocket, { leaveSocket: true });
+        const result = await handlePlayerDeparture(io, departingSocket, {
+            leaveSocket: true,
+            disconnectGraceManager
+        });
         if (result?.leaveError) {
             acknowledgeError(acknowledge, result.leaveError.code, result.leaveError.message);
             return;
@@ -395,7 +414,10 @@ function registerRoomHandlers(io, socket, identityManager) {
             return;
         }
 
-        const result = await handlePlayerDeparture(io, socket, { leaveSocket: true });
+        const result = await handlePlayerDeparture(io, socket, {
+            leaveSocket: true,
+            disconnectGraceManager
+        });
         if (result?.leaveError) {
             acknowledgeError(acknowledge, result.leaveError.code, result.leaveError.message);
             return;
@@ -607,8 +629,111 @@ function registerRoomHandlers(io, socket, identityManager) {
     });
 }
 
-function handleDisconnect(io, socket) {
-    void handlePlayerDeparture(io, socket);
+function handlePlayerReconnect(io, playerId, disconnectGraceManager) {
+    const entry = disconnectGraceManager.cancelPlayer(playerId);
+    if (!entry) return false;
+
+    const room = roomManager.getRoom(entry.roomCode);
+    if (!room || room.publicRoomId !== entry.roomInstanceId) return false;
+    const player = room.players.find((candidate) => candidate.id === playerId);
+    if (
+        !player ||
+        player.connected !== false ||
+        player.disconnectedAt !== entry.disconnectedAt
+    ) {
+        return false;
+    }
+
+    const update = roomManager.setPlayerConnectionStatus(playerId, true);
+    if (!update?.changed) return false;
+    gameManager.setPlayerConnectionStatus(room.code, playerId, true);
+    broadcastConnectionState(io, room);
+    return true;
 }
 
-module.exports = { handleDisconnect, registerRoomHandlers };
+async function handleDisconnectGraceExpiry(
+    io,
+    entry,
+    identityManager,
+    disconnectGraceManager
+) {
+    if (!disconnectGraceManager.isCurrent(entry)) return false;
+    const room = roomManager.getRoom(entry.roomCode);
+    const player = room?.players.find((candidate) => candidate.id === entry.playerId);
+    if (
+        !room ||
+        room.publicRoomId !== entry.roomInstanceId ||
+        !player ||
+        player.connected !== false ||
+        player.disconnectedAt !== entry.disconnectedAt
+    ) {
+        disconnectGraceManager.finish(entry);
+        return false;
+    }
+
+    if (identityManager.getSocketId(entry.playerId)) {
+        disconnectGraceManager.finish(entry);
+        const update = roomManager.setPlayerConnectionStatus(entry.playerId, true);
+        if (update?.changed) {
+            gameManager.setPlayerConnectionStatus(room.code, entry.playerId, true);
+            broadcastConnectionState(io, room);
+        }
+        return false;
+    }
+
+    if (!disconnectGraceManager.finish(entry)) return false;
+    await handlePlayerDeparture(
+        io,
+        { id: entry.playerId, data: { playerId: entry.playerId } },
+        { disconnectGraceManager }
+    );
+    return true;
+}
+
+function handleDisconnect(io, socket, identityManager, disconnectGraceManager) {
+    const playerId = socket.data?.playerId;
+    const wasActiveSocket = typeof playerId === "string" &&
+        identityManager.isActiveSocket(playerId, socket.id);
+    identityManager.releaseSocket(socket.id);
+    socket.data.pendingRecoveryCredential = undefined;
+    socket.data.recoveryCredentialRotated = undefined;
+    if (!wasActiveSocket) return false;
+
+    const room = roomManager.getPlayerRoom(playerId);
+    if (!room) return false;
+
+    const disconnectedAt = disconnectGraceManager.now();
+    const update = roomManager.setPlayerConnectionStatus(
+        playerId,
+        false,
+        disconnectedAt
+    );
+    if (!update?.changed) return false;
+
+    gameManager.setPlayerConnectionStatus(room.code, playerId, false);
+    disconnectGraceManager.schedule({
+        playerId,
+        roomCode: room.code,
+        roomInstanceId: room.publicRoomId,
+        disconnectedAt,
+        onExpire(entry) {
+            void handleDisconnectGraceExpiry(
+                io,
+                entry,
+                identityManager,
+                disconnectGraceManager
+            ).catch((error) => {
+                console.error("Disconnect grace expiry failed:", error);
+            });
+        }
+    });
+    broadcastConnectionState(io, room);
+    return true;
+}
+
+module.exports = {
+    handleDisconnect,
+    handlePlayerDeparture,
+    handlePlayerReconnect,
+    registerRoomHandlers
+};

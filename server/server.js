@@ -10,12 +10,17 @@ const { registerProfileHandlers } = require("./profileHandlers");
 const { createProfileRepository } = require("./profileRepository");
 const { registerInvitationHandlers } = require("./invitationHandlers");
 const { registerDisabledAccountHandlers } = require("./disabledAccountHandlers");
+const { DisconnectGraceManager } = require("./disconnectGraceManager");
 const {
     GuestIdentityManager,
     createSocketIdentityMiddleware,
     getPersonalRoomName,
 } = require("./guestIdentityManager");
-const { handleDisconnect, registerRoomHandlers } = require("./roomHandlers");
+const {
+    handleDisconnect,
+    handlePlayerReconnect,
+    registerRoomHandlers
+} = require("./roomHandlers");
 
 const SESSION_STORAGE_ACK_TIMEOUT_MS = 10000;
 
@@ -40,6 +45,7 @@ function startServer(
         profileRepository: injectedProfileRepository,
         authEnabled = defaultAuthEnabled,
         identityManager = new GuestIdentityManager(),
+        disconnectGraceManager = new DisconnectGraceManager(),
     } = {},
 ) {
     if (typeof authEnabled !== "boolean") {
@@ -80,6 +86,8 @@ function startServer(
     }
 
     io.guestIdentityManager = identityManager;
+    io.disconnectGraceManager = disconnectGraceManager;
+    httpServer.once("close", () => disconnectGraceManager.cancelAll());
     io.on("connection", (socket) => {
         console.log("Player connected:", socket.id);
         socket.data.sessionReady = false;
@@ -94,13 +102,17 @@ function startServer(
         });
         socket.on("disconnect", () => {
             console.log("Player disconnected:", socket.id);
-            identityManager.releaseSocket(socket.id);
-            socket.data.pendingRecoveryCredential = undefined;
-            socket.data.recoveryCredentialRotated = undefined;
-            handleDisconnect(io, socket);
+            handleDisconnect(io, socket, identityManager, disconnectGraceManager);
         });
 
-        void activateGuestSession(io, socket, identityManager, authEnabled, profileRepository);
+        void activateGuestSession(
+            io,
+            socket,
+            identityManager,
+            disconnectGraceManager,
+            authEnabled,
+            profileRepository
+        );
     });
 
     httpServer.listen(port, () => {
@@ -113,7 +125,14 @@ function startServer(
     return io;
 }
 
-async function activateGuestSession(io, socket, identityManager, authEnabled, profileRepository) {
+async function activateGuestSession(
+    io,
+    socket,
+    identityManager,
+    disconnectGraceManager,
+    authEnabled,
+    profileRepository
+) {
     const playerId = socket.data.playerId;
     const recoveryCredential = socket.data.pendingRecoveryCredential;
     try {
@@ -143,7 +162,7 @@ async function activateGuestSession(io, socket, identityManager, authEnabled, pr
         socket.data.sessionReady = true;
         socket.data.pendingRecoveryCredential = undefined;
         socket.data.recoveryCredentialRotated = undefined;
-        registerRoomHandlers(io, socket, identityManager);
+        registerRoomHandlers(io, socket, identityManager, disconnectGraceManager);
         if (authEnabled) {
             registerProfileHandlers(socket, profileRepository, (errorCode) => {
                 console.error("Profile operation failed:", errorCode);
@@ -156,6 +175,9 @@ async function activateGuestSession(io, socket, identityManager, authEnabled, pr
         }
         socket.emit("server-auth-config", { authEnabled });
         socket.emit("guest-session-ready", { playerId: activatedPlayerId });
+        if (identityManager.isActiveSocket(activatedPlayerId, socket.id)) {
+            handlePlayerReconnect(io, activatedPlayerId, disconnectGraceManager);
+        }
     } catch (error) {
         identityManager.abortSocket(socket.id);
         socket.data.pendingRecoveryCredential = undefined;

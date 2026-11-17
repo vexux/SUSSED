@@ -92,8 +92,12 @@ available.
 The server verifies each Firebase ID token before profile operations and obtains
 the UID only from verified socket metadata. Profile actions run only when a
 user opens the account screens; they are not in the room/game critical path.
-A player's `socket.id` and room membership remain the multiplayer identity;
-guest players are transient and no account profile is created for them.
+The server-issued stable player ID is the multiplayer identity; `socket.id` is
+transport-only. Unexpected disconnects retain room and game participation for
+90 seconds so a guest that reconnects with the same recovery credential can
+resume the existing in-memory session. At expiry, the existing departure
+cleanup runs; explicitly leaving or being kicked remains immediate. Guest
+identities are separate from account profiles.
 
 ### Handles, friends, and account screens
 
@@ -267,9 +271,10 @@ Restart both processes after changing environment values. In the browser:
    paste, or log the token. For server-side confirmation, inspect only the
    socket's `data.accountId` using a local debugger.
 3. Create/join a room as a guest and verify room/game behavior remains
-   available. Signing in, switching accounts, or signing out disconnects and
-   lets server disconnect cleanup run before reconnecting; the current room
-   session ends. Persistent reconnect is not part of this phase.
+   available. A transient disconnect preserves the in-memory room/game session
+   for 90 seconds when the same guest recovery credential reconnects. Explicit
+   leave and host kick remain immediate; server restart clears rooms and grace
+   timers.
 4. Test **Forgot password**, open the recovery message, submit a new password,
    then sign in with it. Try an expired link to confirm the app offers a new
    recovery email. Try Google after completing the dashboard setup.
@@ -327,8 +332,10 @@ The client obtains the current Firebase ID token when Socket.IO connects and
 sends it in the handshake. It sends no token if there is no eligible signed-in
 user, preserving guest play. Firebase refreshes tokens automatically; a new
 handshake always reads the latest token. A change between signed-in and
-guest/account identities disconnects the old socket so server cleanup runs
-before a fresh connection.
+guest/account identities disconnects the old socket before a fresh connection.
+A room participant's identity remains separate from the verified account UID,
+and the same 90-second disconnect grace applies to transient socket
+replacement.
 
 The client currently uses the root path and invitation query strings such as
 `/?code=ABCD`; it does not define path-based client routes, so no SPA rewrite is
