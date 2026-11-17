@@ -308,7 +308,13 @@ function createPublicState(state, viewerId) {
         totalRounds: state.totalRounds,
         roundId: state.roundId,
         prompt: state.resolvedPrompt,
-        playerCount: state.participants.length
+        playerCount: state.participants.length,
+        ...(typeof viewerId === "string" && state.submittedAnswers.has(viewerId)
+            ? { viewerSubmission: state.submittedAnswers.get(viewerId) }
+            : {}),
+        ...(typeof viewerId === "string" && state.votes.has(viewerId)
+            ? { viewerVoteOptionId: state.votes.get(viewerId) }
+            : {})
     };
     if (state.phase === "answer-submission") {
         return {

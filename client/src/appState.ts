@@ -2,6 +2,7 @@ export type AppView =
   | "auth-loading"
   | "welcome"
   | "email-auth"
+  | "restoring"
   | "home"
   | "profile"
   | "friends"
@@ -126,6 +127,7 @@ export interface GameParticipant {
 export interface GameSessionState {
   roomCode: string;
   sessionId: string;
+  revision?: number;
   gameId: string;
   displayName: string;
   status: "active" | "finished";

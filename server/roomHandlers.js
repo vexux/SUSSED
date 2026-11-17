@@ -147,6 +147,89 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
     factOrCapSocketHandlers.registerSocketHandlers(io, socket);
     bruhWtfSocketHandlers.registerSocketHandlers(io, socket);
 
+    socket.on("restore-session", async (payload, acknowledge) => {
+        if (typeof payload === "function") {
+            acknowledge = payload;
+            payload = undefined;
+        }
+        if (!isAcknowledgement(acknowledge)) return;
+        if (payload !== undefined) {
+            acknowledgeError(
+                acknowledge,
+                "INVALID_REQUEST",
+                "Session restoration does not accept a payload."
+            );
+            return;
+        }
+        if (!identityManager.isActiveSocket(playerId, socket.id)) {
+            acknowledgeError(
+                acknowledge,
+                "SESSION_NOT_ACTIVE",
+                "The guest session is not active on this connection."
+            );
+            return;
+        }
+
+        const room = roomManager.getPlayerRoom(playerId);
+        const player = room?.players.find((candidate) => candidate.id === playerId);
+        if (!room || !player) {
+            socket.data.roomCode = undefined;
+            acknowledge({ status: "no-room", playerId });
+            return;
+        }
+
+        try {
+            await socket.join(room.code);
+            if (
+                !identityManager.isActiveSocket(playerId, socket.id) ||
+                roomManager.getPlayerRoom(playerId) !== room ||
+                !room.players.some((candidate) => candidate.id === playerId)
+            ) {
+                await socket.leave(room.code);
+                socket.data.roomCode = undefined;
+                acknowledge({ status: "no-room", playerId });
+                return;
+            }
+
+            let game = null;
+            if (room.status === "starting") {
+                game = gameManager.getPublicGameState(room.code, playerId);
+            } else if (player.viewingResultsSessionId) {
+                game = roomManager.getFinishedMatchForViewer(room, playerId);
+                if (!game) {
+                    throw new gameManager.GameSessionError(
+                        "RESULTS_NOT_FOUND",
+                        "The completed results are no longer available."
+                    );
+                }
+            }
+            if (
+                game &&
+                (game.roomCode !== room.code ||
+                    !game.players.some((candidate) => candidate.id === playerId))
+            ) {
+                throw new gameManager.GameSessionError(
+                    "NOT_A_GAME_PLAYER",
+                    "You are not participating in this game."
+                );
+            }
+
+            socket.data.roomCode = room.code;
+            acknowledge({
+                status: "restored",
+                playerId,
+                snapshot: {
+                    playerId,
+                    lobby: roomManager.createLobbyState(room),
+                    game
+                }
+            });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            acknowledgeError(acknowledge, operationError.code, operationError.message);
+        }
+    });
+
     socket.on("list-games", (acknowledge) => {
         if (typeof acknowledge === "function") {
             acknowledge({ games: gameRegistry.list() });

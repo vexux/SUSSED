@@ -586,8 +586,19 @@ function handleAction(state, action, playerId, payload) {
 
 function createPublicState(state, viewerId) {
     const includesVoteOptions = state.phase === "reveal" || state.phase === "voting";
+    const viewerState = typeof viewerId === "string"
+        ? {
+            ...(state.submissions.has(viewerId)
+                ? { viewerSubmission: state.submissions.get(viewerId) }
+                : {}),
+            ...(state.votes.has(viewerId)
+                ? { viewerVoteOptionId: state.votes.get(viewerId) }
+                : {})
+        }
+        : {};
     if (state.phase === "results") {
         return {
+            ...viewerState,
             phase: state.phase,
             currentRound: state.currentRound,
             totalRounds: state.totalRounds,
@@ -621,6 +632,7 @@ function createPublicState(state, viewerId) {
         };
     }
     return {
+        ...viewerState,
         phase: state.phase,
         currentRound: state.currentRound,
         totalRounds: state.totalRounds,

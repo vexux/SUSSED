@@ -25,6 +25,15 @@ The server remains authoritative for room visibility, capacity, and join eligibi
 - Explicitly leaving a room or being kicked does not invalidate the recovery credential. The player can use the same identity to join another room in the same browser tab.
 - Guest identities are independent of authenticated account IDs. This phase does not link guest identities to accounts or persist player identity in a database.
 
+## Same-tab refresh restoration
+
+- After `guest-session-ready`, the client emits `restore-session` with no payload. Room membership is resolved exclusively from the active server-side player identity; the client cannot select a room or supply a player ID.
+- The acknowledgement is `{ status: "no-room", playerId }` when the identity has no current room, or `{ status: "restored", playerId, snapshot: { playerId, lobby, game } }` when it does. Invalid payloads and unavailable/inconsistent snapshots return structured errors.
+- The lobby is the current authoritative room projection. For a starting game, `game` is the current per-viewer public game projection. For a player still viewing results after the host returned to the lobby, `game` is the finished match snapshot authorized for that results viewer. Ordinary lobby players receive `game: null`.
+- Lobby revisions and game-session revisions let the client prefer newer live updates received while restoration is in flight. Repeated restoration requests do not create or start another room or game.
+- The client buffers room/game events while the restored snapshot is pending, then resumes the appropriate lobby, starting, active-game, or results view. A temporary request failure preserves the recovery credential and offers retry; an authoritative `no-room` response returns to room entry without deleting the guest identity.
+- Restoration is available only while the matching guest identity and room/game state remain in server memory. It does not survive a server restart or deployment, and it does not share credentials across tabs.
+
 ## Account profiles
 
 - `get-profile` creates a missing profile for the verified `socket.data.accountId` and returns `{ profile }`. It is available only to authenticated sockets.

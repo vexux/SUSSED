@@ -744,6 +744,74 @@ async function joinPlayers(harness, roomCode, count) {
     return players;
 }
 
+async function disconnectAndRecover(harness, client) {
+    const playerId = client.playerId;
+    client.disconnect();
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+        if (harness.io.disconnectGraceManager.entries.has(playerId)) break;
+        await new Promise((resolve) => setImmediate(resolve));
+    }
+    assert.ok(
+        harness.io.disconnectGraceManager.entries.has(playerId),
+        "the server should begin the grace period after disconnect",
+    );
+    const recovered = await harness.connect({ storage: client.recoveryStorage });
+    assert.equal(recovered.playerId, playerId);
+    return recovered;
+}
+
+function finishManagedFactOrCapGame(roomCode, players) {
+    let result;
+    for (let round = 1; round <= 5; round += 1) {
+        const current = gameManager.getPublicGameState(roomCode, players[0]);
+        const question = questions.find(({ text }) => text === current.state.prompt.text);
+        assert.ok(question);
+        gameManager.performGameAction(
+            roomCode,
+            "fact-or-cap",
+            null,
+            "open-submissions",
+            { roundId: current.state.roundId },
+        );
+        players.forEach((playerId, index) => {
+            gameManager.performGameAction(
+                roomCode,
+                "fact-or-cap",
+                playerId,
+                "submit-completion",
+                `Round ${round} answer ${index + 1}`,
+            );
+        });
+        gameManager.performGameAction(roomCode, "fact-or-cap", null, "begin-voting");
+        players.forEach((playerId) => {
+            const voting = gameManager.getPublicGameState(roomCode, playerId);
+            const correct = voting.state.options.find(
+                ({ completion }) => completion === question.correctCompletion,
+            );
+            assert.ok(correct);
+            gameManager.performGameAction(
+                roomCode,
+                "fact-or-cap",
+                playerId,
+                "vote",
+                correct.id,
+            );
+        });
+        result = gameManager.performGameAction(
+            roomCode,
+            "fact-or-cap",
+            null,
+            "publish-results",
+        ).gameState;
+        if (round < 5) {
+            players.forEach((playerId) => {
+                gameManager.performGameAction(roomCode, "fact-or-cap", playerId, "continue");
+            });
+        }
+    }
+    return result;
+}
+
 async function startFakeAnswer(
     harness,
     {
@@ -2942,6 +3010,7 @@ test("host starts the room-selected registered game and broadcasts its safe ques
         "displayName",
         "gameId",
         "players",
+        "revision",
         "roomCode",
         "sessionId",
         "state",
@@ -3150,8 +3219,13 @@ test("Fact-or-Cap submissions broadcast safe progress and enter reveal after all
         playerCount: clients.length,
     });
     const firstProgress = await Promise.all(progressEvents);
-    for (const state of firstProgress) {
-        assert.deepEqual(state, firstProgress[0]);
+    for (let viewerIndex = 0; viewerIndex < firstProgress.length; viewerIndex += 1) {
+        const state = firstProgress[viewerIndex];
+        const sharedState = ({ viewerSubmission, ...publicState }) => publicState;
+        assert.deepEqual(
+            { ...state, state: sharedState(state.state) },
+            { ...firstProgress[0], state: sharedState(firstProgress[0].state) }
+        );
         assert.equal(state.state.phase, "answer-submission");
         assert.equal(
             state.state.submissionProgress.filter(({ submitted }) => submitted).length,
@@ -3163,8 +3237,12 @@ test("Fact-or-Cap submissions broadcast safe progress and enter reveal after all
             ).submitted,
             true
         );
+        assert.equal(
+            state.state.viewerSubmission,
+            viewerIndex === 1 ? submittedCompletions[1] : undefined
+        );
         const { stringValues } = collectPublicKeysAndStringValues(state);
-        assert.equal(stringValues.includes(submittedCompletions[1]), false);
+        assert.equal(stringValues.includes(submittedCompletions[1]), viewerIndex === 1);
     }
 
     for (let index = 1; index < players.length; index += 1) {
@@ -4054,4 +4132,169 @@ test("malformed ready/start/leave payloads return structured errors", async (con
     assert.equal((await emitWithAck(client, "leave-room", {})).error.code, "INVALID_REQUEST");
     assert.equal((await emitWithAck(client, "set-ready", null)).error.code, "INVALID_REQUEST");
     assert.equal(roomManager.getRoom(created.roomCode).players.length, 1);
+});
+
+test("same-tab recovery restores the authoritative lobby without duplicating a seat or changing host/settings", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const created = await emitWithAck(host, "create-room", {
+        playerName: "Host",
+        visibility: "public",
+    });
+    harness.trackRoom(created.roomCode);
+    const [guest] = await joinPlayers(harness, created.roomCode, 1);
+    const selected = await emitWithAck(host, "select-game", {
+        gameId: "fact-or-cap-anime",
+    });
+    const rounds = await emitWithAck(host, "select-round-count", {
+        roundCount: 7,
+        revision: selected.lobby.revision,
+    });
+    await emitWithAck(guest, "set-ready", { isReady: true });
+    await emitWithAck(host, "transfer-host", { targetPlayerId: guest.playerId });
+
+    const recovered = await disconnectAndRecover(harness, host);
+    const restored = await emitWithAck(recovered, "restore-session");
+    assert.equal(restored.status, "restored");
+    assert.equal(restored.playerId, host.playerId);
+    assert.equal(restored.snapshot.playerId, host.playerId);
+    assert.equal(restored.snapshot.lobby.roomCode, created.roomCode);
+    assert.equal(restored.snapshot.lobby.revision, roomManager.getRoom(created.roomCode).revision);
+    assert.equal(restored.snapshot.lobby.status, "lobby");
+    assert.equal(restored.snapshot.lobby.visibility, "public");
+    assert.equal(restored.snapshot.lobby.selectedGameId, "fact-or-cap-anime");
+    assert.equal(restored.snapshot.lobby.selectedRoundCount, 7);
+    assert.equal(restored.snapshot.lobby.players.length, 2);
+    assert.equal(roomManager.getPlayerRoom(host.playerId).players.length, 2);
+    assert.equal(restored.snapshot.lobby.players.find(({ id }) => id === host.playerId).isHost, false);
+    assert.equal(restored.snapshot.lobby.players.find(({ id }) => id === guest.playerId).isHost, true);
+    assert.equal(restored.snapshot.lobby.players.find(({ id }) => id === guest.playerId).isReady, true);
+    assert.equal(
+        Object.hasOwn(restored.snapshot.lobby.players.find(({ id }) => id === host.playerId), "connected"),
+        false,
+    );
+    assert.equal(harness.io.disconnectGraceManager.size, 0);
+
+    const { keys } = collectPublicKeysAndStringValues(restored);
+    const privateKeys = keys.map((key) => key.toLowerCase());
+    assert.equal(privateKeys.some((key) =>
+        ["recoverycredential", "credentialhash", "pendingcredentialhash", "accountid", "accesstoken"].includes(key)
+    ), false);
+    const forged = await emitWithAck(recovered, "restore-session", {
+        playerId: guest.playerId,
+        roomCode: "FAKE",
+    });
+    assert.equal(forged.error.code, "INVALID_REQUEST");
+    assert.equal(roomManager.getPlayerRoom(host.playerId).players.length, 2);
+
+    await harness.advanceGrace();
+    assert.equal(roomManager.getPlayerRoom(host.playerId).code, created.roomCode);
+});
+
+test("active game restoration preserves the current round and only returns the viewer's permitted state", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, {
+        playerCount: 2,
+        waitForSubmission: true,
+    });
+    const [guest] = game.players;
+    const privateAnswer = "A submission that only the author may see before reveal";
+    const submitted = await emitWithAck(
+        guest,
+        "fake-answer:submit",
+        withRoundId(game.gameState, { completion: privateAnswer }),
+    );
+    assert.equal(submitted.submitted, true);
+    const beforeRecovery = gameManager.getPublicGameState(game.roomCode, game.host.playerId);
+    const recovered = await disconnectAndRecover(harness, game.host);
+    const [first, repeated] = await Promise.all([
+        emitWithAck(recovered, "restore-session"),
+        emitWithAck(recovered, "restore-session"),
+    ]);
+
+    assert.equal(first.status, "restored");
+    assert.deepEqual(repeated, first);
+    assert.equal(first.snapshot.lobby.status, "starting");
+    assert.equal(first.snapshot.lobby.players.length, 2);
+    assert.equal(first.snapshot.lobby.players.find(({ id }) => id === game.host.playerId).isHost, true);
+    assert.equal(first.snapshot.game.sessionId, beforeRecovery.sessionId);
+    assert.equal(first.snapshot.game.state.roundId, beforeRecovery.state.roundId);
+    assert.equal(first.snapshot.game.state.phase, "answer-submission");
+    assert.equal(
+        first.snapshot.game.state.submissionProgress.find(({ playerId }) => playerId === guest.playerId).submitted,
+        true,
+    );
+    assert.equal(Object.hasOwn(first.snapshot.game.state, "viewerSubmission"), false);
+    assert.equal(
+        collectPublicKeysAndStringValues(first.snapshot.game).stringValues.includes(privateAnswer),
+        false,
+    );
+    const current = gameManager.getPublicGameState(game.roomCode, game.host.playerId);
+    assert.equal(current.sessionId, beforeRecovery.sessionId);
+    assert.equal(current.state.roundId, beforeRecovery.state.roundId);
+    assert.equal(current.state.phase, "answer-submission");
+    assert.equal(current.revision, first.snapshot.game.revision);
+    assert.equal(roomManager.getRoom(game.roomCode).players.length, 2);
+});
+
+test("results viewers restore their finished result screen; expiry yields no room but keeps the guest identity reusable", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, {
+        playerCount: 2,
+        waitForSubmission: false,
+    });
+    const playerIds = [game.host.playerId, game.players[0].playerId];
+    const finalState = finishManagedFactOrCapGame(game.roomCode, playerIds);
+    assert.equal(finalState.status, "finished");
+    assert.equal(finalState.state.phase, "results");
+    assert.deepEqual(await emitWithAck(game.host, "return-to-lobby", {
+        sessionId: finalState.sessionId,
+    }), { returned: true });
+
+    const resultsViewer = await disconnectAndRecover(harness, game.players[0]);
+    const resultsSnapshot = await emitWithAck(resultsViewer, "restore-session");
+    assert.equal(resultsSnapshot.status, "restored");
+    assert.equal(resultsSnapshot.snapshot.lobby.status, "lobby");
+    assert.equal(
+        resultsSnapshot.snapshot.lobby.players.find(({ id }) => id === resultsViewer.playerId).isInGame,
+        true,
+    );
+    assert.equal(resultsSnapshot.snapshot.game.status, "finished");
+    assert.equal(resultsSnapshot.snapshot.game.sessionId, finalState.sessionId);
+    assert.equal(resultsSnapshot.snapshot.game.state.phase, "results");
+    assert.equal(resultsSnapshot.snapshot.game.state.results.players.length, 2);
+    assert.equal(roomManager.getRoom(game.roomCode).players.length, 2);
+
+    const expiring = await harness.connect();
+    const created = await emitWithAck(expiring, "create-room", { playerName: "Leaving" });
+    harness.trackRoom(created.roomCode);
+    const recoveryStorage = expiring.recoveryStorage;
+    const expiredPlayerId = expiring.playerId;
+    expiring.disconnect();
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+        if (harness.io.disconnectGraceManager.entries.has(expiredPlayerId)) break;
+        await new Promise((resolve) => setImmediate(resolve));
+    }
+    await harness.advanceGrace();
+    assert.equal(roomManager.getPlayerRoom(expiredPlayerId), null);
+    const recovered = await harness.connect({ storage: recoveryStorage });
+    const noRoom = await emitWithAck(recovered, "restore-session");
+    assert.deepEqual(noRoom, { status: "no-room", playerId: expiredPlayerId });
+    assert.equal(recovered.playerId, expiredPlayerId);
+
+    const otherHost = await harness.connect();
+    const otherRoom = await emitWithAck(otherHost, "create-room", { playerName: "Other host" });
+    harness.trackRoom(otherRoom.roomCode);
+    const joined = await emitWithAck(recovered, "join-room", {
+        roomCode: otherRoom.roomCode,
+        playerName: "Returning guest",
+    });
+    assert.equal(joined.error, undefined);
+    assert.equal(joined.lobby.players.some(({ id }) => id === expiredPlayerId), true);
+    assert.deepEqual(await emitWithAck(recovered, "leave-room"), { left: true });
+    assert.deepEqual(
+        await emitWithAck(recovered, "restore-session"),
+        { status: "no-room", playerId: expiredPlayerId },
+    );
+    assert.equal(recovered.playerId, expiredPlayerId);
 });

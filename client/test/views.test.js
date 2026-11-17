@@ -253,6 +253,35 @@ test("welcome screen presents the three entry actions and exact tagline", () => 
   });
 });
 
+test("session restoration announces progress and exposes an accessible retry after failure", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "restoring";
+    state.connectionStatus = "connecting";
+    const calls = [];
+    const actions = new Proxy({}, {
+      get: (_target, name) => (...args) => calls.push([name, ...args]),
+    });
+    const root = new FakeElement("root");
+
+    renderApp(root, state, actions, {}, {});
+    assert.match(root.text, /Restoring your session/u);
+    assert.match(root.text, /Reconnecting to your current room and game/u);
+    assert.equal(root.query((element) => element.text === "Retry restoration"), null);
+
+    state.connectionStatus = "connected";
+    state.errorMessage = "Your room could not be restored right now.";
+    renderApp(root, state, actions, {}, {});
+    const alert = root.query((element) => element.getAttribute("role") === "alert");
+    const retry = root.query((element) => element.text === "Retry restoration");
+    assert.ok(alert);
+    assert.equal(alert.textContent, state.errorMessage);
+    assert.ok(retry);
+    retry.dispatch("click");
+    assert.equal(calls[0][0], "onRetrySessionRestore");
+  });
+});
+
 test("auth feature flag strictly defaults to disabled and accepts explicit values", () => {
   assert.deepEqual(resolveAuthFeatureFlag(undefined), { enabled: false, error: null });
   assert.deepEqual(resolveAuthFeatureFlag("true"), { enabled: true, error: null });

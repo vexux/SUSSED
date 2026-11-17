@@ -17,6 +17,7 @@ export interface AppActions {
   onChooseRoomVisibility(visibility: "public" | "private"): void;
   onConfirmCreateRoom(gameId: string): void;
   onBackToHome(): void;
+  onRetrySessionRestore(): void;
   onChooseAnotherGame(): void;
   onToggleTheme(): void;
   onSetThemePreference(theme: ThemePreference): void;
@@ -2214,6 +2215,32 @@ function renderStarting(state: AppState): HTMLElement {
   return screen;
 }
 
+function renderSessionRestoring(state: AppState, actions: AppActions): HTMLElement {
+  const screen = createElement("section", "app-screen starting-screen");
+  screen.append(
+    createElement("h1", undefined, "Restoring your session"),
+    createElement(
+      "p",
+      "screen-description",
+      state.connectionStatus === "connected"
+        ? "Checking your current room and game…"
+        : "Reconnecting to your current room and game…",
+    ),
+  );
+  if (state.errorMessage) {
+    const error = createElement("p", "error-message", state.errorMessage);
+    error.setAttribute("role", "alert");
+    screen.append(error);
+    if (state.connectionStatus === "connected") {
+      const retry = createElement("button", "primary-button", "Retry restoration");
+      retry.type = "button";
+      retry.addEventListener("click", actions.onRetrySessionRestore);
+      screen.append(retry);
+    }
+  }
+  return screen;
+}
+
 function renderGame(
   state: AppState,
   actions: AppActions,
@@ -2574,6 +2601,8 @@ export function renderApp(
         ? renderWelcome(state, actions, authState)
       : state.currentView === "email-auth"
         ? renderEmailAuthentication(actions, authState)
+      : state.currentView === "restoring"
+        ? renderSessionRestoring(state, actions)
       : state.currentView === "profile"
         ? renderProfileScreen(actions, socialState)
       : state.currentView === "friends"

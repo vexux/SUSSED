@@ -15,6 +15,7 @@ import {
 import {
   guestSessionStorage,
   guestRecoveryStorageError,
+  hasStoredGuestRecoveryCredential,
   recoveryCredentialSource,
   socket,
   socketConfigurationError,
@@ -111,6 +112,13 @@ interface PublicRoomsResponse {
   error?: { code: string; message: string };
 }
 
+interface SessionRestoreResponse {
+  status?: unknown;
+  playerId?: unknown;
+  snapshot?: unknown;
+  error?: { code?: unknown; message?: unknown };
+}
+
 interface SocialOperationResponse {
   profile?: PublicProfile & { handleChangeAvailableAt: string | null };
   profiles?: PublicProfile[];
@@ -138,7 +146,25 @@ if (!app) {
 }
 const appRoot: HTMLElement = app;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 const state = createInitialAppState();
+let restorationInProgress = false;
+let restorationRequestId = 0;
+let bufferedRestorationLobby: LobbyState | null = null;
+let bufferedRestorationGame: GameSessionState | null = null;
+let restorationFallbackView: AppView = "home";
+let deferredAuthEntryView: AppView | null = null;
+let roomMembershipUnavailable = false;
+let roomEntryPending = false;
+let pendingRemovalDuringRestore: {
+  roomCode?: string;
+  reason?: string;
+  message?: string;
+} | null = null;
+let pendingResultsReminderDuringRestore: { sessionId: string } | null = null;
 let accountReturnView: AppView = "home";
 const invitationCode = parseInvitationCode(window.location.search);
 const authService = firebaseClient
@@ -216,6 +242,14 @@ state.currentView = authEnabled
       isRecoveryFlow: Boolean(recoveryLinkError || pendingPasswordResetCode),
     })
   : "welcome";
+if (hasStoredGuestRecoveryCredential) {
+    restorationFallbackView = state.currentView === "public-rooms"
+      ? "public-rooms"
+      : authEnabled
+        ? state.currentView
+        : "home";
+    state.currentView = "restoring";
+}
 if (pendingPasswordResetCode) {
   authViewState.isBusy = true;
 }
@@ -568,6 +602,8 @@ function showOperationError(response: RoomOperationResponse): void {
     response.error?.code === "NOT_IN_ROOM" ||
     response.error?.code === "ROOM_NOT_FOUND"
   ) {
+    roomMembershipUnavailable = true;
+    roomEntryPending = false;
     state.currentView = "home";
     state.roomCode = null;
     state.localPlayerId = null;
@@ -599,11 +635,24 @@ function emitRoomOperation(
     });
     return;
   }
+  const isRoomEntry =
+    event === "create-room" ||
+    event === "join-room" ||
+    event === "join-public-room" ||
+    event === "accept-game-invitation";
+  if (isRoomEntry) {
+    roomMembershipUnavailable = false;
+    roomEntryPending = true;
+  }
   const acknowledge = (
     error: Error | null,
     response?: RoomOperationResponse,
   ): void => {
     if (error || !response) {
+      if (isRoomEntry) {
+        roomEntryPending = false;
+        roomMembershipUnavailable = true;
+      }
       showOperationError({
         error: {
           code: "SERVER_TIMEOUT",
@@ -611,6 +660,10 @@ function emitRoomOperation(
         },
       });
       return;
+    }
+    if (isRoomEntry && response.error) {
+      roomEntryPending = false;
+      roomMembershipUnavailable = true;
     }
     onResponse(response);
   };
@@ -675,7 +728,7 @@ function runInvitationAction(action: () => Promise<string>, roomCodeCopied = fal
   });
 }
 
-function applyLobbyState(lobby: LobbyState): void {
+function applyLobbyState(lobby: LobbyState, shouldRender = true): void {
   if (
     (state.roomCode !== null && lobby.roomCode !== state.roomCode) ||
     (state.lobby?.roomCode === lobby.roomCode &&
@@ -687,6 +740,8 @@ function applyLobbyState(lobby: LobbyState): void {
   if (!localPlayer) {
     return;
   }
+  roomMembershipUnavailable = false;
+  roomEntryPending = false;
 
   const remainsOnFinishedResults =
     state.currentView === "game" &&
@@ -768,10 +823,10 @@ function applyLobbyState(lobby: LobbyState): void {
   state.errorMessage = null;
   state.errorCode = null;
   state.isBusy = false;
-  render();
-  if (invalidatedPlayerActionId || invalidatedCardId) {
+  if (shouldRender) render();
+  if (shouldRender && (invalidatedPlayerActionId || invalidatedCardId)) {
     focusPlayerCardTrigger(invalidatedPlayerActionId ?? invalidatedCardId ?? "");
-  } else if (dismissedResultsReminder) {
+  } else if (shouldRender && dismissedResultsReminder) {
     focusCurrentScreen();
   }
 }
@@ -843,7 +898,7 @@ function recoverFromUnavailableGame(): void {
   render();
 }
 
-function applyGameState(game: GameSessionState): void {
+function applyGameState(game: GameSessionState, shouldRender = true): void {
   if (
     game.roomCode !== state.roomCode ||
     typeof game.sessionId !== "string" ||
@@ -858,6 +913,14 @@ function applyGameState(game: GameSessionState): void {
     return;
   }
   const previousGame = state.game;
+  if (
+    previousGame?.sessionId === game.sessionId &&
+    typeof previousGame.revision === "number" &&
+    typeof game.revision === "number" &&
+    game.revision <= previousGame.revision
+  ) {
+    return;
+  }
   const previousState = previousGame?.state;
   const nextState = game.state;
   const isSubmissionProgressOnly =
@@ -926,13 +989,13 @@ function applyGameState(game: GameSessionState): void {
   state.errorMessage = null;
   state.errorCode = null;
   state.isBusy = false;
-  if (
+  if (shouldRender &&
     isSubmissionProgressOnly &&
     updateFakeAnswerProgress(appRoot, game.state, state.localPlayerId)
   ) {
     return;
   }
-  if (
+  if (shouldRender &&
     isBruhSubmissionProgressOnly &&
     updateBruhSubmissionProgress(appRoot, game.state, state.localPlayerId)
   ) {
@@ -949,19 +1012,351 @@ function applyGameState(game: GameSessionState): void {
     nextState.phase === "voting" &&
     previousState.roundId === nextState.roundId &&
     previousState.voteCount !== nextState.voteCount;
-  if (
+  if (shouldRender &&
     isBruhVoteProgressOnly &&
     updateBruhVoteProgress(appRoot, game.state, state.localPlayerId)
   ) {
     return;
   }
-  if (
+  if (shouldRender &&
     isVoteProgressOnly &&
     updateFakeAnswerVoteProgress(appRoot, game.state)
   ) {
     return;
   }
+  if (shouldRender) render();
+}
+
+function isLobbyGameSnapshot(value: unknown): value is LobbyGame {
+  return isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.displayName === "string" &&
+    typeof value.description === "string" &&
+    Number.isInteger(value.minPlayers) &&
+    Number.isInteger(value.maxPlayers) &&
+    (value.supportsRoundSelection === undefined ||
+      typeof value.supportsRoundSelection === "boolean");
+}
+
+function isLobbyPlayerSnapshot(
+  value: unknown,
+): value is LobbyState["players"][number] {
+  return isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.name === "string" &&
+    typeof value.isHost === "boolean" &&
+    typeof value.isReady === "boolean" &&
+    typeof value.isInGame === "boolean" &&
+    (value.connected === undefined || typeof value.connected === "boolean");
+}
+
+function isLobbySnapshot(value: unknown, playerId: string): value is LobbyState {
+  if (!isRecord(value) ||
+      typeof value.roomCode !== "string" ||
+      !Number.isInteger(value.revision) ||
+      (value.status !== "lobby" && value.status !== "starting") ||
+      (value.visibility !== "public" && value.visibility !== "private") ||
+      !Number.isInteger(value.playerCount) ||
+      !Number.isInteger(value.maxPlayers) ||
+      !["insufficient-players", "waiting-for-ready", "ready", "starting"].includes(
+        String(value.readinessStatus),
+      ) ||
+      typeof value.selectedGameId !== "string" ||
+      ![5, 7, 10].includes(Number(value.selectedRoundCount)) ||
+      typeof value.reminderSessionId !== "string" && value.reminderSessionId !== null ||
+      !isLobbyGameSnapshot(value.selectedGame) ||
+      !Array.isArray(value.availableGames) ||
+      !value.availableGames.every(isLobbyGameSnapshot) ||
+      !Array.isArray(value.players) ||
+      !value.players.every(isLobbyPlayerSnapshot)) {
+    return false;
+  }
+  return value.players.some((player) => player.id === playerId);
+}
+
+function isGameParticipantSnapshot(
+  value: unknown,
+): value is GameSessionState["players"][number] {
+  return isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.name === "string" &&
+    (value.connected === undefined || typeof value.connected === "boolean");
+}
+
+function isGameSnapshot(value: unknown): value is GameSessionState {
+  if (!isRecord(value) ||
+      typeof value.roomCode !== "string" ||
+      typeof value.sessionId !== "string" ||
+      !Number.isInteger(value.revision) ||
+      typeof value.gameId !== "string" ||
+      typeof value.displayName !== "string" ||
+      (value.status !== "active" && value.status !== "finished") ||
+      !Array.isArray(value.players) ||
+      !value.players.every(isGameParticipantSnapshot) ||
+      !isRecord(value.state)) {
+    return false;
+  }
+  if (value.gameId === "fact-or-cap" || value.gameId === "fact-or-cap-anime") {
+    return isFakeAnswerPublicState(value.state);
+  }
+  if (value.gameId === "bruh-wtf") {
+    return isBruhWtfPublicState(value.state);
+  }
+  return false;
+}
+
+function receiveLobbyState(lobby: LobbyState): void {
+  if (state.currentView === "restoring" || restorationInProgress) {
+    if (
+      !bufferedRestorationLobby ||
+      bufferedRestorationLobby.roomCode !== lobby.roomCode ||
+      lobby.revision > bufferedRestorationLobby.revision
+    ) {
+      bufferedRestorationLobby = lobby;
+    }
+    return;
+  }
+  if (roomMembershipUnavailable && !roomEntryPending && !state.roomCode) return;
+  applyLobbyState(lobby);
+}
+
+function receiveGameState(game: GameSessionState): void {
+  if (state.currentView === "restoring" || restorationInProgress) {
+    const previous = bufferedRestorationGame;
+    if (
+      !previous ||
+      previous.roomCode !== game.roomCode ||
+      previous.sessionId !== game.sessionId ||
+      (typeof game.revision === "number" &&
+        (typeof previous.revision !== "number" ||
+          game.revision > previous.revision))
+    ) {
+      bufferedRestorationGame = game;
+    }
+    return;
+  }
+  if (roomMembershipUnavailable && !roomEntryPending && !state.roomCode) return;
+  applyGameState(game);
+}
+
+function setRestorationFailure(code: string, message: string): void {
+  if (state.currentView !== "restoring") {
+    restorationFallbackView = state.roomCode ? "home" : state.currentView;
+    state.currentView = "restoring";
+  }
+  state.errorCode = code;
+  state.errorMessage = message;
   render();
+}
+
+function hydrateRestoredSession(lobby: LobbyState, game: GameSessionState | null): void {
+  const localPlayer = lobby.players.find(({ id }) => id === state.localPlayerId);
+  if (!localPlayer) {
+    setRestorationFailure(
+      "INVALID_RESTORATION_SNAPSHOT",
+      "The server returned a room snapshot that does not include this player. Retry restoration.",
+    );
+    return;
+  }
+  if (
+    (lobby.status === "starting" && !game) ||
+    (localPlayer.isInGame && game?.status !== "finished") ||
+    (game && (
+      game.roomCode !== lobby.roomCode ||
+      !game.players.some(({ id }) => id === localPlayer.id)
+    ))
+  ) {
+    setRestorationFailure(
+      "INVALID_RESTORATION_SNAPSHOT",
+      "The server returned an incomplete or unsupported room snapshot. Retry restoration.",
+    );
+    return;
+  }
+
+  if (state.game && state.game.sessionId !== game?.sessionId) {
+    retiredGameSessionIds.add(state.game.sessionId);
+  }
+  resetFakeAnswerViewState();
+  state.roomCode = lobby.roomCode;
+  state.playerName = localPlayer.name;
+  state.lobby = lobby;
+  state.game = game;
+  state.currentView = game
+    ? "game"
+    : lobby.status === "starting"
+      ? "starting"
+      : "lobby";
+  state.availableGames = lobby.availableGames;
+  state.pendingGameId = null;
+  state.pendingKickPlayerId = null;
+  state.pendingHostTransferId = null;
+  state.selectedPlayerId = null;
+  state.resultsReminderSessionId =
+    localPlayer.isInGame &&
+    lobby.reminderSessionId === game?.sessionId &&
+    pendingResultsReminderDuringRestore?.sessionId === game.sessionId
+      ? game.sessionId
+      : null;
+  pendingResultsReminderDuringRestore = null;
+  state.errorMessage = null;
+  state.errorCode = null;
+  state.isBusy = false;
+  state.isInvitationBusy = false;
+  state.isSendingResultsReminder = false;
+  roomMembershipUnavailable = false;
+  roomEntryPending = false;
+  deferredAuthEntryView = null;
+  bufferedRestorationLobby = null;
+  bufferedRestorationGame = null;
+  pendingResultsReminderDuringRestore = null;
+  render();
+  focusCurrentScreen();
+}
+
+function requestSessionRestoration(): void {
+  if (!socket.connected || !state.localPlayerId || restorationInProgress) return;
+  restorationInProgress = true;
+  const requestId = ++restorationRequestId;
+  bufferedRestorationLobby = null;
+  bufferedRestorationGame = null;
+  pendingResultsReminderDuringRestore = null;
+  state.errorMessage = null;
+  state.errorCode = null;
+  if (state.currentView === "restoring") render();
+
+  socket.timeout(5000).emit(
+    "restore-session",
+    (error: Error | null, response?: SessionRestoreResponse) => {
+      if (requestId !== restorationRequestId) return;
+      restorationInProgress = false;
+      const playerId = state.localPlayerId;
+      if (!playerId) {
+        setRestorationFailure(
+          "SESSION_NOT_READY",
+          "The guest identity is not available yet. Reconnect and retry restoration.",
+        );
+        return;
+      }
+      if (error || !isRecord(response)) {
+        setRestorationFailure(
+          "RESTORATION_REQUEST_FAILED",
+          "Your room could not be restored right now. Your guest identity is preserved. Check your connection and retry.",
+        );
+        return;
+      }
+      if (isRecord(response.error)) {
+        setRestorationFailure(
+          typeof response.error.code === "string"
+            ? response.error.code
+            : "RESTORATION_REQUEST_FAILED",
+          typeof response.error.message === "string"
+            ? response.error.message
+            : "Your room could not be restored. Retry restoration.",
+        );
+        return;
+      }
+      if (response.playerId !== state.localPlayerId) {
+        setRestorationFailure(
+          "INVALID_RESTORATION_RESPONSE",
+          "The server returned a session snapshot for a different player. Retry restoration.",
+        );
+        return;
+      }
+      if (response.status === "no-room") {
+        const pendingRemoval = pendingRemovalDuringRestore;
+        pendingRemovalDuringRestore = null;
+        bufferedRestorationLobby = null;
+        bufferedRestorationGame = null;
+        pendingResultsReminderDuringRestore = null;
+        state.roomCode = null;
+        state.lobby = null;
+        state.game = null;
+        state.errorCode = pendingRemoval?.reason === "kicked"
+          ? "REMOVED_FROM_ROOM"
+          : null;
+        state.errorMessage = pendingRemoval?.reason === "kicked"
+          ? pendingRemoval.message ?? "The host removed you from this room."
+          : null;
+        state.isBusy = false;
+        roomMembershipUnavailable = true;
+        roomEntryPending = false;
+        if (state.currentView === "restoring") {
+          state.currentView = deferredAuthEntryView ?? restorationFallbackView;
+          if (state.currentView === "restoring") {
+            state.currentView = authEnabled ? "welcome" : "home";
+          }
+        }
+        deferredAuthEntryView = null;
+        render();
+        if (state.currentView === "public-rooms") subscribeToPublicRooms();
+        return;
+      }
+
+      const snapshot = response.snapshot;
+      if (
+        response.status !== "restored" ||
+        !isRecord(snapshot) ||
+        snapshot.playerId !== playerId ||
+        !isLobbySnapshot(snapshot.lobby, playerId) ||
+        (snapshot.game !== null && !isGameSnapshot(snapshot.game))
+      ) {
+        setRestorationFailure(
+          "INVALID_RESTORATION_RESPONSE",
+          "The server returned an invalid or unsupported room snapshot. Your guest identity is preserved. Retry restoration.",
+        );
+        return;
+      }
+
+      let lobby = snapshot.lobby;
+      if (
+        bufferedRestorationLobby?.roomCode === lobby.roomCode &&
+        bufferedRestorationLobby.revision > lobby.revision
+      ) {
+        lobby = bufferedRestorationLobby;
+      }
+      const localPlayer = lobby.players.find(({ id }) => id === playerId);
+      const pendingRemoval = pendingRemovalDuringRestore;
+      pendingRemovalDuringRestore = null;
+      if (
+        pendingRemoval?.reason === "kicked" &&
+        pendingRemoval.roomCode === lobby.roomCode
+      ) {
+        state.roomCode = lobby.roomCode;
+        applyRemovedFromRoom(pendingRemoval);
+        return;
+      }
+      let game = snapshot.game === null ? null : snapshot.game;
+      const bufferedGame = bufferedRestorationGame?.roomCode === lobby.roomCode
+        ? bufferedRestorationGame
+        : null;
+      if (lobby.status === "starting") {
+        if (
+          bufferedGame &&
+          (!game ||
+            bufferedGame.sessionId !== game.sessionId ||
+            (typeof bufferedGame.revision === "number" &&
+              typeof game.revision === "number" &&
+              bufferedGame.revision > game.revision))
+        ) {
+          game = bufferedGame;
+        }
+      } else if (localPlayer?.isInGame) {
+        if (
+          bufferedGame?.status === "finished" &&
+          (!game ||
+            (bufferedGame.sessionId === game.sessionId &&
+              typeof bufferedGame.revision === "number" &&
+              typeof game.revision === "number" &&
+              bufferedGame.revision > game.revision))
+        ) {
+          game = bufferedGame;
+        }
+      } else {
+        game = null;
+      }
+      hydrateRestoredSession(lobby, game);
+    },
+  );
 }
 
 async function runAuthAction(
@@ -1215,6 +1610,9 @@ const actions: AppActions = {
     state.nameEntryError = null;
     clearPlayerActionFeedback();
     render();
+  },
+  onRetrySessionRestore() {
+    requestSessionRestoration();
   },
   onOpenEmailAuth() {
     if (!authEnabled) return;
@@ -1603,6 +2001,8 @@ const actions: AppActions = {
       return;
     }
     clearPublicRoomSelection();
+    roomMembershipUnavailable = false;
+    roomEntryPending = true;
     state.isBusy = true;
     state.publicRoomsError = null;
     render();
@@ -1612,12 +2012,16 @@ const actions: AppActions = {
       (transportError: Error | null, response?: RoomOperationResponse) => {
       state.isBusy = false;
       if (transportError || !response) {
+        roomEntryPending = false;
+        if (!state.roomCode) roomMembershipUnavailable = true;
         state.publicRoomsError = "The server did not respond. Refresh the list and try again.";
         render();
         focusPublicRoomJoin(roomId);
         return;
       }
       if (response.error) {
+        roomEntryPending = false;
+        if (!state.roomCode) roomMembershipUnavailable = true;
         if (
           response.error.code === "PUBLIC_ROOM_NOT_FOUND" ||
           response.error.code === "ROOM_NOT_PUBLIC" ||
@@ -1632,6 +2036,8 @@ const actions: AppActions = {
         return;
       }
       if (!response.lobby) {
+        roomEntryPending = false;
+        if (!state.roomCode) roomMembershipUnavailable = true;
         state.publicRoomsError = "The room joined, but its current state could not be loaded. Refresh and try again.";
         render();
         focusPublicRoomJoin(roomId);
@@ -1729,6 +2135,8 @@ const actions: AppActions = {
       }
       state.currentView = "home";
       state.roomCode = null;
+      roomMembershipUnavailable = true;
+      roomEntryPending = false;
       state.localPlayerId = null;
       state.lobby = null;
       state.game = null;
@@ -2523,6 +2931,15 @@ const actions: AppActions = {
 };
 
 const handleSocketSessionChange = createSocketSessionChangeHandler(socket);
+function setResolvedAuthEntryView(view: AppView): void {
+  if (state.roomCode) return;
+  if (state.currentView === "restoring" || restorationInProgress) {
+    deferredAuthEntryView = view;
+    return;
+  }
+  state.currentView = view;
+}
+
 const retrySocketWithFreshIdToken = createSocketTokenRefreshRetry(
   socket,
   () => firebaseClient?.currentUser ?? null,
@@ -2584,13 +3001,13 @@ if (firebaseClient) {
       !recoveryLinkError &&
       !pendingPasswordResetCode
     ) {
-      state.currentView = resolveAuthEntryView({
+        setResolvedAuthEntryView(resolveAuthEntryView({
         restored: initialAuthResolved,
         hasUser: Boolean(user),
         requiresEmailVerification,
         isAuthenticated: eligibleForAuthenticatedSocket,
         isRecoveryFlow: Boolean(recoveryLinkError || pendingPasswordResetCode),
-      });
+        }));
     }
     render();
     if (eligibleForAuthenticatedSocket && socket.connected) loadNotifications();
@@ -2608,20 +3025,20 @@ if (firebaseClient) {
       authViewState.email = user.email;
     }
     if (!recoveryLinkError && !pendingPasswordResetCode) {
-      state.currentView = resolveAuthEntryView({
+      setResolvedAuthEntryView(resolveAuthEntryView({
         restored: true,
         hasUser: Boolean(user),
         requiresEmailVerification,
         isAuthenticated: eligibleForAuthenticatedSocket,
         isRecoveryFlow: Boolean(recoveryLinkError || pendingPasswordResetCode),
-      });
+      }));
     }
     render();
     if (eligibleForAuthenticatedSocket && socket.connected) loadNotifications();
   }).catch((error: unknown) => {
     initialAuthResolved = true;
     if (!recoveryLinkError && !pendingPasswordResetCode) {
-      state.currentView = "email-auth";
+      setResolvedAuthEntryView("email-auth");
     }
     authViewState.errorMessage = getAuthErrorMessage(error);
     render();
@@ -2671,8 +3088,23 @@ socket.on("guest-session-ready", (session: { playerId?: unknown }) => {
     return;
   }
   const promotion = promoteRecoveryCredential(guestSessionStorage);
+  const shouldRestoreSession = Boolean(
+    recoveryCredentialSource !== null ||
+    hasStoredGuestRecoveryCredential ||
+    connectionWasLost ||
+    state.roomCode,
+  );
   state.localPlayerId = session.playerId;
   state.connectionStatus = "connected";
+  if (
+    (recoveryCredentialSource !== null ||
+      hasStoredGuestRecoveryCredential ||
+      connectionWasLost) &&
+    state.currentView !== "restoring"
+  ) {
+    restorationFallbackView = authEnabled ? state.currentView : "home";
+    state.currentView = "restoring";
+  }
   if (promotion.error || guestRecoveryStorageError) {
     state.errorMessage = promotion.error ?? guestRecoveryStorageError;
     state.errorCode = "RECOVERY_STORAGE_UNAVAILABLE";
@@ -2691,10 +3123,11 @@ socket.on("guest-session-ready", (session: { playerId?: unknown }) => {
   requestAvailableGames();
   if (state.currentView === "public-rooms") subscribeToPublicRooms();
   if (authViewState.isAuthenticated) loadNotifications();
+  if (shouldRestoreSession) requestSessionRestoration();
 });
 
 socket.on("lobby-state", (lobby: LobbyState) => {
-  applyLobbyState(lobby);
+  receiveLobbyState(lobby);
 });
 
 socket.on("server-auth-config", (configuration: { authEnabled?: unknown }) => {
@@ -2726,8 +3159,14 @@ socket.on("public-rooms-updated", (payload: PublicRoomsResponse) => {
   }
 });
 
-socket.on("removed-from-room", (payload: { roomCode?: string; reason?: string; message?: string }) => {
-  if (!payload || payload.roomCode !== state.roomCode || payload.reason !== "kicked") return;
+function applyRemovedFromRoom(payload: {
+  roomCode?: string;
+  reason?: string;
+  message?: string;
+}): void {
+  if (payload.roomCode !== state.roomCode || payload.reason !== "kicked") return;
+  roomMembershipUnavailable = true;
+  roomEntryPending = false;
   if (state.game) retiredGameSessionIds.add(state.game.sessionId);
   state.currentView = "home";
   state.roomCode = null;
@@ -2748,6 +3187,14 @@ socket.on("removed-from-room", (payload: { roomCode?: string; reason?: string; m
   state.errorCode = "REMOVED_FROM_ROOM";
   resetFakeAnswerViewState();
   render();
+}
+
+socket.on("removed-from-room", (payload: { roomCode?: string; reason?: string; message?: string }) => {
+  if (state.currentView === "restoring" && typeof payload?.roomCode === "string") {
+    pendingRemovalDuringRestore = payload;
+    return;
+  }
+  if (payload) applyRemovedFromRoom(payload);
 });
 
 socket.on(
@@ -2757,21 +3204,25 @@ socket.on(
     lobby: LobbyState;
     game?: GameSessionState;
   }) => {
-    if (payload.roomCode !== state.roomCode) {
+    if (state.currentView !== "restoring" && payload.roomCode !== state.roomCode) {
       return;
     }
-    applyLobbyState(payload.lobby);
+    receiveLobbyState(payload.lobby);
     if (payload.game) {
-      applyGameState(payload.game);
+      receiveGameState(payload.game);
     }
   },
 );
 
 socket.on("game-state", (game: GameSessionState) => {
-  applyGameState(game);
+  receiveGameState(game);
 });
 
 socket.on("results-return-reminder", (payload: { sessionId: string }) => {
+  if (state.currentView === "restoring" || restorationInProgress) {
+    pendingResultsReminderDuringRestore = payload;
+    return;
+  }
   if (state.game?.sessionId !== payload.sessionId || state.currentView !== "game") return;
   state.resultsReminderSessionId = payload.sessionId;
   render();
@@ -2789,7 +3240,28 @@ socket.on("disconnect", () => {
   connectionWasLost = true;
   state.connectionStatus = "disconnected";
   const wasBrowsingPublicRooms = state.currentView === "public-rooms";
-  state.currentView = wasBrowsingPublicRooms ? "public-rooms" : "home";
+  const shouldRestoreRoom = Boolean(
+    state.roomCode ||
+    state.localPlayerId ||
+    recoveryCredentialSource ||
+    hasStoredGuestRecoveryCredential,
+  );
+  if (shouldRestoreRoom) {
+    restorationFallbackView = wasBrowsingPublicRooms
+      ? "public-rooms"
+      : state.roomCode || state.currentView === "lobby" ||
+          state.currentView === "game" || state.currentView === "starting"
+        ? "home"
+        : state.currentView;
+    state.currentView = "restoring";
+  } else {
+    state.currentView = wasBrowsingPublicRooms ? "public-rooms" : "home";
+  }
+  restorationInProgress = false;
+  restorationRequestId += 1;
+  bufferedRestorationLobby = null;
+  bufferedRestorationGame = null;
+  pendingResultsReminderDuringRestore = null;
   state.roomCode = null;
   state.localPlayerId = null;
   state.lobby = null;
@@ -2799,7 +3271,9 @@ socket.on("disconnect", () => {
   resetFakeAnswerViewState();
   state.isBusy = false;
   state.errorMessage = guestSessionFailureMessage ??
-    "Connection lost. Reconnect to create or join a room.";
+    (shouldRestoreRoom
+      ? "Connection lost. Reconnecting to restore your session…"
+      : "Connection lost. Reconnect to create or join a room.");
   state.isLoadingPublicRooms = false;
   clearPublicRoomSelection();
   clearResultsReminderSuccess();

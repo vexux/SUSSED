@@ -21,6 +21,8 @@ export interface BruhWtfPublicState {
   roundId: string;
   prompt: string;
   playerCount: number;
+  viewerSubmission?: string;
+  viewerVoteOptionId?: string;
   submissionCount?: number;
   submissionProgress?: Array<{ playerId: string; name: string; submitted: boolean }>;
   options?: Array<{ id: string; completion: string; isOwnAnswer: boolean }>;
@@ -73,6 +75,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function isBruhWtfPublicState(value: unknown): value is BruhWtfPublicState {
   if (!isRecord(value)) return false;
+  if (
+    (value.viewerSubmission !== undefined && typeof value.viewerSubmission !== "string") ||
+    (value.viewerVoteOptionId !== undefined && typeof value.viewerVoteOptionId !== "string")
+  ) return false;
   if (![
     "answer-submission",
     "voting",

@@ -280,7 +280,7 @@ test("placeholder resolution assigns different eligible roster members", () => {
     assert.equal(/\{\{player\d+\}\}/u.test(tokenLikeName), false);
 });
 
-test("submissions validate membership, phase, payload and duplicate actions without exposing answers", () => {
+test("submissions validate membership and restore only the viewer's own private answer", () => {
     const state = makeState();
     assert.throws(() => bruhWtf.handleAction(state, "vote", "p1", "none"), { code: "VOTING_NOT_OPEN" });
     assert.throws(() => bruhWtf.handleAction(state, "submit-answer", "outsider", "text"), { code: "NOT_A_GAME_PLAYER" });
@@ -288,7 +288,9 @@ test("submissions validate membership, phase, payload and duplicate actions with
     assert.throws(() => bruhWtf.handleAction(state, "submit-answer", "p1", "x".repeat(161)), { code: "INVALID_ANSWER" });
     bruhWtf.handleAction(state, "submit-answer", "p1", "Secret one");
     const publicSubmission = bruhWtf.createPublicState(state, "p1");
-    assert.equal(JSON.stringify(publicSubmission).includes("Secret one"), false);
+    assert.equal(publicSubmission.viewerSubmission, "Secret one");
+    assert.equal(Object.hasOwn(bruhWtf.createPublicState(state, "p2"), "viewerSubmission"), false);
+    assert.equal(JSON.stringify(publicSubmission).includes("Secret two"), false);
     assert.throws(() => bruhWtf.handleAction(state, "submit-answer", "p1", "again"), { code: "ALREADY_SUBMITTED" });
     bruhWtf.handleAction(state, "submit-answer", "p2", "Secret two");
     bruhWtf.handleAction(state, "submit-answer", "p3", "Secret three");
@@ -302,6 +304,10 @@ test("submissions validate membership, phase, payload and duplicate actions with
         assert.equal(publicVote.options.find(({ isOwnAnswer }) => isOwnAnswer).completion, expectedOwnAnswer);
         assert.equal(JSON.stringify(publicVote).includes("authorId"), false);
     }
+    const voteOption = state.options.find(({ authorId }) => authorId === "p2");
+    bruhWtf.handleAction(state, "vote", "p1", voteOption.id);
+    assert.equal(bruhWtf.createPublicState(state, "p1").viewerVoteOptionId, voteOption.id);
+    assert.equal(Object.hasOwn(bruhWtf.createPublicState(state, "p2"), "viewerVoteOptionId"), false);
 });
 
 test("votes reject own, invalid, duplicate and stale-phase choices; results score +1 per vote", () => {
@@ -449,9 +455,12 @@ test("three-player Bruh wtf? socket session completes rounds, preserves privacy,
             });
             assert.equal(response.submitted, true);
             if (index === 0) {
-                for (const viewer of clients) {
+                for (const [viewerIndex, viewer] of clients.entries()) {
                     const state = gameManager.getPublicGameState(created.roomCode, viewer.id).state;
-                    assert.equal(JSON.stringify(state).includes(answers[0]), false);
+                    assert.equal(
+                        JSON.stringify(state).includes(answers[0]),
+                        viewerIndex === index
+                    );
                 }
             }
         }

@@ -8,6 +8,7 @@ import { authEnabled, firebaseClient, firebaseConfigurationError } from "./supab
 import {
   attachRecoveryCredential,
   getBrowserSessionStorage,
+  readRecoveryCredential,
   type RecoveryCredentialSource,
 } from "./guestSession";
 
@@ -20,6 +21,8 @@ export let recoveryCredentialSource: RecoveryCredentialSource = null;
 export let guestRecoveryStorageError = guestSessionStorage
   ? null
   : "Browser session storage is unavailable. Guest session recovery cannot be secured.";
+export const hasStoredGuestRecoveryCredential =
+  readRecoveryCredential(guestSessionStorage).credential !== null;
 
 function createSocket() {
   const serverUrl = configuration.serverUrl;

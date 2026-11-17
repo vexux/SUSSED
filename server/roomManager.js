@@ -479,6 +479,14 @@ function getFinishedMatch(room, sessionId) {
     return room?.finishedMatches.get(sessionId) ?? null;
 }
 
+function getFinishedMatchForViewer(room, playerId) {
+    const player = room?.players.find((candidate) => candidate.id === playerId);
+    if (!player?.viewingResultsSessionId) return null;
+    const match = room.finishedMatches.get(player.viewingResultsSessionId);
+    if (!match?.viewers.has(playerId)) return null;
+    return match.snapshot;
+}
+
 function recoverRoomToLobby(room) {
     if (!room || rooms.get(room.code) !== room || room.status !== "starting") {
         throw new RoomError(
@@ -615,6 +623,7 @@ module.exports = {
     returnResultsViewer,
     getResultsViewers,
     getFinishedMatch,
+    getFinishedMatchForViewer,
     recoverRoomToLobby,
     selectGame,
     setRoomVisibility,

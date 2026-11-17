@@ -99,6 +99,15 @@ resume the existing in-memory session. At expiry, the existing departure
 cleanup runs; explicitly leaving or being kicked remains immediate. Guest
 identities are separate from account profiles.
 
+On a same-tab page refresh, the browser reuses the guest recovery credential
+from `sessionStorage` and asks the server to restore the current room and view.
+The server returns current authoritative lobby/game state; the client buffers
+live room events during that handshake so newer updates are not lost. Lobby,
+active-game, and still-open results views can be restored while their state
+remains in server memory. A temporary restoration failure offers a retry and
+does not discard the credential. This is not cross-tab recovery and cannot
+restore rooms or games after a server restart or redeployment.
+
 ### Handles, friends, and account screens
 
 Phase 2 extends the existing profile table with a unique handle and handle
@@ -274,7 +283,12 @@ Restart both processes after changing environment values. In the browser:
    available. A transient disconnect preserves the in-memory room/game session
    for 90 seconds when the same guest recovery credential reconnects. Explicit
    leave and host kick remain immediate; server restart clears rooms and grace
-   timers.
+   timers. Refresh the same browser tab during that period to verify it
+   restores the current room or game. Also verify a completed-results viewer
+   refreshes back to results after the host returns to the lobby. A guest with
+   no room should return to room entry, and can still use the same guest
+   identity to join a room. Restoration does not work across tabs or server
+   restarts.
 4. Test **Forgot password**, open the recovery message, submit a new password,
    then sign in with it. Try an expired link to confirm the app offers a new
    recovery email. Try Google after completing the dashboard setup.

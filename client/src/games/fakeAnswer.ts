@@ -158,6 +158,8 @@ export interface FakeAnswerPublicState {
   } | null;
   submissionCount: number;
   playerCount: number;
+  viewerSubmission?: string;
+  viewerVoteOptionId?: string;
   submissionProgress?: Array<{
     playerId: string;
     name: string;
@@ -276,6 +278,11 @@ export function isFakeAnswerPublicState(
     value.phase === "voting" ||
     value.phase === "waiting-for-results" ||
     value.phase === "results";
+  const viewerStateIsValid =
+    (value.viewerSubmission === undefined ||
+      typeof value.viewerSubmission === "string") &&
+    (value.viewerVoteOptionId === undefined ||
+      typeof value.viewerVoteOptionId === "string");
   const submissionProgressIsValid =
     value.phase !== "answer-submission" ||
     (Array.isArray(value.submissionProgress) &&
@@ -401,6 +408,7 @@ export function isFakeAnswerPublicState(
 
   return (
     phaseIsValid &&
+    viewerStateIsValid &&
     submissionProgressIsValid &&
     voteProgressIsValid &&
     typeof value.currentRound === "number" &&

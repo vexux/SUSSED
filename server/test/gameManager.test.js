@@ -221,6 +221,99 @@ test("generic game sessions start registered games and expose only public state"
     }
 });
 
+test("Fact-or-Cap snapshots restore only the requesting player's submission and vote with monotonic revisions", () => {
+    const room = createStartingRoom(2);
+    const initial = gameManager.startGame(room, "fact-or-cap");
+    const sessionId = initial.sessionId;
+    const question = questions.find(({ text }) => text === initial.state.prompt.text);
+    assert.ok(question);
+
+    try {
+        assert.equal(initial.revision, 0);
+        const opened = gameManager.performGameAction(
+            room.code,
+            "fact-or-cap",
+            null,
+            "open-submissions",
+            { roundId: initial.state.roundId }
+        ).gameState;
+        const submitted = gameManager.performGameAction(
+            room.code,
+            "fact-or-cap",
+            "player-1",
+            "submit-completion",
+            "Private submission for player one"
+        ).gameState;
+        const playerOneSubmitting = gameManager.getPublicGameState(room.code, "player-1");
+        const playerTwoSubmitting = gameManager.getPublicGameState(room.code, "player-2");
+
+        assert.equal(submitted.revision, opened.revision + 1);
+        assert.equal(playerOneSubmitting.state.viewerSubmission, "Private submission for player one");
+        assert.equal(Object.hasOwn(playerTwoSubmitting.state, "viewerSubmission"), false);
+        assert.equal(playerTwoSubmitting.state.phase, "answer-submission");
+
+        gameManager.performGameAction(
+            room.code,
+            "fact-or-cap",
+            "player-2",
+            "submit-completion",
+            "Private submission for player two"
+        );
+        gameManager.performGameAction(
+            room.code,
+            "fact-or-cap",
+            null,
+            "begin-voting"
+        );
+        const voting = gameManager.getPublicGameState(room.code, "player-1");
+        const correctOption = voting.state.options.find(
+            ({ completion }) => completion === question.correctCompletion
+        );
+        assert.ok(correctOption);
+        const voted = gameManager.performGameAction(
+            room.code,
+            "fact-or-cap",
+            "player-1",
+            "vote",
+            correctOption.id
+        ).gameState;
+        const playerOneVoting = gameManager.getPublicGameState(room.code, "player-1");
+        const playerTwoVoting = gameManager.getPublicGameState(room.code, "player-2");
+
+        assert.ok(voted.revision > submitted.revision);
+        assert.equal(playerOneVoting.state.viewerVoteOptionId, correctOption.id);
+        assert.equal(Object.hasOwn(playerTwoVoting.state, "viewerVoteOptionId"), false);
+        assert.equal(playerOneVoting.state.phase, "voting");
+        assert.equal(playerTwoVoting.state.phase, "voting");
+        const secondPlayerVote = playerTwoVoting.state.options.find(
+            ({ isOwnAnswer }) => !isOwnAnswer
+        );
+        assert.ok(secondPlayerVote);
+        gameManager.performGameAction(
+            room.code,
+            "fact-or-cap",
+            "player-2",
+            "vote",
+            secondPlayerVote.id
+        );
+        const beforeResults = gameManager.getPublicGameState(room.code, "player-1");
+        assert.equal(beforeResults.state.phase, "waiting-for-results");
+        assert.equal(beforeResults.state.viewerVoteOptionId, correctOption.id);
+        gameManager.performGameAction(
+            room.code,
+            "fact-or-cap",
+            null,
+            "publish-results"
+        );
+        const results = gameManager.getPublicGameState(room.code, "player-1");
+        assert.equal(results.state.phase, "results");
+        assert.equal(results.state.results.players.length, 2);
+        assert.equal(results.revision, beforeResults.revision + 1);
+    } finally {
+        gameManager.removeGame(room.code, sessionId);
+    }
+});
+
 test("Anime sessions initialize from their own sourced pool and keep source metadata private", () => {
     const room = createStartingRoom(2);
     const publicState = gameManager.startGame(room, "fact-or-cap-anime");

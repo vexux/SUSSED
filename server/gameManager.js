@@ -80,6 +80,7 @@ function startGame(room, gameId) {
     const session = {
         roomCode: room.code,
         sessionId: randomUUID(),
+        revision: 0,
         gameId: game.id,
         displayName: game.displayName,
         status: "active",
@@ -95,6 +96,7 @@ function createPublicGameState(session, playerId) {
     return {
         roomCode: session.roomCode,
         sessionId: session.sessionId,
+        revision: session.revision,
         gameId: session.gameId,
         displayName: session.displayName,
         status: session.status,
@@ -138,6 +140,7 @@ function performGameAction(
         playerId,
         payload
     );
+    session.revision += 1;
     if (
         session.implementation.isFinished?.(session.privateState) === true
     ) {
@@ -174,6 +177,7 @@ function removeParticipant(roomCode, playerId, expectedSessionId) {
         ...(disconnectedPlayers.has(id) ? { connected: false } : {})
     }));
     session.status = session.implementation.isFinished?.(session.privateState) ? "finished" : "active";
+    session.revision += 1;
     return {
         ...result,
         sessionId: session.sessionId,
@@ -188,11 +192,13 @@ function setPlayerConnectionStatus(roomCode, playerId, connected) {
     if (!session) return false;
     const player = session.players.find((candidate) => candidate.id === playerId);
     if (!player) return false;
+    const wasConnected = player.connected !== false;
     if (connected) {
         delete player.connected;
     } else {
         player.connected = false;
     }
+    if (wasConnected !== connected) session.revision += 1;
     return true;
 }
 
@@ -246,6 +252,7 @@ function retireFinishedGame(roomCode, expectedSessionId) {
     const snapshot = {
         roomCode,
         sessionId: session.sessionId,
+        revision: session.revision,
         gameId: session.gameId,
         displayName: session.displayName,
         status: session.status,
