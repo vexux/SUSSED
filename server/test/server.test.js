@@ -13,6 +13,7 @@ const {
     createAchievementEvent
 } = require("../achievementEvents");
 const { startServer } = require("../server");
+const { DISABLED_ACCOUNT_EVENTS } = require("../disabledAccountHandlers");
 
 test("achievement lifecycle events are validated, immutable, and contain no client identity", () => {
     const event = createAchievementEvent(ACHIEVEMENT_EVENT_TYPES.ROUND_COMPLETED, {
@@ -121,8 +122,12 @@ test("Socket.IO polling allows the deployed frontend origins and rejects unliste
     }
 });
 
-async function createHarness(context, { verifyAccessToken, profileRepository } = {}) {
-    const io = startServer(0, { verifyAccessToken, profileRepository });
+async function createHarness(context, {
+    verifyAccessToken,
+    profileRepository,
+    authEnabled = true,
+} = {}) {
+    const io = startServer(0, { verifyAccessToken, profileRepository, authEnabled });
     const clients = [];
     const roomCodes = new Set();
 
@@ -148,13 +153,16 @@ async function createHarness(context, { verifyAccessToken, profileRepository } =
 
     return {
         io,
-        async connect({ auth } = {}) {
+        async connect({ auth, onServerConfiguration } = {}) {
             const client = createClient(`http://127.0.0.1:${address.port}`, {
                 auth,
                 reconnection: false,
                 timeout: 3000,
             });
             clients.push(client);
+            if (onServerConfiguration) {
+                client.on("server-auth-config", onServerConfiguration);
+            }
             await new Promise((resolve, reject) => {
                 client.once("connect", resolve);
                 client.once("connect_error", reject);
@@ -166,6 +174,47 @@ async function createHarness(context, { verifyAccessToken, profileRepository } =
         },
     };
 }
+
+test("disabled auth skips account services while guest room gameplay stays available", async (context) => {
+    let profileRepositoryCalls = 0;
+    const harness = await createHarness(context, {
+        authEnabled: false,
+        profileRepository: {
+            async getOrCreateProfile() {
+                profileRepositoryCalls += 1;
+                throw new Error("disabled services must not run");
+            },
+        },
+    });
+    let serverConfiguration;
+    const guest = await harness.connect({
+        onServerConfiguration: (configuration) => {
+            serverConfiguration = configuration;
+        },
+    });
+    const serverSocket = harness.io.sockets.sockets.get(guest.id);
+    assert.ok(serverSocket);
+    assert.equal(serverSocket.data.accountId, undefined);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.deepEqual(serverConfiguration, { authEnabled: false });
+
+    for (const eventName of DISABLED_ACCOUNT_EVENTS) {
+        const response = await emitWithAck(guest, eventName, undefined);
+        assert.equal(response.error.code, "AUTH_DISABLED", `${eventName} must be disabled`);
+    }
+    assert.equal(profileRepositoryCalls, 0);
+
+    const games = await emitWithAck(guest, "list-games", undefined);
+    assert.ok(games.games.length > 0);
+    const created = await emitWithAck(guest, "create-room", { playerName: "Guest" });
+    harness.trackRoom(created.roomCode);
+    assert.equal(roomManager.getRoom(created.roomCode).hostId, guest.id);
+
+    await assert.rejects(
+        harness.connect({ auth: { accessToken: "attempted-token" } }),
+        (error) => error.data?.code === "AUTH_DISABLED",
+    );
+});
 
 test("guest sockets retain socket.id as their room player identity", async (context) => {
     let profileRepositoryCalls = 0;

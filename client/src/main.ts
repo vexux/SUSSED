@@ -24,7 +24,12 @@ import {
   createSocketSessionChangeHandler,
   createSocketTokenRefreshRetry,
 } from "./socketAuth";
-import { firebaseClient, firebaseConfigurationError } from "./supabase";
+import {
+  authEnabled,
+  authFeatureFlagError,
+  firebaseClient,
+  firebaseConfigurationError,
+} from "./supabase";
 import { renderApp } from "./views";
 import type {
   AppActions,
@@ -135,13 +140,12 @@ const authService = firebaseClient
       ),
     )
   : null;
-const recoveryLinkError = getRecoveryLinkError(
-  window.location.hash,
-  window.location.search,
-);
+const recoveryLinkError = authEnabled
+  ? getRecoveryLinkError(window.location.hash, window.location.search)
+  : null;
 let pendingPasswordResetCode = getPasswordResetCode(
-  window.location.search,
-  window.location.hash,
+  authEnabled ? window.location.search : "",
+  authEnabled ? window.location.hash : "",
 );
 const authCallbackParameters = new URLSearchParams(window.location.search);
 for (const [key, value] of new URLSearchParams(
@@ -150,6 +154,7 @@ for (const [key, value] of new URLSearchParams(
   authCallbackParameters.set(key, value);
 }
 const authViewState: AuthViewState = {
+  authEnabled,
   mode: recoveryLinkError || pendingPasswordResetCode ? "recovery" : "sign-in",
   email: "",
   password: "",
@@ -157,12 +162,12 @@ const authViewState: AuthViewState = {
   userEmail: null as string | null,
   isAuthenticated: false,
   isBusy: false,
-  errorMessage: null as string | null,
+  errorMessage: authFeatureFlagError,
   statusMessage: null as string | null,
   verificationRequired: false,
   resendAvailableAt: null as number | null,
   hasRecoverySession: false,
-  configurationError: firebaseConfigurationError ?? (!firebaseClient
+  configurationError: authFeatureFlagError ?? firebaseConfigurationError ?? (!firebaseClient && authEnabled
     ? "Account authentication is not configured. Set the Firebase client variables to enable accounts. Guest play remains available."
     : null),
   recoveryError: recoveryLinkError,
@@ -191,17 +196,19 @@ const socialViewState: SocialViewState = {
   notificationsError: null,
   notificationActionBusyId: null,
 };
-state.currentView = resolveAuthEntryView({
-  restored: !firebaseClient,
-  hasUser: false,
-  isAuthenticated: false,
-  requiresEmailVerification: false,
-  isRecoveryFlow: Boolean(recoveryLinkError || pendingPasswordResetCode),
-});
+state.currentView = authEnabled
+  ? resolveAuthEntryView({
+      restored: !firebaseClient,
+      hasUser: false,
+      isAuthenticated: false,
+      requiresEmailVerification: false,
+      isRecoveryFlow: Boolean(recoveryLinkError || pendingPasswordResetCode),
+    })
+  : "welcome";
 if (pendingPasswordResetCode) {
   authViewState.isBusy = true;
 }
-if (!recoveryLinkError && authCallbackParameters.has("error")) {
+if (authEnabled && !recoveryLinkError && authCallbackParameters.has("error")) {
   authViewState.errorMessage =
     "Google sign-in could not finish. Confirm Google is enabled in Firebase and its redirect URLs are configured.";
 }
@@ -1178,6 +1185,7 @@ const actions: AppActions = {
     render();
   },
   onOpenEmailAuth() {
+    if (!authEnabled) return;
     state.currentView = "email-auth";
     authViewState.errorMessage = null;
     authViewState.statusMessage = null;
@@ -1221,7 +1229,7 @@ const actions: AppActions = {
     render();
   },
   onNavigateAccount(view) {
-    if (!authViewState.isAuthenticated) return;
+    if (!authEnabled || !authViewState.isAuthenticated) return;
     if (!["profile", "friends", "public-profile", "achievements"].includes(state.currentView)) {
       accountReturnView = state.currentView;
     }
@@ -2433,6 +2441,7 @@ const actions: AppActions = {
     });
   },
   onAuthGoogle() {
+    if (!authEnabled) return;
     if (!authService) {
       authViewState.errorMessage =
         authViewState.configurationError ?? "Firebase authentication is not configured.";
@@ -2470,7 +2479,7 @@ const actions: AppActions = {
     });
   },
   onAuthSignOut() {
-    if (!authService) return;
+    if (!authEnabled || !authService) return;
     void runAuthAction(async () => {
       await authService.signOut();
       authViewState.userEmail = null;
@@ -2591,6 +2600,15 @@ socket.on("lobby-state", (lobby: LobbyState) => {
   applyLobbyState(lobby);
 });
 
+socket.on("server-auth-config", (configuration: { authEnabled?: unknown }) => {
+  if (typeof configuration?.authEnabled !== "boolean") return;
+  if (configuration.authEnabled === authEnabled) return;
+  state.errorMessage =
+    "Authentication settings differ between the client and server. Configure VITE_AUTH_ENABLED and AUTH_ENABLED consistently, then restart both.";
+  state.errorCode = "AUTH_CONFIG_MISMATCH";
+  render();
+});
+
 socket.on("public-rooms-updated", (payload: PublicRoomsResponse) => {
   if (state.currentView !== "public-rooms" || !Array.isArray(payload.rooms)) return;
   publicRoomsRequestId += 1;
@@ -2700,7 +2718,12 @@ socket.on("connect_error", (error) => {
   connectionWasLost = true;
   state.connectionStatus = "disconnected";
   state.isBusy = false;
-  if (error.message === "Invalid or expired access token.") {
+  const errorData = (error as Error & { data?: { code?: string } }).data;
+  if (errorData?.code === "AUTH_DISABLED") {
+    state.errorMessage =
+      "The client has authentication enabled but the server has it disabled. Configure VITE_AUTH_ENABLED and AUTH_ENABLED consistently, then restart both.";
+    state.errorCode = "AUTH_CONFIG_MISMATCH";
+  } else if (error.message === "Invalid or expired access token.") {
     void retrySocketWithFreshIdToken.refreshAndReconnect().then((retried) => {
       if (retried) return;
       state.errorMessage =

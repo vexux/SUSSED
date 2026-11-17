@@ -1,4 +1,4 @@
-import type { AppState, LobbyPlayer, ThemePreference } from "./appState.ts";
+import type { AppState, AppView, LobbyPlayer, ThemePreference } from "./appState.ts";
 import type { AuthFormMode } from "./auth.ts";
 import {
   renderFakeAnswerGame,
@@ -143,6 +143,7 @@ export interface SocialViewState {
 }
 
 export interface AuthViewState {
+  authEnabled?: boolean;
   mode: AuthFormMode;
   email: string;
   password: string;
@@ -299,6 +300,7 @@ function createHeader(
   authState: AuthViewState,
   socialState: SocialViewState,
 ): HTMLElement {
+  const authEnabled = authState.authEnabled !== false;
   const header = createElement("header", "app-header");
   const controls = createElement("div", "header-controls");
   const isEntryView =
@@ -322,9 +324,9 @@ function createHeader(
     appendWordmark(brand);
     header.append(brand);
   }
-  if (!isEntryView) {
-    controls.append(createStatus(state));
-    if (authState.isAuthenticated) {
+  if (!isEntryView || !authEnabled) {
+    if (!isEntryView) controls.append(createStatus(state));
+    if (authEnabled && authState.isAuthenticated) {
       const notificationCenter = createElement("details", "notification-center");
       notificationCenter.open = socialState.notificationPopoverOpen;
       const notificationTrigger = createElement("summary", "notification-trigger");
@@ -348,25 +350,36 @@ function createHeader(
       }
       controls.append(notificationCenter);
     }
-    const accountMenu = createElement("details", "account-menu");
+    const accountMenu = createElement(
+      "details",
+      authEnabled ? "account-menu" : "account-menu appearance-menu",
+    );
     const accountSummary = createElement(
       "summary",
-      "account-menu-trigger",
-      authState.isAuthenticated ? "" : "Guest",
+      authEnabled ? "account-menu-trigger" : "account-menu-trigger appearance-menu-trigger",
+      !authEnabled ? "Appearance" : authState.isAuthenticated ? "" : "Guest",
     );
     accountSummary.setAttribute(
       "aria-label",
-      authState.isAuthenticated ? "Open account menu" : "Guest account menu",
+      !authEnabled
+        ? "Appearance settings"
+        : authState.isAuthenticated
+          ? "Open account menu"
+          : "Guest account menu",
     );
-    accountSummary.append(createIcon("user"));
+    if (authEnabled) accountSummary.append(createIcon("user"));
     accountMenu.append(accountSummary);
     const menu = createElement("div", "account-menu-items");
     menu.setAttribute("role", "group");
     menu.setAttribute(
       "aria-label",
-      authState.isAuthenticated ? "Account navigation" : "Guest account navigation",
+      !authEnabled
+        ? "Appearance settings"
+        : authState.isAuthenticated
+          ? "Account navigation"
+          : "Guest account navigation",
     );
-    if (authState.isAuthenticated) {
+    if (authEnabled && authState.isAuthenticated) {
       for (const [view, label] of [
         ["profile", "Profile"],
         ["friends", "Friends"],
@@ -378,54 +391,49 @@ function createHeader(
         item.addEventListener("click", () => actions.onNavigateAccount(view));
         menu.append(item);
       }
-      menu.append(createElement("h3", "account-menu-section-title", "Appearance"));
-      const appearance = createElement("div", "appearance-options");
-      appearance.setAttribute("role", "group");
-      appearance.setAttribute("aria-label", "Appearance");
-      for (const [theme, label] of [
-        ["light", "Light"],
-        ["dark", "Dark"],
-        ["system", "System"],
-      ] as const) {
-        const option = createElement("button", "account-menu-item appearance-option", label);
-        option.type = "button";
-        option.setAttribute("aria-pressed", String(state.theme === theme));
-        option.addEventListener("click", () => actions.onSetThemePreference(theme));
-        appearance.append(option);
-      }
-      menu.append(appearance);
+      appendAppearanceOptions(menu, state, actions);
       const signOut = createElement("button", "account-menu-item", "Sign out");
       signOut.type = "button";
       signOut.disabled = authState.isBusy || socialState.isBusy;
       signOut.addEventListener("click", actions.onAuthSignOut);
       menu.append(signOut);
-    } else {
+    } else if (authEnabled) {
       const signIn = createElement("button", "account-menu-item", "Sign in");
       signIn.type = "button";
       signIn.addEventListener("click", actions.onOpenEmailAuth);
       menu.append(signIn);
-      menu.append(createElement("h3", "account-menu-section-title", "Appearance"));
-      const appearance = createElement("div", "appearance-options");
-      appearance.setAttribute("role", "group");
-      appearance.setAttribute("aria-label", "Appearance");
-      for (const [theme, label] of [
-        ["light", "Light"],
-        ["dark", "Dark"],
-        ["system", "System"],
-      ] as const) {
-        const option = createElement("button", "account-menu-item appearance-option", label);
-        option.type = "button";
-        option.setAttribute("aria-pressed", String(state.theme === theme));
-        option.addEventListener("click", () => actions.onSetThemePreference(theme));
-        appearance.append(option);
-      }
-      menu.append(appearance);
+      appendAppearanceOptions(menu, state, actions);
+    } else {
+      appendAppearanceOptions(menu, state, actions);
     }
     accountMenu.append(menu);
     controls.append(accountMenu);
   }
   header.append(controls);
   return header;
+}
+
+function appendAppearanceOptions(
+  menu: HTMLElement,
+  state: AppState,
+  actions: AppActions,
+): void {
+  menu.append(createElement("h3", "account-menu-section-title", "Appearance"));
+  const appearance = createElement("div", "appearance-options");
+  appearance.setAttribute("role", "group");
+  appearance.setAttribute("aria-label", "Appearance");
+  for (const [theme, label] of [
+    ["light", "Light"],
+    ["dark", "Dark"],
+    ["system", "System"],
+  ] as const) {
+    const option = createElement("button", "account-menu-item appearance-option", label);
+    option.type = "button";
+    option.setAttribute("aria-pressed", String(state.theme === theme));
+    option.addEventListener("click", () => actions.onSetThemePreference(theme));
+    appearance.append(option);
+  }
+  menu.append(appearance);
 }
 
 function renderNotificationsPopover(
@@ -579,20 +587,23 @@ function renderWelcome(
   const buttons = createElement("div", "welcome-actions");
   buttons.setAttribute("aria-label", "Get started");
 
-  const google = createElement("button", "welcome-button welcome-google-button");
-  google.type = "button";
-  google.disabled = authState.isBusy;
-  google.append(createGoogleIcon(), createElement("span", undefined, "Continue with Google"));
-  google.addEventListener("click", actions.onAuthGoogle);
+  if (authState.authEnabled !== false) {
+    const google = createElement("button", "welcome-button welcome-google-button");
+    google.type = "button";
+    google.disabled = authState.isBusy;
+    google.append(createGoogleIcon(), createElement("span", undefined, "Continue with Google"));
+    google.addEventListener("click", actions.onAuthGoogle);
 
-  const email = createElement(
-    "button",
-    "primary-button welcome-button welcome-email-button",
-    "Continue with email",
-  );
-  email.type = "button";
-  email.disabled = authState.isBusy;
-  email.addEventListener("click", actions.onOpenEmailAuth);
+    const email = createElement(
+      "button",
+      "primary-button welcome-button welcome-email-button",
+      "Continue with email",
+    );
+    email.type = "button";
+    email.disabled = authState.isBusy;
+    email.addEventListener("click", actions.onOpenEmailAuth);
+    buttons.append(google, email);
+  }
 
   const guest = createElement(
     "button",
@@ -603,7 +614,7 @@ function renderWelcome(
   guest.disabled = authState.isBusy;
   guest.addEventListener("click", actions.onPlayAsGuest);
 
-  buttons.append(google, email, guest);
+  buttons.append(guest);
   content.append(title, tagline, buttons);
   screen.append(content);
   const message = authState.errorMessage ?? state.errorMessage;
@@ -2082,7 +2093,9 @@ function createInvitationDialog(
       friendSection.append(row);
     }
   }
-  dialog.append(friendSection);
+  if (authState.authEnabled !== false) {
+    dialog.append(friendSection);
+  }
 
   if (state.isInvitationQrVisible && state.invitationQrDataUrl) {
     const qrImage = createElement("img", "invitation-qr-code");
@@ -2509,6 +2522,18 @@ export function renderApp(
     notificationActionBusyId: null,
   },
 ): void {
+  const authEnabled = authState.authEnabled !== false;
+  const accountViews = new Set<AppView>([
+    "auth-loading",
+    "email-auth",
+    "profile",
+    "friends",
+    "public-profile",
+    "achievements",
+  ]);
+  if (!authEnabled && accountViews.has(state.currentView)) {
+    state.currentView = "home";
+  }
   const previousDialog = root.querySelector<HTMLDialogElement>(".invitation-dialog");
   const previousFocus = root.ownerDocument.activeElement;
   const previousFocusKey =

@@ -23,14 +23,20 @@ are allowed by the development server configuration.
 Local files have been initialized from the examples:
 
 - `client/.env.local` is loaded by Vite. Keep `VITE_SERVER_URL=http://localhost:3000`
-  for the local backend. To enable Firebase on the client, fill in the Firebase
-  web config values: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`,
+  for the local backend. `VITE_AUTH_ENABLED` controls client authentication and
+  defaults to `false`; while disabled, Firebase is not initialized and guest
+  play needs no Firebase or Supabase configuration. To enable account features,
+  set `VITE_AUTH_ENABLED=true` and fill in the Firebase web config values:
+  `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`,
   `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`, and any optional config
   values you use (`VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`).
   Optionally set `VITE_AUTH_REDIRECT_URL=http://localhost:5173/`; if unset, the
   current browser origin is used.
-- `server/.env` is loaded by the server's `start` and `dev` scripts. To enable
-  token verification, fill in `FIREBASE_PROJECT_ID`. For local Admin SDK auth,
+- `server/.env` is loaded by the server's `start` and `dev` scripts.
+  `AUTH_ENABLED` controls server verification and account/social handlers and
+  defaults to `false`; while disabled, Firebase and Supabase settings are not
+  required. To enable account features, set `AUTH_ENABLED=true` and configure
+  Firebase verification. Fill in `FIREBASE_PROJECT_ID`. For local Admin SDK auth,
   either rely on Application Default Credentials (`GOOGLE_APPLICATION_CREDENTIALS`
   or a local gcloud login) or provide `FIREBASE_CLIENT_EMAIL` and
   `FIREBASE_PRIVATE_KEY`. `PORT=3000`, `NODE_ENV=development`, and the blank
@@ -38,6 +44,11 @@ Local files have been initialized from the examples:
   require server-only `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`; leave both
   unset to keep profile persistence disabled while guest and room play remain
   available.
+
+The client and server flags are independent. Keep both false for guest-only
+mode, or set both true to reactivate account features. Boolean values must be
+`true` or `false`. A mismatch is reported by the client when it can connect;
+authenticated handshakes are rejected if server authentication is disabled.
 
 To find the values in the Firebase console, open the project and copy the web
 config values from **Project settings > General > Your apps**. Use the same
@@ -201,6 +212,12 @@ npm run build
 
 ## Firebase Auth setup
 
+This section applies only when both `VITE_AUTH_ENABLED=true` and
+`AUTH_ENABLED=true`. `VITE_AUTH_ENABLED=false` disables authentication and
+account UI in the client; `AUTH_ENABLED=false` disables server verification and
+account/social handlers. Keep both false for guest-only play; the guest room and
+game flow remains available.
+
 Configure email/password in the Firebase console under **Authentication > Sign-in method > Email/Password**.
 Keep email verification enabled if accounts should verify their addresses.
 Use Firebase's built-in email verification and password-reset flow. Do not add a
@@ -330,6 +347,8 @@ Create a Render **Web Service** for this repository with:
 Configure these environment variables in Render:
 
 - `NODE_ENV=production`
+- `AUTH_ENABLED=false` for guest-only mode; set to `true` only when intentionally
+  re-enabling Firebase authentication and account/social handlers.
 - `CLIENT_ORIGIN=https://your-project.vercel.app`
 - `FIREBASE_PROJECT_ID=sussed-167f0`
 - `GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json` (optional when
@@ -346,12 +365,21 @@ comma-separated, for example a production Vercel domain and a custom domain.
 Do not use `*`. Render supplies `PORT` to the service; the server uses that
 value and defaults to port `3000` for local development.
 
-The Firebase project configuration is optional for guest-only service. When set,
-server-side Socket.IO auth verifies each supplied ID token with Firebase Admin,
+When `AUTH_ENABLED=false`, the server skips Firebase Admin verifier and Supabase
+repository initialization and does not register profile/social or in-app
+invitation handlers. Guest connections still work with no Firebase or Supabase
+credentials. When `AUTH_ENABLED=true`, server-side Socket.IO auth verifies each
+supplied ID token with Firebase Admin,
 then records the verified UID in `socket.data.accountId`. It does not trust a
 client-provided account ID. A token that is invalid, expired, or unverifiable is
 rejected, not treated as a guest. Keep any service-account credentials on the
 server only and do not expose them in frontend config or Vite variables.
+
+Set `VITE_AUTH_ENABLED` independently in the Vercel build environment. Set both
+client and server flags to `true` to expose account features. A client/server
+flag mismatch is reported when the Socket.IO connection is available; an
+authenticated client cannot connect with a token while server authentication
+is disabled.
 
 The Supabase URL and service-role key are used only for persistent account
 profiles and must remain server-side. They are not needed for guest or room

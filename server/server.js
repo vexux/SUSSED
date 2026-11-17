@@ -1,10 +1,15 @@
 const { createServer } = require("node:http");
 const { Server } = require("socket.io");
-const { createSocketAuthMiddleware, createFirebaseTokenVerifier } = require("./auth");
-const { isOriginAllowed, port: defaultPort } = require("./config");
+const {
+    createDisabledSocketAuthMiddleware,
+    createSocketAuthMiddleware,
+    createFirebaseTokenVerifier,
+} = require("./auth");
+const { authEnabled: defaultAuthEnabled, isOriginAllowed, port: defaultPort } = require("./config");
 const { registerProfileHandlers } = require("./profileHandlers");
 const { createProfileRepository } = require("./profileRepository");
 const { registerInvitationHandlers } = require("./invitationHandlers");
+const { registerDisabledAccountHandlers } = require("./disabledAccountHandlers");
 const { handleDisconnect, registerRoomHandlers } = require("./roomHandlers");
 
 function handleHttpRequest(request, response) {
@@ -23,8 +28,15 @@ function handleHttpRequest(request, response) {
 
 function startServer(
     port = defaultPort,
-    { verifyAccessToken, profileRepository: injectedProfileRepository } = {},
+    {
+        verifyAccessToken,
+        profileRepository: injectedProfileRepository,
+        authEnabled = defaultAuthEnabled,
+    } = {},
 ) {
+    if (typeof authEnabled !== "boolean") {
+        throw new TypeError("authEnabled must be a boolean.");
+    }
     const httpServer = createServer(handleHttpRequest);
     const io = new Server(httpServer, {
         cors: {
@@ -38,11 +50,15 @@ function startServer(
         }
     });
 
-    const tokenVerifier = verifyAccessToken ?? createFirebaseTokenVerifier();
-    io.use(createSocketAuthMiddleware(tokenVerifier));
+    if (authEnabled) {
+        const tokenVerifier = verifyAccessToken ?? createFirebaseTokenVerifier();
+        io.use(createSocketAuthMiddleware(tokenVerifier));
+    } else {
+        io.use(createDisabledSocketAuthMiddleware());
+    }
 
-    let profileRepository = injectedProfileRepository ?? null;
-    if (!injectedProfileRepository) {
+    let profileRepository = authEnabled ? injectedProfileRepository ?? null : null;
+    if (authEnabled && !injectedProfileRepository) {
         try {
             profileRepository = createProfileRepository();
         } catch (error) {
@@ -56,13 +72,18 @@ function startServer(
 
     io.on("connection", (socket) => {
         console.log("Player connected:", socket.id);
+        socket.emit("server-auth-config", { authEnabled });
         registerRoomHandlers(io, socket);
-        registerProfileHandlers(socket, profileRepository, (errorCode) => {
-            console.error("Profile operation failed:", errorCode);
-        });
-        registerInvitationHandlers(io, socket, profileRepository, (errorCode) => {
-            console.error("Invitation operation failed:", errorCode);
-        });
+        if (authEnabled) {
+            registerProfileHandlers(socket, profileRepository, (errorCode) => {
+                console.error("Profile operation failed:", errorCode);
+            });
+            registerInvitationHandlers(io, socket, profileRepository, (errorCode) => {
+                console.error("Invitation operation failed:", errorCode);
+            });
+        } else {
+            registerDisabledAccountHandlers(socket);
+        }
 
         socket.on("disconnect", () => {
             console.log("Player disconnected:", socket.id);

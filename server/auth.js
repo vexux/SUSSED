@@ -183,7 +183,21 @@ function createSocketAuthMiddleware(
     };
 }
 
+function createDisabledSocketAuthMiddleware() {
+    return (socket, next) => {
+        const auth = socket.handshake.auth;
+        if (auth && Object.hasOwn(auth, "accessToken")) {
+            const error = new Error("Authentication is disabled on this server.");
+            error.data = { code: "AUTH_DISABLED" };
+            next(error);
+            return;
+        }
+        next();
+    };
+}
+
 module.exports = {
+    createDisabledSocketAuthMiddleware,
     createSocketAuthMiddleware,
     createFirebaseTokenVerifier,
     createSupabaseTokenVerifier,

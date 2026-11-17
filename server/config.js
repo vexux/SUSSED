@@ -4,6 +4,26 @@ const KNOWN_CLIENT_ORIGINS = Object.freeze([
 ]);
 const configuredPort = process.env.PORT;
 
+function parseBooleanFlag(value, name, defaultValue = false) {
+    if (value === undefined) {
+        return defaultValue;
+    }
+    if (typeof value !== "string") {
+        throw new Error(`${name} must be set to true or false.`);
+    }
+
+    const setting = value.trim().toLowerCase();
+    if (setting === "true") {
+        return true;
+    }
+    if (setting === "false") {
+        return false;
+    }
+    throw new Error(`${name} must be set to true or false.`);
+}
+
+const authEnabled = parseBooleanFlag(process.env.AUTH_ENABLED, "AUTH_ENABLED");
+
 let port = DEFAULT_PORT;
 if (configuredPort !== undefined) {
     port = configuredPort.trim() === "" ? Number.NaN : Number(configuredPort);
@@ -87,7 +107,9 @@ function isOriginAllowed(
 
 module.exports = {
     allowedOrigins,
+    authEnabled,
     isOriginAllowed,
+    parseBooleanFlag,
     port,
     resolveAllowedOrigins,
 };

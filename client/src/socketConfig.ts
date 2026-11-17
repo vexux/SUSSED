@@ -19,3 +19,11 @@ export function resolveSocketConfiguration(
   }
   return { serverUrl: "http://localhost:3000", errorMessage: null };
 }
+
+export function shouldConnectSocket(
+  serverUrl: string | null,
+  authEnabled: boolean,
+  firebaseConfigurationError: string | null,
+): boolean {
+  return Boolean(serverUrl) && (!authEnabled || !firebaseConfigurationError);
+}

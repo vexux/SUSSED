@@ -11,6 +11,8 @@ import {
 } from "../src/appState.ts";
 import { validatePlayerName } from "../src/playerName.ts";
 import { reconcilePublicRooms } from "../src/publicRoomState.ts";
+import { resolveAuthFeatureFlag } from "../src/authFeatureFlag.ts";
+import { shouldConnectSocket } from "../src/socketConfig.ts";
 import { renderApp } from "../src/views.ts";
 
 class FakeElement {
@@ -230,6 +232,7 @@ test("welcome screen presents the three entry actions and exact tagline", () => 
     const actions = new Proxy({}, {
       get: (_target, name) => (...args) => calls.push([name, ...args]),
     });
+
     const root = new FakeElement("root");
     renderApp(root, state, actions, {}, {});
 
@@ -247,6 +250,80 @@ test("welcome screen presents the three entry actions and exact tagline", () => 
       "onOpenEmailAuth",
       "onPlayAsGuest",
     ]);
+  });
+});
+
+test("auth feature flag strictly defaults to disabled and accepts explicit values", () => {
+  assert.deepEqual(resolveAuthFeatureFlag(undefined), { enabled: false, error: null });
+  assert.deepEqual(resolveAuthFeatureFlag("true"), { enabled: true, error: null });
+  assert.deepEqual(resolveAuthFeatureFlag("false"), { enabled: false, error: null });
+  assert.match(resolveAuthFeatureFlag("yes").error, /VITE_AUTH_ENABLED/u);
+  assert.equal(shouldConnectSocket("http://localhost:3000", false, "partial Firebase config"), true);
+  assert.equal(shouldConnectSocket("http://localhost:3000", true, "partial Firebase config"), false);
+  assert.equal(shouldConnectSocket("http://localhost:3000", true, null), true);
+});
+
+test("guest-only welcome hides account entry and preserves appearance and guest room entry", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "welcome";
+    const root = new FakeElement("root");
+    renderApp(root, state, createActions(), {}, {}, {
+      authEnabled: false,
+      mode: "sign-in",
+      email: "",
+      password: "",
+      passwordConfirmation: "",
+      userEmail: null,
+      isAuthenticated: false,
+      isBusy: false,
+      errorMessage: null,
+      statusMessage: null,
+      verificationRequired: false,
+      resendAvailableAt: null,
+      hasRecoverySession: false,
+      configurationError: null,
+      recoveryError: null,
+    });
+
+    assert.deepEqual(
+      root.queryAll((element) => element.classList.contains("welcome-button")).map((button) => button.text),
+      ["Play as a guest"],
+    );
+    assert.ok(root.query((element) => element.textContent === "Appearance"));
+    assert.ok(root.query((element) => element.textContent === "Light"));
+    assert.equal(root.query((element) => element.textContent === "Profile"), null);
+    assert.equal(root.query((element) => element.textContent === "Friends"), null);
+  });
+});
+
+test("disabled account routes render the guest home instead of account screens", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "profile";
+    const root = new FakeElement("root");
+    renderApp(root, state, createActions(), {}, {}, {
+      authEnabled: false,
+      mode: "sign-in",
+      email: "",
+      password: "",
+      passwordConfirmation: "",
+      userEmail: null,
+      isAuthenticated: true,
+      isBusy: false,
+      errorMessage: null,
+      statusMessage: null,
+      verificationRequired: false,
+      resendAvailableAt: null,
+      hasRecoverySession: false,
+      configurationError: null,
+      recoveryError: null,
+    });
+
+    assert.equal(state.currentView, "home");
+    assert.ok(root.query((element) => element.classList.contains("home-screen")));
+    assert.equal(root.query((element) => element.classList.contains("profile-screen")), null);
+    assert.equal(root.query((element) => element.textContent === "Achievements"), null);
   });
 });
 
@@ -363,7 +440,7 @@ test("notification popover renders the three safe categories, unread count, and 
           invitation: {
             id: "invite-1",
             roomCode: "ABCD",
-            expiresAt: "2026-10-27T08:00:00.000Z",
+            expiresAt: "2099-10-27T08:00:00.000Z",
             status: "pending",
           },
         },
@@ -931,6 +1008,10 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     assert.equal(friendInvite.textContent, "Invite @sam123");
     friendInvite.dispatch("click");
     assert.ok(calls.some(([name, handle]) => name === "onInviteFriend" && handle === "sam123"));
+    renderApp(root, state, actions, {}, {}, { authEnabled: false, isAuthenticated: false }, socialState);
+    assert.ok(root.query((element) => element.className.includes("invitation-dialog")));
+    assert.equal(root.query((element) => element.className.includes("invitation-friends")), null);
+    assert.equal(root.query((element) => element.textContent === "Profile"), null);
     renderApp(root, state, actions, {}, {}, { isAuthenticated: false }, socialState);
     assert.match(root.text, /Sign in to choose a friend/u);
     socialState.errorMessage = "Social features are temporarily unavailable.";

@@ -1,6 +1,11 @@
 import { initializeApp, getApps } from "firebase/app";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
+import { resolveAuthFeatureFlag } from "./authFeatureFlag";
 import { resolveFirebaseAuthEmulatorConfig } from "./firebaseEmulator";
+
+const authFeatureFlag = resolveAuthFeatureFlag(import.meta.env.VITE_AUTH_ENABLED);
+export const authEnabled = authFeatureFlag.enabled;
+export const authFeatureFlagError = authFeatureFlag.error;
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY?.trim(),
@@ -17,28 +22,31 @@ const hasFirebaseConfig =
   Boolean(firebaseConfig.projectId) &&
   Boolean(firebaseConfig.appId);
 
-const firebaseAuthEmulator = resolveFirebaseAuthEmulatorConfig(
-  import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_ENABLED,
-  import.meta.env.DEV,
-  firebaseConfig.projectId,
-);
+const firebaseAuthEmulator = authEnabled
+  ? resolveFirebaseAuthEmulatorConfig(
+      import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_ENABLED,
+      import.meta.env.DEV,
+      firebaseConfig.projectId,
+    )
+  : { enabled: false, error: null, url: null };
 
-export const firebaseConfigurationError =
-  firebaseAuthEmulator.error ??
+export const firebaseConfigurationError = authEnabled
+  ? firebaseAuthEmulator.error ??
   (hasFirebaseConfig ||
   (!firebaseConfig.apiKey && !firebaseConfig.authDomain && !firebaseConfig.projectId && !firebaseConfig.appId)
     ? null
-    : "Set the Firebase client variables (VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID, and VITE_FIREBASE_APP_ID) to enable account authentication.");
+    : "Set the Firebase client variables (VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID, and VITE_FIREBASE_APP_ID) to enable account authentication.")
+  : null;
 
 export const firebaseApp =
-  hasFirebaseConfig
+  authEnabled && hasFirebaseConfig
     ? getApps().length > 0
       ? getApps()[0]
       : initializeApp(firebaseConfig)
     : null;
 
 export const firebaseClient =
-  firebaseApp && !firebaseAuthEmulator.error ? getAuth(firebaseApp) : null;
+  authEnabled && firebaseApp && !firebaseAuthEmulator.error ? getAuth(firebaseApp) : null;
 
 if (firebaseClient && firebaseAuthEmulator.enabled && firebaseAuthEmulator.url) {
   connectAuthEmulator(firebaseClient, firebaseAuthEmulator.url, {
