@@ -1,5 +1,6 @@
 const gameManager = require("../../gameManager");
 const roomManager = require("../../roomManager");
+const { getPersonalRoomName } = require("../../guestIdentityManager");
 const { FakeAnswerError } = require("./game");
 
 const SUBMISSION_PHASE_DELAY_MS = 1500;
@@ -28,7 +29,7 @@ function getOperationError(error) {
 
 function broadcastPlayerGameStates(io, roomCode, players) {
     for (const player of players) {
-        io.to(player.id).emit(
+        io.to(getPersonalRoomName(player.id)).emit(
             "game-state",
             gameManager.getPublicGameState(roomCode, player.id)
         );
@@ -53,6 +54,7 @@ function validateRequestIdentity(roomCode, playerId, sessionId, roundId) {
 }
 
 function registerSocketHandlers(io, socket) {
+    const playerId = socket.data.playerId;
     socket.on("fake-answer:submit", (payload, acknowledge) => {
         if (typeof acknowledge !== "function") {
             return;
@@ -72,7 +74,7 @@ function registerSocketHandlers(io, socket) {
             return;
         }
 
-        const room = roomManager.getPlayerRoom(socket.id);
+        const room = roomManager.getPlayerRoom(playerId);
         if (!room) {
             acknowledgeError(acknowledge, "NOT_IN_ROOM", "You are not in a room.");
             return;
@@ -81,17 +83,17 @@ function registerSocketHandlers(io, socket) {
         try {
             const gameId = validateRequestIdentity(
                 room.code,
-                socket.id,
+                playerId,
                 payload.sessionId,
                 payload.roundId
             );
             const result = gameManager.performGameAction(
                 room.code,
                 gameId,
-                socket.id,
+                playerId,
                 "submit-completion",
                 payload.completion,
-                socket.id,
+                playerId,
                 payload.sessionId
             );
             if (result.gameState.state.phase === "reveal") {
@@ -135,7 +137,7 @@ function registerSocketHandlers(io, socket) {
             return;
         }
 
-        const room = roomManager.getPlayerRoom(socket.id);
+        const room = roomManager.getPlayerRoom(playerId);
         if (!room) {
             acknowledgeError(acknowledge, "NOT_IN_ROOM", "You are not in a room.");
             return;
@@ -144,17 +146,17 @@ function registerSocketHandlers(io, socket) {
         try {
             const gameId = validateRequestIdentity(
                 room.code,
-                socket.id,
+                playerId,
                 payload.sessionId,
                 payload.roundId
             );
             const result = gameManager.performGameAction(
                 room.code,
                 gameId,
-                socket.id,
+                playerId,
                 "vote",
                 payload.optionId,
-                socket.id,
+                playerId,
                 payload.sessionId
             );
             broadcastPlayerGameStates(io, room.code, result.gameState.players);
@@ -195,7 +197,7 @@ function registerSocketHandlers(io, socket) {
             return;
         }
 
-        const room = roomManager.getPlayerRoom(socket.id);
+        const room = roomManager.getPlayerRoom(playerId);
         if (!room) {
             acknowledgeError(acknowledge, "NOT_IN_ROOM", "You are not in a room.");
             return;
@@ -204,17 +206,17 @@ function registerSocketHandlers(io, socket) {
         try {
             const gameId = validateRequestIdentity(
                 room.code,
-                socket.id,
+                playerId,
                 payload.sessionId,
                 payload.roundId
             );
             const result = gameManager.performGameAction(
                 room.code,
                 gameId,
-                socket.id,
+                playerId,
                 "continue",
                 undefined,
-                socket.id,
+                playerId,
                 payload.sessionId
             );
             broadcastPlayerGameStates(io, room.code, result.gameState.players);

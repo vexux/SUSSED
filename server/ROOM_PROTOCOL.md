@@ -7,7 +7,20 @@ The server remains authoritative for room visibility, capacity, and join eligibi
 - Socket.IO clients may connect without an access token and continue to play as guests.
 - Authenticated clients provide `{ accessToken }` in the Socket.IO connection `auth` payload. The server verifies the Firebase ID token with Firebase Admin before accepting the connection.
 - Invalid, expired, or unverifiable supplied tokens are rejected; they are never downgraded to guest connections. If Firebase Admin configuration is absent, guests remain allowed but supplied tokens are rejected.
-- After successful verification, the server stores the Firebase UID in `socket.data.accountId`. This metadata does not replace or affect `socket.id`, which remains the room/player identity.
+- After successful verification, the server stores the Firebase UID in `socket.data.accountId`. Account identity remains separate from the server-issued multiplayer player identity in `socket.data.playerId`.
+
+## Guest player identity and recovery
+
+- Every accepted Socket.IO connection receives a server-generated UUID player ID. The transport `socket.id` is used only for Socket.IO transport and active-socket bookkeeping; it is not used as a room or game player ID.
+- The server issues a 256-bit random recovery credential. The browser stores it only in tab-scoped `sessionStorage`, under the `sussed:guest-recovery:v1` key. A temporary pending key supports credential rotation.
+- The server stores only a SHA-256 hash of each active credential. Credentials are rotated when a guest recovers an identity, and a previously rotated credential is rejected as replayed.
+- The server sends `guest-session-issued` with `{ playerId, recoveryCredential, rotated }`. The client first stages the credential, then acknowledges `{ stored: true }`; the server responds with `guest-session-ready` only after activation. Room/game and account handlers are unavailable before that acknowledgement.
+- Invalid, expired, or replayed credentials are rejected with `INVALID_RECOVERY_CREDENTIAL` or `RECOVERY_REPLAYED`. Concurrent recovery is rejected with `RECOVERY_IN_PROGRESS`, and a credential cannot take over an identity that still has an active socket (`PLAYER_ALREADY_CONNECTED`).
+- If storage is unavailable, the client rejects the issuance; if the acknowledgement times out, the server rejects the session. In either case, room/game handlers are not registered.
+- Recovery credentials expire 30 days after issuance or rotation. Recovery is kept in memory on the server and is not preserved through a server restart. If a credential is rejected as expired or unknown, the client clears it and starts a new guest identity.
+- A disconnect immediately removes the player from the room and active game, using the existing departure cleanup. Recovery restores only the same player ID; it does not restore room membership, game state, or prior participation.
+- Explicitly leaving a room or being kicked does not invalidate the recovery credential. The player can use the same identity to join another room in the same browser tab.
+- Guest identities are independent of authenticated account IDs. This phase does not link guest identities to accounts or persist player identity in a database.
 
 ## Account profiles
 

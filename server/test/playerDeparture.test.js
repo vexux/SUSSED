@@ -7,6 +7,7 @@ const anime = require("../games/fact-or-cap/anime");
 const questionBank = require("../games/fact-or-cap/questionBank");
 const factOrCapSocketHandlers = require("../games/fact-or-cap/socketHandlers");
 const bruh = require("../games/bruh-wtf/game");
+const { getPersonalRoomName } = require("../guestIdentityManager");
 
 function captureSubmissionCallback(io, roomCode, sessionId, roundId, gameId = "fact-or-cap") {
     const scheduled = [];
@@ -350,7 +351,10 @@ test("scheduled submission callbacks are single-use and cannot mutate later roun
     assert.equal(afterCallbacks.sessionId, sessionId);
     assert.equal(afterCallbacks.state.roundId, nextRound.state.roundId);
     assert.equal(broadcasts.length, players.length, "only the first callback may broadcast the phase transition");
-    assert.deepEqual(broadcasts.map(({ playerId }) => playerId).sort(), players.map(({ id }) => id).sort());
+    assert.deepEqual(
+        broadcasts.map(({ playerId }) => playerId).sort(),
+        players.map(({ id }) => getPersonalRoomName(id)).sort(),
+    );
     assert.ok(broadcasts.every(({ args }) => args[0] === "game-state" && args[1].state.phase === "answer-submission"));
 
     const replacementRoom = {

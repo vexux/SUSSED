@@ -1,5 +1,6 @@
 const gameManager = require("../../gameManager");
 const roomManager = require("../../roomManager");
+const { getPersonalRoomName } = require("../../guestIdentityManager");
 const { BruhWtfError } = require("./game");
 
 function isRecord(value) {
@@ -19,9 +20,10 @@ function getError(error) {
 }
 
 function getRoomAndGame(socket, payload) {
-    const room = roomManager.getPlayerRoom(socket.id);
+    const playerId = socket.data.playerId;
+    const room = roomManager.getPlayerRoom(playerId);
     if (!room) throw new gameManager.GameSessionError("NOT_IN_ROOM", "You are not in a room.");
-    const game = gameManager.getPublicGameState(room.code, socket.id);
+    const game = gameManager.getPublicGameState(room.code, playerId);
     if (game.gameId !== "bruh-wtf") {
         throw new gameManager.GameSessionError("GAME_MISMATCH", "Bruh wtf? is not active in this room.");
     }
@@ -36,7 +38,7 @@ function getRoomAndGame(socket, payload) {
 
 function broadcastPlayerStates(io, roomCode, players) {
     for (const player of players) {
-        io.to(player.id).emit("game-state", gameManager.getPublicGameState(roomCode, player.id));
+        io.to(getPersonalRoomName(player.id)).emit("game-state", gameManager.getPublicGameState(roomCode, player.id));
     }
 }
 
@@ -49,7 +51,8 @@ function registerSocketHandlers(io, socket) {
         }
         try {
             const { room, game } = getRoomAndGame(socket, payload);
-            const action = gameManager.performGameAction(room.code, game.gameId, socket.id, "submit-answer", payload.answer, socket.id, payload.sessionId);
+            const playerId = socket.data.playerId;
+            const action = gameManager.performGameAction(room.code, game.gameId, playerId, "submit-answer", payload.answer, playerId, payload.sessionId);
             broadcastPlayerStates(io, room.code, action.gameState.players);
             acknowledge(action.result);
         } catch (error) {
@@ -66,7 +69,8 @@ function registerSocketHandlers(io, socket) {
         }
         try {
             const { room, game } = getRoomAndGame(socket, payload);
-            const action = gameManager.performGameAction(room.code, game.gameId, socket.id, "vote", payload.optionId, socket.id, payload.sessionId);
+            const playerId = socket.data.playerId;
+            const action = gameManager.performGameAction(room.code, game.gameId, playerId, "vote", payload.optionId, playerId, payload.sessionId);
             broadcastPlayerStates(io, room.code, action.gameState.players);
             if (action.gameState.state.phase === "waiting-for-results") {
                 gameManager.performGameAction(room.code, game.gameId, null, "publish-results", undefined, undefined, payload.sessionId);
@@ -87,7 +91,8 @@ function registerSocketHandlers(io, socket) {
         }
         try {
             const { room, game } = getRoomAndGame(socket, payload);
-            const action = gameManager.performGameAction(room.code, game.gameId, socket.id, "continue", undefined, socket.id, payload.sessionId);
+            const playerId = socket.data.playerId;
+            const action = gameManager.performGameAction(room.code, game.gameId, playerId, "continue", undefined, playerId, payload.sessionId);
             broadcastPlayerStates(io, room.code, action.gameState.players);
             acknowledge(action.result);
         } catch (error) {

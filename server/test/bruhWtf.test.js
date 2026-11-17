@@ -10,6 +10,36 @@ const { startServer } = require("../server");
 const bruhWtf = require("../games/bruh-wtf/game");
 const { loadQuestionPacks, validateQuestionPack, validateTemplate } = require("../games/bruh-wtf/questionLibrary");
 
+const CURRENT_RECOVERY_KEY = "sussed:guest-recovery:v1";
+const PENDING_RECOVERY_KEY = "sussed:guest-recovery:v1:pending";
+
+function createMemoryStorage() {
+    const values = new Map();
+    return {
+        getItem(key) {
+            return values.get(key) ?? null;
+        },
+        setItem(key, value) {
+            values.set(key, String(value));
+        },
+        removeItem(key) {
+            values.delete(key);
+        },
+    };
+}
+
+function exposeStablePlayerId(client) {
+    client.playerId = null;
+    return new Proxy(client, {
+        get(target, property) {
+            if (property === "transportId") return target.id;
+            if (property === "id") return target.playerId;
+            const value = Reflect.get(target, property, target);
+            return typeof value === "function" ? value.bind(target) : value;
+        },
+    });
+}
+
 const players = [
     { id: "p1", name: "Alex" },
     { id: "p2", name: "Bailey" },
@@ -90,12 +120,45 @@ async function createSocketHarness(context) {
             gameManager.removeGame(room);
         }
     });
-    const connect = async () => {
-        const client = createClient(`http://127.0.0.1:${port}`, { reconnection: false });
+    const connect = async ({ storage = createMemoryStorage() } = {}) => {
+        const socketClient = createClient(`http://127.0.0.1:${port}`, {
+            autoConnect: false,
+            auth: (callback) => {
+                const recoveryCredential =
+                    storage.getItem(PENDING_RECOVERY_KEY) ??
+                    storage.getItem(CURRENT_RECOVERY_KEY);
+                callback(recoveryCredential ? { recoveryCredential } : {});
+            },
+            reconnection: false,
+        });
+        const client = exposeStablePlayerId(socketClient);
+        client.recoveryStorage = storage;
         clients.push(client);
+        client.on("guest-session-issued", (session, acknowledge) => {
+            storage.setItem(PENDING_RECOVERY_KEY, session.recoveryCredential);
+            acknowledge({ stored: true });
+        });
+        client.on("guest-session-ready", (session) => {
+            client.playerId = session.playerId;
+            const pending = storage.getItem(PENDING_RECOVERY_KEY);
+            if (pending) {
+                storage.setItem(CURRENT_RECOVERY_KEY, pending);
+                storage.removeItem(PENDING_RECOVERY_KEY);
+            }
+        });
         await new Promise((resolve, reject) => {
-            client.once("connect", resolve);
-            client.once("connect_error", reject);
+            const onReady = (session) => {
+                client.playerId = session.playerId;
+                client.off("connect_error", onError);
+                resolve();
+            };
+            const onError = (error) => {
+                client.off("guest-session-ready", onReady);
+                reject(error);
+            };
+            client.once("guest-session-ready", onReady);
+            client.once("connect_error", onError);
+            client.connect();
         });
         return client;
     };

@@ -3,6 +3,7 @@ const gameManager = require("./gameManager");
 const gameRegistry = require("./gameRegistry");
 const factOrCapSocketHandlers = require("./games/fact-or-cap/socketHandlers");
 const bruhWtfSocketHandlers = require("./games/bruh-wtf/socketHandlers");
+const { getPersonalRoomName } = require("./guestIdentityManager");
 
 const PUBLIC_ROOM_BROWSERS = "public-room-browsers";
 
@@ -35,14 +36,14 @@ function broadcastLobby(io, room, { resultsSessionId = null } = {}) {
         for (const id of roomManager.getResultsViewers(room, resultsSessionId)) recipients.add(id);
     }
     for (const playerId of recipients) {
-        io.to(playerId).emit("lobby-state", lobby);
+        io.to(getPersonalRoomName(playerId)).emit("lobby-state", lobby);
     }
 }
 
 function broadcastLobbyToAllMembers(io, room) {
     const lobby = roomManager.createLobbyState(room);
     for (const { id } of room.players) {
-        io.to(id).emit("lobby-state", lobby);
+        io.to(getPersonalRoomName(id)).emit("lobby-state", lobby);
     }
 }
 
@@ -53,14 +54,18 @@ function broadcastPublicRooms(io) {
 }
 
 async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
-    const room = roomManager.getPlayerRoom(socket.id);
+    const playerId = socket.data?.playerId;
+    if (typeof playerId !== "string" || playerId.length === 0) {
+        throw new Error("Cannot reconcile a socket without a server-issued player ID.");
+    }
+    const room = roomManager.getPlayerRoom(playerId);
     if (!room) {
         socket.data.roomCode = undefined;
         return null;
     }
 
-    const departure = gameManager.removeParticipant(room.code, socket.id);
-    const updatedRoom = roomManager.removePlayer(socket.id);
+    const departure = gameManager.removeParticipant(room.code, playerId);
+    const updatedRoom = roomManager.removePlayer(playerId);
     socket.data.roomCode = undefined;
     let leavePromise = Promise.resolve(null);
     if (leaveSocket && typeof socket.leave === "function") {
@@ -98,7 +103,7 @@ async function handlePlayerDeparture(io, socket, { leaveSocket = false } = {}) {
             );
         }
         for (const player of departure.players) {
-            io.to(player.id).emit("game-state", gameManager.getPublicGameState(room.code, player.id));
+            io.to(getPersonalRoomName(player.id)).emit("game-state", gameManager.getPublicGameState(room.code, player.id));
         }
         if (departure.advancedRound && departure.gameId.startsWith("fact-or-cap")) {
             const current = gameManager.getPublicGameState(room.code, departure.players[0].id);
@@ -121,7 +126,8 @@ function isAcknowledgement(value) {
     return typeof value === "function";
 }
 
-function registerRoomHandlers(io, socket) {
+function registerRoomHandlers(io, socket, identityManager) {
+    const playerId = socket.data.playerId;
     factOrCapSocketHandlers.registerSocketHandlers(io, socket);
     bruhWtfSocketHandlers.registerSocketHandlers(io, socket);
 
@@ -160,7 +166,7 @@ function registerRoomHandlers(io, socket) {
         if (!isAcknowledgement(acknowledge)) {
             return;
         }
-        if (roomManager.getPlayerRoom(socket.id)) {
+        if (roomManager.getPlayerRoom(playerId)) {
             acknowledgeError(acknowledge, "ALREADY_IN_ROOM", "You are already in a room.");
             return;
         }
@@ -179,7 +185,7 @@ function registerRoomHandlers(io, socket) {
 
         let room;
         try {
-            room = roomManager.createRoom(socket.id, playerName, gameId, visibility);
+            room = roomManager.createRoom(playerId, playerName, gameId, visibility);
             await socket.join(room.code);
         } catch (error) {
             if (room) {
@@ -205,7 +211,7 @@ function registerRoomHandlers(io, socket) {
             acknowledgeError(acknowledge, "INVALID_REQUEST", "Room code and player name are required.");
             return;
         }
-        if (roomManager.getPlayerRoom(socket.id)) {
+        if (roomManager.getPlayerRoom(playerId)) {
             acknowledgeError(acknowledge, "ALREADY_IN_ROOM", "You are already in a room.");
             return;
         }
@@ -214,13 +220,13 @@ function registerRoomHandlers(io, socket) {
         try {
             room = roomManager.joinRoom(
                 payload.roomCode,
-                socket.id,
+                playerId,
                 payload.playerName
             );
             await socket.join(room.code);
         } catch (error) {
             if (room) {
-                roomManager.removePlayer(socket.id);
+                roomManager.removePlayer(playerId);
                 broadcastPublicRooms(io);
             }
             const operationError = getOperationError(error);
@@ -241,18 +247,18 @@ function registerRoomHandlers(io, socket) {
             acknowledgeError(acknowledge, "INVALID_REQUEST", "A public room reference and player name are required.");
             return;
         }
-        if (roomManager.getPlayerRoom(socket.id)) {
+        if (roomManager.getPlayerRoom(playerId)) {
             acknowledgeError(acknowledge, "ALREADY_IN_ROOM", "You are already in a room.");
             return;
         }
 
         let room;
         try {
-            room = roomManager.joinPublicRoom(payload.publicRoomId, socket.id, payload.playerName);
+            room = roomManager.joinPublicRoom(payload.publicRoomId, playerId, payload.playerName);
             await socket.join(room.code);
         } catch (error) {
             if (room) {
-                roomManager.removePlayer(socket.id);
+                roomManager.removePlayer(playerId);
                 broadcastPublicRooms(io);
             }
             const operationError = getOperationError(error);
@@ -274,7 +280,7 @@ function registerRoomHandlers(io, socket) {
             return;
         }
         try {
-            const room = roomManager.setRoomVisibility(socket.id, payload.visibility);
+            const room = roomManager.setRoomVisibility(playerId, payload.visibility);
             const lobby = roomManager.createLobbyState(room);
             broadcastLobby(io, room);
             broadcastPublicRooms(io);
@@ -297,9 +303,9 @@ function registerRoomHandlers(io, socket) {
             return;
         }
         try {
-            const currentRoom = roomManager.getPlayerRoom(socket.id);
+            const currentRoom = roomManager.getPlayerRoom(playerId);
             if (!currentRoom) throw new roomManager.RoomError("NOT_IN_ROOM", "You are not in a room.");
-            if (currentRoom.hostId !== socket.id) {
+            if (currentRoom.hostId !== playerId) {
                 throw new roomManager.RoomError("NOT_HOST", "Only the current host can transfer host status.");
             }
             if (currentRoom.status !== "lobby") {
@@ -309,11 +315,12 @@ function registerRoomHandlers(io, socket) {
             if (!target) {
                 throw new roomManager.RoomError("TARGET_NOT_FOUND", "That player is no longer in this room.");
             }
-            const targetSocket = io.sockets.sockets.get(target.id);
+            const targetSocketId = identityManager.getSocketId(target.id);
+            const targetSocket = targetSocketId ? io.sockets.sockets.get(targetSocketId) : null;
             if (!targetSocket?.connected) {
                 throw new roomManager.RoomError("TARGET_NOT_CONNECTED", "That player is no longer connected.");
             }
-            const room = roomManager.transferHost(socket.id, target.id);
+            const room = roomManager.transferHost(playerId, target.id);
             const lobby = roomManager.createLobbyState(room);
             broadcastLobbyToAllMembers(io, room);
             broadcastPublicRooms(io);
@@ -339,14 +346,15 @@ function registerRoomHandlers(io, socket) {
         let target;
         let room;
         try {
-            ({ room, target } = roomManager.validatePlayerKick(socket.id, payload.targetPlayerId));
+            ({ room, target } = roomManager.validatePlayerKick(playerId, payload.targetPlayerId));
         } catch (error) {
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
             return;
         }
 
-        const targetSocket = io.sockets.sockets.get(target.id);
+        const targetSocketId = identityManager.getSocketId(target.id);
+        const targetSocket = targetSocketId ? io.sockets.sockets.get(targetSocketId) : null;
         if (targetSocket) {
             targetSocket.emit("removed-from-room", {
                 roomCode: room.code,
@@ -359,7 +367,7 @@ function registerRoomHandlers(io, socket) {
         // discovery, host transfer, results viewers, and room cleanup stay in
         // sync. A disconnected but not-yet-reconciled socket still loses room
         // membership and game participation.
-        const departingSocket = targetSocket ?? { id: target.id, data: {} };
+        const departingSocket = targetSocket ?? { id: targetSocketId ?? target.id, data: { playerId: target.id } };
         const result = await handlePlayerDeparture(io, departingSocket, { leaveSocket: true });
         if (result?.leaveError) {
             acknowledgeError(acknowledge, result.leaveError.code, result.leaveError.message);
@@ -380,7 +388,7 @@ function registerRoomHandlers(io, socket) {
             acknowledgeError(acknowledge, "INVALID_REQUEST", "Leave room does not accept a payload.");
             return;
         }
-        const room = roomManager.getPlayerRoom(socket.id);
+        const room = roomManager.getPlayerRoom(playerId);
         if (!room) {
             socket.data.roomCode = undefined;
             acknowledgeError(acknowledge, "NOT_IN_ROOM", "You are not in a room.");
@@ -409,7 +417,7 @@ function registerRoomHandlers(io, socket) {
         }
 
         try {
-            const room = roomManager.setPlayerReady(socket.id, payload.isReady);
+            const room = roomManager.setPlayerReady(playerId, payload.isReady);
             broadcastLobby(io, room);
             acknowledge({ isReady: payload.isReady });
         } catch (error) {
@@ -432,7 +440,7 @@ function registerRoomHandlers(io, socket) {
         }
 
         try {
-            const room = roomManager.selectGame(socket.id, payload.gameId);
+            const room = roomManager.selectGame(playerId, payload.gameId);
             broadcastLobby(io, room);
             broadcastPublicRooms(io);
             acknowledge({
@@ -465,7 +473,7 @@ function registerRoomHandlers(io, socket) {
 
         try {
             const room = roomManager.selectRoundCount(
-                socket.id,
+                playerId,
                 payload.roundCount,
                 payload.revision
             );
@@ -493,16 +501,16 @@ function registerRoomHandlers(io, socket) {
 
         let startingRoom;
         try {
-            const room = roomManager.validateRoomStart(socket.id);
+            const room = roomManager.validateRoomStart(playerId);
             const eligibleRoom = roomManager.createGameStartRoom(room);
             const selectedGame = gameManager.validateGameStart(eligibleRoom, room.selectedGameId);
-            startingRoom = roomManager.startRoom(socket.id);
+            startingRoom = roomManager.startRoom(playerId);
             const lobby = roomManager.createLobbyState(startingRoom);
             const gameRoom = roomManager.createGameStartRoom(startingRoom);
             const game = gameManager.startGame(gameRoom, startingRoom.selectedGameId);
             for (const player of game.players) {
-                io.to(player.id).emit("game-starting", { roomCode: startingRoom.code, lobby, game });
-                io.to(player.id).emit("game-state", gameManager.getPublicGameState(startingRoom.code, player.id));
+                io.to(getPersonalRoomName(player.id)).emit("game-starting", { roomCode: startingRoom.code, lobby, game });
+                io.to(getPersonalRoomName(player.id)).emit("game-state", gameManager.getPublicGameState(startingRoom.code, player.id));
             }
             if (selectedGame.socketProtocol === "fact-or-cap") {
                 factOrCapSocketHandlers.scheduleSubmissionPhase(
@@ -544,9 +552,9 @@ function registerRoomHandlers(io, socket) {
                 );
                 return;
             }
-            const room = roomManager.validateReturnToLobby(socket.id);
+            const room = roomManager.validateReturnToLobby(playerId);
             const snapshot = gameManager.retireFinishedGame(room.code, payload.sessionId);
-            const lobbyRoom = roomManager.returnToLobby(socket.id, payload.sessionId, snapshot);
+            const lobbyRoom = roomManager.returnToLobby(playerId, payload.sessionId, snapshot);
             // Results viewers need the authoritative room update to know the
             // host has returned, while retaining their local finished snapshot.
             broadcastLobby(io, lobbyRoom, { resultsSessionId: payload.sessionId });
@@ -564,16 +572,16 @@ function registerRoomHandlers(io, socket) {
             acknowledgeError(acknowledge, "INVALID_REQUEST", "A finished sessionId is required.");
             return;
         }
-        const room = roomManager.getPlayerRoom(socket.id);
+        const room = roomManager.getPlayerRoom(playerId);
         if (!room) return acknowledgeError(acknowledge, "NOT_IN_ROOM", "You are not in a room.");
-        if (room.hostId !== socket.id) return acknowledgeError(acknowledge, "NOT_HOST", "Only the host can send this reminder.");
+        if (room.hostId !== playerId) return acknowledgeError(acknowledge, "NOT_HOST", "Only the host can send this reminder.");
         const match = roomManager.getFinishedMatch(room, payload.sessionId);
         if (!match || room.reminderSessionId !== payload.sessionId) {
             return acknowledgeError(acknowledge, "SESSION_MISMATCH", "Those completed results are no longer available.");
         }
         const viewers = roomManager.getResultsViewers(room, payload.sessionId);
         for (const playerId of viewers) {
-            io.to(playerId).emit("results-return-reminder", { sessionId: payload.sessionId });
+            io.to(getPersonalRoomName(playerId)).emit("results-return-reminder", { sessionId: payload.sessionId });
         }
         acknowledge({ sent: viewers.length });
     });
@@ -585,11 +593,11 @@ function registerRoomHandlers(io, socket) {
             return;
         }
         try {
-            const room = roomManager.returnResultsViewer(socket.id, payload.sessionId);
+            const room = roomManager.returnResultsViewer(playerId, payload.sessionId);
             if (room.status === "lobby") {
                 broadcastLobby(io, room);
             } else {
-                io.to(socket.id).emit("lobby-state", roomManager.createLobbyState(room));
+                io.to(getPersonalRoomName(playerId)).emit("lobby-state", roomManager.createLobbyState(room));
             }
             acknowledge({ returned: true, status: room.status });
         } catch (error) {

@@ -1,13 +1,14 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 const roomManager = require("../roomManager");
+const { getPersonalRoomName } = require("../guestIdentityManager");
 const { registerInvitationHandlers } = require("../invitationHandlers");
 
 function createSocket(id, accountId) {
     const handlers = new Map();
     return {
         id,
-        data: accountId ? { accountId } : {},
+        data: { playerId: id, ...(accountId ? { accountId } : {}) },
         on(event, handler) {
             handlers.set(event, handler);
         },
@@ -103,7 +104,7 @@ test("invitation acceptance joins only the intended recipient and marks success 
             };
         },
         async setGameInvitationStatus(accountId, id, status) {
-            order.push(["status", accountId, id, status, roomManager.getPlayerRoom(socket.id) !== null]);
+            order.push(["status", accountId, id, status, roomManager.getPlayerRoom(socket.data.playerId) !== null]);
         },
     });
 
@@ -113,9 +114,9 @@ test("invitation acceptance joins only the intended recipient and marks success 
         accountId: "client-controlled-account",
     });
     assert.equal(response.lobby.roomCode, room.code);
-    assert.equal(roomManager.getPlayerRoom(socket.id), room);
+    assert.equal(roomManager.getPlayerRoom(socket.data.playerId), room);
     assert.deepEqual(order, [["status", "verified-recipient", invitationId, "accepted", true]]);
-    assert.ok(io.events.some(({ target, event }) => target === socket.id && event === "lobby-state"));
+    assert.ok(io.events.some(({ target, event }) => target === getPersonalRoomName(socket.data.playerId) && event === "lobby-state"));
 });
 
 test("expired, missing, full, and failed invitation joins do not leave a room membership", async (context) => {
@@ -165,10 +166,10 @@ test("expired, missing, full, and failed invitation joins do not leave a room me
         "44444444-4444-4444-8444-444444444444",
     );
     assert.equal(stale.response.error.code, "ROOM_NOT_AVAILABLE");
-    assert.equal(roomManager.getPlayerRoom(stale.socket.id), null);
+    assert.equal(roomManager.getPlayerRoom(stale.socket.data.playerId), null);
     const rollback = await attempt(missingRoom.code, "pending", new Date(Date.now() + 60_000).toISOString(), true);
     assert.equal(rollback.response.error.code, "PROFILE_UNAVAILABLE");
-    assert.equal(roomManager.getPlayerRoom(rollback.socket.id), null);
+    assert.equal(roomManager.getPlayerRoom(rollback.socket.data.playerId), null);
 });
 
 test("declining invitations is authorized by socket account metadata", async () => {

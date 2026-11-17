@@ -12,7 +12,18 @@ import {
   type PublicRoom,
   type ThemePreference,
 } from "./appState";
-import { socket, socketConfigurationError } from "./socket";
+import {
+  guestSessionStorage,
+  guestRecoveryStorageError,
+  recoveryCredentialSource,
+  socket,
+  socketConfigurationError,
+} from "./socket";
+import {
+  promoteRecoveryCredential,
+  rejectRecoveryCredential,
+  stageRecoveryCredential,
+} from "./guestSession";
 import {
   createAuthService,
   getAuthErrorMessage,
@@ -515,6 +526,7 @@ function applyPublicRoomsResponse(
 }
 
 function subscribeToPublicRooms(): void {
+  if (!state.localPlayerId || state.connectionStatus !== "connected") return;
   state.isLoadingPublicRooms = true;
   state.publicRoomsError = null;
   render();
@@ -524,6 +536,7 @@ function subscribeToPublicRooms(): void {
 }
 
 function refreshPublicRooms(): void {
+  if (!state.localPlayerId || state.connectionStatus !== "connected") return;
   state.isLoadingPublicRooms = true;
   state.publicRoomsError = null;
   render();
@@ -577,6 +590,15 @@ function emitRoomOperation(
   payload: object | undefined,
   onResponse: (response: RoomOperationResponse) => void,
 ): void {
+  if (!state.localPlayerId || state.connectionStatus !== "connected") {
+    onResponse({
+      error: {
+        code: "SESSION_NOT_READY",
+        message: "Your guest session is still connecting. Please try again shortly.",
+      },
+    });
+    return;
+  }
   const acknowledge = (
     error: Error | null,
     response?: RoomOperationResponse,
@@ -661,7 +683,7 @@ function applyLobbyState(lobby: LobbyState): void {
   ) {
     return;
   }
-  const localPlayer = lobby.players.find((player) => player.id === socket.id);
+  const localPlayer = lobby.players.find((player) => player.id === state.localPlayerId);
   if (!localPlayer) {
     return;
   }
@@ -974,7 +996,12 @@ function runSocialOperation(
   onSuccess: (response: SocialOperationResponse) => void,
   focusScreenHeading = false,
 ): void {
-  if (!authViewState.isAuthenticated || socialViewState.isBusy) return;
+  if (
+    !authViewState.isAuthenticated ||
+    !state.localPlayerId ||
+    state.connectionStatus !== "connected" ||
+    socialViewState.isBusy
+  ) return;
   socialViewState.isBusy = true;
   socialViewState.errorMessage = null;
   socialViewState.statusMessage = null;
@@ -1017,7 +1044,12 @@ function loadSocialData(successMessage?: string): void {
 }
 
 function loadNotifications(offset = 0, append = false): void {
-  if (!authViewState.isAuthenticated || !socket.connected || socialViewState.notificationsLoading) return;
+  if (
+    !authViewState.isAuthenticated ||
+    !state.localPlayerId ||
+    state.connectionStatus !== "connected" ||
+    socialViewState.notificationsLoading
+  ) return;
   socialViewState.notificationsLoading = true;
   socialViewState.notificationsError = null;
   render();
@@ -2596,13 +2628,85 @@ if (firebaseClient) {
   });
 }
 
+socket.on(
+  "guest-session-issued",
+  (
+    session: { recoveryCredential?: unknown },
+    acknowledge: (response: { stored: boolean }) => void,
+  ) => {
+    const staged = typeof session?.recoveryCredential === "string"
+      ? stageRecoveryCredential(guestSessionStorage, session.recoveryCredential)
+      : { ok: false, error: "The server returned an invalid guest recovery credential." };
+    if (!staged.ok) {
+      state.errorMessage = staged.error;
+      state.errorCode = "RECOVERY_STORAGE_UNAVAILABLE";
+      if (typeof acknowledge === "function") acknowledge({ stored: false });
+      render();
+      return;
+    }
+    if (typeof acknowledge === "function") acknowledge({ stored: true });
+  },
+);
+
+let guestSessionFailureMessage: string | null = null;
+let socketAuthConfigurationMismatch = false;
+socket.on("guest-session-error", (failure: { message?: unknown; code?: unknown }) => {
+  guestSessionFailureMessage = typeof failure?.message === "string"
+    ? failure.message
+    : "The guest session could not be activated. Reconnect and try again.";
+  if (failure?.code === "RECOVERY_STORAGE_UNAVAILABLE") {
+    socket.io.opts.reconnection = false;
+  }
+  state.errorMessage = guestSessionFailureMessage;
+  state.errorCode = typeof failure?.code === "string" ? failure.code : null;
+  render();
+});
+
+socket.on("guest-session-ready", (session: { playerId?: unknown }) => {
+  if (typeof session?.playerId !== "string" || session.playerId.length === 0) {
+    state.errorMessage = "The server returned an invalid guest player identity.";
+    state.errorCode = "RECOVERY_INTERNAL_ERROR";
+    socket.io.opts.reconnection = false;
+    render();
+    return;
+  }
+  const promotion = promoteRecoveryCredential(guestSessionStorage);
+  state.localPlayerId = session.playerId;
+  state.connectionStatus = "connected";
+  if (promotion.error || guestRecoveryStorageError) {
+    state.errorMessage = promotion.error ?? guestRecoveryStorageError;
+    state.errorCode = "RECOVERY_STORAGE_UNAVAILABLE";
+  } else if (socketAuthConfigurationMismatch) {
+    state.errorCode = "AUTH_CONFIG_MISMATCH";
+  } else {
+    state.errorMessage = hasConnectedOnce && connectionWasLost
+      ? "Connection restored. Create or join a room to continue."
+      : null;
+    state.errorCode = null;
+  }
+  guestSessionFailureMessage = null;
+  connectionWasLost = false;
+  hasConnectedOnce = true;
+  render();
+  requestAvailableGames();
+  if (state.currentView === "public-rooms") subscribeToPublicRooms();
+  if (authViewState.isAuthenticated) loadNotifications();
+});
+
 socket.on("lobby-state", (lobby: LobbyState) => {
   applyLobbyState(lobby);
 });
 
 socket.on("server-auth-config", (configuration: { authEnabled?: unknown }) => {
   if (typeof configuration?.authEnabled !== "boolean") return;
-  if (configuration.authEnabled === authEnabled) return;
+  socketAuthConfigurationMismatch = configuration.authEnabled !== authEnabled;
+  if (!socketAuthConfigurationMismatch) {
+    if (state.errorCode === "AUTH_CONFIG_MISMATCH") {
+      state.errorMessage = null;
+      state.errorCode = null;
+    }
+    return;
+  }
   state.errorMessage =
     "Authentication settings differ between the client and server. Configure VITE_AUTH_ENABLED and AUTH_ENABLED consistently, then restart both.";
   state.errorCode = "AUTH_CONFIG_MISMATCH";
@@ -2677,17 +2781,8 @@ let connectionWasLost = false;
 let hasConnectedOnce = false;
 socket.on("connect", () => {
   retrySocketWithFreshIdToken.reset();
-  state.connectionStatus = "connected";
-  state.errorMessage = hasConnectedOnce && connectionWasLost
-    ? "Connection restored. Create or join a room to continue."
-    : null;
-  state.errorCode = null;
-  connectionWasLost = false;
-  hasConnectedOnce = true;
+  state.connectionStatus = "connecting";
   render();
-  requestAvailableGames();
-  if (state.currentView === "public-rooms") subscribeToPublicRooms();
-  if (authViewState.isAuthenticated) loadNotifications();
 });
 
 socket.on("disconnect", () => {
@@ -2703,7 +2798,8 @@ socket.on("disconnect", () => {
   clearResultsReminderSuccess();
   resetFakeAnswerViewState();
   state.isBusy = false;
-  state.errorMessage = "Connection lost. Reconnect to create or join a room.";
+  state.errorMessage = guestSessionFailureMessage ??
+    "Connection lost. Reconnect to create or join a room.";
   state.isLoadingPublicRooms = false;
   clearPublicRoomSelection();
   clearResultsReminderSuccess();
@@ -2718,17 +2814,30 @@ socket.on("connect_error", (error) => {
   connectionWasLost = true;
   state.connectionStatus = "disconnected";
   state.isBusy = false;
+  state.errorCode = null;
   const errorData = (error as Error & { data?: { code?: string } }).data;
   if (errorData?.code === "AUTH_DISABLED") {
     state.errorMessage =
       "The client has authentication enabled but the server has it disabled. Configure VITE_AUTH_ENABLED and AUTH_ENABLED consistently, then restart both.";
     state.errorCode = "AUTH_CONFIG_MISMATCH";
+  } else if (
+    errorData?.code === "INVALID_RECOVERY_CREDENTIAL" ||
+    errorData?.code === "RECOVERY_REPLAYED"
+  ) {
+    const cleared = rejectRecoveryCredential(guestSessionStorage, recoveryCredentialSource);
+    state.errorMessage = cleared.ok
+      ? "The previous guest recovery credential is no longer valid. Starting a new guest session."
+      : cleared.error;
+    state.errorCode = cleared.ok ? errorData.code : "RECOVERY_STORAGE_UNAVAILABLE";
+    if (!cleared.ok) socket.io.opts.reconnection = false;
+  } else if (errorData?.code === "PLAYER_ALREADY_CONNECTED") {
+    state.errorMessage = "This guest session is still active in another connection. Close the other tab and reconnect.";
+    state.errorCode = errorData.code;
   } else if (error.message === "Invalid or expired access token.") {
     void retrySocketWithFreshIdToken.refreshAndReconnect().then((retried) => {
       if (retried) return;
       state.errorMessage =
         "Your Firebase ID token was rejected. Refresh your sign-in and try again.";
-      state.errorCode = null;
       render();
     });
   } else {
@@ -2746,4 +2855,4 @@ socket.on("connect_error", (error) => {
 });
 
 render();
-if (socket.connected) requestAvailableGames();
+if (!socketConfigurationError) socket.connect();

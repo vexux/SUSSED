@@ -13,7 +13,38 @@ const {
     createAchievementEvent
 } = require("../achievementEvents");
 const { startServer } = require("../server");
+const { GuestIdentityManager, getPersonalRoomName } = require("../guestIdentityManager");
 const { DISABLED_ACCOUNT_EVENTS } = require("../disabledAccountHandlers");
+
+const CURRENT_RECOVERY_KEY = "sussed:guest-recovery:v1";
+const PENDING_RECOVERY_KEY = "sussed:guest-recovery:v1:pending";
+
+function createMemoryStorage() {
+    const values = new Map();
+    return {
+        getItem(key) {
+            return values.get(key) ?? null;
+        },
+        setItem(key, value) {
+            values.set(key, String(value));
+        },
+        removeItem(key) {
+            values.delete(key);
+        },
+    };
+}
+
+function exposeStablePlayerId(client) {
+    client.playerId = null;
+    return new Proxy(client, {
+        get(target, property) {
+            if (property === "transportId") return target.id;
+            if (property === "id") return target.playerId;
+            const value = Reflect.get(target, property, target);
+            return typeof value === "function" ? value.bind(target) : value;
+        },
+    });
+}
 
 test("achievement lifecycle events are validated, immutable, and contain no client identity", () => {
     const event = createAchievementEvent(ACHIEVEMENT_EVENT_TYPES.ROUND_COMPLETED, {
@@ -127,7 +158,8 @@ async function createHarness(context, {
     profileRepository,
     authEnabled = true,
 } = {}) {
-    const io = startServer(0, { verifyAccessToken, profileRepository, authEnabled });
+    const identityManager = new GuestIdentityManager();
+    const io = startServer(0, { verifyAccessToken, profileRepository, authEnabled, identityManager });
     const clients = [];
     const roomCodes = new Set();
 
@@ -153,19 +185,52 @@ async function createHarness(context, {
 
     return {
         io,
-        async connect({ auth, onServerConfiguration } = {}) {
-            const client = createClient(`http://127.0.0.1:${address.port}`, {
-                auth,
+        async connect({ auth, onServerConfiguration, storage = createMemoryStorage() } = {}) {
+            const socketClient = createClient(`http://127.0.0.1:${address.port}`, {
+                autoConnect: false,
+                auth: (callback) => {
+                    const recoveryCredential =
+                        storage.getItem(PENDING_RECOVERY_KEY) ??
+                        storage.getItem(CURRENT_RECOVERY_KEY);
+                    callback({
+                        ...(auth && typeof auth === "object" ? auth : {}),
+                        ...(recoveryCredential ? { recoveryCredential } : {}),
+                    });
+                },
                 reconnection: false,
                 timeout: 3000,
             });
+            const client = exposeStablePlayerId(socketClient);
+            client.recoveryStorage = storage;
             clients.push(client);
+            client.on("guest-session-issued", (session, acknowledge) => {
+                storage.setItem(PENDING_RECOVERY_KEY, session.recoveryCredential);
+                acknowledge({ stored: true });
+            });
+            client.on("guest-session-ready", (session) => {
+                client.playerId = session.playerId;
+                const pending = storage.getItem(PENDING_RECOVERY_KEY);
+                if (pending) {
+                    storage.setItem(CURRENT_RECOVERY_KEY, pending);
+                    storage.removeItem(PENDING_RECOVERY_KEY);
+                }
+            });
             if (onServerConfiguration) {
                 client.on("server-auth-config", onServerConfiguration);
             }
             await new Promise((resolve, reject) => {
-                client.once("connect", resolve);
-                client.once("connect_error", reject);
+                const onReady = (session) => {
+                    client.playerId = session.playerId;
+                    client.off("connect_error", onError);
+                    resolve();
+                };
+                const onError = (error) => {
+                    client.off("guest-session-ready", onReady);
+                    reject(error);
+                };
+                client.once("guest-session-ready", onReady);
+                client.once("connect_error", onError);
+                client.connect();
             });
             return client;
         },
@@ -192,7 +257,7 @@ test("disabled auth skips account services while guest room gameplay stays avail
             serverConfiguration = configuration;
         },
     });
-    const serverSocket = harness.io.sockets.sockets.get(guest.id);
+    const serverSocket = harness.io.sockets.sockets.get(guest.transportId);
     assert.ok(serverSocket);
     assert.equal(serverSocket.data.accountId, undefined);
     await new Promise((resolve) => setImmediate(resolve));
@@ -216,7 +281,7 @@ test("disabled auth skips account services while guest room gameplay stays avail
     );
 });
 
-test("guest sockets retain socket.id as their room player identity", async (context) => {
+test("guest sockets use a stable server-issued player identity", async (context) => {
     let profileRepositoryCalls = 0;
     const harness = await createHarness(context, {
         profileRepository: {
@@ -231,8 +296,10 @@ test("guest sockets retain socket.id as their room player identity", async (cont
         },
     });
     const guest = await harness.connect();
-    const serverSocket = harness.io.sockets.sockets.get(guest.id);
+    const serverSocket = harness.io.sockets.sockets.get(guest.transportId);
     assert.ok(serverSocket);
+    assert.equal(serverSocket.data.playerId, guest.id);
+    assert.notEqual(serverSocket.data.playerId, serverSocket.id);
     assert.equal(serverSocket.data.accountId, undefined);
 
     const profileResponse = await new Promise((resolve) => {
@@ -248,6 +315,102 @@ test("guest sockets retain socket.id as their room player identity", async (cont
     assert.equal(roomManager.getRoom(created.roomCode).hostId, guest.id);
 });
 
+test("recovery restores the stable player ID, rotates the credential, and leaves room state cleared", async (context) => {
+    const harness = await createHarness(context);
+    const original = await harness.connect();
+    const originalPlayerId = original.id;
+    const originalCredential = original.recoveryStorage.getItem(CURRENT_RECOVERY_KEY);
+    const originalServerSocket = harness.io.sockets.sockets.get(original.transportId);
+    assert.ok(originalServerSocket.rooms.has(getPersonalRoomName(originalPlayerId)));
+
+    const created = await emitWithAck(original, "create-room", { playerName: "Original" });
+    const observer = await harness.connect();
+    await emitWithAck(observer, "join-room", { roomCode: created.roomCode, playerName: "Observer" });
+    harness.trackRoom(created.roomCode);
+
+    const serverDisconnect = new Promise((resolve) => originalServerSocket.once("disconnect", resolve));
+    original.disconnect();
+    await serverDisconnect;
+    assert.deepEqual(roomManager.getRoom(created.roomCode).players.map(({ id }) => id), [observer.id]);
+
+    const recovered = await harness.connect({ storage: original.recoveryStorage });
+    assert.equal(recovered.id, originalPlayerId);
+    assert.notEqual(recovered.transportId, original.transportId);
+    const rotatedCredential = recovered.recoveryStorage.getItem(CURRENT_RECOVERY_KEY);
+    assert.notEqual(rotatedCredential, originalCredential);
+    assert.ok(
+        harness.io.sockets.sockets.get(recovered.transportId).rooms.has(
+            getPersonalRoomName(originalPlayerId),
+        ),
+    );
+    assert.throws(
+        () => harness.io.guestIdentityManager.beginRecovery("replay", originalCredential),
+        { code: "RECOVERY_REPLAYED" },
+    );
+
+    let receivedPrivateEvent = false;
+    recovered.once("private-player-test", () => {
+        receivedPrivateEvent = true;
+    });
+    harness.io.to(getPersonalRoomName(originalPlayerId)).emit("private-player-test");
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(receivedPrivateEvent, true);
+
+    assert.equal(roomManager.getPlayerRoom(originalPlayerId), null);
+    const newRoom = await emitWithAck(recovered, "create-room", { playerName: "Recovered" });
+    harness.trackRoom(newRoom.roomCode);
+    assert.equal(roomManager.getRoom(newRoom.roomCode).hostId, originalPlayerId);
+});
+
+test("a second active connection cannot take over a recovered guest identity", async (context) => {
+    const harness = await createHarness(context);
+    const original = await harness.connect();
+    await assert.rejects(
+        harness.connect({ storage: original.recoveryStorage }),
+        (error) => error.data?.code === "PLAYER_ALREADY_CONNECTED",
+    );
+    assert.equal(
+        harness.io.guestIdentityManager.getSocketId(original.id),
+        original.transportId,
+    );
+});
+
+test("room operations are unavailable until recovery credentials are acknowledged as stored", async (context) => {
+    const harness = await createHarness(context);
+    const address = harness.io.httpServer.address();
+    let createRoomCalls = 0;
+    const originalCreateRoom = roomManager.createRoom;
+    roomManager.createRoom = (...args) => {
+        createRoomCalls += 1;
+        return originalCreateRoom(...args);
+    };
+    context.after(() => {
+        roomManager.createRoom = originalCreateRoom;
+    });
+
+    const client = createClient(`http://127.0.0.1:${address.port}`, {
+        autoConnect: false,
+        auth: {},
+        reconnection: false,
+    });
+    context.after(() => client.close());
+    client.on("guest-session-issued", (_session, acknowledge) => {
+        client.emit("create-room", { playerName: "Too early" }, () => {});
+        acknowledge({ stored: false });
+    });
+    const sessionError = new Promise((resolve, reject) => {
+        client.once("guest-session-error", resolve);
+        client.once("connect_error", reject);
+    });
+    client.connect();
+    const failure = await sessionError;
+    assert.equal(failure.code, "RECOVERY_STORAGE_UNAVAILABLE");
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(createRoomCalls, 0);
+    assert.equal(harness.io.guestIdentityManager.records.size, 0);
+    client.close();
+});
+
 test("valid access tokens attach the verified account UID without changing player IDs", async (context) => {
     const accountId = "firebase-user-123";
     let verifiedToken;
@@ -260,7 +423,7 @@ test("valid access tokens attach the verified account UID without changing playe
     const authenticated = await harness.connect({
         auth: { accessToken: "valid-access-token" },
     });
-    const serverSocket = harness.io.sockets.sockets.get(authenticated.id);
+    const serverSocket = harness.io.sockets.sockets.get(authenticated.transportId);
     assert.ok(serverSocket);
     assert.equal(verifiedToken, "valid-access-token");
     assert.equal(serverSocket.data.accountId, accountId);
@@ -715,7 +878,7 @@ test("Socket.IO departure schedules one guarded next-round submission transition
                 if (departureType === "leave") {
                     assert.deepEqual(await emitWithAck(leaver, "leave-room"), { left: true });
                 } else {
-                    const serverSocket = harness.io.sockets.sockets.get(leaver.id);
+                    const serverSocket = harness.io.sockets.sockets.get(leaver.transportId);
                     const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
                     leaver.disconnect();
                     await disconnected;
@@ -808,7 +971,7 @@ test("starts the server and keeps the legacy create-room acknowledgement", async
     assert.equal(lobby.readinessStatus, "insufficient-players");
     assert.equal(lobby.selectedRoundCount, 5);
 
-    const serverSocket = harness.io.sockets.sockets.get(client.id);
+    const serverSocket = harness.io.sockets.sockets.get(client.transportId);
     assert.ok(serverSocket.rooms.has(response.roomCode));
 });
 
@@ -1104,10 +1267,10 @@ test("host transfer validates membership, broadcasts the projected lobby, and tr
     assert.equal((await emitWithAck(host, "transfer-host", {})).error.code, "INVALID_REQUEST");
     assert.equal(authoritativeRoom.hostId, host.id);
 
-    const targetSocket = harness.io.sockets.sockets.get(remainingPlayer.id);
-    harness.io.sockets.sockets.delete(remainingPlayer.id);
+    const targetSocket = harness.io.sockets.sockets.get(remainingPlayer.transportId);
+    harness.io.sockets.sockets.delete(remainingPlayer.transportId);
     assert.equal((await emitWithAck(host, "transfer-host", { targetPlayerId: remainingPlayer.id })).error.code, "TARGET_NOT_CONNECTED");
-    harness.io.sockets.sockets.set(remainingPlayer.id, targetSocket);
+    harness.io.sockets.sockets.set(remainingPlayer.transportId, targetSocket);
 
     const hostUpdate = waitForLobby(host, (lobby) => lobby.players.some(({ id, isHost }) => id === guest.id && isHost));
     const guestUpdate = waitForLobby(guest, (lobby) => lobby.players.some(({ id, isHost }) => id === guest.id && isHost));
@@ -1286,7 +1449,7 @@ test("joins an existing room, normalizes its code, and sends lobby state to both
         "name",
     ]);
 
-    const serverSocket = harness.io.sockets.sockets.get(guest.id);
+    const serverSocket = harness.io.sockets.sockets.get(guest.transportId);
     assert.ok(serverSocket.rooms.has(createResponse.roomCode));
 });
 
@@ -1884,7 +2047,7 @@ test("malformed Socket.IO payloads return errors without crashing the server", a
 test("removes a newly created room when the creator socket cannot join it", async (context) => {
     const harness = await createHarness(context);
     const client = await harness.connect();
-    const serverSocket = harness.io.sockets.sockets.get(client.id);
+    const serverSocket = harness.io.sockets.sockets.get(client.transportId);
     assert.ok(serverSocket);
 
     let createdRoom;
@@ -1921,7 +2084,7 @@ test("disconnect removes a player and broadcasts the updated lobby", async (cont
         playerName: "Host",
     });
     harness.trackRoom(createResponse.roomCode);
-    const hostSocket = harness.io.sockets.sockets.get(host.id);
+    const hostSocket = harness.io.sockets.sockets.get(host.transportId);
     await emitWithAck(guest, "join-room", {
         roomCode: createResponse.roomCode,
         playerName: "Guest",
@@ -1929,7 +2092,7 @@ test("disconnect removes a player and broadcasts the updated lobby", async (cont
 
     const lobbyUpdate = waitForLobby(host, (lobby) => lobby.playerCount === 1);
     const disconnected = new Promise((resolve) =>
-        harness.io.sockets.sockets.get(guest.id).once("disconnect", resolve)
+        harness.io.sockets.sockets.get(guest.transportId).once("disconnect", resolve)
     );
     guest.disconnect();
     await disconnected;
@@ -1950,7 +2113,7 @@ test("disconnect deletes a room when its last player leaves", async (context) =>
         playerName: "Host",
     });
     harness.trackRoom(response.roomCode);
-    const serverSocket = harness.io.sockets.sockets.get(host.id);
+    const serverSocket = harness.io.sockets.sockets.get(host.transportId);
     const disconnected = new Promise((resolve) =>
         serverSocket.once("disconnect", resolve)
     );
@@ -1981,7 +2144,7 @@ test("host disconnect migrates host to the earliest remaining player", async (co
     const hostUpdate = waitForLobby(nextHost, (lobby) => lobby.playerCount === 2);
     const lastPlayerUpdate = waitForLobby(lastPlayer, (lobby) => lobby.playerCount === 2);
     const disconnected = new Promise((resolve) =>
-        harness.io.sockets.sockets.get(host.id).once("disconnect", resolve)
+        harness.io.sockets.sockets.get(host.transportId).once("disconnect", resolve)
     );
     host.disconnect();
     await disconnected;
@@ -1997,7 +2160,7 @@ test("host disconnect migrates host to the earliest remaining player", async (co
 test("disconnect during an active game removes only that player and the remaining players keep playing", async (context) => {
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, { playerCount: 3 });
-    const originalHostSocket = harness.io.sockets.sockets.get(game.host.id);
+    const originalHostSocket = harness.io.sockets.sockets.get(game.host.transportId);
     const room = roomManager.getRoom(game.roomCode);
     const originalSessionId = game.gameState.sessionId;
     const activeUpdate = waitForGameState(
@@ -2090,12 +2253,12 @@ test("Fact-or-Cap and Anime preserve current-round votes and answers across an e
             postLeaveAction = await emitWithAck(game.host, "fake-answer:vote", withRoundId(hostVoting, {
                 optionId: guestAnswer.id
             }));
-            const serverSocket = harness.io.sockets.sockets.get(leaverId);
+            const serverSocket = harness.io.sockets.sockets.get(harness.io.guestIdentityManager.getSocketId(leaverId));
             const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
             game.host.disconnect();
             await disconnected;
         } else {
-            const serverSocket = harness.io.sockets.sockets.get(game.host.id);
+            const serverSocket = harness.io.sockets.sockets.get(game.host.transportId);
             const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
             game.host.disconnect();
             await disconnected;
@@ -2172,7 +2335,7 @@ test("Fact-or-Cap variants reconcile completed submissions once when the last un
                 if (departureType === "leave") {
                     assert.deepEqual(await emitWithAck(leaver, "leave-room"), { left: true });
                 } else {
-                    const serverSocket = harness.io.sockets.sockets.get(leaver.id);
+                    const serverSocket = harness.io.sockets.sockets.get(leaver.transportId);
                     const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
                     leaver.disconnect();
                     await disconnected;
@@ -2238,7 +2401,7 @@ test("Fact-or-Cap and Anime publish when the last active voter votes after an un
 
         const remainingUpdates = [host, voter].map((client) => waitForGameState(client, (state) =>
             state.sessionId === voting.sessionId && state.state.phase === "voting" && state.state.playerCount === 2));
-        const serverSocket = harness.io.sockets.sockets.get(leaverId);
+        const serverSocket = harness.io.sockets.sockets.get(harness.io.guestIdentityManager.getSocketId(leaverId));
         const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
         leaver.disconnect();
         await disconnected;
@@ -2297,7 +2460,9 @@ test("quick successive voting disconnects preserve both recorded votes and publi
 
     const results = [host, voter].map((client) => waitForGameState(client, (state) =>
         state.sessionId === voting.sessionId && state.state.phase === "results"));
-    const serverSockets = leaverIds.map((id) => harness.io.sockets.sockets.get(id));
+    const serverSockets = [leaverOne, leaverTwo].map((client) =>
+        harness.io.sockets.sockets.get(client.transportId),
+    );
     const disconnected = serverSockets.map((socket) => new Promise((resolve) => socket.once("disconnect", resolve)));
     leaverOne.disconnect();
     leaverTwo.disconnect();

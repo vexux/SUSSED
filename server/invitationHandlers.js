@@ -1,4 +1,5 @@
 const roomManager = require("./roomManager");
+const { getPersonalRoomName } = require("./guestIdentityManager");
 
 const ERROR_MESSAGES = {
     AUTH_REQUIRED: "Sign in to use in-app game invitations.",
@@ -20,6 +21,7 @@ function sendError(acknowledge, code, message = ERROR_MESSAGES[code]) {
 }
 
 function registerInvitationHandlers(io, socket, profileRepository, reportFailure = () => {}) {
+    const playerId = socket.data.playerId;
     async function authenticated(acknowledge, operation) {
         if (typeof acknowledge !== "function") return;
         const accountId = socket.data && socket.data.accountId;
@@ -47,7 +49,7 @@ function registerInvitationHandlers(io, socket, profileRepository, reportFailure
 
     socket.on("send-game-invitation", (payload, acknowledge) => {
         void authenticated(acknowledge, async (accountId) => {
-            const room = roomManager.getPlayerRoom(socket.id);
+            const room = roomManager.getPlayerRoom(playerId);
             if (!room) return { error: { code: "ROOM_NOT_AVAILABLE", message: ERROR_MESSAGES.ROOM_NOT_AVAILABLE } };
             if (room.status !== "lobby") {
                 return { error: { code: "ROOM_NOT_AVAILABLE", message: ERROR_MESSAGES.ROOM_NOT_AVAILABLE } };
@@ -85,7 +87,7 @@ function registerInvitationHandlers(io, socket, profileRepository, reportFailure
                 typeof payload.playerName !== "string") {
                 return { error: { code: "INVALID_REQUEST", message: ERROR_MESSAGES.INVALID_REQUEST } };
             }
-            if (roomManager.getPlayerRoom(socket.id)) {
+            if (roomManager.getPlayerRoom(playerId)) {
                 return { error: { code: "ALREADY_IN_ROOM", message: ERROR_MESSAGES.ALREADY_IN_ROOM } };
             }
             const invitation = await profileRepository.getGameInvitation(accountId, payload.invitationId);
@@ -102,12 +104,12 @@ function registerInvitationHandlers(io, socket, profileRepository, reportFailure
 
             let joinedRoom;
             try {
-                joinedRoom = roomManager.joinRoom(invitation.roomCode, socket.id, payload.playerName);
+                joinedRoom = roomManager.joinRoom(invitation.roomCode, playerId, payload.playerName);
                 await socket.join(joinedRoom.code);
                 await profileRepository.setGameInvitationStatus(accountId, payload.invitationId, "accepted");
             } catch (error) {
                 if (joinedRoom) {
-                    roomManager.removePlayer(socket.id);
+                    roomManager.removePlayer(playerId);
                     try {
                         await socket.leave(joinedRoom.code);
                     } catch (leaveError) {
@@ -122,7 +124,7 @@ function registerInvitationHandlers(io, socket, profileRepository, reportFailure
 
             const lobby = roomManager.createLobbyState(joinedRoom);
             for (const player of joinedRoom.players) {
-                io.to(player.id).emit("lobby-state", lobby);
+                io.to(getPersonalRoomName(player.id)).emit("lobby-state", lobby);
             }
             io.to("public-room-browsers").emit("public-rooms-updated", {
                 rooms: roomManager.listPublicRooms(),
