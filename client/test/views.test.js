@@ -2,11 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createInitialAppState,
+  HOME_TAGLINE,
   LANDING_TAGLINE,
   persistThemePreference,
   readThemePreference,
   resolveThemePreference,
   resolveAuthEntryView,
+  resolveInitialAppView,
+  toggleThemePreference,
   THEME_STORAGE_KEY,
 } from "../src/appState.ts";
 import { validatePlayerName } from "../src/playerName.ts";
@@ -292,7 +295,7 @@ test("auth feature flag strictly defaults to disabled and accepts explicit value
   assert.equal(shouldConnectSocket("http://localhost:3000", true, null), true);
 });
 
-test("guest-only welcome hides account entry and preserves appearance and guest room entry", () => {
+test("disabled authentication routes directly to guest home without a welcome step", () => {
   withFakeDocument(() => {
     const state = createInitialAppState();
     state.currentView = "welcome";
@@ -315,12 +318,11 @@ test("guest-only welcome hides account entry and preserves appearance and guest 
       recoveryError: null,
     });
 
-    assert.deepEqual(
-      root.queryAll((element) => element.classList.contains("welcome-button")).map((button) => button.text),
-      ["Play as a guest"],
-    );
-    assert.ok(root.query((element) => element.textContent === "Appearance"));
-    assert.ok(root.query((element) => element.textContent === "Light"));
+    assert.equal(state.currentView, "home");
+    assert.ok(root.query((element) => element.classList.contains("home-screen")));
+    assert.equal(root.query((element) => element.classList.contains("welcome-screen")), null);
+    assert.equal(root.query((element) => element.textContent === "Play as a guest"), null);
+    assert.equal(root.query((element) => element.textContent === "Appearance"), null);
     assert.equal(root.query((element) => element.textContent === "Profile"), null);
     assert.equal(root.query((element) => element.textContent === "Friends"), null);
   });
@@ -623,7 +625,7 @@ test("profile, friends, public profile, and achievements screens expose safe emp
     assert.match(root.text, /Player/u);
     render("achievements");
     assert.match(root.text, /No achievements yet\./u);
-    assert.equal(root.query((element) => element.classList.contains("theme-toggle")), null);
+    assert.ok(root.query((element) => element.classList.contains("theme-toggle")));
     assert.ok(root.query((element) => element.classList.contains("appearance-option")));
   });
 });
@@ -760,6 +762,23 @@ test("auth entry resolution waits for restored sessions and protects unverified 
   }), "welcome");
 });
 
+test("initial guest startup opens home while authentication-enabled startup keeps its entry flow", () => {
+  const initialAuthState = {
+    restored: true,
+    hasUser: false,
+    isAuthenticated: false,
+    requiresEmailVerification: false,
+  };
+  assert.equal(resolveInitialAppView(false, initialAuthState), "home");
+  assert.equal(resolveInitialAppView(true, initialAuthState), "welcome");
+  assert.equal(resolveInitialAppView(true, { ...initialAuthState, restored: false }), "auth-loading");
+  assert.equal(resolveInitialAppView(true, {
+    ...initialAuthState,
+    hasUser: true,
+    isAuthenticated: true,
+  }), "home");
+});
+
 function createSubmissionView(gameId) {
   return gameId === "bruh-wtf"
     ? {
@@ -871,7 +890,7 @@ test("a new game round starts a fresh answer-entry input", () => {
   });
 });
 
-test("game home keeps room controls usable without landing or account panels", () => {
+test("guest home keeps original branding and room controls", () => {
   withFakeDocument(() => {
     const state = createInitialAppState();
     state.currentView = "home";
@@ -889,18 +908,28 @@ test("game home keeps room controls usable without landing or account panels", (
       onBrowsePublicRooms() { calls.browse = true; },
     };
     const root = new FakeElement("root");
-    const render = () => renderApp(root, state, actions, {}, {});
+    const render = () => renderApp(root, state, actions, {}, {}, {
+      authEnabled: false,
+      isAuthenticated: false,
+      isBusy: false,
+    });
     render();
     const nameInput = root.query((element) => element.id === "player-name");
     const codeInput = root.query((element) => element.id === "room-code");
-    assert.equal(root.query((element) => element.classList.contains("landing-tagline")), null);
+    assert.equal(root.query((element) => element.classList.contains("landing-wordmark")).text, "SUSSED!");
+    assert.equal(root.query((element) => element.classList.contains("landing-tagline")).textContent, HOME_TAGLINE);
+    assert.equal(root.query((element) => element.classList.contains("welcome-screen")), null);
+    assert.equal(root.query((element) => element.textContent === "Play as a guest"), null);
     assert.equal(root.query((element) => element.classList.contains("auth-panel")), null);
     assert.equal(root.query((element) => element.id === "profile-display-name"), null);
-    assert.match(root.query((element) => element.classList.contains("account-menu-trigger")).text, /Guest/u);
-    assert.deepEqual(
-      root.queryAll((element) => element.classList.contains("account-menu-item")).map((item) => item.text),
-      ["Sign in", "Light", "Dark", "System"],
-    );
+    assert.equal(root.query((element) => element.classList.contains("account-menu")), null);
+    const themeToggle = root.query((element) => element.classList.contains("theme-toggle"));
+    assert.equal(themeToggle.tagName, "button");
+    assert.equal(themeToggle.type, "button");
+    assert.equal(themeToggle.getAttribute("aria-label"), "Switch to light theme");
+    assert.ok(themeToggle.query((element) => element.classList.contains("theme-toggle-sun")));
+    assert.ok(themeToggle.query((element) => element.classList.contains("theme-toggle-moon")));
+    assert.equal(root.query((element) => element.textContent === "Appearance"), null);
     assert.equal(codeInput.placeholder, "CODE");
     assert.ok(root.query((element) => element.tagName === "button" && element.textContent === "Choose a game"));
     const actionCards = root.query((element) => element.className.includes("landing-actions")).children;
@@ -1955,6 +1984,10 @@ test("theme preference persists light, dark, and system choices in the account a
   assert.equal(resolveThemePreference("system", "light"), "light");
   assert.equal(resolveThemePreference("system", "dark"), "dark");
   assert.equal(resolveThemePreference("light", "dark"), "light");
+  assert.equal(toggleThemePreference("dark", "light"), "light");
+  assert.equal(toggleThemePreference("light", "dark"), "dark");
+  assert.equal(toggleThemePreference("system", "dark"), "light");
+  assert.equal(toggleThemePreference("system", "light"), "dark");
   assert.doesNotThrow(() => readThemePreference({ getItem() { throw new Error("storage blocked"); }, setItem() {} }));
 
   withFakeDocument(() => {
@@ -1968,7 +2001,8 @@ test("theme preference persists light, dark, and system choices in the account a
     };
     const root = new FakeElement("root");
     renderApp(root, state, actions, {}, {});
-    assert.equal(root.query((element) => element.className.includes("theme-toggle")), null);
+    assert.ok(root.query((element) => element.className.includes("theme-toggle")));
+    assert.equal(root.text.includes("Appearance"), false);
     const system = root.query((element) => element.classList.contains("appearance-option") && element.textContent === "System");
     assert.equal(system.attributes["aria-pressed"], "false");
     system.dispatch("click");
@@ -1976,6 +2010,41 @@ test("theme preference persists light, dark, and system choices in the account a
     renderApp(root, state, actions, {}, {});
     assert.equal(root.query((element) => element.classList.contains("appearance-option") && element.textContent === "System").attributes["aria-pressed"], "true");
     assert.equal(readThemePreference(storage), "system");
+  });
+});
+
+test("guest theme control is a labelled icon toggle and responds to activation", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "home";
+    state.theme = "dark";
+    const calls = [];
+    const root = new FakeElement("root");
+    const actions = {
+      onToggleTheme() {
+        calls.push("toggle");
+        state.theme = toggleThemePreference(state.theme, "dark");
+      },
+    };
+    const authState = { authEnabled: false, isAuthenticated: false };
+
+    renderApp(root, state, actions, {}, {}, authState);
+    const toggle = root.query((element) => element.classList.contains("theme-toggle"));
+    assert.ok(toggle);
+    assert.equal(toggle.tagName, "button");
+    assert.equal(toggle.type, "button");
+    assert.equal(toggle.getAttribute("aria-label"), "Switch to light theme");
+    assert.equal(toggle.getAttribute("aria-pressed"), "false");
+    assert.ok(toggle.query((element) => element.classList.contains("theme-toggle-sun")));
+    assert.ok(toggle.query((element) => element.classList.contains("theme-toggle-moon")));
+    toggle.dispatch("click");
+
+    assert.deepEqual(calls, ["toggle"]);
+    assert.equal(state.theme, "light");
+    renderApp(root, state, actions, {}, {}, authState);
+    const lightToggle = root.query((element) => element.classList.contains("theme-toggle"));
+    assert.equal(lightToggle.getAttribute("aria-label"), "Switch to dark theme");
+    assert.equal(lightToggle.getAttribute("aria-pressed"), "true");
   });
 });
 

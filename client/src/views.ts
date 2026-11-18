@@ -1,4 +1,10 @@
-import type { AppState, AppView, LobbyPlayer, ThemePreference } from "./appState.ts";
+import {
+  HOME_TAGLINE,
+  type AppState,
+  type AppView,
+  type LobbyPlayer,
+  type ThemePreference,
+} from "./appState.ts";
 import type { AuthFormMode } from "./auth.ts";
 import {
   renderFakeAnswerGame,
@@ -325,8 +331,8 @@ function createHeader(
     appendWordmark(brand);
     header.append(brand);
   }
-  if (!isEntryView || !authEnabled) {
-    if (!isEntryView) controls.append(createStatus(state));
+  if (!isEntryView) {
+    controls.append(createStatus(state), createThemeToggle(state, actions));
     if (authEnabled && authState.isAuthenticated) {
       const notificationCenter = createElement("details", "notification-center");
       notificationCenter.open = socialState.notificationPopoverOpen;
@@ -351,67 +357,77 @@ function createHeader(
       }
       controls.append(notificationCenter);
     }
-    const accountMenu = createElement(
-      "details",
-      authEnabled ? "account-menu" : "account-menu appearance-menu",
-    );
-    const accountSummary = createElement(
-      "summary",
-      authEnabled ? "account-menu-trigger" : "account-menu-trigger appearance-menu-trigger",
-      !authEnabled ? "Appearance" : authState.isAuthenticated ? "" : "Guest",
-    );
-    accountSummary.setAttribute(
-      "aria-label",
-      !authEnabled
-        ? "Appearance settings"
-        : authState.isAuthenticated
-          ? "Open account menu"
-          : "Guest account menu",
-    );
-    if (authEnabled) accountSummary.append(createIcon("user"));
-    accountMenu.append(accountSummary);
-    const menu = createElement("div", "account-menu-items");
-    menu.setAttribute("role", "group");
-    menu.setAttribute(
-      "aria-label",
-      !authEnabled
-        ? "Appearance settings"
-        : authState.isAuthenticated
-          ? "Account navigation"
-          : "Guest account navigation",
-    );
-    if (authEnabled && authState.isAuthenticated) {
-      for (const [view, label] of [
-        ["profile", "Profile"],
-        ["friends", "Friends"],
-        ["achievements", "Achievements"],
-      ] as const) {
-        const item = createElement("button", "account-menu-item", label);
-        item.type = "button";
-        item.disabled = socialState.isBusy;
-        item.addEventListener("click", () => actions.onNavigateAccount(view));
-        menu.append(item);
+    if (authEnabled) {
+      const accountMenu = createElement("details", "account-menu");
+      const accountSummary = createElement(
+        "summary",
+        "account-menu-trigger",
+        authState.isAuthenticated ? "" : "Guest",
+      );
+      accountSummary.setAttribute(
+        "aria-label",
+        authState.isAuthenticated ? "Open account menu" : "Guest account menu",
+      );
+      accountSummary.append(createIcon("user"));
+      accountMenu.append(accountSummary);
+      const menu = createElement("div", "account-menu-items");
+      menu.setAttribute("role", "group");
+      menu.setAttribute(
+        "aria-label",
+        authState.isAuthenticated ? "Account navigation" : "Guest account navigation",
+      );
+      if (authState.isAuthenticated) {
+        for (const [view, label] of [
+          ["profile", "Profile"],
+          ["friends", "Friends"],
+          ["achievements", "Achievements"],
+        ] as const) {
+          const item = createElement("button", "account-menu-item", label);
+          item.type = "button";
+          item.disabled = socialState.isBusy;
+          item.addEventListener("click", () => actions.onNavigateAccount(view));
+          menu.append(item);
+        }
+        appendAppearanceOptions(menu, state, actions);
+        const signOut = createElement("button", "account-menu-item", "Sign out");
+        signOut.type = "button";
+        signOut.disabled = authState.isBusy || socialState.isBusy;
+        signOut.addEventListener("click", actions.onAuthSignOut);
+        menu.append(signOut);
+      } else {
+        const signIn = createElement("button", "account-menu-item", "Sign in");
+        signIn.type = "button";
+        signIn.addEventListener("click", actions.onOpenEmailAuth);
+        menu.append(signIn);
+        appendAppearanceOptions(menu, state, actions);
       }
-      appendAppearanceOptions(menu, state, actions);
-      const signOut = createElement("button", "account-menu-item", "Sign out");
-      signOut.type = "button";
-      signOut.disabled = authState.isBusy || socialState.isBusy;
-      signOut.addEventListener("click", actions.onAuthSignOut);
-      menu.append(signOut);
-    } else if (authEnabled) {
-      const signIn = createElement("button", "account-menu-item", "Sign in");
-      signIn.type = "button";
-      signIn.addEventListener("click", actions.onOpenEmailAuth);
-      menu.append(signIn);
-      appendAppearanceOptions(menu, state, actions);
-    } else {
-      appendAppearanceOptions(menu, state, actions);
+      accountMenu.append(menu);
+      controls.append(accountMenu);
     }
-    accountMenu.append(menu);
-    controls.append(accountMenu);
   }
   header.append(controls);
   return header;
+}
+
+function createThemeToggle(state: AppState, actions: AppActions): HTMLButtonElement {
+  const activeTheme = state.theme === "system"
+    ? document.documentElement?.dataset.theme === "light" ? "light" : "dark"
+    : state.theme;
+  const targetTheme = activeTheme === "dark" ? "light" : "dark";
+  const button = createElement("button", "theme-toggle");
+  const icons = createElement("span", "theme-toggle-icons");
+  const sunIcon = createIcon("sun");
+  sunIcon.classList.add("theme-toggle-sun");
+  const moonIcon = createIcon("moon");
+  moonIcon.classList.add("theme-toggle-moon");
+  icons.append(sunIcon, moonIcon);
+  button.append(icons);
+  button.type = "button";
+  button.setAttribute("aria-label", `Switch to ${targetTheme} theme`);
+  button.setAttribute("aria-pressed", String(activeTheme === "light"));
+  button.title = `Switch to ${targetTheme} theme`;
+  button.addEventListener("click", actions.onToggleTheme);
+  return button;
 }
 
 function appendAppearanceOptions(
@@ -419,10 +435,9 @@ function appendAppearanceOptions(
   state: AppState,
   actions: AppActions,
 ): void {
-  menu.append(createElement("h3", "account-menu-section-title", "Appearance"));
   const appearance = createElement("div", "appearance-options");
   appearance.setAttribute("role", "group");
-  appearance.setAttribute("aria-label", "Appearance");
+  appearance.setAttribute("aria-label", "Theme preference");
   for (const [theme, label] of [
     ["light", "Light"],
     ["dark", "Dark"],
@@ -1012,7 +1027,14 @@ function renderHome(
   actions: AppActions,
 ): HTMLElement {
   const screen = createElement("section", "app-screen home-screen");
-  screen.append(createElement("h1", "game-home-title", "Play"));
+  const title = createElement("h1", "landing-wordmark");
+  appendWordmark(title);
+  const tagline = createElement(
+    "p",
+    "screen-description landing-tagline",
+    HOME_TAGLINE,
+  );
+  screen.append(title, tagline);
 
   const playerNameLabel = createElement("label", "field-label", "Player name");
   playerNameLabel.htmlFor = "player-name";
@@ -2571,6 +2593,7 @@ export function renderApp(
   const authEnabled = authState.authEnabled !== false;
   const accountViews = new Set<AppView>([
     "auth-loading",
+    "welcome",
     "email-auth",
     "profile",
     "friends",

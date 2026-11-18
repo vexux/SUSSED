@@ -39,6 +39,22 @@ export function resolveAuthEntryView(options: {
     : "email-auth";
 }
 
+export function resolveInitialAppView(
+  authEnabled: boolean,
+  options: Parameters<typeof resolveAuthEntryView>[0],
+): AppView {
+  return authEnabled ? resolveAuthEntryView(options) : "home";
+}
+
+export function toggleThemePreference(
+  preference: ThemePreference,
+  systemPreference: "dark" | "light",
+): "dark" | "light" {
+  return resolveThemePreference(preference, systemPreference) === "dark"
+    ? "light"
+    : "dark";
+}
+
 export const THEME_STORAGE_KEY = "sussed-theme";
 
 type ThemeStorage = Pick<Storage, "getItem" | "setItem">;
@@ -176,6 +192,7 @@ export interface AppState {
 }
 
 export const LANDING_TAGLINE = "Your friends. Your lies. Your problem.";
+export const HOME_TAGLINE = "Gather your friends. Ruin their self-esteem.";
 
 export function createInitialAppState(): AppState {
   return {

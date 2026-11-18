@@ -5,6 +5,8 @@ import {
   persistThemePreference,
   resolveThemePreference,
   resolveAuthEntryView,
+  resolveInitialAppView,
+  toggleThemePreference,
   type AppView,
   type GameSessionState,
   type LobbyGame,
@@ -234,15 +236,13 @@ const socialViewState: SocialViewState = {
   notificationsError: null,
   notificationActionBusyId: null,
 };
-state.currentView = authEnabled
-  ? resolveAuthEntryView({
-      restored: !firebaseClient,
-      hasUser: false,
-      isAuthenticated: false,
-      requiresEmailVerification: false,
-      isRecoveryFlow: Boolean(recoveryLinkError || pendingPasswordResetCode),
-    })
-  : "welcome";
+state.currentView = resolveInitialAppView(authEnabled, {
+  restored: !firebaseClient,
+  hasUser: false,
+  isAuthenticated: false,
+  requiresEmailVerification: false,
+  isRecoveryFlow: Boolean(recoveryLinkError || pendingPasswordResetCode),
+});
 if (hasStoredGuestRecoveryCredential) {
     restorationFallbackView = state.currentView === "public-rooms"
       ? "public-rooms"
@@ -306,6 +306,7 @@ const systemThemeQuery = window.matchMedia?.("(prefers-color-scheme: light)");
 systemThemeQuery?.addEventListener?.("change", () => {
   if (state.theme !== "system") return;
   applyThemePreference();
+  render();
 });
 let fakeAnswerHasSubmitted = false;
 let fakeAnswerIsSubmitting = false;
@@ -1856,7 +1857,9 @@ const actions: AppActions = {
     render();
   },
   onToggleTheme() {
-    state.theme = state.theme === "dark" ? "light" : "dark";
+    const prefersLight = typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-color-scheme: light)").matches;
+    state.theme = toggleThemePreference(state.theme, prefersLight ? "light" : "dark");
     persistThemePreference(state.theme);
     applyThemePreference();
     render();
