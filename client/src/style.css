@@ -1435,6 +1435,12 @@ select:focus:not(:focus-visible) {
   outline: none;
 }
 
+.app-screen:focus,
+.app-screen h1:focus,
+.social-profile-card:focus {
+  outline: none;
+}
+
 .home-screen > .landing-name-field {
   margin-top: var(--space-5);
 }
@@ -2958,13 +2964,6 @@ select:focus:not(:focus-visible) {
   gap: 16px;
 }
 
-.question-screen:focus,
-.lobby-screen h1:focus,
-.starting-screen > h1:focus {
-  outline: var(--focus-ring);
-  outline-offset: 4px;
-}
-
 .round-counter {
   margin: 0;
   color: var(--color-accent-light);
@@ -3033,7 +3032,7 @@ select:focus:not(:focus-visible) {
   transition: border-color 120ms ease, background-color 120ms ease;
 }
 
-.vote-option:focus-within {
+.vote-option:has(input:focus-visible) {
   outline: var(--focus-ring);
   outline-offset: 2px;
 }

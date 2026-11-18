@@ -551,7 +551,11 @@ function appendRoundFeedback(
   continueButton.textContent = "Continue";
   const dismiss = (): void => {
     onDismissFeedback();
-    document.querySelector<HTMLElement>(".question-screen h1")?.focus();
+    const restoredHeading = document.querySelector<HTMLElement>(".question-screen h1");
+    if (restoredHeading) {
+      restoredHeading.tabIndex = -1;
+      restoredHeading.focus();
+    }
   };
   continueButton.addEventListener("click", dismiss);
   dialog.addEventListener("keydown", (event: KeyboardEvent) => {
