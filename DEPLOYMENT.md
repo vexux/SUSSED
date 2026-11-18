@@ -258,6 +258,33 @@ No extra Google OAuth environment variable is required by this client. If the
 provider is not enabled, the UI reports a configuration error rather than
 showing a false successful sign-in.
 
+## Local guest restoration smoke test
+
+Run the guest flow with `AUTH_ENABLED=false` and `VITE_AUTH_ENABLED=false`, then
+start the server and client in separate terminals. Use separate browser
+profiles for the players; guest recovery credentials are tab-scoped.
+
+1. **Lobby refresh:** create a room in one profile and join from a second.
+   Refresh the host tab. It should return to the same room with the same host
+   and player count, and the other player should see the host connected again.
+2. **Active game refresh:** start Fact-or-Cap, submit an answer and/or vote,
+   then refresh that player's tab. The same game and phase should return with
+   that player's own submission/vote state preserved. Repeat with Bruh WTF
+   using at least three players.
+3. **Disconnect grace:** disconnect unexpectedly and confirm the seat and
+   host role remain during grace. Reconnect before 90 seconds and verify the
+   same room/game. Automated tests use a fake clock for pre-expiry and exact
+   expiry checks; they do not wait 90 real seconds. A manual expiry check must
+   allow the complete server-controlled 90-second interval to elapse.
+4. **Departure:** leave normally and repeat with a host kick. Refresh/reconnect
+   the departing player's tab; it should not restore the old room, but the
+   stable guest identity should still be able to join a different room.
+
+These checks do not imply cross-tab identity sharing or recovery after a server
+restart/redeployment. The browser workflow is a manual smoke test; the
+automated socket integration suite covers the corresponding deterministic
+server lifecycle cases.
+
 ## Local account-flow smoke test
 
 After filling the client and server Firebase configuration values, start the

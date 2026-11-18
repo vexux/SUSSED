@@ -92,13 +92,19 @@ function startServer(
         console.log("Player connected:", socket.id);
         socket.data.sessionReady = false;
         socket.use((_packet, next) => {
-            if (socket.data.sessionReady === true) {
-                next();
+            if (socket.data.sessionReady !== true) {
+                const error = new Error("The guest session is not ready.");
+                error.data = { code: "SESSION_NOT_READY" };
+                next(error);
                 return;
             }
-            const error = new Error("The guest session is not ready.");
-            error.data = { code: "SESSION_NOT_READY" };
-            next(error);
+            if (!identityManager.isActiveSocket(socket.data.playerId, socket.id)) {
+                const error = new Error("The guest session is no longer active on this connection.");
+                error.data = { code: "SESSION_NOT_ACTIVE" };
+                next(error);
+                return;
+            }
+            next();
         });
         socket.on("disconnect", () => {
             console.log("Player disconnected:", socket.id);

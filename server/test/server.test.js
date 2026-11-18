@@ -390,6 +390,10 @@ test("recovery restores a disconnected room member and cancels its grace timer",
         harness.io.disconnectGraceManager
     );
     assert.equal(harness.io.disconnectGraceManager.size, 0);
+    const stalePacketError = await new Promise((resolve) => {
+        originalServerSocket.run(["set-ready", { isReady: false }], resolve);
+    });
+    assert.equal(stalePacketError?.data?.code, "SESSION_NOT_ACTIVE");
 
     let receivedPrivateEvent = false;
     recovered.once("private-player-test", () => {
@@ -2208,6 +2212,139 @@ test("removes a newly created room when the creator socket cannot join it", asyn
     assert.equal(roomManager.getRoom(createdRoom.code), null);
 });
 
+test("a failed asynchronous room join cancels grace state but preserves the guest identity", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.trackRoom(created.roomCode);
+    const serverSocket = harness.io.sockets.sockets.get(guest.transportId);
+    assert.ok(serverSocket);
+
+    let startJoining;
+    const joining = new Promise((resolve) => {
+        startJoining = resolve;
+    });
+    let rejectJoin;
+    const originalJoin = serverSocket.join.bind(serverSocket);
+    serverSocket.join = (roomCode) => {
+        if (roomCode !== created.roomCode) return originalJoin(roomCode);
+        return new Promise((_resolve, reject) => {
+            rejectJoin = reject;
+            startJoining();
+        });
+    };
+
+    guest.emit("join-room", { roomCode: created.roomCode, playerName: "Guest" }, () => {});
+    await joining;
+    const disconnected = new Promise((resolve) => serverSocket.once("disconnect", resolve));
+    guest.disconnect();
+    await disconnected;
+    assert.equal(harness.io.disconnectGraceManager.size, 1);
+    assert.equal(roomManager.getPlayerRoom(guest.id).code, created.roomCode);
+
+    rejectJoin(new roomManager.RoomError("SIMULATED_JOIN_FAILURE", "Join failed."));
+    await new Promise((resolve) => setImmediate(resolve));
+    serverSocket.join = originalJoin;
+    assert.equal(roomManager.getPlayerRoom(guest.id), null);
+    assert.equal(harness.io.disconnectGraceManager.size, 0);
+
+    const recovered = await harness.connect({ storage: guest.recoveryStorage });
+    assert.equal(recovered.id, guest.id);
+    assert.deepEqual(
+        await emitWithAck(recovered, "restore-session"),
+        { status: "no-room", playerId: guest.id },
+    );
+    const nextRoom = await emitWithAck(recovered, "create-room", { playerName: "Guest" });
+    assert.equal(nextRoom.error, undefined);
+    harness.trackRoom(nextRoom.roomCode);
+});
+
+test("a stale room-join failure cannot remove a recovered player's restored membership", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.trackRoom(created.roomCode);
+    const serverSocket = harness.io.sockets.sockets.get(guest.transportId);
+    assert.ok(serverSocket);
+
+    let startJoining;
+    const joining = new Promise((resolve) => {
+        startJoining = resolve;
+    });
+    let rejectJoin;
+    const originalJoin = serverSocket.join.bind(serverSocket);
+    serverSocket.join = (roomCode) => {
+        if (roomCode !== created.roomCode) return originalJoin(roomCode);
+        return new Promise((_resolve, reject) => {
+            rejectJoin = reject;
+            startJoining();
+        });
+    };
+
+    guest.emit("join-room", { roomCode: created.roomCode, playerName: "Guest" }, () => {});
+    await joining;
+    const recovered = await disconnectAndRecover(harness, guest);
+    const restored = await emitWithAck(recovered, "restore-session");
+    assert.equal(restored.status, "restored");
+    assert.equal(harness.io.guestIdentityManager.getSocketId(guest.id), recovered.transportId);
+
+    rejectJoin(new roomManager.RoomError("SIMULATED_JOIN_FAILURE", "Join failed."));
+    await new Promise((resolve) => setImmediate(resolve));
+    serverSocket.join = originalJoin;
+
+    assert.equal(roomManager.getPlayerRoom(guest.id).code, created.roomCode);
+    assert.equal(roomManager.getRoom(created.roomCode).players.length, 2);
+    assert.equal(harness.io.disconnectGraceManager.size, 0);
+});
+
+test("a delayed room-join failure cannot remove a guest from a different room", async (context) => {
+    const harness = await createHarness(context);
+    const firstHost = await harness.connect();
+    const secondHost = await harness.connect();
+    const guest = await harness.connect();
+    const firstRoom = await emitWithAck(firstHost, "create-room", { playerName: "First host" });
+    const secondRoom = await emitWithAck(secondHost, "create-room", { playerName: "Second host" });
+    harness.trackRoom(firstRoom.roomCode);
+    harness.trackRoom(secondRoom.roomCode);
+    const serverSocket = harness.io.sockets.sockets.get(guest.transportId);
+    assert.ok(serverSocket);
+
+    let startJoining;
+    const joining = new Promise((resolve) => {
+        startJoining = resolve;
+    });
+    let rejectJoin;
+    const originalJoin = serverSocket.join.bind(serverSocket);
+    serverSocket.join = (roomCode) => {
+        if (roomCode !== firstRoom.roomCode) return originalJoin(roomCode);
+        return new Promise((_resolve, reject) => {
+            rejectJoin = reject;
+            startJoining();
+        });
+    };
+
+    guest.emit("join-room", { roomCode: firstRoom.roomCode, playerName: "Guest" }, () => {});
+    await joining;
+    assert.deepEqual(await emitWithAck(guest, "leave-room"), { left: true });
+    assert.equal(
+        (await emitWithAck(guest, "join-room", {
+            roomCode: secondRoom.roomCode,
+            playerName: "Guest",
+        })).error,
+        undefined,
+    );
+
+    rejectJoin(new roomManager.RoomError("SIMULATED_JOIN_FAILURE", "Join failed."));
+    await new Promise((resolve) => setImmediate(resolve));
+    serverSocket.join = originalJoin;
+
+    assert.equal(roomManager.getPlayerRoom(guest.id).code, secondRoom.roomCode);
+    assert.equal(roomManager.getRoom(firstRoom.roomCode).players.length, 1);
+    assert.equal(roomManager.getRoom(secondRoom.roomCode).players.length, 2);
+});
+
 test("disconnect reserves a player seat and expiry removes the player", async (context) => {
     const harness = await createHarness(context);
     const host = await harness.connect();
@@ -2315,6 +2452,22 @@ test("the host can immediately kick a disconnected player and cancel their timer
     assert.equal(harness.io.disconnectGraceManager.size, 0);
     await harness.advanceGrace();
     assert.equal(roomManager.getRoom(created.roomCode).players.length, 2);
+
+    const recovered = await harness.connect({ storage: target.recoveryStorage });
+    assert.equal(recovered.id, target.id);
+    assert.deepEqual(await emitWithAck(recovered, "restore-session"), {
+        status: "no-room",
+        playerId: target.id,
+    });
+    const otherHost = await harness.connect();
+    const otherRoom = await emitWithAck(otherHost, "create-room", { playerName: "Other host" });
+    harness.trackRoom(otherRoom.roomCode);
+    const joined = await emitWithAck(recovered, "join-room", {
+        roomCode: otherRoom.roomCode,
+        playerName: "Returning target",
+    });
+    assert.equal(joined.error, undefined);
+    assert.equal(joined.lobby.players.some(({ id }) => id === target.id), true);
 });
 
 test("host disconnect migrates host to the earliest remaining player", async (context) => {
@@ -4191,6 +4344,57 @@ test("same-tab recovery restores the authoritative lobby without duplicating a s
     assert.equal(roomManager.getPlayerRoom(host.playerId).code, created.roomCode);
 });
 
+test("restoration snapshots include lobby changes broadcast while room joining is pending", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(guest, "join-room", {
+        roomCode: created.roomCode,
+        playerName: "Guest",
+    });
+    const hostServerSocket = harness.io.sockets.sockets.get(host.transportId);
+    const disconnected = new Promise((resolve) => hostServerSocket.once("disconnect", resolve));
+    host.disconnect();
+    await disconnected;
+    const recovered = await harness.connect({ storage: host.recoveryStorage });
+    const recoveredServerSocket = harness.io.sockets.sockets.get(recovered.transportId);
+    const originalJoin = recoveredServerSocket.join.bind(recoveredServerSocket);
+    let beginJoin;
+    const joining = new Promise((resolve) => {
+        beginJoin = resolve;
+    });
+    let releaseJoin;
+    const joinGate = new Promise((resolve) => {
+        releaseJoin = resolve;
+    });
+    recoveredServerSocket.join = async (roomCode) => {
+        if (roomCode === created.roomCode) {
+            beginJoin();
+            await joinGate;
+        }
+        return originalJoin(roomCode);
+    };
+
+    const liveUpdate = waitForLobby(recovered, (lobby) =>
+        lobby.players.some(({ id, isReady }) => id === guest.playerId && isReady)
+    );
+    const restoreRequest = emitWithAck(recovered, "restore-session");
+    await joining;
+    assert.deepEqual(await emitWithAck(guest, "set-ready", { isReady: true }), { isReady: true });
+    const receivedLiveUpdate = await liveUpdate;
+    assert.equal(receivedLiveUpdate.players.find(({ id }) => id === guest.playerId).isReady, true);
+    releaseJoin();
+    const restored = await restoreRequest;
+    recoveredServerSocket.join = originalJoin;
+
+    assert.equal(restored.status, "restored");
+    assert.equal(restored.snapshot.lobby.revision, roomManager.getRoom(created.roomCode).revision);
+    assert.equal(restored.snapshot.lobby.players.find(({ id }) => id === guest.playerId).isReady, true);
+    assert.equal(roomManager.getPlayerRoom(host.playerId).players.length, 2);
+});
+
 test("active game restoration preserves the current round and only returns the viewer's permitted state", async (context) => {
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, {
@@ -4235,6 +4439,101 @@ test("active game restoration preserves the current round and only returns the v
     assert.equal(current.state.phase, "answer-submission");
     assert.equal(current.revision, first.snapshot.game.revision);
     assert.equal(roomManager.getRoom(game.roomCode).players.length, 2);
+});
+
+test("Fact-or-Cap restoration preserves a viewer's own submission and vote in voting", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, { playerCount: 2 });
+    const clients = [game.host, ...game.players];
+    const ownCompletion = "Only the submitting guest knows this here.";
+    for (const [index, client] of clients.entries()) {
+        const response = await emitWithAck(
+            client,
+            "fake-answer:submit",
+            withRoundId(game.gameState, {
+                completion: index === 0 ? ownCompletion : "The other player's completion.",
+            }),
+        );
+        assert.equal(response.error, undefined);
+    }
+
+    const voting = gameManager.getPublicGameState(game.roomCode, game.host.playerId);
+    assert.equal(voting.state.phase, "voting");
+    const selectedOption = voting.state.options.find(({ isOwnAnswer }) => !isOwnAnswer);
+    assert.ok(selectedOption);
+    assert.equal((await emitWithAck(
+        game.host,
+        "fake-answer:vote",
+        withRoundId(voting, { optionId: selectedOption.id }),
+    )).voted, true);
+
+    const recovered = await disconnectAndRecover(harness, game.host);
+    const restored = await emitWithAck(recovered, "restore-session");
+    const state = restored.snapshot.game.state;
+    assert.equal(state.phase, "voting");
+    assert.equal(state.viewerSubmission, ownCompletion);
+    assert.equal(state.viewerVoteOptionId, selectedOption.id);
+    assert.equal(state.voteProgress.find(({ playerId }) => playerId === recovered.playerId).voted, true);
+    assert.equal(state.voteProgress.find(({ playerId }) => playerId === game.players[0].playerId).voted, false);
+    assert.equal(Object.hasOwn(state, "votes"), false);
+    assert.equal(state.options.some((option) => Object.hasOwn(option, "authorId")), false);
+});
+
+test("Bruh WTF restoration preserves the viewer's own answer and vote without exposing answer authors", async (context) => {
+    const harness = await createHarness(context);
+    const [host, guest, third] = await Promise.all([
+        harness.connect(),
+        harness.connect(),
+        harness.connect(),
+    ]);
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.trackRoom(created.roomCode);
+    await emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "Guest" });
+    await emitWithAck(third, "join-room", { roomCode: created.roomCode, playerName: "Third" });
+    const selection = await emitWithAck(host, "select-game", { gameId: "bruh-wtf" });
+    assert.equal(selection.error, undefined);
+    await emitWithAck(guest, "set-ready", { isReady: true });
+    await emitWithAck(third, "set-ready", { isReady: true });
+    const initialState = waitForGameState(host, (gameState) =>
+        gameState.gameId === "bruh-wtf" && gameState.state.phase === "answer-submission"
+    );
+    const started = await emitWithAck(host, "start-game");
+    assert.equal(started.error, undefined);
+    const initial = await initialState;
+    assert.equal(initial.sessionId, started.game.sessionId);
+    const ownAnswer = "Host's private answer before voting.";
+    for (const [client, answer] of [
+        [host, ownAnswer],
+        [guest, "Guest answer."],
+        [third, "Third answer."],
+    ]) {
+        assert.equal((await emitWithAck(client, "bruh-wtf:submit", {
+            sessionId: initial.sessionId,
+            roundId: initial.state.roundId,
+            answer,
+        })).error, undefined);
+    }
+
+    const voting = gameManager.getPublicGameState(created.roomCode, host.playerId);
+    assert.equal(voting.state.phase, "voting");
+    const selectedOption = voting.state.options.find(({ isOwnAnswer }) => !isOwnAnswer);
+    assert.ok(selectedOption);
+    assert.equal((await emitWithAck(host, "bruh-wtf:vote", {
+        sessionId: voting.sessionId,
+        roundId: voting.state.roundId,
+        optionId: selectedOption.id,
+    })).voted, true);
+
+    const recovered = await disconnectAndRecover(harness, host);
+    const restored = await emitWithAck(recovered, "restore-session");
+    const state = restored.snapshot.game.state;
+    assert.equal(state.phase, "voting");
+    assert.equal(state.viewerSubmission, ownAnswer);
+    assert.equal(state.viewerVoteOptionId, selectedOption.id);
+    assert.equal(state.voteProgress.find(({ playerId }) => playerId === recovered.playerId).voted, true);
+    assert.equal(Object.hasOwn(state, "votes"), false);
+    assert.equal(state.options.some((option) => Object.hasOwn(option, "authorId")), false);
+    assert.equal(restored.snapshot.game.sessionId, initial.sessionId);
 });
 
 test("results viewers restore their finished result screen; expiry yields no room but keeps the guest identity reusable", async (context) => {

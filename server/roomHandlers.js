@@ -138,6 +138,21 @@ async function handlePlayerDeparture(io, socket, {
     return { room, updatedRoom, departure, leaveError: await leavePromise };
 }
 
+async function rollbackRoomEntry(io, socket, room, identityManager, disconnectGraceManager) {
+    const playerId = socket.data.playerId;
+    const currentRoom = roomManager.getPlayerRoom(playerId);
+    const activeSocketId = identityManager.getSocketId(playerId);
+    if (
+        !currentRoom ||
+        currentRoom.publicRoomId !== room.publicRoomId ||
+        (activeSocketId && activeSocketId !== socket.id)
+    ) {
+        return;
+    }
+
+    await handlePlayerDeparture(io, socket, { disconnectGraceManager });
+}
+
 function isAcknowledgement(value) {
     return typeof value === "function";
 }
@@ -288,8 +303,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
             await socket.join(room.code);
         } catch (error) {
             if (room) {
-                roomManager.removeRoom(room.code);
-                broadcastPublicRooms(io);
+                await rollbackRoomEntry(io, socket, room, identityManager, disconnectGraceManager);
             }
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
@@ -325,8 +339,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
             await socket.join(room.code);
         } catch (error) {
             if (room) {
-                roomManager.removePlayer(playerId);
-                broadcastPublicRooms(io);
+                await rollbackRoomEntry(io, socket, room, identityManager, disconnectGraceManager);
             }
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
@@ -357,8 +370,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
             await socket.join(room.code);
         } catch (error) {
             if (room) {
-                roomManager.removePlayer(playerId);
-                broadcastPublicRooms(io);
+                await rollbackRoomEntry(io, socket, room, identityManager, disconnectGraceManager);
             }
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);

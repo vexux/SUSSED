@@ -74,6 +74,7 @@ import {
   updateBruhSubmissionProgress,
   updateBruhVoteProgress,
 } from "./games/bruhWtf";
+import { chooseRestoredGame } from "./sessionRestoration";
 
 interface FakeAnswerSubmissionResponse {
   submitted?: boolean;
@@ -1325,35 +1326,13 @@ function requestSessionRestoration(): void {
         applyRemovedFromRoom(pendingRemoval);
         return;
       }
-      let game = snapshot.game === null ? null : snapshot.game;
+      const snapshotGame = snapshot.game === null ? null : snapshot.game;
       const bufferedGame = bufferedRestorationGame?.roomCode === lobby.roomCode
         ? bufferedRestorationGame
         : null;
-      if (lobby.status === "starting") {
-        if (
-          bufferedGame &&
-          (!game ||
-            bufferedGame.sessionId !== game.sessionId ||
-            (typeof bufferedGame.revision === "number" &&
-              typeof game.revision === "number" &&
-              bufferedGame.revision > game.revision))
-        ) {
-          game = bufferedGame;
-        }
-      } else if (localPlayer?.isInGame) {
-        if (
-          bufferedGame?.status === "finished" &&
-          (!game ||
-            (bufferedGame.sessionId === game.sessionId &&
-              typeof bufferedGame.revision === "number" &&
-              typeof game.revision === "number" &&
-              bufferedGame.revision > game.revision))
-        ) {
-          game = bufferedGame;
-        }
-      } else {
-        game = null;
-      }
+      const game = lobby.status === "starting" || localPlayer?.isInGame
+        ? chooseRestoredGame(snapshotGame, bufferedGame, lobby.roomCode)
+        : null;
       hydrateRestoredSession(lobby, game);
     },
   );
