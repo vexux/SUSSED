@@ -88,6 +88,15 @@ function startGame(room, gameId) {
         implementation: game,
         privateState
     };
+    for (const player of session.players) {
+        if (player.connected === false) {
+            session.implementation.setPlayerConnectionStatus?.(
+                session.privateState,
+                player.id,
+                false
+            );
+        }
+    }
     sessions.set(room.code, session);
     return createPublicGameState(session);
 }
@@ -127,8 +136,19 @@ function performGameAction(
     if (session.gameId !== gameId) {
         throw new GameSessionError("GAME_MISMATCH", "That game is not active in this room.");
     }
-    if (playerId !== null && !session.players.some((player) => player.id === playerId)) {
-        throw new GameSessionError("NOT_A_GAME_PLAYER", "You are not participating in this game.");
+    if (playerId !== null) {
+        const player = session.players.find((candidate) => candidate.id === playerId);
+        if (!player) {
+            throw new GameSessionError("NOT_A_GAME_PLAYER", "You are not participating in this game.");
+        }
+        if (player.connected === false) {
+            throw new GameSessionError("PLAYER_DISCONNECTED", "Disconnected players cannot act in the game.");
+        }
+        if (
+            session.implementation.isParticipantEligible?.(session.privateState, playerId) === false
+        ) {
+            throw new GameSessionError("SPECTATOR", "You are spectating this round and cannot act.");
+        }
     }
     if (typeof session.implementation.handleAction !== "function") {
         throw new GameSessionError("ACTION_NOT_SUPPORTED", "This game does not support that action.");
@@ -193,13 +213,27 @@ function setPlayerConnectionStatus(roomCode, playerId, connected) {
     const player = session.players.find((candidate) => candidate.id === playerId);
     if (!player) return false;
     const wasConnected = player.connected !== false;
+    if (wasConnected === connected) return { changed: false, advancedRound: false };
     if (connected) {
         delete player.connected;
     } else {
         player.connected = false;
     }
-    if (wasConnected !== connected) session.revision += 1;
-    return true;
+    const lifecycle = session.implementation.setPlayerConnectionStatus?.(
+        session.privateState,
+        playerId,
+        connected
+    ) ?? { changed: true, advancedRound: false };
+    session.status = session.implementation.isFinished?.(session.privateState) === true
+        ? "finished"
+        : "active";
+    session.revision += 1;
+    return {
+        changed: true,
+        advancedRound: lifecycle.advancedRound === true,
+        sessionId: session.sessionId,
+        gameId: session.gameId
+    };
 }
 
 function getGamePlayerIds(roomCode) {

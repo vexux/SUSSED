@@ -2,6 +2,7 @@ import "./style.css";
 import { onIdTokenChanged } from "firebase/auth";
 import {
   createInitialAppState,
+  getConnectionNotice,
   persistThemePreference,
   resolveThemePreference,
   resolveAuthEntryView,
@@ -327,6 +328,7 @@ let resultsReminderSuccessTimeout: ReturnType<typeof setTimeout> | null = null;
 let invitationFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
 let notificationRefreshTimer: ReturnType<typeof setInterval> | null = null;
 let playerActionFeedbackTimeout: ReturnType<typeof setTimeout> | null = null;
+let connectionNoticeTimeout: ReturnType<typeof setTimeout> | null = null;
 let publicRoomsRequestId = 0;
 let bruhAnswerDraft = "";
 let bruhIsSubmitting = false;
@@ -425,6 +427,24 @@ function clearPlayerActionFeedback(): void {
     playerActionFeedbackTimeout = null;
   }
   state.kickFeedback = null;
+}
+
+function clearConnectionNotice(): void {
+  if (connectionNoticeTimeout) {
+    clearTimeout(connectionNoticeTimeout);
+    connectionNoticeTimeout = null;
+  }
+  state.connectionNotice = null;
+}
+
+function showConnectionNotice(message: string): void {
+  clearConnectionNotice();
+  state.connectionNotice = message;
+  connectionNoticeTimeout = setTimeout(() => {
+    connectionNoticeTimeout = null;
+    state.connectionNotice = null;
+    render();
+  }, 4000);
 }
 
 function render(): void {
@@ -775,6 +795,12 @@ function applyLobbyState(lobby: LobbyState, shouldRender = true): void {
     clearResultsReminderSuccess();
     clearInvitationFeedback();
     clearPlayerActionFeedback();
+    clearConnectionNotice();
+  }
+  const previousLobby = state.lobby?.roomCode === lobby.roomCode ? state.lobby : null;
+  if (previousLobby) {
+    const notice = getConnectionNotice(previousLobby, lobby, state.localPlayerId);
+    if (notice) showConnectionNotice(notice);
   }
   if ((lobby.status === "lobby" && !remainsOnFinishedResults) || (lobby.status === "starting" && localPlayer.isInGame === false && state.game?.status === "finished")) {
     if (state.game) {

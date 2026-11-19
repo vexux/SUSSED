@@ -114,6 +114,34 @@ export interface LobbyState {
   players: LobbyPlayer[];
 }
 
+export function getConnectionNotice(
+  previousLobby: Pick<LobbyState, "players" | "status">,
+  nextLobby: Pick<LobbyState, "players" | "status">,
+  localPlayerId: string | null,
+): string | null {
+  const disconnectedPlayers = nextLobby.players.filter((player) =>
+    player.id !== localPlayerId &&
+    player.connected === false &&
+    previousLobby.players.find(({ id }) => id === player.id)?.connected !== false
+  );
+  if (disconnectedPlayers.length > 0) {
+    const names = disconnectedPlayers.map(({ name }) => name).join(", ");
+    return `${names} disconnected. Their seat is reserved for 90 seconds.`;
+  }
+
+  const reconnectedPlayers = nextLobby.players.filter((player) =>
+    player.id !== localPlayerId &&
+    player.connected !== false &&
+    previousLobby.players.find(({ id }) => id === player.id)?.connected === false
+  );
+  if (reconnectedPlayers.length === 0) return null;
+
+  const names = reconnectedPlayers.map(({ name }) => name).join(", ");
+  return nextLobby.status === "starting"
+    ? `${names} reconnected as a spectator until the next question.`
+    : `${names} reconnected.`;
+}
+
 export interface LobbyGame {
   id: string;
   displayName: string;
@@ -182,6 +210,7 @@ export interface AppState {
   pendingHostTransferId: string | null;
   selectedPlayerId: string | null;
   kickFeedback: string | null;
+  connectionNotice: string | null;
   invitationFeedback: string | null;
   publicRooms: PublicRoom[];
   isLoadingPublicRooms: boolean;
@@ -226,6 +255,7 @@ export function createInitialAppState(): AppState {
     pendingHostTransferId: null,
     selectedPlayerId: null,
     kickFeedback: null,
+    connectionNotice: null,
     invitationFeedback: null,
     publicRooms: [],
     isLoadingPublicRooms: false,

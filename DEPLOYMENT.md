@@ -93,11 +93,15 @@ The server verifies each Firebase ID token before profile operations and obtains
 the UID only from verified socket metadata. Profile actions run only when a
 user opens the account screens; they are not in the room/game critical path.
 The server-issued stable player ID is the multiplayer identity; `socket.id` is
-transport-only. Unexpected disconnects retain room and game participation for
-90 seconds so a guest that reconnects with the same recovery credential can
-resume the existing in-memory session. At expiry, the existing departure
-cleanup runs; explicitly leaving or being kicked remains immediate. Guest
-identities are separate from account profiles.
+transport-only. An unexpected disconnect reserves the room seat and match
+record for 90 seconds, but immediately removes that player from the current
+round's action quorum. Completed answers and votes, score, and history remain
+intact. A recovery within the grace period restores the same identity as a
+spectator until the next question; on the final round, the player remains a
+spectator through final results. The server rejects spectator actions. At
+expiry, permanent departure cleanup runs exactly once; explicit leave and kick
+remain immediate and do not enter the spectator flow. Guest identities are
+separate from account profiles.
 
 On a same-tab page refresh, the browser reuses the guest recovery credential
 from `sessionStorage` and asks the server to restore the current room and view.
@@ -271,11 +275,16 @@ profiles for the players; guest recovery credentials are tab-scoped.
    then refresh that player's tab. The same game and phase should return with
    that player's own submission/vote state preserved. Repeat with Bruh WTF
    using at least three players.
-3. **Disconnect grace:** disconnect unexpectedly and confirm the seat and
-   host role remain during grace. Reconnect before 90 seconds and verify the
-   same room/game. Automated tests use a fake clock for pre-expiry and exact
-   expiry checks; they do not wait 90 real seconds. A manual expiry check must
-   allow the complete server-controlled 90-second interval to elapse.
+3. **Disconnect grace:** disconnect unexpectedly during an active round and
+   confirm connected players can finish without waiting for the disconnected
+   player. Reconnect before 90 seconds and verify the same room and identity
+   return as a spectator for that round; confirm actions are rejected and the
+   player can act again at the next question. Repeat during the final round and
+   confirm final results remain visible without reactivation. Automated tests
+   use a fake clock for expiry checks; they do not wait 90 real seconds. A
+   manual expiry check must allow the complete server-controlled 90-second
+   interval to elapse. Explicit leave and kick should remove the player
+   immediately.
 4. **Departure:** leave normally and repeat with a host kick. Refresh/reconnect
    the departing player's tab; it should not restore the old room, but the
    stable guest identity should still be able to join a different room.
@@ -307,15 +316,18 @@ Restart both processes after changing environment values. In the browser:
    paste, or log the token. For server-side confirmation, inspect only the
    socket's `data.accountId` using a local debugger.
 3. Create/join a room as a guest and verify room/game behavior remains
-   available. A transient disconnect preserves the in-memory room/game session
-   for 90 seconds when the same guest recovery credential reconnects. Explicit
-   leave and host kick remain immediate; server restart clears rooms and grace
-   timers. Refresh the same browser tab during that period to verify it
-   restores the current room or game. Also verify a completed-results viewer
-   refreshes back to results after the host returns to the lobby. A guest with
-   no room should return to room entry, and can still use the same guest
-   identity to join a room. Restoration does not work across tabs or server
-   restarts.
+   available. An unexpected disconnect reserves the in-memory room seat and
+   match record for 90 seconds, while the match continues for connected
+   players. Reconnecting with the same guest recovery credential returns the
+   player as a spectator for the current round; confirm their actions are
+   rejected and they rejoin at the next question. On the final round, they
+   remain a spectator and can view the results. Explicit leave and host kick
+   remain immediate; server restart clears rooms and grace timers. Refresh the
+   same browser tab during the grace period to verify it restores the current
+   room or view. Also verify a completed-results viewer refreshes back to
+   results after the host returns to the lobby. A guest with no room should
+   return to room entry, and can still use the same guest identity to join a
+   room. Restoration does not work across tabs or server restarts.
 4. Test **Forgot password**, open the recovery message, submit a new password,
    then sign in with it. Try an expired link to confirm the app offers a new
    recovery email. Try Google after completing the dashboard setup.

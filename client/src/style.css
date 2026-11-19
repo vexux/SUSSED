@@ -1891,6 +1891,11 @@ select:focus:not(:focus-visible) {
   --notification-lifetime: 3000ms;
 }
 
+.connection-toast {
+  --notification-lifetime: 4000ms;
+  border-color: var(--color-border-subtle);
+}
+
 .visibility-field {
   display: grid;
   gap: var(--space-2);
@@ -2290,7 +2295,7 @@ select:focus:not(:focus-visible) {
   font-weight: 600;
 }
 
-.game-disconnected-notice {
+.game-spectator-notice {
   max-width: min(100%, 620px);
   margin: 0 auto var(--space-3);
   border: 1px solid var(--color-border-subtle);

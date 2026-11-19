@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createInitialAppState,
+  getConnectionNotice,
   HOME_TAGLINE,
   LANDING_TAGLINE,
   persistThemePreference,
@@ -177,6 +178,53 @@ function createAnswerEntryState(gameId) {
 function createActions() {
   return new Proxy({}, { get: () => () => {} });
 }
+
+test("connection notices are emitted only for player connection transitions", () => {
+  const previous = {
+    status: "starting",
+    players: [
+      { id: "local", name: "Alex", isHost: true, isReady: true, isInGame: true },
+      { id: "remote", name: "Sam", isHost: false, isReady: true, isInGame: true },
+    ],
+  };
+  const disconnected = {
+    ...previous,
+    players: previous.players.map((player) =>
+      player.id === "remote" ? { ...player, connected: false } : player
+    ),
+  };
+  assert.equal(
+    getConnectionNotice(previous, disconnected, "local"),
+    "Sam disconnected. Their seat is reserved for 90 seconds.",
+  );
+  assert.equal(getConnectionNotice(disconnected, disconnected, "local"), null);
+  assert.equal(
+    getConnectionNotice(disconnected, previous, "local"),
+    "Sam reconnected as a spectator until the next question.",
+  );
+  assert.equal(
+    getConnectionNotice(previous, previous, "local"),
+    null,
+  );
+});
+
+test("connection notifications use a polite accessible live region", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "game";
+    state.roomCode = "ABCD";
+    state.connectionNotice = "Sam disconnected. Their seat is reserved for 90 seconds.";
+    const root = new FakeElement("root");
+
+    renderApp(root, state, createActions(), {}, {});
+
+    const notification = root.query((element) => element.classList.contains("connection-toast"));
+    assert.ok(notification);
+    assert.equal(notification.getAttribute("role"), "status");
+    assert.equal(notification.getAttribute("aria-live"), "polite");
+    assert.match(notification.text, /Sam disconnected/u);
+  });
+});
 
 test("authentication panel renders verification, recovery, OAuth, and signed-in states", () => {
   withFakeDocument(() => {
@@ -1225,10 +1273,7 @@ test("lobby and game screens identify players within their disconnect grace peri
         state: {},
       };
       renderApp(root, state, createActions(), {}, {});
-      const notice = root.query((element) => element.className === "game-disconnected-notice");
-      assert.match(notice.textContent, /Offline/u);
-      assert.match(notice.textContent, /90 seconds/u);
-      assert.equal(notice.getAttribute("role"), "status");
+      assert.equal(root.query((element) => element.className === "game-disconnected-notice"), null);
     });
   });
 

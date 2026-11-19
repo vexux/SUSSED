@@ -586,6 +586,17 @@ function createFloatingNotification(message: string, className: string): HTMLEle
   return notification;
 }
 
+function createConnectionNotification(message: string): HTMLElement {
+  const notification = createElement(
+    "p",
+    "floating-notification connection-toast",
+    message,
+  );
+  notification.setAttribute("role", "status");
+  notification.setAttribute("aria-live", "polite");
+  return notification;
+}
+
 function renderWelcome(
   state: AppState,
   actions: AppActions,
@@ -2327,19 +2338,6 @@ function renderGame(
     }
   }
   const gameState = game.state;
-  const disconnectedPlayers = game.players.filter(
-    (player) => player.connected === false,
-  );
-  if (disconnectedPlayers.length > 0) {
-    const names = disconnectedPlayers.map(({ name }) => name).join(", ");
-    const notice = createElement(
-      "p",
-      "game-disconnected-notice",
-      `Waiting for ${names} to reconnect. Their place is reserved for 90 seconds.`,
-    );
-    notice.setAttribute("role", "status");
-    screen.insertBefore(notice, screen.firstElementChild);
-  }
   if (authState.isAuthenticated &&
     typeof gameState === "object" &&
     gameState !== null &&
@@ -2652,6 +2650,13 @@ export function renderApp(
   }
   if (state.kickFeedback && state.currentView === "lobby") {
     shell.append(createFloatingNotification(state.kickFeedback, "player-action-toast"));
+  }
+  if (
+    state.connectionNotice &&
+    state.roomCode &&
+    ["lobby", "starting", "game"].includes(state.currentView)
+  ) {
+    shell.append(createConnectionNotification(state.connectionNotice));
   }
   if (state.resultsReminderSessionId) {
     const dialog = createElement("dialog", "results-reminder-dialog");

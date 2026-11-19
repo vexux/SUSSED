@@ -63,6 +63,25 @@ function broadcastPublicRooms(io) {
     });
 }
 
+function scheduleAdvancedGameRound(io, roomCode, transition) {
+    if (
+        transition?.advancedRound !== true ||
+        !transition.gameId?.startsWith("fact-or-cap")
+    ) {
+        return;
+    }
+    const playerId = gameManager.getGamePlayerIds(roomCode)[0];
+    if (!playerId) return;
+    const game = gameManager.getPublicGameState(roomCode, playerId);
+    factOrCapSocketHandlers.scheduleSubmissionPhase(
+        io,
+        roomCode,
+        transition.sessionId,
+        game.state.roundId,
+        transition.gameId
+    );
+}
+
 async function handlePlayerDeparture(io, socket, {
     leaveSocket = false,
     disconnectGraceManager
@@ -121,16 +140,7 @@ async function handlePlayerDeparture(io, socket, {
         for (const player of departure.players) {
             io.to(getPersonalRoomName(player.id)).emit("game-state", gameManager.getPublicGameState(room.code, player.id));
         }
-        if (departure.advancedRound && departure.gameId.startsWith("fact-or-cap")) {
-            const current = gameManager.getPublicGameState(room.code, departure.players[0].id);
-            factOrCapSocketHandlers.scheduleSubmissionPhase(
-                io,
-                room.code,
-                departure.sessionId,
-                current.state.roundId,
-                departure.gameId
-            );
-        }
+        scheduleAdvancedGameRound(io, room.code, departure);
     } else {
         broadcastLobby(io, updatedRoom);
     }
@@ -805,7 +815,8 @@ function handleDisconnect(io, socket, identityManager, disconnectGraceManager) {
     );
     if (!update?.changed) return false;
 
-    gameManager.setPlayerConnectionStatus(room.code, playerId, false);
+    const gameTransition = gameManager.setPlayerConnectionStatus(room.code, playerId, false);
+    scheduleAdvancedGameRound(io, room.code, gameTransition);
     disconnectGraceManager.schedule({
         playerId,
         roomCode: room.code,

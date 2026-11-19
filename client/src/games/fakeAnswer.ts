@@ -152,6 +152,8 @@ export interface FakeAnswerPublicState {
   currentRound: number;
   totalRounds: number;
   roundId: string;
+  roundPlayerCount?: number;
+  viewerIsSpectator?: boolean;
   prompt: {
     id: string;
     text: string;
@@ -279,6 +281,8 @@ export function isFakeAnswerPublicState(
     value.phase === "waiting-for-results" ||
     value.phase === "results";
   const viewerStateIsValid =
+    (value.viewerIsSpectator === undefined ||
+      typeof value.viewerIsSpectator === "boolean") &&
     (value.viewerSubmission === undefined ||
       typeof value.viewerSubmission === "string") &&
     (value.viewerVoteOptionId === undefined ||
@@ -389,7 +393,7 @@ export function isFakeAnswerPublicState(
           typeof value.continuePlayerCount === "number" &&
           typeof value.viewerReadyToContinue === "boolean" &&
           Array.isArray(value.continueProgress) &&
-          value.continueProgress.length === value.playerCount &&
+        value.continueProgress.length === value.continuePlayerCount &&
           value.continueProgress.every(
             (player) =>
               isRecord(player) &&
@@ -401,7 +405,7 @@ export function isFakeAnswerPublicState(
             value.continueProgress
               .filter(isRecord)
               .map((player) => player.playerId),
-          ).size === value.playerCount &&
+          ).size === value.continuePlayerCount &&
           value.continueProgress.filter(
             (player) => isRecord(player) && player.ready === true,
           ).length === value.continueReadyCount));
@@ -416,12 +420,17 @@ export function isFakeAnswerPublicState(
     typeof value.roundId === "string" &&
     typeof value.submissionCount === "number" &&
     typeof value.playerCount === "number" &&
+    (value.roundPlayerCount === undefined ||
+      (typeof value.roundPlayerCount === "number" &&
+        value.roundPlayerCount >= value.playerCount)) &&
     promptIsValid &&
     optionsAreValid &&
     resultsAreValid &&
     ((value.phase !== "reveal" && value.phase !== "voting") ||
       (Array.isArray(value.options) &&
-        value.options.length === value.playerCount + 1 &&
+        value.options.length >= 2 &&
+        (value.roundPlayerCount === undefined ||
+          value.options.length <= value.roundPlayerCount + 1) &&
         value.options.filter(
           (option) => isRecord(option) && option.isOwnAnswer === true,
         ).length === 1)) &&
@@ -707,6 +716,14 @@ function createFinalResultsScreen(
   return screen;
 }
 
+function appendSpectatorNotice(screen: HTMLElement): void {
+  const notice = document.createElement("p");
+  notice.className = "game-spectator-notice";
+  notice.setAttribute("role", "status");
+  notice.textContent = "You’re spectating this round. You’ll be active again next question.";
+  screen.append(notice);
+}
+
 export function renderFakeAnswerGame(
   publicState: unknown,
   submission: FakeAnswerViewState,
@@ -738,7 +755,7 @@ export function renderFakeAnswerGame(
     isSessionFinished &&
     publicState.finalStatistics
   ) {
-    return createFinalResultsScreen(
+    const finalScreen = createFinalResultsScreen(
       publicState,
       submission,
       gameDisplayName,
@@ -748,6 +765,8 @@ export function renderFakeAnswerGame(
       onHistoryPage,
       onReturnFromResults,
     );
+    if (publicState.viewerIsSpectator) appendSpectatorNotice(finalScreen);
+    return finalScreen;
   }
 
   const titleText = publicState.phase === "reveal"
@@ -762,6 +781,7 @@ export function renderFakeAnswerGame(
             : "Round results"
         : "Question";
   appendGameHeader(screen, gameDisplayName, titleText, publicState.currentRound, publicState.totalRounds);
+  if (publicState.viewerIsSpectator) appendSpectatorNotice(screen);
 
   if (publicState.phase === "results" && publicState.results) {
     if (publicState.prompt) {
@@ -809,16 +829,18 @@ export function renderFakeAnswerGame(
     const roundPointsByPlayer = new Map(publicState.results.players.map(({ playerId, roundPoints }) => [playerId, roundPoints]));
     const standings = createStandingsList(publicState.results.standings, { roundPointsByPlayer });
     screen.append(standingsHeading, standings);
-    appendContinueReadiness({
-      screen,
-      readyCount: publicState.continueReadyCount ?? 0,
-      playerCount: publicState.continuePlayerCount ?? publicState.playerCount,
-      players: publicState.continueProgress ?? [],
-      viewerReady: publicState.viewerReadyToContinue === true,
-      isContinuing: submission.isContinuing,
-      onContinue,
-      error: submission.continueError,
-    });
+    if (!publicState.viewerIsSpectator) {
+      appendContinueReadiness({
+        screen,
+        readyCount: publicState.continueReadyCount ?? 0,
+        playerCount: publicState.continuePlayerCount ?? publicState.playerCount,
+        players: publicState.continueProgress ?? [],
+        viewerReady: publicState.viewerReadyToContinue === true,
+        isContinuing: submission.isContinuing,
+        onContinue,
+        error: submission.continueError,
+      });
+    }
     appendRoundFeedback(screen, publicState, submission, onDismissFeedback);
     return screen;
   }
@@ -843,7 +865,9 @@ export function renderFakeAnswerGame(
   if (publicState.phase === "question") {
     const preparing = document.createElement("p");
     preparing.className = "status-message";
-    preparing.textContent = "Get ready to complete the fact.";
+    preparing.textContent = publicState.viewerIsSpectator
+      ? "Watch this round. You’ll play again at the next question."
+      : "Get ready to complete the fact.";
     screen.append(preparing);
     return screen;
   }
@@ -858,6 +882,11 @@ export function renderFakeAnswerGame(
       publicState.playerCount,
       publicState.submissionProgress ?? [],
     );
+    if (publicState.viewerIsSpectator) {
+      screen.append(progress, playerList);
+      updateFakeAnswerProgress(screen, publicState, submission.currentPlayerId);
+      return screen;
+    }
     if (viewerHasSubmitted) {
       screen.append(progress, playerList);
       updateFakeAnswerProgress(screen, publicState, submission.currentPlayerId);
@@ -932,6 +961,17 @@ export function renderFakeAnswerGame(
         ? `Vote submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}…`
         : "Vote submitted. Preparing results…";
       screen.append(waiting);
+      return screen;
+    }
+    if (publicState.viewerIsSpectator) {
+      const options = document.createElement("ul");
+      options.className = "revealed-options";
+      for (const option of publicState.options ?? []) {
+        const item = document.createElement("li");
+        item.textContent = formatAnswerForDisplay(option.completion);
+        options.append(item);
+      }
+      screen.append(options);
       return screen;
     }
 

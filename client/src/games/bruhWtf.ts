@@ -19,8 +19,10 @@ export interface BruhWtfPublicState {
   currentRound: number;
   totalRounds: number;
   roundId: string;
+  roundPlayerCount?: number;
   prompt: string;
   playerCount: number;
+  viewerIsSpectator?: boolean;
   viewerSubmission?: string;
   viewerVoteOptionId?: string;
   submissionCount?: number;
@@ -76,6 +78,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function isBruhWtfPublicState(value: unknown): value is BruhWtfPublicState {
   if (!isRecord(value)) return false;
   if (
+    (value.viewerIsSpectator !== undefined && typeof value.viewerIsSpectator !== "boolean") ||
     (value.viewerSubmission !== undefined && typeof value.viewerSubmission !== "string") ||
     (value.viewerVoteOptionId !== undefined && typeof value.viewerVoteOptionId !== "string")
   ) return false;
@@ -91,6 +94,10 @@ export function isBruhWtfPublicState(value: unknown): value is BruhWtfPublicStat
     typeof value.roundId !== "string" ||
     typeof value.prompt !== "string" ||
     typeof value.playerCount !== "number"
+  ) return false;
+  if (
+    value.roundPlayerCount !== undefined &&
+    (typeof value.roundPlayerCount !== "number" || value.roundPlayerCount < value.playerCount)
   ) return false;
   if (value.phase === "answer-submission") {
     return typeof value.submissionCount === "number" && Array.isArray(value.submissionProgress);
@@ -150,6 +157,16 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, className?: stri
   return node;
 }
 
+function appendSpectatorNotice(screen: HTMLElement): void {
+  const notice = element(
+    "p",
+    "game-spectator-notice",
+    "You’re spectating this round. You’ll be active again next question.",
+  );
+  notice.setAttribute("role", "status");
+  screen.append(notice);
+}
+
 export function renderBruhWtfGame(
   value: unknown,
   view: BruhWtfViewState,
@@ -171,6 +188,7 @@ export function renderBruhWtfGame(
     return screen;
   }
   const state = value;
+  if (state.viewerIsSpectator) appendSpectatorNotice(screen);
   const isFinalRound = state.currentRound === state.totalRounds;
   if (state.phase === "results" && state.results && isFinalRound) {
     const { results } = state;
@@ -263,7 +281,9 @@ export function renderBruhWtfGame(
     list.classList.add("bruh-submission-player-list");
     screen.append(progress, list);
     updateBruhSubmissionProgress(screen, state, view.currentPlayerId);
-    if (submitted) {
+    if (state.viewerIsSpectator) {
+      screen.append(createStatusMessage("Watch this round. You’ll play again at the next question."));
+    } else if (submitted) {
       const waitingCount = state.playerCount - (state.submissionCount ?? 0);
       screen.append(createStatusMessage(waitingCount > 0
         ? `Answer submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}...`
@@ -297,6 +317,12 @@ export function renderBruhWtfGame(
       screen.append(createStatusMessage(waitingCount > 0
         ? `Vote submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}…`
         : "Vote submitted. Preparing results…"));
+    } else if (state.viewerIsSpectator) {
+      const options = element("ul", "revealed-options");
+      for (const option of state.options ?? []) {
+        options.append(element("li", undefined, option.completion));
+      }
+      screen.append(...voteProgress, options);
     } else {
       screen.append(createVotingForm({
         answers: state.options ?? [],
@@ -342,16 +368,18 @@ export function renderBruhWtfGame(
       element("h2", "results-section-heading", "Current leaderboard"),
       createStandingsList(presentationStandings, { roundPointsByPlayer }),
     );
-    appendContinueReadiness({
-      screen,
-      readyCount: state.continueReadyCount ?? 0,
-      playerCount: state.continuePlayerCount ?? state.playerCount,
-      players: state.continueProgress ?? [],
-      viewerReady: state.viewerReadyToContinue === true,
-      isContinuing: view.isContinuing,
-      onContinue,
-      error: view.continueError,
-    });
+    if (!state.viewerIsSpectator) {
+      appendContinueReadiness({
+        screen,
+        readyCount: state.continueReadyCount ?? 0,
+        playerCount: state.continuePlayerCount ?? state.playerCount,
+        players: state.continueProgress ?? [],
+        viewerReady: state.viewerReadyToContinue === true,
+        isContinuing: view.isContinuing,
+        onContinue,
+        error: view.continueError,
+      });
+    }
   }
   return screen;
 }

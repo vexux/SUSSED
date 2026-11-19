@@ -1003,7 +1003,15 @@ test("Socket.IO departure schedules one guarded next-round submission transition
 
             const [hostQuestion, guestQuestion] = await Promise.all(nextRoundStates);
             assert.equal(hostQuestion.state.roundId, guestQuestion.state.roundId);
-            assert.deepEqual(hostQuestion.players.map(({ id }) => id), [host.id, guest.id]);
+            if (departureType === "disconnect") {
+                assert.deepEqual(hostQuestion.players.map(({ id }) => id), [host.id, guest.id, leaver.id]);
+                assert.equal(
+                    hostQuestion.players.find(({ id }) => id === leaver.id).connected,
+                    false
+                );
+            } else {
+                assert.deepEqual(hostQuestion.players.map(({ id }) => id), [host.id, guest.id]);
+            }
             assert.equal(hostQuestion.state.phase, "question");
             assert.equal(scheduled.callbacks.length, 1);
             const [timer] = scheduled.callbacks;
@@ -1040,9 +1048,11 @@ test("Socket.IO departure schedules one guarded next-round submission transition
                 players.length === 2 &&
                 players.every(({ id }) => id !== leaver.id)
             ));
-            assert.throws(() => gameManager.getPublicGameState(game.roomCode, leaver.id), {
-                code: "NOT_A_GAME_PLAYER"
-            });
+            if (departureType === "leave") {
+                assert.throws(() => gameManager.getPublicGameState(game.roomCode, leaver.id), {
+                    code: "NOT_A_GAME_PLAYER"
+                });
+            }
             if (departureType === "leave") {
                 const state = gameManager.getPublicGameState(game.roomCode, host.id);
                 const rejected = await emitWithAck(leaver, "fake-answer:submit", withRoundId(state, {
@@ -2510,7 +2520,7 @@ test("host disconnect migrates host to the earliest remaining player", async (co
     assert.equal(roomManager.getRoom(created.roomCode).hostId, nextHost.id);
 });
 
-test("disconnect preserves active game participation until grace expiry", async (context) => {
+test("disconnect suspends current-round actions while retaining game membership through grace expiry", async (context) => {
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, { playerCount: 3 });
     const originalHostSocket = harness.io.sockets.sockets.get(game.host.transportId);
@@ -2519,7 +2529,7 @@ test("disconnect preserves active game participation until grace expiry", async 
     const disconnectedUpdate = waitForGameState(
         game.players[0],
         (state) => state.sessionId === originalSessionId &&
-            state.state.playerCount === 3 &&
+            state.state.playerCount === 2 &&
             state.players.some(({ id, connected }) => id === game.host.id && connected === false)
     );
     const disconnected = new Promise((resolve) =>
@@ -2530,15 +2540,19 @@ test("disconnect preserves active game participation until grace expiry", async 
     await disconnected;
     const disconnectedState = await disconnectedUpdate;
     assert.equal(disconnectedState.status, "active");
-    assert.equal(disconnectedState.state.playerCount, 3);
+    assert.equal(disconnectedState.state.playerCount, 2);
     assert.equal(disconnectedState.players.some(({ id }) => id === game.host.id), true);
     assert.equal(room.hostId, game.host.id);
     assert.equal(room.players.length, 3);
-    assert.equal(gameManager.getPublicGameState(game.roomCode, game.host.id).state.playerCount, 3);
+    const suspendedState = gameManager.getPublicGameState(game.roomCode, game.host.id).state;
+    assert.equal(suspendedState.playerCount, 2);
+    assert.equal(suspendedState.viewerIsSpectator, true);
 
     const activeUpdate = waitForGameState(
         game.players[0],
-        (state) => state.sessionId === originalSessionId && state.state.playerCount === 2
+        (state) => state.sessionId === originalSessionId &&
+            state.state.playerCount === 2 &&
+            !state.players.some(({ id }) => id === game.host.id)
     );
     await harness.advanceGrace();
     const active = await activeUpdate;
@@ -2576,7 +2590,7 @@ test("reconnecting during the grace period restores the same active game session
     const originalSocket = harness.io.sockets.sockets.get(game.host.transportId);
     const offlineUpdate = waitForGameState(game.players[0], (state) =>
         state.sessionId === sessionId &&
-        state.state.playerCount === 3 &&
+        state.state.playerCount === 2 &&
         state.players.some(({ id, connected }) => id === game.host.id && connected === false)
     );
     const disconnected = new Promise((resolve) => originalSocket.once("disconnect", resolve));
@@ -2587,7 +2601,7 @@ test("reconnecting during the grace period restores the same active game session
 
     const onlineUpdate = waitForGameState(game.players[0], (state) =>
         state.sessionId === sessionId &&
-        state.state.playerCount === 3 &&
+        state.state.playerCount === 2 &&
         !state.players.some(({ id, connected }) => id === game.host.id && connected === false)
     );
     const recovered = await harness.connect({ storage: game.host.recoveryStorage });
@@ -2600,7 +2614,81 @@ test("reconnecting during the grace period restores the same active game session
     await harness.advanceGrace(1);
     assert.equal(roomManager.getPlayerRoom(game.host.id).code, game.roomCode);
     assert.equal(gameManager.getPublicGameState(game.roomCode, game.host.id).sessionId, sessionId);
-    assert.equal(gameManager.getPublicGameState(game.roomCode, game.host.id).state.playerCount, 3);
+    assert.equal(gameManager.getPublicGameState(game.roomCode, game.host.id).state.viewerIsSpectator, true);
+});
+
+test("reconnected Fact-or-Cap players spectate the current round and regain actions next round", async (context) => {
+    const harness = await createHarness(context);
+    const game = await startFakeAnswer(harness, { playerCount: 3 });
+    const [host, guest, disconnectedPlayer] = [game.host, ...game.players];
+    const { sessionId } = game.gameState;
+    const { roundId } = game.gameState.state;
+
+    const recovered = await disconnectAndRecover(harness, disconnectedPlayer);
+    assert.equal(recovered.id, disconnectedPlayer.id);
+    const restored = await emitWithAck(recovered, "restore-session");
+    assert.equal(restored.status, "restored");
+    assert.equal(restored.snapshot.game.state.viewerIsSpectator, true);
+
+    const rejectedSubmission = await emitWithAck(recovered, "fake-answer:submit", {
+        sessionId, roundId, completion: "Spectator answer"
+    });
+    assert.equal(rejectedSubmission.error.code, "SPECTATOR");
+
+    for (const [client, text] of [[host, "Host active answer"], [guest, "Guest active answer"]]) {
+        const response = await emitWithAck(client, "fake-answer:submit", {
+            sessionId, roundId, completion: text
+        });
+        assert.equal(response.error, undefined);
+    }
+
+    const voting = gameManager.getPublicGameState(game.roomCode, host.id);
+    assert.equal(voting.state.phase, "voting");
+    for (const [client, otherText] of [
+        [host, "Guest active answer"],
+        [guest, "Host active answer"]
+    ]) {
+        const option = gameManager.getPublicGameState(game.roomCode, client.id).state.options
+            .find(({ completion }) => completion === otherText);
+        assert.ok(option);
+        const response = await emitWithAck(client, "fake-answer:vote", {
+            sessionId, roundId, optionId: option.id
+        });
+        assert.equal(response.error, undefined);
+    }
+
+    assert.equal(gameManager.getPublicGameState(game.roomCode, host.id).state.phase, "results");
+    const rejectedContinue = await emitWithAck(recovered, "fake-answer:continue", { sessionId, roundId });
+    assert.equal(rejectedContinue.error.code, "SPECTATOR");
+
+    const nextRound = waitForGameState(recovered, (state) =>
+        state.sessionId === sessionId &&
+        state.state.roundId !== roundId &&
+        state.state.phase === "answer-submission"
+    );
+    for (const client of [host, guest]) {
+        assert.equal((await emitWithAck(client, "fake-answer:continue", { sessionId, roundId })).error, undefined);
+    }
+
+    const nextState = await nextRound;
+    assert.equal(gameManager.getPublicGameState(game.roomCode, recovered.id).state.viewerIsSpectator, undefined);
+    const activeSubmission = await emitWithAck(recovered, "fake-answer:submit", {
+        sessionId,
+        roundId: nextState.state.roundId,
+        completion: "Active next-round answer"
+    });
+    assert.equal(activeSubmission.error, undefined);
+
+    const firstCycle = await disconnectAndRecover(harness, recovered);
+    const firstSnapshot = await emitWithAck(firstCycle, "restore-session");
+    assert.equal(firstSnapshot.snapshot.game.state.viewerIsSpectator, true);
+    assert.equal(firstSnapshot.snapshot.game.state.viewerSubmission, "Active next-round answer");
+    const secondCycle = await disconnectAndRecover(harness, firstCycle);
+    const secondSnapshot = await emitWithAck(secondCycle, "restore-session");
+    assert.equal(secondSnapshot.snapshot.game.state.viewerIsSpectator, true);
+    assert.equal(secondSnapshot.snapshot.game.state.viewerSubmission, "Active next-round answer");
+    assert.equal(roomManager.getRoom(game.roomCode).players.length, 3);
+    assert.equal(gameManager.getPublicGameState(game.roomCode, secondCycle.id).state.submissionCount, 1);
 });
 
 test("explicit leave during a game preserves the same session for remaining players", async (context) => {
@@ -2751,12 +2839,14 @@ test("Fact-or-Cap variants reconcile completed submissions once when the last un
                 gameManager.performGameAction = originalPerformGameAction;
             }
             listeners.forEach((stop) => stop());
-            assert.deepEqual(beginVotingActions, [{ gameId, sessionId: initial.sessionId }]);
+            assert.deepEqual(
+                beginVotingActions,
+                departureType === "leave" ? [{ gameId, sessionId: initial.sessionId }] : []
+            );
             for (const phaseList of phases) {
-                assert.deepEqual(
-                    phaseList,
-                    departureType === "disconnect" ? ["answer-submission", "voting"] : ["voting"],
-                    `${gameId} ${departureType} should publish the status and one reconciled state`
+                assert.ok(
+                    phaseList.length >= 1 && phaseList.every((phase) => phase === "voting"),
+                    `${gameId} ${departureType} should broadcast the reconciled voting phase`
                 );
             }
             assert.ok(states.every(({ state }) => state.options.length === 3));
@@ -2767,8 +2857,10 @@ test("Fact-or-Cap variants reconcile completed submissions once when the last un
                 state.voteProgress.length === 2 &&
                 state.voteProgress.every(({ playerId }) => playerId !== leaver.id)
             ));
-            assert.equal(roomManager.getPlayerRoom(leaver.id), null);
-            assert.throws(() => gameManager.getPublicGameState(game.roomCode, leaver.id), { code: "NOT_A_GAME_PLAYER" });
+            if (departureType === "leave") {
+                assert.equal(roomManager.getPlayerRoom(leaver.id), null);
+                assert.throws(() => gameManager.getPublicGameState(game.roomCode, leaver.id), { code: "NOT_A_GAME_PLAYER" });
+            }
 
             const results = [host, guest].map((client) => waitForGameState(client, (state) =>
                 state.sessionId === initial.sessionId && state.state.phase === "results"));
@@ -2882,7 +2974,11 @@ test("quick successive voting disconnects preserve both recorded votes and publi
         assert.equal(result.state.currentRound, voting.state.currentRound);
         assert.equal(result.state.phase, "results");
         assert.equal(result.state.playerCount, 2);
-        assert.deepEqual(result.players.map(({ id }) => id).sort(), [host.id, voter.id].sort());
+        assert.deepEqual(result.players.map(({ id }) => id).sort(), [
+            host.id, voter.id, leaverOne.id, leaverTwo.id
+        ].sort());
+        assert.equal(result.players.find(({ id }) => id === leaverOne.id).connected, false);
+        assert.equal(result.players.find(({ id }) => id === leaverTwo.id).connected, false);
         for (const [index, leaverId] of leaverIds.entries()) {
             const answer = result.state.results.options.find(({ authorId }) => authorId === leaverId);
             const player = result.state.results.players.find(({ playerId }) => playerId === leaverId);
@@ -4398,7 +4494,7 @@ test("restoration snapshots include lobby changes broadcast while room joining i
 test("active game restoration preserves the current round and only returns the viewer's permitted state", async (context) => {
     const harness = await createHarness(context);
     const game = await startFakeAnswer(harness, {
-        playerCount: 2,
+        playerCount: 3,
         waitForSubmission: true,
     });
     const [guest] = game.players;
@@ -4419,11 +4515,12 @@ test("active game restoration preserves the current round and only returns the v
     assert.equal(first.status, "restored");
     assert.deepEqual(repeated, first);
     assert.equal(first.snapshot.lobby.status, "starting");
-    assert.equal(first.snapshot.lobby.players.length, 2);
+    assert.equal(first.snapshot.lobby.players.length, 3);
     assert.equal(first.snapshot.lobby.players.find(({ id }) => id === game.host.playerId).isHost, true);
     assert.equal(first.snapshot.game.sessionId, beforeRecovery.sessionId);
     assert.equal(first.snapshot.game.state.roundId, beforeRecovery.state.roundId);
     assert.equal(first.snapshot.game.state.phase, "answer-submission");
+    assert.equal(first.snapshot.game.state.viewerIsSpectator, true);
     assert.equal(
         first.snapshot.game.state.submissionProgress.find(({ playerId }) => playerId === guest.playerId).submitted,
         true,
@@ -4438,7 +4535,7 @@ test("active game restoration preserves the current round and only returns the v
     assert.equal(current.state.roundId, beforeRecovery.state.roundId);
     assert.equal(current.state.phase, "answer-submission");
     assert.equal(current.revision, first.snapshot.game.revision);
-    assert.equal(roomManager.getRoom(game.roomCode).players.length, 2);
+    assert.equal(roomManager.getRoom(game.roomCode).players.length, 3);
 });
 
 test("Fact-or-Cap restoration preserves a viewer's own submission and vote in voting", async (context) => {

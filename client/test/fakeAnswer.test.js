@@ -754,6 +754,89 @@ test("ordinary question and round-results screens retain their heading and round
   }
 });
 
+test("Fact-or-Cap spectators receive progress without a submission control", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
+  try {
+    const state = {
+      phase: "answer-submission",
+      currentRound: 2,
+      totalRounds: 5,
+      roundId: "round-2",
+      prompt: { id: "prompt-2", text: "Complete this fact." },
+      submissionCount: 1,
+      playerCount: 2,
+      viewerIsSpectator: true,
+      submissionProgress: [
+        { playerId: "player-1", name: "Player One", submitted: true },
+        { playerId: "player-2", name: "Player Two", submitted: false },
+      ],
+    };
+    const view = {
+      currentPlayerId: "player-3",
+      hasSubmitted: false,
+      completionDraft: "",
+      isSubmitting: false,
+      submissionError: null,
+      hasVoted: false,
+      isVoting: false,
+      selectedOptionId: null,
+      voteError: null,
+      isContinuing: false,
+      continueError: null,
+      isHost: false,
+      isReturningToLobby: false,
+      returnToLobbyError: null,
+    };
+    const screen = renderFakeAnswerGame(
+      state, view, () => {}, () => {}, () => {}, () => {}, () => {}, "Fact or Cap", false,
+    );
+    const notice = screen.query((node) => node.className.includes("game-spectator-notice"));
+    assert.ok(notice);
+    assert.equal(notice.attributes.role, "status");
+    assert.equal(screen.query((node) => node.tagName === "form"), null);
+    assert.equal(screen.query((node) => node.tagName === "textarea"), null);
+    assert.match(screen.text, /1 of 2 answers submitted/u);
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
+test("final-round spectators can view results without a continue action", () => {
+  const originalDocument = globalThis.document;
+  globalThis.document = {
+    createElement: (tagName) => new FakeElement(tagName),
+    createElementNS: (_namespace, tagName) => new FakeElement(tagName),
+  };
+  try {
+    const state = { ...createFinalPublicState(), viewerIsSpectator: true };
+    const screen = renderFakeAnswerGame(
+      state,
+      createFinalView(),
+      () => {},
+      () => {},
+      () => {},
+      () => {},
+      () => {},
+      "Fact or Cap",
+      true,
+    );
+    const notice = screen.query((node) => node.className.includes("game-spectator-notice"));
+    assert.ok(notice);
+    assert.equal(notice.attributes.role, "status");
+    assert.match(notice.textContent, /spectating this round/u);
+    assert.equal(screen.query((node) => node.textContent === "Continue"), null);
+    assert.match(screen.text, /Final leaderboard/u);
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  }
+});
+
 test("all-round history opens on the final round and supports bounded page navigation", () => {
   const originalDocument = globalThis.document;
   globalThis.document = {

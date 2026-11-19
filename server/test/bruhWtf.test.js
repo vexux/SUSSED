@@ -72,10 +72,12 @@ function readyForResults(state) {
 function emitWithAck(client, event, payload) {
     return new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error(`${event} acknowledgement timed out`)), 3000);
-        client.emit(event, payload, (response) => {
+        const acknowledge = (response) => {
             clearTimeout(timer);
             resolve(response);
-        });
+        };
+        if (payload === undefined) client.emit(event, acknowledge);
+        else client.emit(event, payload, acknowledge);
     });
 }
 
@@ -172,12 +174,26 @@ async function createSocketHarness(context) {
     };
     return {
         connect,
+        io,
         rooms,
         async advanceGrace(milliseconds = DISCONNECT_GRACE_PERIOD_MS) {
             scheduler.advanceBy(milliseconds);
             await new Promise((resolve) => setImmediate(resolve));
         }
     };
+}
+
+async function disconnectAndRecover(harness, client) {
+    const playerId = client.id;
+    client.disconnect();
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+        if (harness.io.disconnectGraceManager.entries.has(playerId)) break;
+        await new Promise((resolve) => setImmediate(resolve));
+    }
+    assert.ok(harness.io.disconnectGraceManager.entries.has(playerId));
+    const recovered = await harness.connect({ storage: client.recoveryStorage });
+    assert.equal(recovered.id, playerId);
+    return recovered;
 }
 
 async function startBruhResults(context, { roundCount = 5 } = {}) {
@@ -589,14 +605,14 @@ test("Bruh results preserve a disconnected answer author's published history", a
     const disconnectedUpdates = [host, guest].map((client) => waitForGameState(client, (state) =>
         state.sessionId === sessionId &&
         state.state.phase === "results" &&
-        state.state.playerCount === 3 &&
+        state.state.playerCount === 2 &&
         state.players.some(({ id, connected }) => id === thirdId && connected === false)
     ));
     const disconnected = new Promise((resolve) => third.once("disconnect", resolve));
     third.disconnect();
     await disconnected;
     const [hostOffline, guestOffline] = await Promise.all(disconnectedUpdates);
-    assert.equal(hostOffline.state.playerCount, 3);
+    assert.equal(hostOffline.state.playerCount, 2);
     assert.equal(guestOffline.players.find(({ id }) => id === thirdId).connected, false);
 
     const hostPhases = recordGameStatePhases(host);
@@ -681,14 +697,14 @@ test("Bruh disconnect during voting preserves a submitted unvoted answer and the
     const disconnectedUpdates = [host, guest].map((client) => waitForGameState(client, (state) =>
         state.sessionId === sessionId &&
         state.state.phase === "voting" &&
-        state.state.playerCount === 3 &&
+        state.state.playerCount === 2 &&
         state.players.some(({ id, connected }) => id === thirdId && connected === false)
     ));
     const disconnected = new Promise((resolve) => third.once("disconnect", resolve));
     third.disconnect();
     await disconnected;
     const offlineStates = await Promise.all(disconnectedUpdates);
-    assert.ok(offlineStates.every(({ state }) => state.voteCount === 1 && state.playerCount === 3));
+    assert.ok(offlineStates.every(({ state }) => state.voteCount === 1 && state.playerCount === 2));
 
     const updates = [host, guest].map((client) => waitForGameState(client, (state) =>
         state.sessionId === sessionId && state.state.phase === "voting" && state.state.playerCount === 2));
@@ -719,4 +735,53 @@ test("Bruh disconnect during voting preserves a submitted unvoted answer and the
         assert.deepEqual(departedAnswer.voterNames, ["Host"]);
         assert.equal(result.state.playerCount, 2);
     }
+});
+
+test("Bruh voting reconnects are spectators until the next round and retain their submitted answer", async (context) => {
+    const { harness, host, guest, third, created, sessionId, roundId } = await startBruhVoting(context);
+    const recovered = await disconnectAndRecover(harness, third);
+    const restored = await emitWithAck(recovered, "restore-session");
+    assert.equal(restored.status, "restored", JSON.stringify(restored));
+    assert.equal(restored.snapshot.game.state.viewerIsSpectator, true);
+
+    const state = gameManager.getPublicGameState(created.roomCode, host.id).state;
+    const thirdAnswer = state.options.find(({ completion }) => completion === "Third answer");
+    const hostAnswer = state.options.find(({ completion }) => completion === "Host answer");
+    assert.ok(thirdAnswer);
+    assert.ok(hostAnswer);
+    assert.equal((await emitWithAck(recovered, "bruh-wtf:vote", {
+        sessionId, roundId, optionId: hostAnswer.id
+    })).error.code, "SPECTATOR");
+
+    assert.equal((await emitWithAck(host, "bruh-wtf:vote", {
+        sessionId, roundId, optionId: thirdAnswer.id
+    })).voted, true);
+    assert.equal((await emitWithAck(guest, "bruh-wtf:vote", {
+        sessionId, roundId, optionId: hostAnswer.id
+    })).voted, true);
+    const results = gameManager.getPublicGameState(created.roomCode, host.id);
+    assert.equal(results.state.phase, "results");
+    const preservedAnswer = results.state.results.answers.find(({ authorId }) => authorId === third.id);
+    assert.deepEqual(
+        { completion: preservedAnswer.completion, voteCount: preservedAnswer.voteCount },
+        { completion: "Third answer", voteCount: 1 }
+    );
+    assert.equal(results.state.results.leaderboard.find(({ playerId }) => playerId === third.id).score, 1);
+    assert.equal((await emitWithAck(recovered, "bruh-wtf:continue", { sessionId, roundId })).error.code, "SPECTATOR");
+
+    const nextRound = waitForGameState(recovered, (game) =>
+        game.sessionId === sessionId &&
+        game.state.roundId !== roundId &&
+        game.state.phase === "answer-submission"
+    );
+    assert.equal((await emitWithAck(host, "bruh-wtf:continue", { sessionId, roundId })).advanced, false);
+    assert.equal((await emitWithAck(guest, "bruh-wtf:continue", { sessionId, roundId })).advanced, true);
+    const activeState = await nextRound;
+    assert.equal(activeState.state.viewerIsSpectator, undefined);
+    assert.equal(gameManager.getPublicGameState(created.roomCode, recovered.id).state.viewerIsSpectator, undefined);
+    assert.equal((await emitWithAck(recovered, "bruh-wtf:submit", {
+        sessionId,
+        roundId: activeState.state.roundId,
+        answer: "Active next-round answer"
+    })).error, undefined);
 });

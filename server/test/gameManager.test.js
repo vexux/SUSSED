@@ -4,6 +4,7 @@ const gameManager = require("../gameManager");
 const gameRegistry = require("../gameRegistry");
 const factOrCap = require("../games/fact-or-cap/game");
 const factOrCapAnime = require("../games/fact-or-cap/anime");
+const bruhWtf = require("../games/bruh-wtf/game");
 const { questions: animeQuestions } = require("../games/fact-or-cap/animeQuestionBank");
 const {
     questions,
@@ -82,6 +83,37 @@ function submitFakeAnswerVote(state, playerId, selector) {
     const option = selector(state.options);
     factOrCap.handleAction(state, "vote", playerId, option.id);
     return option;
+}
+
+function completeLifecycleTestRound(implementation, state, { gameId, roundOne = false } = {}) {
+    const activePlayers = state.roundParticipants.filter(({ id }) =>
+        state.roundEligiblePlayerIds.has(id)
+    );
+    if (gameId === "fact-or-cap" && state.phase === "question") {
+        implementation.handleAction(state, "open-submissions");
+    }
+    for (const player of activePlayers) {
+        const answer = `round ${state.currentRound} answer by ${player.id}`;
+        implementation.handleAction(
+            state,
+            gameId === "bruh-wtf" ? "submit-answer" : "submit-completion",
+            player.id,
+            answer
+        );
+    }
+    if (gameId === "fact-or-cap") implementation.handleAction(state, "begin-voting");
+
+    for (const player of activePlayers) {
+        const targetAuthorId = roundOne && player.id !== "player-3"
+            ? "player-3"
+            : activePlayers.find(({ id }) => id !== player.id).id;
+        const option = state.options.find(({ authorId }) => authorId === targetAuthorId);
+        assert.ok(option);
+        implementation.handleAction(state, "vote", player.id, option.id);
+    }
+    assert.equal(state.phase, "waiting-for-results");
+    implementation.handleAction(state, "publish-results");
+    assert.equal(state.phase, "results");
 }
 
 function completeManagedRound(room, selectCompletion) {
@@ -1140,6 +1172,67 @@ test("Fact-or-Cap continuation waits for everyone and resets round data without 
         );
     } finally {
         gameManager.removeGame(room.code);
+    }
+});
+
+test("both games keep final-round reconnects spectator-only and preserve their score history", () => {
+    const players = [
+        { id: "player-1", name: "Player 1" },
+        { id: "player-2", name: "Player 2" },
+        { id: "player-3", name: "Player 3" }
+    ];
+    for (const [gameId, implementation] of [
+        ["fact-or-cap", factOrCap],
+        ["bruh-wtf", bruhWtf]
+    ]) {
+        const state = implementation.start(
+            implementation.createInitialState(players, { roundCount: 5 })
+        );
+        for (let round = 1; round <= 4; round += 1) {
+            completeLifecycleTestRound(implementation, state, {
+                gameId,
+                roundOne: round === 1
+            });
+            for (const playerId of [...state.roundEligiblePlayerIds]) {
+                implementation.handleAction(state, "continue", playerId);
+            }
+        }
+
+        assert.equal(state.currentRound, 5);
+        const scoreBeforeFinal = state.scores.get("player-3");
+        assert.ok(scoreBeforeFinal > 0);
+        implementation.setPlayerConnectionStatus(state, "player-3", false);
+        implementation.setPlayerConnectionStatus(state, "player-3", true);
+        if (gameId === "fact-or-cap") implementation.handleAction(state, "open-submissions");
+        const spectatorState = implementation.createPublicState(state, "player-3");
+        assert.equal(spectatorState.viewerIsSpectator, true);
+        assert.equal(Object.hasOwn(spectatorState, "options"), false);
+        assert.throws(
+            () => implementation.handleAction(
+                state,
+                gameId === "bruh-wtf" ? "submit-answer" : "submit-completion",
+                "player-3",
+                "A final-round spectator answer"
+            ),
+            { code: "SPECTATOR" }
+        );
+
+        completeLifecycleTestRound(implementation, state, { gameId });
+        const finalState = implementation.createPublicState(state, "player-3");
+        assert.equal(finalState.phase, "results");
+        assert.equal(finalState.viewerIsSpectator, true);
+        assert.equal(state.scores.get("player-3"), scoreBeforeFinal);
+        assert.equal(state.roundHistory.length, 5);
+        if (gameId === "fact-or-cap") {
+            const firstRound = finalState.results.roundHistory[0];
+            assert.ok(firstRound.players.find(({ playerId }) => playerId === "player-3").totalScore > 0);
+        } else {
+            const firstRound = finalState.results.roundHistory[0];
+            assert.equal(
+                firstRound.answers.find(({ authorId }) => authorId === "player-3").voteCount,
+                2
+            );
+        }
     }
 });
 

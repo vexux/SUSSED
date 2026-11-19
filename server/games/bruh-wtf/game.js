@@ -52,6 +52,8 @@ function createInitialState(players, { roundCount = DEFAULT_ROUND_COUNT } = {}) 
         // A departure changes future eligibility, not the identities attached
         // to answers and votes already recorded in this round.
         roundParticipants: players.map(({ id, name }) => ({ id, name })),
+        connectedPlayerIds: new Set(players.map(({ id }) => id)),
+        roundEligiblePlayerIds: new Set(players.map(({ id }) => id)),
         questionOrder: shuffle(eligible).slice(0, roundCount),
         currentQuestion: null,
         resolvedPrompt: null,
@@ -74,6 +76,11 @@ function openRound(state, roundIndex) {
     }
     state.currentRound = roundIndex + 1;
     state.roundParticipants = state.participants.map(({ id, name }) => ({ id, name }));
+    state.roundEligiblePlayerIds = new Set(
+        state.roundParticipants
+            .filter(({ id }) => state.connectedPlayerIds.has(id))
+            .map(({ id }) => id)
+    );
     state.currentQuestion = question;
     state.resolvedPrompt = resolvePrompt(question, state.participants);
     state.roundId = randomUUID();
@@ -92,11 +99,31 @@ function start(state) {
 }
 
 function allActiveParticipantsSubmitted(state) {
-    return state.participants.every(({ id }) => state.submissionProgress.get(id) === true);
+    return state.roundParticipants.every(({ id }) =>
+        !state.roundEligiblePlayerIds.has(id) || state.submissionProgress.get(id) === true
+    );
 }
 
 function allActiveParticipantsVoted(state) {
-    return state.participants.every(({ id }) => state.votes.has(id));
+    return state.roundParticipants.every(({ id }) =>
+        !state.roundEligiblePlayerIds.has(id) || state.votes.has(id)
+    );
+}
+
+function getRequiredPlayers(state, completed) {
+    return state.participants.filter(({ id }) =>
+        state.roundEligiblePlayerIds.has(id) || completed(id)
+    );
+}
+
+function getRequiredContinuePlayers(state) {
+    return getRequiredPlayers(state, (id) => state.continueReady.has(id));
+}
+
+function canEveryEligiblePlayerVote(state) {
+    return [...state.roundEligiblePlayerIds].every((playerId) =>
+        state.options.some(({ authorId }) => authorId !== playerId)
+    );
 }
 
 function createVotingOptions(state) {
@@ -111,6 +138,9 @@ function submitAnswer(state, playerId, answer) {
     }
     if (!state.submissionProgress.has(playerId)) {
         throw new BruhWtfError("NOT_A_GAME_PLAYER", "You are not participating in this game.");
+    }
+    if (!state.roundEligiblePlayerIds.has(playerId)) {
+        throw new BruhWtfError("SPECTATOR", "You are spectating this round and cannot submit an answer.");
     }
     if (state.submissionProgress.get(playerId)) {
         throw new BruhWtfError("ALREADY_SUBMITTED", "You have already submitted an answer.");
@@ -128,11 +158,19 @@ function submitAnswer(state, playerId, answer) {
     if (allActiveParticipantsSubmitted(state)) {
         createVotingOptions(state);
         state.phase = "voting";
+        if (!canEveryEligiblePlayerVote(state)) {
+            state.phase = "waiting-for-results";
+            publishResults(state);
+        }
     }
+    const requiredPlayers = getRequiredPlayers(
+        state,
+        (id) => state.submissionProgress.get(id) === true
+    );
     return {
         submitted: true,
-        submissionCount: state.participants.filter(({ id }) => state.submissionProgress.get(id) === true).length,
-        playerCount: state.participants.length
+        submissionCount: requiredPlayers.filter(({ id }) => state.submissionProgress.get(id) === true).length,
+        playerCount: requiredPlayers.length
     };
 }
 
@@ -142,6 +180,9 @@ function vote(state, playerId, optionId) {
     }
     if (!state.participants.some(({ id }) => id === playerId)) {
         throw new BruhWtfError("NOT_A_GAME_PLAYER", "You are not participating in this game.");
+    }
+    if (!state.roundEligiblePlayerIds.has(playerId)) {
+        throw new BruhWtfError("SPECTATOR", "You are spectating this round and cannot vote.");
     }
     if (state.votes.has(playerId)) {
         throw new BruhWtfError("ALREADY_VOTED", "You have already voted.");
@@ -157,10 +198,11 @@ function vote(state, playerId, optionId) {
     if (allActiveParticipantsVoted(state)) {
         state.phase = "waiting-for-results";
     }
+    const requiredPlayers = getRequiredPlayers(state, (id) => state.votes.has(id));
     return {
         voted: true,
-        voteCount: state.participants.filter(({ id }) => state.votes.has(id)).length,
-        playerCount: state.participants.length
+        voteCount: requiredPlayers.filter(({ id }) => state.votes.has(id)).length,
+        playerCount: requiredPlayers.length
     };
 }
 
@@ -183,7 +225,10 @@ function publishResults(state) {
     if (state.phase === "results") {
         throw new BruhWtfError("RESULTS_ALREADY_PUBLISHED", "This round's results have already been published.");
     }
-    if (state.phase !== "waiting-for-results" || !allActiveParticipantsVoted(state)) {
+    if (
+        state.phase !== "waiting-for-results" ||
+        (!allActiveParticipantsVoted(state) && canEveryEligiblePlayerVote(state))
+    ) {
         throw new BruhWtfError("VOTES_NOT_COMPLETE", "Results are not ready until all players have voted.");
     }
     const voteCounts = new Map(state.options.map(({ id }) => [id, 0]));
@@ -235,15 +280,19 @@ function continueRound(state, playerId) {
     if (!state.participants.some(({ id }) => id === playerId)) {
         throw new BruhWtfError("NOT_A_GAME_PLAYER", "You are not participating in this game.");
     }
+    if (!state.roundEligiblePlayerIds.has(playerId)) {
+        throw new BruhWtfError("SPECTATOR", "You are spectating this round and cannot continue the game.");
+    }
     if (state.continueReady.has(playerId)) {
         throw new BruhWtfError("ALREADY_READY", "You are already ready to continue.");
     }
     state.continueReady.add(playerId);
-    if (state.continueReady.size < state.participants.length) {
-        return { ready: true, advanced: false, readyCount: state.continueReady.size, playerCount: state.participants.length };
+    const playerCount = getRequiredContinuePlayers(state).length;
+    if (state.continueReady.size < playerCount) {
+        return { ready: true, advanced: false, readyCount: state.continueReady.size, playerCount };
     }
     openRound(state, state.currentRound);
-    return { ready: true, advanced: true, readyCount: 0, playerCount: state.participants.length };
+    return { ready: true, advanced: true, readyCount: 0, playerCount };
 }
 
 function removeParticipant(state, playerId) {
@@ -254,6 +303,8 @@ function removeParticipant(state, playerId) {
     const allQuestions = questionLibrary.loadQuestionPacks();
     const wasPublished = state.phase === "results";
     state.participants.splice(participantIndex, 1);
+    state.connectedPlayerIds.delete(playerId);
+    state.roundEligiblePlayerIds.delete(playerId);
     state.continueReady.delete(playerId);
 
     const currentAndPast = state.questionOrder.slice(0, state.currentRound);
@@ -284,11 +335,66 @@ function removeParticipant(state, playerId) {
     if (state.phase === "waiting-for-results") publishResults(state);
 
     if (wasPublished && state.currentRound < state.totalRounds &&
-        state.continueReady.size === state.participants.length) {
+        state.continueReady.size === getRequiredContinuePlayers(state).length) {
         openRound(state, state.currentRound);
         advancedRound = true;
     }
     return { removed: true, advancedRound };
+}
+
+function suspendParticipant(state, playerId) {
+    if (
+        !state.participants.some(({ id }) => id === playerId) ||
+        !state.roundEligiblePlayerIds.delete(playerId)
+    ) {
+        return { changed: false, advancedRound: false };
+    }
+
+    if (state.phase === "answer-submission" && allActiveParticipantsSubmitted(state)) {
+        createVotingOptions(state);
+        state.phase = "voting";
+        if (!canEveryEligiblePlayerVote(state)) {
+            state.phase = "waiting-for-results";
+        }
+    }
+    if (state.phase === "voting" && !canEveryEligiblePlayerVote(state)) {
+        state.phase = "waiting-for-results";
+    }
+    if (state.phase === "voting" && allActiveParticipantsVoted(state)) {
+        state.phase = "waiting-for-results";
+    }
+    if (state.phase === "waiting-for-results") publishResults(state);
+
+    let advancedRound = false;
+    if (
+        state.phase === "results" &&
+        state.currentRound < state.totalRounds &&
+        state.continueReady.size === getRequiredContinuePlayers(state).length
+    ) {
+        openRound(state, state.currentRound);
+        advancedRound = true;
+    }
+    return { changed: true, advancedRound };
+}
+
+function setPlayerConnectionStatus(state, playerId, connected) {
+    if (!state.participants.some(({ id }) => id === playerId)) {
+        return { changed: false, advancedRound: false };
+    }
+    const wasConnected = state.connectedPlayerIds.has(playerId);
+    if (wasConnected === connected) {
+        return { changed: false, advancedRound: false };
+    }
+    if (connected) {
+        state.connectedPlayerIds.add(playerId);
+        return { changed: true, advancedRound: false };
+    }
+    state.connectedPlayerIds.delete(playerId);
+    return { ...suspendParticipant(state, playerId), changed: true };
+}
+
+function isParticipantEligible(state, playerId) {
+    return state.roundEligiblePlayerIds.has(playerId);
 }
 
 function handleAction(state, action, playerId, payload) {
@@ -308,7 +414,16 @@ function createPublicState(state, viewerId) {
         totalRounds: state.totalRounds,
         roundId: state.roundId,
         prompt: state.resolvedPrompt,
-        playerCount: state.participants.length,
+        playerCount: state.phase === "answer-submission"
+            ? getRequiredPlayers(state, (id) => state.submissionProgress.get(id) === true).length
+            : state.phase === "voting" || state.phase === "waiting-for-results"
+              ? getRequiredPlayers(state, (id) => state.votes.has(id)).length
+              : state.phase === "results" && state.currentRound < state.totalRounds
+                ? getRequiredContinuePlayers(state).length
+                : state.participants.length,
+        ...(typeof viewerId === "string" && !state.roundEligiblePlayerIds.has(viewerId)
+            ? { viewerIsSpectator: true }
+            : {}),
         ...(typeof viewerId === "string" && state.submittedAnswers.has(viewerId)
             ? { viewerSubmission: state.submittedAnswers.get(viewerId) }
             : {}),
@@ -319,8 +434,14 @@ function createPublicState(state, viewerId) {
     if (state.phase === "answer-submission") {
         return {
             ...base,
-            submissionCount: state.participants.filter(({ id }) => state.submissionProgress.get(id) === true).length,
-            submissionProgress: state.participants.map(({ id, name }) => ({
+            submissionCount: getRequiredPlayers(
+                state,
+                (id) => state.submissionProgress.get(id) === true
+            ).filter(({ id }) => state.submissionProgress.get(id) === true).length,
+            submissionProgress: getRequiredPlayers(
+                state,
+                (id) => state.submissionProgress.get(id) === true
+            ).map(({ id, name }) => ({
                 playerId: id,
                 name,
                 submitted: state.submissionProgress.get(id) === true
@@ -330,8 +451,10 @@ function createPublicState(state, viewerId) {
     if (state.phase === "voting") {
         return {
             ...base,
-            voteCount: state.participants.filter(({ id }) => state.votes.has(id)).length,
-            voteProgress: state.participants.map(({ id, name }) => ({ playerId: id, name, voted: state.votes.has(id) })),
+            voteCount: getRequiredPlayers(state, (id) => state.votes.has(id))
+                .filter(({ id }) => state.votes.has(id)).length,
+            voteProgress: getRequiredPlayers(state, (id) => state.votes.has(id))
+                .map(({ id, name }) => ({ playerId: id, name, voted: state.votes.has(id) })),
             options: state.options
                 .map(({ id, completion, authorId }) => ({
                     id,
@@ -343,8 +466,10 @@ function createPublicState(state, viewerId) {
     if (state.phase === "waiting-for-results") {
         return {
             ...base,
-            voteCount: state.participants.filter(({ id }) => state.votes.has(id)).length,
-            voteProgress: state.participants.map(({ id, name }) => ({ playerId: id, name, voted: state.votes.has(id) }))
+            voteCount: getRequiredPlayers(state, (id) => state.votes.has(id))
+                .filter(({ id }) => state.votes.has(id)).length,
+            voteProgress: getRequiredPlayers(state, (id) => state.votes.has(id))
+                .map(({ id, name }) => ({ playerId: id, name, voted: state.votes.has(id) }))
         };
     }
     if (state.phase === "results") {
@@ -353,9 +478,10 @@ function createPublicState(state, viewerId) {
         return {
             ...base,
             continueReadyCount: state.continueReady.size,
-            continuePlayerCount: state.participants.length,
+            continuePlayerCount: getRequiredContinuePlayers(state).length,
             viewerReadyToContinue: state.continueReady.has(viewerId),
-            continueProgress: state.participants.map(({ id, name }) => ({ playerId: id, name, ready: state.continueReady.has(id) })),
+            continueProgress: getRequiredContinuePlayers(state)
+                .map(({ id, name }) => ({ playerId: id, name, ready: state.continueReady.has(id) })),
             results: {
                 ...state.results,
                 ...(state.currentRound === state.totalRounds
@@ -385,6 +511,9 @@ module.exports = {
     start,
     handleAction,
     removeParticipant,
+    isParticipantEligible,
+    setPlayerConnectionStatus,
+    suspendParticipant,
     createPublicState,
     isFinished: (state) => state.phase === "results" && state.currentRound === state.totalRounds,
     BruhWtfError,

@@ -233,6 +233,36 @@ test("Bruh wtf voting renders shared avatar statuses while the local player is s
   });
 });
 
+test("Bruh spectators see published answers without voting controls", () => {
+  withFakeElements(() => {
+    const state = { ...votingPublicState(), viewerIsSpectator: true };
+    const root = renderBruhWtfGame(
+      state,
+      {
+        currentPlayerId: "local",
+        selectedOptionId: null,
+        isVoting: false,
+        hasVoted: false,
+        isContinuing: false,
+      },
+      () => {},
+      () => {},
+      () => {},
+      () => {},
+      () => {},
+      () => {},
+      "Bruh wtf?",
+      false,
+    );
+    const notice = root.querySelector(".game-spectator-notice");
+    assert.ok(notice);
+    assert.equal(notice.attributes.role, "status");
+    assert.match(notice.textContent, /spectating this round/u);
+    assert.ok(root.querySelector(".revealed-options"));
+    assert.equal(root.queryAll((node) => node.tagName === "button").length, 0);
+  });
+});
+
 test("Bruh round results show answer details and authoritative round deltas in tied leaderboard rows", () => {
   withFakeElements(() => {
     const state = {
