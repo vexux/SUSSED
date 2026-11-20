@@ -790,7 +790,7 @@ function createPublicState(state, viewerId) {
                     .map(({ id, completion, authorId }) => ({
                             id,
                             completion,
-                            isOwnAnswer: authorId === viewerId
+                            isOwnAnswer: typeof viewerId === "string" && authorId === viewerId
                         }))
             }
             : {}),
@@ -811,6 +811,7 @@ function createFakeAnswerGame({ id, displayName, description, questionBank: bank
         id,
         displayName,
         description,
+        category: "Bluffing",
         supportsRoundSelection: true,
         socketProtocol: "fact-or-cap",
         supportedPlayers: Object.freeze({ min: 2 }),

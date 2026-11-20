@@ -500,6 +500,7 @@ function createPublicState(state, viewerId) {
 module.exports = {
     id: "bruh-wtf",
     displayName: "Bruh wtf?",
+    category: "Humor",
     description: "A multiplayer prompt game where players answer and vote for each other's funniest responses.",
     supportsRoundSelection: true,
     socketProtocol: "bruh-wtf",

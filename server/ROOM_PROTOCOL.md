@@ -49,6 +49,26 @@ Only an activated socket joins the player's personal delivery room. Room creatio
 
 ## Match participation and archived results
 
+### Adding a game
+
+Register the server module at startup in `gameRegistry.js`. Registration rejects duplicate IDs, malformed metadata, invalid seat ranges, and missing lifecycle hooks. All production modules are trusted server code. The public catalog contains the ID, display name, description, category, and effective player limits.
+
+| Module member | Responsibility |
+| --- | --- |
+| `id`, `displayName`, `description`, `category`, `socketProtocol` | Give the game a unique lowercase slug, catalog metadata, and the name of its wire protocol. Variants may share a protocol and rules engine. |
+| `supportedPlayers: { min, max? }`, `supportsRoundSelection` | Declare supported seat counts and whether the lobby offers round selection. Rooms enforce the platform maximum of eight. |
+| `createInitialState(players, config)`, `start(initialState)` | Initialize fresh private state for each session from the admitted roster and selected configuration. Return the started state. |
+| `handleAction(state, action, playerId, payload)` | Validate the action, phase, input, and prior actions before applying it. Return the acknowledgement. Server transitions use a null actor. |
+| `isParticipantEligible(state, playerId)`, `setPlayerConnectionStatus(state, playerId, connected)` | Enforce round eligibility and reconcile disconnects and reconnects. Return `advancedRound` when a connection transition starts a round. |
+| `removeParticipant(state, playerId)` | Reconcile a permanent departure and return `{ removed: true }` with any protocol-specific transition information. The manager maintains the authoritative roster independently. |
+| `isFinished(state)`, `createPublicState(state, viewerId)` | Determine completion and project the state that this viewer may see. Support an anonymous projection for shared start and archived results snapshots. |
+
+Reuse an existing socket protocol when its actions and projections match. For a new protocol, add its event handlers to `gameProtocols.js` and implement its client renderer and actions. Protocol adapters can react to game start, departure, or round advancement. Handlers derive identity from the activated socket, resolve its room on the server, check the game protocol and expected session and round, and dispatch only the action associated with that event. The manager checks session identity, roster, connection, and eligibility before invoking player actions. Do not expose a generic event that forwards arbitrary actions to the engine.
+
+Fact or Cap and its Anime variant implement Fake Answer. Each round opens submissions, accepts one bluff per eligible player, shuffles the bluffs with the real completion, then accepts one vote per eligible voter. Players cannot vote for their own bluff. Voting projections identify only the viewer's own answer. Results reveal the truth and award two points for a correct vote and one point to a bluff's author per vote it received. Intermediate results use the existing continue-ready flow. The final round exposes match history and standings. Replay starts a fresh session with fresh scores and submissions in the same room.
+
+### Restoring a viewer
+
 The lobby projection's historical `isInGame` flag means the member is still viewing an archived results session. Current match participants have this flag set to false, including on the final results screen before the host returns. Their chat remains available through room updates until the host reopens the lobby. Results reminders are available only while that lobby is open.
 
 If another match starts, restoration still returns the archived snapshot to its viewer. A viewer who returns during that newer match waits for the lobby with `game: null`. They do not enter its roster. If the host departs during a match, the earliest remaining match participant takes precedence for succession. A match with at most one participant left after a departure returns to the lobby even when other room members are viewing older results.

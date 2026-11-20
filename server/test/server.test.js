@@ -950,6 +950,23 @@ test("room chat sends only server-authored member messages and paginates history
     assert.equal((await emitWithAck(host, "chat:send", { text: "rate limited" })).error.code, "CHAT_RATE_LIMITED");
 });
 
+test("two simultaneous Fake Answer rooms keep session actions and progress independent", async (context) => {
+    const harness = await createHarness(context, { authEnabled: false });
+    const [first, second] = await Promise.all([
+        startFakeAnswer(harness, { playerCount: 2 }),
+        startFakeAnswer(harness, { playerCount: 2 })
+    ]);
+    assert.notEqual(first.gameState.sessionId, second.gameState.sessionId);
+    const answer = { completion: "Independent bluff" };
+    const stale = await emitWithAck(first.host, "fake-answer:submit", withRoundId(second.gameState, answer));
+    assert.equal(stale.error.code, "SESSION_MISMATCH");
+    const accepted = await emitWithAck(first.host, "fake-answer:submit", withRoundId(first.gameState, answer));
+    assert.equal(accepted.submitted, true);
+    const snapshot = await emitWithAck(second.host, "restore-session");
+    assert.equal(snapshot.snapshot.game.sessionId, second.gameState.sessionId);
+    assert.equal(snapshot.snapshot.game.state.submissionCount, 0);
+});
+
 test("room chat is blocked during play, enabled at finished results, and excludes returned viewers", async (context) => {
     const harness = await createHarness(context, { authEnabled: false });
     const game = await startFakeAnswer(harness, { playerCount: 2, waitForSubmission: false });
@@ -4817,6 +4834,10 @@ test("Bruh WTF restoration preserves the viewer's own answer and vote without ex
     const initial = await initialState;
     assert.equal(initial.sessionId, started.game.sessionId);
     const ownAnswer = "Host's private answer before voting.";
+    const wrongProtocol = await emitWithAck(host, "fake-answer:continue", {
+        sessionId: initial.sessionId, roundId: initial.state.roundId
+    });
+    assert.equal(wrongProtocol.error.code, "GAME_MISMATCH");
     for (const [client, answer] of [
         [host, ownAnswer],
         [guest, "Guest answer."],

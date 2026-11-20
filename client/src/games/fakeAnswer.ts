@@ -191,6 +191,7 @@ export interface FakeAnswerViewState {
   currentPlayerId: string | null;
   hasSubmitted: boolean;
   completionDraft: string;
+  onDraftChange?: (answer: string) => void;
   isSubmitting: boolean;
   submissionError: string | null;
   hasVoted: boolean;
@@ -873,7 +874,7 @@ export function renderFakeAnswerGame(
   }
 
   if (publicState.phase === "answer-submission") {
-    const viewerHasSubmitted = publicState.submissionProgress?.some(
+    const viewerHasSubmitted = submission.hasSubmitted || publicState.submissionProgress?.some(
       ({ playerId, submitted }) =>
         playerId === submission.currentPlayerId && submitted,
     ) === true;
@@ -917,6 +918,7 @@ export function renderFakeAnswerGame(
       inputName: "completion",
       label: "Your answer",
       draft: submission.completionDraft,
+      onDraftChange: submission.onDraftChange,
       isSubmitting: submission.isSubmitting,
       onSubmit,
     });

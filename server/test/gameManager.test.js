@@ -620,6 +620,8 @@ test("Fact-or-Cap randomizes anonymous option order with opaque round IDs", () =
         factOrCap.handleAction(state, "submit-completion", "second", "Fake two");
 
         const correctIndex = state.options.findIndex(({ correct }) => correct);
+        const anonymousOptions = factOrCap.createPublicState(state, null).options;
+        assert.ok(anonymousOptions.every(({ isOwnAnswer }) => isOwnAnswer === false));
         correctPositions.add(correctIndex);
         assert.equal(state.options.length, 3);
         assert.equal(

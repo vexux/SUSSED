@@ -568,6 +568,7 @@ function render(): void {
   renderApp(appRoot, state, actions, {
     hasSubmitted: fakeAnswerHasSubmitted,
     completionDraft: fakeAnswerCompletionDraft,
+    onDraftChange: (answer) => { fakeAnswerCompletionDraft = answer; },
     currentPlayerId: state.localPlayerId,
     isSubmitting: fakeAnswerIsSubmitting,
     submissionError: fakeAnswerErrorMessage,

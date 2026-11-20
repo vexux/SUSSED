@@ -856,6 +856,25 @@ function createSubmissionView(gameId) {
     };
 }
 
+test("Fact or Cap remembers typed drafts and closes the form immediately after acknowledgement", () => {
+  withFakeDocument(() => {
+    const state = createAnswerEntryState("fact-or-cap");
+    const submission = createSubmissionView("fact-or-cap");
+    submission.onDraftChange = (value) => { submission.completionDraft = value; };
+    const root = new FakeElement("root");
+    const render = () => renderApp(root, state, createActions(), submission, {});
+    render();
+    const field = root.query((element) => element.id === "fake-completion");
+    field.value = "My bluff";
+    field.dispatch("input");
+    assert.equal(submission.completionDraft, "My bluff");
+    submission.hasSubmitted = true;
+    render();
+    assert.equal(root.query((element) => element.id === "fake-completion"), null);
+    assert.match(root.text, /Answer submitted/u);
+  });
+});
+
 test("remote game updates preserve active answer inputs in both shared game flows", () => {
   for (const [gameId, inputId] of [
     ["fact-or-cap", "fake-completion"],

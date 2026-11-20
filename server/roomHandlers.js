@@ -1,8 +1,7 @@
 const roomManager = require("./roomManager");
 const gameManager = require("./gameManager");
 const gameRegistry = require("./gameRegistry");
-const factOrCapSocketHandlers = require("./games/fact-or-cap/socketHandlers");
-const bruhWtfSocketHandlers = require("./games/bruh-wtf/socketHandlers");
+const gameProtocols = require("./gameProtocols");
 const { getPersonalRoomName } = require("./guestIdentityManager");
 const { RoomChatError, MAX_PAGE_SIZE } = require("./roomChatManager");
 
@@ -68,22 +67,8 @@ function broadcastPublicRooms(io) {
 }
 
 function scheduleAdvancedGameRound(io, roomCode, transition) {
-    if (
-        transition?.advancedRound !== true ||
-        !transition.gameId?.startsWith("fact-or-cap")
-    ) {
-        return;
-    }
-    const playerId = gameManager.getGamePlayerIds(roomCode)[0];
-    if (!playerId) return;
-    const game = gameManager.getPublicGameState(roomCode, playerId);
-    factOrCapSocketHandlers.scheduleSubmissionPhase(
-        io,
-        roomCode,
-        transition.sessionId,
-        game.state.roundId,
-        transition.gameId
-    );
+    if (!transition?.advancedRound) return;
+    gameProtocols.get(transition.gameId)?.onRoundAdvanced?.(io, roomCode, transition);
 }
 
 async function handlePlayerDeparture(io, socket, {
@@ -134,20 +119,7 @@ async function handlePlayerDeparture(io, socket, {
         broadcastLobby(io, updatedRoom);
     } else if (departure?.removed) {
         broadcastLobbyToAllMembers(io, updatedRoom);
-        if (departure.needsVoting && departure.gameId.startsWith("fact-or-cap")) {
-            // Fact-or-Cap intentionally routes completed submissions through
-            // its reveal phase before voting. Reconcile that phase before the
-            // departure broadcast so clients never receive an obsolete reveal.
-            gameManager.performGameAction(
-                room.code,
-                departure.gameId,
-                null,
-                "begin-voting",
-                undefined,
-                undefined,
-                departure.sessionId
-            );
-        }
+        gameProtocols.get(departure.gameId)?.onDeparture?.(room.code, departure);
         for (const player of departure.players) {
             io.to(getPersonalRoomName(player.id)).emit("game-state", gameManager.getPublicGameState(room.code, player.id));
         }
@@ -319,8 +291,7 @@ function registerRoomChatHandlers(io, socket, identityManager) {
 function registerRoomHandlers(io, socket, identityManager, disconnectGraceManager) {
     const playerId = socket.data.playerId;
     registerRoomChatHandlers(io, socket, identityManager);
-    factOrCapSocketHandlers.registerSocketHandlers(io, socket);
-    bruhWtfSocketHandlers.registerSocketHandlers(io, socket);
+    gameProtocols.registerSocketHandlers(io, socket);
 
     socket.on("restore-session", async (payload, acknowledge) => {
         if (typeof payload === "function") {
@@ -802,15 +773,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
                 io.to(getPersonalRoomName(player.id)).emit("game-starting", { roomCode: startingRoom.code, lobby, game });
                 io.to(getPersonalRoomName(player.id)).emit("game-state", gameManager.getPublicGameState(startingRoom.code, player.id));
             }
-            if (selectedGame.socketProtocol === "fact-or-cap") {
-                factOrCapSocketHandlers.scheduleSubmissionPhase(
-                    io,
-                    startingRoom.code,
-                    game.sessionId,
-                    game.state.roundId,
-                    startingRoom.selectedGameId
-                );
-            }
+            gameProtocols.get(selectedGame.id)?.onStarted?.(io, game);
             broadcastPublicRooms(io);
             acknowledge({ starting: true, game });
         } catch (error) {

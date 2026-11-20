@@ -38,6 +38,9 @@ function broadcastPlayerGameStates(io, roomCode, players) {
 
 function validateRequestIdentity(roomCode, playerId, sessionId, roundId) {
     const currentGame = gameManager.getPublicGameState(roomCode, playerId);
+    if (gameManager.getGameDefinition(currentGame.gameId).socketProtocol !== "fact-or-cap") {
+        throw new gameManager.GameSessionError("GAME_MISMATCH", "Fact or Cap is not active in this room.");
+    }
     if (sessionId !== currentGame.sessionId) {
         throw new gameManager.GameSessionError(
             "SESSION_MISMATCH",
@@ -271,6 +274,20 @@ function scheduleSubmissionPhase(io, roomCode, sessionId, roundId, gameId = "fac
 }
 
 module.exports = {
+    onStarted(io, game) {
+        module.exports.scheduleSubmissionPhase(io, game.roomCode, game.sessionId, game.state.roundId, game.gameId);
+    },
+    onRoundAdvanced(io, roomCode, transition) {
+        const playerId = gameManager.getGamePlayerIds(roomCode)[0];
+        if (!playerId) return;
+        const game = gameManager.getPublicGameState(roomCode, playerId);
+        module.exports.scheduleSubmissionPhase(io, roomCode, transition.sessionId, game.state.roundId, transition.gameId);
+    },
+    onDeparture(roomCode, departure) {
+        if (departure.needsVoting) {
+            gameManager.performGameAction(roomCode, departure.gameId, null, "begin-voting", undefined, undefined, departure.sessionId);
+        }
+    },
     broadcastPlayerGameStates,
     registerSocketHandlers,
     scheduleSubmissionPhase

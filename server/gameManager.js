@@ -188,14 +188,7 @@ function removeParticipant(roomCode, playerId, expectedSessionId) {
     if (!result?.removed) {
         throw new GameSessionError("PARTICIPANT_REMOVAL_FAILED", "The player could not be removed from the game session.");
     }
-    const disconnectedPlayers = new Set(
-        session.players.filter(({ connected }) => connected === false).map(({ id }) => id)
-    );
-    session.players = session.privateState.participants.map(({ id, name }) => ({
-        id,
-        name,
-        ...(disconnectedPlayers.has(id) ? { connected: false } : {})
-    }));
+    session.players = session.players.filter((player) => player.id !== playerId);
     session.status = session.implementation.isFinished?.(session.privateState) ? "finished" : "active";
     session.revision += 1;
     return {
