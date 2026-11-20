@@ -1,5 +1,13 @@
 import type { GameSessionState } from "./appState";
 
+export function shouldClearGameOnLobbyUpdate(
+  status: "lobby" | "starting",
+  wasViewingArchive: boolean,
+  isViewingArchive: boolean,
+): boolean {
+  return !isViewingArchive && (status === "lobby" || wasViewingArchive);
+}
+
 export function chooseRestoredGame(
   snapshot: GameSessionState | null,
   buffered: GameSessionState | null,

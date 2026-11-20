@@ -145,7 +145,6 @@ async function activateGuestSession(
     const playerId = socket.data.playerId;
     const recoveryCredential = socket.data.pendingRecoveryCredential;
     try {
-        await socket.join(getPersonalRoomName(playerId));
         const stored = await requestCredentialStorageAcknowledgement(socket, {
             playerId,
             recoveryCredential,
@@ -167,6 +166,8 @@ async function activateGuestSession(
         }
 
         const activatedPlayerId = identityManager.activateSocket(socket.id, true);
+        await socket.join(getPersonalRoomName(activatedPlayerId));
+        if (!identityManager.isActiveSocket(activatedPlayerId, socket.id)) return;
         socket.data.playerId = activatedPlayerId;
         socket.data.sessionReady = true;
         socket.data.pendingRecoveryCredential = undefined;

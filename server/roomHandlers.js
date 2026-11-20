@@ -108,7 +108,7 @@ async function handlePlayerDeparture(io, socket, {
         broadcastChatMessage(io, room, message, { excludePlayerId: playerId });
     }
     const departure = gameManager.removeParticipant(room.code, playerId);
-    const updatedRoom = roomManager.removePlayer(playerId);
+    const updatedRoom = roomManager.removePlayer(playerId, departure?.players);
     socket.data.roomCode = undefined;
     let leavePromise = Promise.resolve(null);
     if (leaveSocket && typeof socket.leave === "function") {
@@ -128,11 +128,12 @@ async function handlePlayerDeparture(io, socket, {
         return { room, updatedRoom: null, departure, leaveError: await leavePromise };
     }
 
-    if (departure?.removed && updatedRoom.players.length <= 1) {
+    if (departure?.removed && departure.players.length <= 1) {
         gameManager.removeGame(room.code, departure.sessionId);
         roomManager.recoverRoomToLobby(updatedRoom);
         broadcastLobby(io, updatedRoom);
     } else if (departure?.removed) {
+        broadcastLobbyToAllMembers(io, updatedRoom);
         if (departure.needsVoting && departure.gameId.startsWith("fact-or-cap")) {
             // Fact-or-Cap intentionally routes completed submissions through
             // its reveal phase before voting. Reconcile that phase before the
@@ -366,9 +367,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
             }
 
             let game = null;
-            if (room.status === "starting") {
-                game = gameManager.getPublicGameState(room.code, playerId);
-            } else if (player.viewingResultsSessionId) {
+            if (player.viewingResultsSessionId) {
                 game = roomManager.getFinishedMatchForViewer(room, playerId);
                 if (!game) {
                     throw new gameManager.GameSessionError(
@@ -376,6 +375,8 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
                         "The completed results are no longer available."
                     );
                 }
+            } else if (room.status === "starting" && gameManager.getGamePlayerIds(room.code).includes(playerId)) {
+                game = gameManager.getPublicGameState(room.code, playerId);
             }
             if (
                 game &&
@@ -430,6 +431,23 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         void socket.leave(PUBLIC_ROOM_BROWSERS);
     });
 
+    async function joinReservedSeat(room) {
+        const seat = room.players.find(({ id }) => id === playerId);
+        try {
+            await socket.join(room.code);
+        } catch (error) {
+            if (room.players.includes(seat)) {
+                await rollbackRoomEntry(io, socket, room, identityManager, disconnectGraceManager);
+            }
+            throw error;
+        }
+        const currentRoom = roomManager.getPlayerRoom(playerId);
+        if (!identityManager.isActiveSocket(playerId, socket.id) || currentRoom !== room || !room.players.includes(seat)) {
+            if (currentRoom?.code !== room.code) await socket.leave(room.code);
+            throw new roomManager.RoomError("ROOM_ENTRY_EXPIRED", "That room entry is no longer current.");
+        }
+    }
+
     socket.on("create-room", async (payload, acknowledge) => {
         const isLegacyCall = typeof payload === "function";
         if (isLegacyCall) {
@@ -459,11 +477,8 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         let room;
         try {
             room = roomManager.createRoom(playerId, playerName, gameId, visibility);
-            await socket.join(room.code);
+            await joinReservedSeat(room);
         } catch (error) {
-            if (room) {
-                await rollbackRoomEntry(io, socket, room, identityManager, disconnectGraceManager);
-            }
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
             return;
@@ -496,11 +511,8 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
                 playerId,
                 payload.playerName
             );
-            await socket.join(room.code);
+            await joinReservedSeat(room);
         } catch (error) {
-            if (room) {
-                await rollbackRoomEntry(io, socket, room, identityManager, disconnectGraceManager);
-            }
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
             return;
@@ -528,11 +540,8 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         let room;
         try {
             room = roomManager.joinPublicRoom(payload.publicRoomId, playerId, payload.playerName);
-            await socket.join(room.code);
+            await joinReservedSeat(room);
         } catch (error) {
-            if (room) {
-                await rollbackRoomEntry(io, socket, room, identityManager, disconnectGraceManager);
-            }
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
             return;
@@ -856,6 +865,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         const room = roomManager.getPlayerRoom(playerId);
         if (!room) return acknowledgeError(acknowledge, "NOT_IN_ROOM", "You are not in a room.");
         if (room.hostId !== playerId) return acknowledgeError(acknowledge, "NOT_HOST", "Only the host can send this reminder.");
+        if (room.status !== "lobby") return acknowledgeError(acknowledge, "ROOM_NOT_IN_LOBBY", "The lobby is not open.");
         const match = roomManager.getFinishedMatch(room, payload.sessionId);
         if (!match || room.reminderSessionId !== payload.sessionId) {
             return acknowledgeError(acknowledge, "SESSION_MISMATCH", "Those completed results are no longer available.");

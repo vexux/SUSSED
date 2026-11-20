@@ -1,6 +1,6 @@
 # Room discovery and visibility protocol
 
-The server remains authoritative for room visibility, capacity, and join eligibility. Room state is in memory; reconnecting or restarting the server does not persist rooms.
+The server remains authoritative for room visibility, capacity, and join eligibility. Rooms survive client reconnects and are cleared on server restart.
 
 ## Socket authentication
 
@@ -29,6 +29,8 @@ The server remains authoritative for room visibility, capacity, and join eligibi
 
 ## Same-tab refresh restoration
 
+Only an activated socket joins the player's personal delivery room. Room creation and both join paths recheck the original seat and active socket after the transport join completes. A superseded entry cannot publish a successful join or roll back a newer seat.
+
 - After `guest-session-ready`, the client emits `restore-session` with no payload. Room membership is resolved exclusively from the active server-side player identity; the client cannot select a room or supply a player ID.
 - The acknowledgement is `{ status: "no-room", playerId }` when the identity has no current room, or `{ status: "restored", playerId, snapshot: { playerId, lobby, game } }` when it does. Invalid payloads and unavailable/inconsistent snapshots return structured errors.
 - The lobby is the current authoritative room projection. During a starting/active game, `game` is the current per-viewer public projection. For a player still viewing results after the host returned to the lobby, `game` is the finished match snapshot authorized for that results viewer. Ordinary lobby players receive `game: null`.
@@ -44,6 +46,12 @@ The server remains authoritative for room visibility, capacity, and join eligibi
 - `update-profile-display-name` accepts `{ displayName }` and updates only the calling socket's verified account profile. A client-supplied UID is ignored.
 - Profile operations use the server-only Supabase service-role client. If database configuration or access is unavailable, the event returns a controlled `PROFILE_UNAVAILABLE` error. These events are separate from room creation, joining, and gameplay.
 - Guests receive `AUTH_REQUIRED` for profile requests and never create persistent profile records. Profile IDs are Firebase UIDs stored as text and are distinct from socket IDs and multiplayer player IDs.
+
+## Match participation and archived results
+
+The lobby projection's historical `isInGame` flag means the member is still viewing an archived results session. Current match participants have this flag set to false, including on the final results screen before the host returns. Their chat remains available through room updates until the host reopens the lobby. Results reminders are available only while that lobby is open.
+
+If another match starts, restoration still returns the archived snapshot to its viewer. A viewer who returns during that newer match waits for the lobby with `game: null`. They do not enter its roster. If the host departs during a match, the earliest remaining match participant takes precedence for succession. A match with at most one participant left after a departure returns to the lobby even when other room members are viewing older results.
 
 ## Capacity
 

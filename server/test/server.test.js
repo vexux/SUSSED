@@ -439,7 +439,9 @@ test("room operations are unavailable until recovery credentials are acknowledge
         reconnection: false,
     });
     context.after(() => client.close());
-    client.on("guest-session-issued", (_session, acknowledge) => {
+    client.on("guest-session-issued", (session, acknowledge) => {
+        const pendingSocket = harness.io.sockets.sockets.get(client.id);
+        assert.equal(pendingSocket.rooms.has(getPersonalRoomName(session.playerId)), false);
         client.emit("create-room", { playerName: "Too early" }, () => {});
         acknowledge({ stored: false });
     });
@@ -976,6 +978,24 @@ test("room chat is blocked during play, enabled at finished results, and exclude
     assert.deepEqual(leaked, []);
     assert.deepEqual(await emitWithAck(game.players[0], "return-from-results", { sessionId: finalState.sessionId }), { returned: true, status: "lobby" });
     assert.equal((await emitWithAck(game.players[0], "chat:send", { text: "back in lobby" })).sent, true);
+});
+
+test("replay host departure counts match participants and preserves archived results", async (context) => {
+    const harness = await createHarness(context, { authEnabled: false });
+    const game = await startFakeAnswer(harness, { playerCount: 2, waitForSubmission: false });
+    const viewer = game.players[0];
+    const finished = finishManagedFactOrCapGame(game.roomCode, [game.host.playerId, viewer.playerId]);
+    assert.equal((await emitWithAck(game.host, "return-to-lobby", { sessionId: finished.sessionId })).returned, true);
+    const newcomer = await harness.connect();
+    await emitWithAck(newcomer, "join-room", { roomCode: game.roomCode, playerName: "Newcomer" });
+    await emitWithAck(newcomer, "set-ready", { isReady: true });
+    assert.equal((await emitWithAck(game.host, "start-game")).starting, true);
+    assert.equal((await emitWithAck(game.host, "leave-room")).left, true);
+    const restored = await emitWithAck(newcomer, "restore-session");
+    assert.equal(restored.snapshot.lobby.status, "lobby");
+    assert.equal(restored.snapshot.lobby.players.find(({ isHost }) => isHost).id, newcomer.playerId);
+    assert.equal(restored.snapshot.game, null);
+    assert.equal((await emitWithAck(viewer, "restore-session")).snapshot.game.sessionId, finished.sessionId);
 });
 
 test("room chat records join, leave, and disconnect system messages once and restores them after reconnect", async (context) => {
@@ -2052,6 +2072,13 @@ test("Anime rematches retain the selected game and use only the Anime question b
     assert.equal(newHostState.sessionId, replay.game.sessionId);
     assert.equal(newGuestState.sessionId, replay.game.sessionId);
     assert.equal(staleViewerStates.length, 0);
+    const archivedRestore = await emitWithAck(game.players[1], "restore-session");
+    assert.equal(archivedRestore.status, "restored");
+    assert.equal(archivedRestore.snapshot.game.sessionId, roundState.sessionId);
+    assert.equal(archivedRestore.snapshot.game.status, "finished");
+    assert.equal((await emitWithAck(game.host, "ask-results-viewers-to-return", {
+        sessionId: roundState.sessionId
+    })).error.code, "ROOM_NOT_IN_LOBBY");
     assert.equal((await emitWithAck(game.players[1], "fake-answer:submit", {
         completion: "stale viewer answer",
         sessionId: replay.game.sessionId,
@@ -2062,6 +2089,9 @@ test("Anime rematches retain the selected game and use only the Anime question b
         sessionId: roundState.sessionId
     }), { returned: true, status: "starting" });
     const lateReturnLobby = await lateReturnLobbyEvent;
+    const waitingRestore = await emitWithAck(game.players[1], "restore-session");
+    assert.equal(waitingRestore.status, "restored");
+    assert.equal(waitingRestore.snapshot.game, null);
     assert.equal(lateReturnLobby.status, "starting");
     assert.equal(lateReturnLobby.players.find(({ id }) => id === game.players[1].id).isInGame, false);
     assert.equal(roomManager.getRoom(game.roomCode).reminderSessionId, roundState.sessionId);
@@ -2384,6 +2414,30 @@ test("removes a newly created room when the creator socket cannot join it", asyn
     assert.ok(createdRoom);
     assert.equal(response.error.code, "INTERNAL_ERROR");
     assert.equal(roomManager.getRoom(createdRoom.code), null);
+});
+
+test("a delayed successful room join cannot reinstate a seat removed while joining", async (context) => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.trackRoom(created.roomCode);
+    const socket = harness.io.sockets.sockets.get(guest.transportId);
+    const join = socket.join.bind(socket);
+    let finishJoin;
+    const pending = new Promise((resolve) => {
+        socket.join = (code) => new Promise((finish) => {
+            finishJoin = () => finish(join(code));
+            resolve();
+        });
+    });
+    const entry = emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "Guest" });
+    await pending;
+    await emitWithAck(guest, "leave-room");
+    finishJoin();
+    assert.equal((await entry).error.code, "ROOM_ENTRY_EXPIRED");
+    assert.equal(socket.rooms.has(created.roomCode), false);
+    assert.equal((await emitWithAck(guest, "restore-session")).status, "no-room");
 });
 
 test("a failed asynchronous room join cancels grace state but preserves the guest identity", async (context) => {

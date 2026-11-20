@@ -1298,6 +1298,7 @@ test("authenticated players can search results participants without using their 
       const state = createInitialAppState();
       state.currentView = "game";
       state.localPlayerId = "local";
+      state.lobby = { roomCode: "ABCD", status: "starting", players: [{ id: "local", isInGame: false }] };
       state.game = {
         roomCode: "ABCD",
         sessionId: "session-1",
@@ -1338,6 +1339,10 @@ test("authenticated players can search results participants without using their 
       assert.equal(root.query((element) => element.textContent === "Find Me"), null);
       root.query((element) => element.textContent === "Find Sam").dispatch("click");
       assert.deepEqual(calls, [["onFindPlayerFromResults", "Sam"]]);
+      state.lobby.status = "lobby";
+      state.lobby.players[0].isInGame = true;
+      renderApp(root, state, actions, {}, {}, { isAuthenticated: true });
+      assert.equal(root.query((element) => element.className.includes("room-chat")), null);
   });
 });
 

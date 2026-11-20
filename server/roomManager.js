@@ -192,7 +192,7 @@ function addPlayerToRoom(room, playerId, playerName) {
     return room;
 }
 
-function removePlayer(playerId) {
+function removePlayer(playerId, remainingMatchPlayers = []) {
     const roomCode = playerRooms.get(playerId);
     if (!roomCode) {
         return null;
@@ -218,7 +218,10 @@ function removePlayer(playerId) {
     }
 
     if (room.hostId === playerId) {
-        room.hostId = room.players[0].id;
+        const nextMatchHost = room.players.find(({ id }) =>
+            remainingMatchPlayers.some((participant) => participant.id === id)
+        );
+        room.hostId = (nextMatchHost ?? room.players[0]).id;
     }
 
     advanceRevision(room);

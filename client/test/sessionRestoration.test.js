@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { chooseRestoredGame } from "../src/sessionRestoration.ts";
+import { chooseRestoredGame, shouldClearGameOnLobbyUpdate } from "../src/sessionRestoration.ts";
+
+test("room updates preserve current results and retire archived results on viewer return", () => {
+  assert.equal(shouldClearGameOnLobbyUpdate("starting", false, false), false);
+  assert.equal(shouldClearGameOnLobbyUpdate("lobby", false, true), false);
+  assert.equal(shouldClearGameOnLobbyUpdate("starting", true, true), false);
+  assert.equal(shouldClearGameOnLobbyUpdate("starting", true, false), true);
+  assert.equal(shouldClearGameOnLobbyUpdate("lobby", true, false), true);
+  assert.equal(shouldClearGameOnLobbyUpdate("lobby", false, false), true);
+});
 
 function game(sessionId, revision, roomCode = "ABCD") {
   return {

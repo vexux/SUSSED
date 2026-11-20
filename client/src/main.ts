@@ -86,7 +86,7 @@ import {
   updateBruhSubmissionProgress,
   updateBruhVoteProgress,
 } from "./games/bruhWtf";
-import { chooseRestoredGame } from "./sessionRestoration";
+import { chooseRestoredGame, shouldClearGameOnLobbyUpdate } from "./sessionRestoration";
 
 interface FakeAnswerSubmissionResponse {
   submitted?: boolean;
@@ -924,7 +924,10 @@ function applyLobbyState(lobby: LobbyState, shouldRender = true): void {
     const notice = getConnectionNotice(previousLobby, lobby, state.localPlayerId);
     if (notice) showConnectionNotice(notice);
   }
-  if ((lobby.status === "lobby" && !remainsOnFinishedResults) || (lobby.status === "starting" && localPlayer.isInGame === false && state.game?.status === "finished")) {
+  const wasViewingArchive = previousLobby?.players.some(
+    (player) => player.id === localPlayer.id && player.isInGame,
+  ) ?? false;
+  if (shouldClearGameOnLobbyUpdate(lobby.status, wasViewingArchive, localPlayer.isInGame)) {
     if (state.game) {
       retiredGameSessionIds.add(state.game.sessionId);
     }
@@ -1309,7 +1312,6 @@ function hydrateRestoredSession(lobby: LobbyState, game: GameSessionState | null
     return;
   }
   if (
-    (lobby.status === "starting" && !game) ||
     (localPlayer.isInGame && game?.status !== "finished") ||
     (game && (
       game.roomCode !== lobby.roomCode ||
