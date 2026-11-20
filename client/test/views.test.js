@@ -18,6 +18,7 @@ import { reconcilePublicRooms } from "../src/publicRoomState.ts";
 import { resolveAuthFeatureFlag } from "../src/authFeatureFlag.ts";
 import { shouldConnectSocket } from "../src/socketConfig.ts";
 import { renderApp } from "../src/views.ts";
+import { createInitialRoomChatState, renderRoomChat, prependRoomChatMessages, canSubmitRoomChatMessage } from "../src/roomChat.ts";
 
 class FakeElement {
   constructor(tagName) {
@@ -1257,6 +1258,7 @@ test("lobby and game screens identify players within their disconnect grace peri
       };
       const root = new FakeElement("root");
       renderApp(root, state, createActions(), {}, {});
+      assert.ok(root.query((element) => element.className.includes("room-chat")));
       const offlinePlayer = root.query((element) => element.dataset.playerId === "offline");
       assert.match(offlinePlayer.getAttribute("aria-label"), /disconnected/u);
       assert.equal(root.query((element) => element.className === "disconnected-badge").textContent, "Disconnected");
@@ -1270,10 +1272,15 @@ test("lobby and game screens identify players within their disconnect grace peri
         displayName: "Fact or Cap",
         status: "active",
         players: [{ id: "offline", name: "Offline", connected: false }],
-        state: {},
+        state: {
+          phase: "answer-submission", currentRound: 1, totalRounds: 5, roundId: "active-round",
+          prompt: { id: "prompt", text: "Question" }, playerCount: 1, submissionCount: 0,
+          submissionProgress: [{ playerId: "offline", name: "Offline", submitted: false }],
+        },
       };
       renderApp(root, state, createActions(), {}, {});
       assert.equal(root.query((element) => element.className === "game-disconnected-notice"), null);
+      assert.equal(root.query((element) => element.className.includes("room-chat")), null);
     });
   });
 
@@ -1318,6 +1325,7 @@ test("authenticated players can search results participants without using their 
       });
       const root = new FakeElement("root");
       renderApp(root, state, actions, {}, {}, { isAuthenticated: true });
+      assert.ok(root.query((element) => element.className.includes("room-chat")));
       assert.equal(root.query((element) => element.textContent === "Find Me"), null);
       root.query((element) => element.textContent === "Find Sam").dispatch("click");
       assert.deepEqual(calls, [["onFindPlayerFromResults", "Sam"]]);
@@ -2245,5 +2253,93 @@ test("duplicate-name feedback is shown by the name field and can be cleared for 
     assert.equal(state.errorCode, null);
     renderApp(root, state, actions, {}, {});
     assert.equal(root.query((element) => element.className.includes("duplicate-name-error")), null);
+  });
+});
+
+test("room chat limits collapsed history, exposes expansion and keeps its composer available", () => {
+  withFakeDocument(() => {
+    const state = createInitialRoomChatState();
+    state.canSend = true;
+    state.messages = Array.from({ length: 60 }, (_, index) => ({
+      id: String(index), type: "player", senderName: `Player ${index}`, text: `Message ${index}`,
+      createdAt: "2026-11-20T12:00:00Z",
+    }));
+    let sent = null;
+    const actions = {
+      onToggleExpanded() { state.expanded = !state.expanded; },
+      onDraftChange(draft) { state.draft = draft; },
+      onSendMessage(text) { sent = text; },
+      onLoadOlder() {},
+    };
+    let panel = renderRoomChat(state, actions);
+    assert.equal(panel.queryAll((node) => node.className === "room-chat-message").length, 3);
+    assert.ok(panel.query((node) => node.className === "room-chat-composer"));
+    const toggle = panel.query((node) => node.className === "room-chat-toggle");
+    assert.equal(toggle.getAttribute("aria-expanded"), "false");
+    toggle.dispatch("click");
+    panel = renderRoomChat(state, actions);
+    assert.equal(panel.queryAll((node) => node.className === "room-chat-message").length, 50);
+    assert.equal(panel.query((node) => node.className === "room-chat-toggle").getAttribute("aria-expanded"), "true");
+    assert.ok(panel.query((node) => node.className === "room-chat-composer"));
+    const input = panel.query((node) => node.id === "room-chat-draft");
+    assert.equal(input.maxLength, 200);
+    input.value = "Hello 🙂";
+    input.dispatch("input");
+    assert.equal(state.draft, "Hello 🙂");
+    assert.equal(panel.query((node) => node.className.split(/\s+/u).includes("room-chat-send")).disabled, false);
+    panel.query((node) => node.className === "room-chat-composer").dispatch("submit");
+    assert.equal(sent, "Hello 🙂");
+    input.value = " ";
+    input.dispatch("input");
+    assert.equal(panel.query((node) => node.className.split(/\s+/u).includes("room-chat-send")).disabled, true);
+    assert.equal(canSubmitRoomChatMessage({ ...state, draft: "  " }), false);
+    assert.equal(canSubmitRoomChatMessage({ ...state, draft: "x".repeat(201) }), false);
+    assert.equal(canSubmitRoomChatMessage({ ...state, canSend: false }), false);
+  });
+});
+
+test("room chat older-message insertion preserves the visible scroll anchor", () => {
+  const list = {
+    children: [{ id: "newest" }], scrollTop: 40, scrollHeight: 100,
+    get firstElementChild() { return this.children[0] ?? null; },
+    insertBefore(node, before) {
+      const index = this.children.indexOf(before);
+      this.children.splice(index < 0 ? this.children.length : index, 0, node);
+      this.scrollHeight += 30;
+    },
+  };
+  prependRoomChatMessages(list, [{ id: "older-a" }, { id: "older-b" }]);
+  assert.deepEqual(list.children.map(({ id }) => id), ["older-a", "older-b", "newest"]);
+  assert.equal(list.scrollTop, 100);
+});
+
+test("room chat rerenders preserve the active draft input and focus", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "lobby";
+    state.localPlayerId = "host";
+    state.lobby = {
+      roomCode: "CHAT", revision: 1, playerCount: 1, readinessStatus: "insufficient-players",
+      status: "lobby", visibility: "private", maxPlayers: 8, selectedGameId: "fact-or-cap",
+      selectedRoundCount: 5, reminderSessionId: null,
+      selectedGame: { id: "fact-or-cap", displayName: "Fact or Cap", description: "Game", minPlayers: 2, maxPlayers: 8 },
+      availableGames: [],
+      players: [{ id: "host", name: "Host", isHost: true, isReady: false, isInGame: false }],
+    };
+    const chat = createInitialRoomChatState();
+    const root = new FakeElement("root");
+    const render = () => renderApp(root, state, createActions(), {}, {}, undefined, undefined, chat, {
+      onToggleExpanded() {}, onDraftChange(value) { chat.draft = value; }, onSendMessage() {}, onLoadOlder() {},
+    });
+    render();
+    const input = root.query((node) => node.id === "room-chat-draft");
+    input.value = "draft survives";
+    input.focus();
+    chat.draft = input.value;
+    chat.messages.push({ id: "incoming", type: "player", senderName: "Sam", text: "Hello", createdAt: "2026-11-20T12:00:00Z" });
+    render();
+    assert.equal(root.query((node) => node.id === "room-chat-draft"), input);
+    assert.equal(input.value, "draft survives");
+    assert.equal(globalThis.document.activeElement, input);
   });
 });

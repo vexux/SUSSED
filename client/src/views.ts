@@ -14,6 +14,7 @@ import {
   renderBruhWtfGame,
   type BruhWtfViewState,
 } from "./games/bruhWtf.ts";
+import { renderRoomChat, type RoomChatActions, type RoomChatState } from "./roomChat.ts";
 
 export interface AppActions {
   onPlayerNameChange(name: string): void;
@@ -1708,6 +1709,8 @@ function renderLobby(
   actions: AppActions,
   authState: AuthViewState,
   socialState: SocialViewState,
+  chatState: RoomChatState,
+  chatActions: RoomChatActions,
 ): HTMLElement {
   const lobby = state.lobby;
   const screen = createElement("section", "app-screen lobby-screen");
@@ -1914,6 +1917,7 @@ function renderLobby(
     lobbySettingsRow.append(roundsField);
   }
   if (supportsRoundSelection) screen.append(lobbySettingsRow);
+  lobbyContent.append(renderRoomChat(chatState, chatActions));
   screen.append(lobbyContent);
 
   const pendingPlayerId = state.pendingKickPlayerId ?? state.pendingHostTransferId;
@@ -2280,6 +2284,8 @@ function renderGame(
   submission: FakeAnswerViewState,
   bruhWtfSubmission: BruhWtfViewState,
   authState: AuthViewState,
+  chatState: RoomChatState,
+  chatActions: RoomChatActions,
 ): HTMLElement {
   const game = state.game;
   if (!game) {
@@ -2367,6 +2373,9 @@ function renderGame(
       findPlayers.append(find);
     }
     if (seenNames.size > 0) screen.append(findPlayers);
+  }
+  if (gameState && typeof gameState === "object" && "phase" in gameState && gameState.phase === "results") {
+    screen.append(renderRoomChat(chatState, chatActions));
   }
   return screen;
 }
@@ -2587,6 +2596,13 @@ export function renderApp(
     notificationsError: null,
     notificationActionBusyId: null,
   },
+  chatState: RoomChatState = {
+    expanded: false, messages: [], draft: "", hasOlder: false, loadingOlder: false,
+    cursor: null, sending: false, canSend: false,
+  },
+  chatActions: RoomChatActions = {
+    onToggleExpanded() {}, onDraftChange() {}, onSendMessage() {}, onLoadOlder() {},
+  },
 ): void {
   const authEnabled = authState.authEnabled !== false;
   const accountViews = new Set<AppView>([
@@ -2635,9 +2651,9 @@ export function renderApp(
       : state.currentView === "starting"
       ? renderStarting(state)
       : state.currentView === "game"
-        ? renderGame(state, actions, fakeAnswerSubmission, bruhWtfSubmission, authState)
+        ? renderGame(state, actions, fakeAnswerSubmission, bruhWtfSubmission, authState, chatState, chatActions)
         : state.currentView === "lobby"
-          ? renderLobby(state, actions, authState, socialState)
+          ? renderLobby(state, actions, authState, socialState, chatState, chatActions)
           : state.currentView === "game-selection"
             ? renderGameSelection(state, actions)
           : state.currentView === "public-rooms"

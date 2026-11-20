@@ -46,6 +46,7 @@ import {
   firebaseConfigurationError,
 } from "./supabase";
 import { renderApp } from "./views";
+import { createInitialRoomChatState } from "./roomChat";
 import type {
   AppActions,
   AuthViewState,
@@ -155,6 +156,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 const state = createInitialAppState();
+const roomChatState = createInitialRoomChatState();
 let restorationInProgress = false;
 let restorationRequestId = 0;
 let bufferedRestorationLobby: LobbyState | null = null;
@@ -509,7 +511,21 @@ function render(): void {
     returnToLobbyError: fakeAnswerReturnToLobbyError,
     historyOpen: allRoundHistoryOpen,
     historyPage: allRoundHistoryPage,
-  }, authViewState, socialViewState);
+  }, authViewState, socialViewState, roomChatState, {
+    onToggleExpanded() {
+      roomChatState.expanded = !roomChatState.expanded;
+      render();
+    },
+    onDraftChange(draft) {
+      roomChatState.draft = draft.slice(0, 200);
+    },
+    onSendMessage() {
+      // Sending is unavailable until a server chat contract is implemented.
+    },
+    onLoadOlder() {
+      // Cursor pagination is intentionally not simulated without a backend contract.
+    },
+  });
   document.body.classList.toggle(
     "modal-open",
     appRoot.querySelector(".round-feedback-backdrop, .kick-confirmation-backdrop, .invitation-dialog, .player-detail-dialog[aria-modal='true'], .results-reminder-dialog[open]") !== null,
