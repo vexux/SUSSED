@@ -884,6 +884,156 @@ async function startFakeAnswer(
     };
 }
 
+function waitForEvent(client, event) {
+    return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            client.off(event, onEvent);
+            reject(new Error(`${event} event timed out`));
+        }, 3000);
+        function onEvent(payload) {
+            clearTimeout(timeout);
+            resolve(payload);
+        }
+        client.once(event, onEvent);
+    });
+}
+
+test("room chat sends only server-authored member messages and paginates history", async (context) => {
+    const harness = await createHarness(context, { authEnabled: false });
+    const host = await harness.connect();
+    const created = await emitWithAck(host, "create-room", { playerName: "Host", visibility: "public" });
+    harness.trackRoom(created.roomCode);
+    const browser = await harness.connect();
+    await emitWithAck(browser, "subscribe-public-rooms");
+    let browserChatEvents = 0;
+    browser.on("chat:message", () => { browserChatEvents += 1; });
+    const guest = await harness.connect();
+    const joinedMessage = waitForEvent(host, "chat:message");
+    await emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "Guest" });
+    assert.equal((await joinedMessage).message.text, "Guest joined the room.");
+
+    const hostMessage = waitForEvent(guest, "chat:message");
+    const selfMessage = waitForEvent(host, "chat:message");
+    const sent = await emitWithAck(host, "chat:send", { text: "Hello room 🙂" });
+    assert.equal(sent.sent, true);
+    const [received, echoed] = await Promise.all([hostMessage, selfMessage]);
+    assert.deepEqual(received, echoed);
+    assert.deepEqual(received.message, {
+        id: sent.messageId,
+        type: "player",
+        senderName: "Host",
+        text: "Hello room 🙂",
+        createdAt: received.message.createdAt,
+    });
+    assert.equal("senderId" in received.message, false);
+    assert.equal("playerId" in received.message, false);
+    assert.equal((await emitWithAck(host, "chat:send", { text: "forged", senderId: guest.playerId })).error.code, "INVALID_REQUEST");
+
+    const outsider = await harness.connect();
+    assert.equal((await emitWithAck(outsider, "chat:send", { text: "intrude" })).error.code, "NOT_IN_ROOM");
+    assert.equal((await emitWithAck(outsider, "chat:history:request", { before: null, limit: 50 })).error.code, "NOT_IN_ROOM");
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    assert.equal(browserChatEvents, 0);
+
+    const historyEvent = waitForEvent(host, "chat:history:response");
+    assert.deepEqual(await emitWithAck(host, "chat:history:request", { before: null, limit: 50, requestId: "history-1" }), { ok: true });
+    const history = await historyEvent;
+    assert.equal(history.requestId, "history-1");
+    assert.equal(history.messages.some(({ text }) => text === "Guest joined the room."), true);
+    assert.equal(history.messages.some(({ id }) => id === sent.messageId), true);
+
+    for (let index = 1; index < 5; index += 1) {
+        assert.equal((await emitWithAck(host, "chat:send", { text: `allowed ${index}` })).sent, true);
+    }
+    assert.equal((await emitWithAck(host, "chat:send", { text: "rate limited" })).error.code, "CHAT_RATE_LIMITED");
+});
+
+test("room chat is blocked during play, enabled at finished results, and excludes returned viewers", async (context) => {
+    const harness = await createHarness(context, { authEnabled: false });
+    const game = await startFakeAnswer(harness, { playerCount: 2, waitForSubmission: false });
+    assert.equal((await emitWithAck(game.host, "chat:send", { text: "during game" })).error.code, "CHAT_NOT_AVAILABLE");
+    assert.equal((await emitWithAck(game.players[0], "chat:history:request", { before: null, limit: 50 })).error.code, "CHAT_NOT_AVAILABLE");
+
+    const finalState = finishManagedFactOrCapGame(game.roomCode, [game.host.playerId, game.players[0].playerId]);
+    assert.equal(finalState.status, "finished");
+    const resultEvent = waitForEvent(game.players[0], "chat:message");
+    const sent = await emitWithAck(game.host, "chat:send", { text: "Results chat" });
+    assert.equal(sent.sent, true);
+    assert.equal((await resultEvent).message.text, "Results chat");
+
+    assert.deepEqual(await emitWithAck(game.host, "return-to-lobby", { sessionId: finalState.sessionId }), { returned: true });
+    assert.equal((await emitWithAck(game.players[0], "chat:send", { text: "still viewing" })).sent, true);
+    assert.deepEqual(await emitWithAck(game.players[0], "return-from-results", { sessionId: finalState.sessionId }), { returned: true, status: "lobby" });
+    assert.equal((await emitWithAck(game.players[0], "chat:send", { text: "back in lobby" })).sent, true);
+});
+
+test("room chat records join, leave, and disconnect system messages once and restores them after reconnect", async (context) => {
+    const harness = await createHarness(context, { authEnabled: false });
+    const host = await harness.connect();
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.trackRoom(created.roomCode);
+    const guest = await harness.connect();
+    const joinEvent = waitForEvent(host, "chat:message");
+    await emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "Guest" });
+    assert.equal((await joinEvent).message.type, "system");
+
+    const leaveEvent = waitForEvent(host, "chat:message");
+    assert.deepEqual(await emitWithAck(guest, "leave-room"), { left: true });
+    assert.equal((await leaveEvent).message.text, "Guest left the room.");
+    assert.equal((await emitWithAck(guest, "chat:history:request", { before: null, limit: 50 })).error.code, "NOT_IN_ROOM");
+
+    const secondJoinEvent = waitForEvent(host, "chat:message");
+    await emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "Guest" });
+    await secondJoinEvent;
+    const disconnectedEvent = waitForEvent(host, "chat:message");
+    guest.disconnect();
+    assert.equal((await disconnectedEvent).message.text, "Guest disconnected.");
+    const recovered = await disconnectAndRecover(harness, guest);
+    assert.equal((await emitWithAck(recovered, "restore-session")).status, "restored");
+    const restoredHistoryEvent = waitForEvent(recovered, "chat:history:response");
+    assert.deepEqual(await emitWithAck(recovered, "chat:history:request", { before: null, limit: 50, requestId: "restore" }), { ok: true });
+    const history = await restoredHistoryEvent;
+    assert.equal(history.messages.filter(({ text }) => text === "Guest disconnected.").length, 1);
+    assert.equal(history.messages.some(({ text }) => text.toLowerCase().includes("reconnected")), false);
+});
+
+test("kicked members lose chat access and room destruction clears its lifetime history", async (context) => {
+    const harness = await createHarness(context, { authEnabled: false });
+    const host = await harness.connect();
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.trackRoom(created.roomCode);
+    const guest = await harness.connect();
+    await emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "Guest" });
+    const room = roomManager.getRoom(created.roomCode);
+    const roomId = room.publicRoomId;
+    assert.equal((await emitWithAck(host, "kick-player", { targetPlayerId: guest.playerId })).kicked, true);
+    assert.equal((await emitWithAck(guest, "chat:send", { text: "after kick" })).error.code, "NOT_IN_ROOM");
+    const historyEvent = waitForEvent(host, "chat:history:response");
+    await emitWithAck(host, "chat:history:request", { before: null, limit: 50, requestId: "kicked" });
+    const history = await historyEvent;
+    assert.equal(history.messages.filter(({ text }) => text === "Guest was kicked from the room.").length, 1);
+
+    await emitWithAck(host, "leave-room");
+    assert.equal(harness.io.roomChatManager.getMessageCount(roomId), 0);
+});
+
+test("room chat rate limits survive a socket reconnect for the same player identity", async (context) => {
+    const harness = await createHarness(context, { authEnabled: false });
+    const host = await harness.connect();
+    const created = await emitWithAck(host, "create-room", { playerName: "Host" });
+    harness.trackRoom(created.roomCode);
+    const guest = await harness.connect();
+    await emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "Guest" });
+    for (let index = 0; index < 5; index += 1) {
+        assert.equal((await emitWithAck(host, "chat:send", { text: `message ${index}` })).sent, true);
+    }
+    const playerId = host.playerId;
+    const recovered = await disconnectAndRecover(harness, host);
+    assert.equal(recovered.playerId, playerId);
+    assert.equal((await emitWithAck(recovered, "restore-session")).status, "restored");
+    assert.equal((await emitWithAck(recovered, "chat:send", { text: "sixth message" })).error.code, "CHAT_RATE_LIMITED");
+});
+
 async function completeSocketRound(host, players, gameState) {
     const clients = [host, ...players];
     const questionBank = gameState.gameId === "fact-or-cap-anime"

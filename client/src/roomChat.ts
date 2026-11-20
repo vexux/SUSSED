@@ -10,11 +10,16 @@ export interface RoomChatState {
   expanded: boolean;
   messages: RoomChatMessage[];
   draft: string;
+  messageCount: number;
+  historyLoaded: boolean;
+  historyLoading: boolean;
   hasOlder: boolean;
   loadingOlder: boolean;
   cursor: string | null;
   sending: boolean;
   canSend: boolean;
+  error: string | null;
+  roomId: string | null;
 }
 
 export interface RoomChatActions {
@@ -24,6 +29,13 @@ export interface RoomChatActions {
   onLoadOlder(cursor: string): void;
 }
 
+export interface RoomChatHistoryPage {
+  messages: RoomChatMessage[];
+  cursor: string | null;
+  hasMore: boolean;
+  totalCount: number;
+}
+
 export const ROOM_CHAT_MAX_LENGTH = 200;
 
 export function createInitialRoomChatState(): RoomChatState {
@@ -31,17 +43,70 @@ export function createInitialRoomChatState(): RoomChatState {
     expanded: false,
     messages: [],
     draft: "",
+    messageCount: 0,
+    historyLoaded: false,
+    historyLoading: false,
     hasOlder: false,
     loadingOlder: false,
     cursor: null,
     sending: false,
     canSend: false,
+    error: null,
+    roomId: null,
   };
 }
 
 export function canSubmitRoomChatMessage(state: Pick<RoomChatState, "draft" | "sending" | "canSend">): boolean {
   const text = state.draft.trim();
   return state.canSend && !state.sending && text.length > 0 && text.length <= ROOM_CHAT_MAX_LENGTH;
+}
+
+export function mergeRoomChatMessages(
+  current: RoomChatMessage[],
+  incoming: RoomChatMessage[],
+): RoomChatMessage[] {
+  const messages = new Map<string, RoomChatMessage>();
+  for (const message of [...current, ...incoming]) messages.set(message.id, message);
+  return [...messages.values()].sort((first, second) =>
+    first.createdAt.localeCompare(second.createdAt) || first.id.localeCompare(second.id)
+  );
+}
+
+export function addRoomChatMessage(state: RoomChatState, message: RoomChatMessage): boolean {
+  const merged = mergeRoomChatMessages(state.messages, [message]);
+  if (merged.length === state.messages.length) return false;
+  state.messages = merged;
+  state.messageCount = Math.max(state.messageCount + 1, merged.length);
+  return true;
+}
+
+export function applyRoomChatHistoryPage(
+  state: RoomChatState,
+  page: RoomChatHistoryPage,
+): void {
+  state.messages = mergeRoomChatMessages(state.messages, page.messages);
+  state.messageCount = Math.max(state.messageCount, page.totalCount);
+  state.cursor = page.cursor;
+  state.hasOlder = page.hasMore;
+  state.historyLoaded = true;
+  state.historyLoading = false;
+  state.loadingOlder = false;
+  state.error = null;
+}
+
+export function settleRoomChatSend(
+  state: RoomChatState,
+  text: string,
+  errorMessage: string | null,
+): boolean {
+  state.sending = false;
+  if (errorMessage) {
+    state.error = errorMessage;
+    return false;
+  }
+  if (state.draft.trim() === text) state.draft = "";
+  state.error = null;
+  return true;
 }
 
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
@@ -64,10 +129,12 @@ function localTime(value: string): string {
 function renderMessage(message: RoomChatMessage): HTMLElement {
   if (message.type === "system") {
     const item = element("li", "room-chat-system-message", message.text);
+    item.dataset.messageId = message.id;
     item.setAttribute("aria-label", `System message: ${message.text}`);
     return item;
   }
   const item = element("li", "room-chat-message");
+  item.dataset.messageId = message.id;
   const avatar = element("span", "room-chat-avatar", initials(message.senderName ?? "?"));
   avatar.setAttribute("aria-hidden", "true");
   const body = element("div", "room-chat-message-body");
@@ -89,7 +156,7 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
   toggle.setAttribute("aria-expanded", String(state.expanded));
   toggle.setAttribute("aria-label", state.expanded ? "Collapse room chat" : "Expand room chat");
   toggle.append(element("span", "lobby-panel-title", "Room chat"));
-  toggle.append(element("span", "room-chat-count", `${state.messages.length} messages`));
+  toggle.append(element("span", "room-chat-count", `${state.messageCount || state.messages.length} messages`));
   const chevron = element("span", "room-chat-chevron", "⌄");
   chevron.setAttribute("aria-hidden", "true");
   toggle.append(chevron);
@@ -101,6 +168,7 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
   const visibleMessages = state.expanded ? state.messages.slice(-50) : state.messages.slice(-3);
   for (const message of visibleMessages) list.append(renderMessage(message));
   if (visibleMessages.length === 0) list.append(element("li", "room-chat-empty", "No messages yet."));
+  if (state.loadingOlder) list.append(element("li", "room-chat-loading", "Loading earlier messages…"));
   if (state.expanded) {
     list.classList.add("is-expanded");
     list.addEventListener("scroll", () => {
@@ -131,13 +199,50 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
     if (canSubmitRoomChatMessage(state)) actions.onSendMessage(state.draft.trim());
   });
   form.append(input, send);
-  panel.append(heading, list, form);
+  panel.append(heading, list);
+  if (state.error) {
+    const error = element("p", "room-chat-error", state.error);
+    error.setAttribute("role", "alert");
+    panel.append(error);
+  }
+  panel.append(form);
   return panel;
 }
 
 export function prependRoomChatMessages(list: HTMLElement, messages: HTMLElement[]): void {
   const previousHeight = list.scrollHeight;
   const previousTop = list.scrollTop;
-  for (const message of messages.reverse()) list.insertBefore(message, list.firstElementChild);
+  for (const message of [...messages].reverse()) list.insertBefore(message, list.firstElementChild);
   list.scrollTop = previousTop + (list.scrollHeight - previousHeight);
+}
+
+export function updateRoomChatPanelMessages(
+  panel: HTMLElement,
+  state: RoomChatState,
+  actions: RoomChatActions,
+  mode: "append" | "prepend" | "replace" = "append",
+): void {
+  const currentList = panel.querySelector<HTMLOListElement>(".room-chat-message-list");
+  if (!currentList) return;
+  const nextPanel = renderRoomChat(state, actions);
+  const nextList = nextPanel.querySelector<HTMLOListElement>(".room-chat-message-list");
+  if (!nextList) return;
+  const nextItems = Array.from(nextList.children) as HTMLElement[];
+  if (mode === "prepend") {
+    const existingIds = new Set(Array.from(currentList.children, (item) => (item as HTMLElement).dataset.messageId));
+    prependRoomChatMessages(currentList, nextItems.filter((item) => !existingIds.has(item.dataset.messageId)));
+  } else {
+    const previousTop = currentList.scrollTop;
+    const wasNearBottom = currentList.scrollHeight - currentList.scrollTop - currentList.clientHeight <= 28;
+    currentList.replaceChildren(...nextItems);
+    if (mode === "replace" || wasNearBottom) currentList.scrollTop = currentList.scrollHeight;
+    else currentList.scrollTop = previousTop;
+  }
+  const count = panel.querySelector<HTMLElement>(".room-chat-count");
+  if (count) count.textContent = `${state.messageCount || state.messages.length} messages`;
+  const currentError = panel.querySelector<HTMLElement>(".room-chat-error");
+  const nextError = nextPanel.querySelector<HTMLElement>(".room-chat-error");
+  if (currentError && nextError) currentError.textContent = nextError.textContent;
+  else if (!currentError && nextError) panel.insertBefore(nextError, panel.querySelector(".room-chat-composer"));
+  else currentError?.remove();
 }

@@ -2374,7 +2374,7 @@ function renderGame(
     }
     if (seenNames.size > 0) screen.append(findPlayers);
   }
-  if (gameState && typeof gameState === "object" && "phase" in gameState && gameState.phase === "results") {
+  if (game.status === "finished" && gameState && typeof gameState === "object" && "phase" in gameState && gameState.phase === "results") {
     screen.append(renderRoomChat(chatState, chatActions));
   }
   return screen;
@@ -2597,8 +2597,9 @@ export function renderApp(
     notificationActionBusyId: null,
   },
   chatState: RoomChatState = {
-    expanded: false, messages: [], draft: "", hasOlder: false, loadingOlder: false,
-    cursor: null, sending: false, canSend: false,
+    expanded: false, messages: [], draft: "", messageCount: 0, historyLoaded: false,
+    historyLoading: false, hasOlder: false, loadingOlder: false, cursor: null,
+    sending: false, canSend: false, error: null, roomId: null,
   },
   chatActions: RoomChatActions = {
     onToggleExpanded() {}, onDraftChange() {}, onSendMessage() {}, onLoadOlder() {},
@@ -2618,6 +2619,13 @@ export function renderApp(
     state.currentView = "home";
   }
   const previousDialog = root.querySelector<HTMLDialogElement>(".invitation-dialog");
+  const previousChatList = root.querySelector<HTMLElement>(".room-chat-message-list");
+  const previousChatScroll = previousChatList ? {
+    top: Number(previousChatList.scrollTop) || 0,
+    height: Number(previousChatList.scrollHeight) || 0,
+    clientHeight: Number(previousChatList.clientHeight) || 0,
+    expanded: previousChatList.classList.contains("is-expanded"),
+  } : null;
   const previousFocus = root.ownerDocument.activeElement;
   const previousFocusKey =
     previousDialog && previousFocus && previousDialog.contains(previousFocus)
@@ -2722,6 +2730,12 @@ export function renderApp(
   // round, session, and view changes use the normal replacement path.
   if (!renderPreservingActiveTextEntry(root, shell)) {
     root.replaceChildren(shell);
+  }
+  const nextChatList = root.querySelector<HTMLElement>(".room-chat-message-list");
+  if (previousChatScroll && nextChatList?.classList.contains("is-expanded")) {
+    const wasNearBottom = previousChatScroll.height - previousChatScroll.top - previousChatScroll.clientHeight <= 28;
+    if (!previousChatScroll.expanded || wasNearBottom) nextChatList.scrollTop = nextChatList.scrollHeight;
+    else nextChatList.scrollTop = previousChatScroll.top;
   }
   const invitationDialog = root.querySelector<HTMLDialogElement>(".invitation-dialog");
   if (state.isInvitationDialogOpen && invitationDialog) {

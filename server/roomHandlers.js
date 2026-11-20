@@ -4,6 +4,7 @@ const gameRegistry = require("./gameRegistry");
 const factOrCapSocketHandlers = require("./games/fact-or-cap/socketHandlers");
 const bruhWtfSocketHandlers = require("./games/bruh-wtf/socketHandlers");
 const { getPersonalRoomName } = require("./guestIdentityManager");
+const { RoomChatError, MAX_PAGE_SIZE } = require("./roomChatManager");
 
 const PUBLIC_ROOM_BROWSERS = "public-room-browsers";
 
@@ -22,6 +23,9 @@ function getOperationError(error) {
         return { code: error.code, message: error.message };
     }
     if (error instanceof gameManager.GameSessionError) {
+        return { code: error.code, message: error.message };
+    }
+    if (error instanceof RoomChatError) {
         return { code: error.code, message: error.message };
     }
 
@@ -84,7 +88,8 @@ function scheduleAdvancedGameRound(io, roomCode, transition) {
 
 async function handlePlayerDeparture(io, socket, {
     leaveSocket = false,
-    disconnectGraceManager
+    disconnectGraceManager,
+    departureMessage = null,
 } = {}) {
     const playerId = socket.data?.playerId;
     if (typeof playerId !== "string" || playerId.length === 0) {
@@ -98,6 +103,10 @@ async function handlePlayerDeparture(io, socket, {
     }
 
     disconnectGraceManager?.cancelPlayer(playerId, room.publicRoomId);
+    if (departureMessage && io.roomChatManager) {
+        const message = io.roomChatManager.addSystemMessage(room.publicRoomId, departureMessage);
+        broadcastChatMessage(io, room, message, { excludePlayerId: playerId });
+    }
     const departure = gameManager.removeParticipant(room.code, playerId);
     const updatedRoom = roomManager.removePlayer(playerId);
     socket.data.roomCode = undefined;
@@ -114,6 +123,7 @@ async function handlePlayerDeparture(io, socket, {
     if (!updatedRoom) {
         disconnectGraceManager?.cancelRoom(room.code, room.publicRoomId);
         gameManager.removeGame(room.code, departure?.sessionId);
+        io.roomChatManager?.clearRoom(room.publicRoomId);
         broadcastPublicRooms(io);
         return { room, updatedRoom: null, departure, leaveError: await leavePromise };
     }
@@ -167,8 +177,174 @@ function isAcknowledgement(value) {
     return typeof value === "function";
 }
 
+function resolveRoomChatAccess(room, playerId) {
+    if (!room || typeof playerId !== "string") return { available: false, sessionId: null };
+    const player = room.players.find(({ id }) => id === playerId);
+    if (!player || player.connected === false) return { available: false, sessionId: null };
+
+    if (room.status === "lobby") {
+        if (roomManager.getLobbyParticipants(room).some(({ id }) => id === playerId)) {
+            return { available: true, sessionId: null };
+        }
+        const sessionId = player.viewingResultsSessionId;
+        if (
+            sessionId &&
+            roomManager.getResultsViewers(room, sessionId).includes(playerId) &&
+            roomManager.getFinishedMatch(room, sessionId)
+        ) {
+            return { available: true, sessionId };
+        }
+        return { available: false, sessionId: null };
+    }
+
+    if (room.status === "starting" && gameManager.getGamePlayerIds(room.code).includes(playerId)) {
+        try {
+            const game = gameManager.getPublicGameState(room.code, playerId);
+            const phase = game.state && typeof game.state === "object" ? game.state.phase : null;
+            if (game.status === "finished" && phase === "results") {
+                return { available: true, sessionId: game.sessionId };
+            }
+        } catch {
+            // A starting room without a current match is not chat-enabled.
+        }
+    }
+    return { available: false, sessionId: null };
+}
+
+function getAuthorizedChatRecipients(io, room, identityManager) {
+    let candidateIds = [];
+    if (room.status === "lobby") {
+        candidateIds = roomManager.getLobbyParticipants(room).map(({ id }) => id);
+        for (const sessionId of room.finishedMatches.keys()) {
+            candidateIds.push(...roomManager.getResultsViewers(room, sessionId));
+        }
+    } else if (room.status === "starting") {
+        const gamePlayerIds = gameManager.getGamePlayerIds(room.code);
+        const finished = gamePlayerIds.some((id) => {
+            try {
+                const game = gameManager.getPublicGameState(room.code, id);
+                return game.status === "finished" && game.state?.phase === "results";
+            } catch {
+                return false;
+            }
+        });
+        if (finished) candidateIds = gamePlayerIds;
+    }
+
+    return [...new Set(candidateIds)].filter((id) => {
+        const player = room.players.find(({ id: candidateId }) => candidateId === id);
+        const socketId = identityManager.getSocketId(id);
+        return player?.connected !== false &&
+            typeof socketId === "string" &&
+            identityManager.isActiveSocket(id, socketId) &&
+            io.sockets.sockets.get(socketId)?.connected === true;
+    });
+}
+
+function broadcastChatMessage(io, room, message, { excludePlayerId = null } = {}) {
+    if (!io.roomChatManager) return;
+    const recipients = getAuthorizedChatRecipients(io, room, io.guestIdentityManager);
+    for (const recipientId of recipients) {
+        if (recipientId !== excludePlayerId) {
+            io.to(getPersonalRoomName(recipientId)).emit("chat:message", {
+                roomId: room.publicRoomId,
+                roomCode: room.code,
+                message,
+            });
+        }
+    }
+}
+
+function addAndBroadcastSystemMessage(io, room, text, { excludePlayerId = null } = {}) {
+    if (!io.roomChatManager) return null;
+    const message = io.roomChatManager.addSystemMessage(room.publicRoomId, text);
+    broadcastChatMessage(io, room, message, { excludePlayerId });
+    return message;
+}
+
+function registerRoomChatHandlers(io, socket, identityManager) {
+    const playerId = socket.data.playerId;
+    const reject = (acknowledge, code, message) => acknowledgeError(acknowledge, code, message);
+    const getAuthorizedRoom = (acknowledge) => {
+        if (!identityManager.isActiveSocket(playerId, socket.id)) {
+            reject(acknowledge, "SESSION_NOT_ACTIVE", "The guest session is not active on this connection.");
+            return null;
+        }
+        const room = roomManager.getPlayerRoom(playerId);
+        if (!room || !room.players.some(({ id }) => id === playerId)) {
+            reject(acknowledge, "NOT_IN_ROOM", "You are not a current member of a room.");
+            return null;
+        }
+        const access = resolveRoomChatAccess(room, playerId);
+        if (!access.available) {
+            reject(acknowledge, "CHAT_NOT_AVAILABLE", "Room chat is available in the lobby and finished results.");
+            return null;
+        }
+        return room;
+    };
+
+    socket.on("chat:send", (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) return;
+        if (!isRecord(payload) || Object.keys(payload).length !== 1 || typeof payload.text !== "string") {
+            reject(acknowledge, "INVALID_REQUEST", "Send chat with exactly one string text field.");
+            return;
+        }
+        const room = getAuthorizedRoom(acknowledge);
+        if (!room) return;
+        const sender = room.players.find(({ id }) => id === playerId);
+        try {
+            const message = io.roomChatManager.addPlayerMessage(
+                room.publicRoomId,
+                playerId,
+                sender.name,
+                payload.text,
+            );
+            broadcastChatMessage(io, room, message);
+            acknowledge({ sent: true, messageId: message.id });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            reject(acknowledge, operationError.code, operationError.message);
+        }
+    });
+
+    socket.on("chat:history:request", (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) return;
+        if (
+            !isRecord(payload) ||
+            Object.keys(payload).some((key) => !["before", "limit", "requestId"].includes(key)) ||
+            !Object.hasOwn(payload, "before") ||
+            (payload.before !== null && typeof payload.before !== "string") ||
+            !Number.isInteger(payload.limit) || payload.limit < 1 ||
+            (Object.hasOwn(payload, "requestId") &&
+                (typeof payload.requestId !== "string" || payload.requestId.length === 0 || payload.requestId.length > 100))
+        ) {
+            reject(acknowledge, "INVALID_REQUEST", "Request history with a cursor and positive page size.");
+            return;
+        }
+        const room = getAuthorizedRoom(acknowledge);
+        if (!room) return;
+        try {
+            const response = io.roomChatManager.getHistory(room.publicRoomId, {
+                before: payload.before,
+                limit: Math.min(MAX_PAGE_SIZE, payload.limit),
+            });
+            socket.emit("chat:history:response", {
+                roomId: room.publicRoomId,
+                roomCode: room.code,
+                requestId: payload.requestId ?? null,
+                ...response,
+            });
+            acknowledge({ ok: true });
+        } catch (error) {
+            const operationError = getOperationError(error);
+            reject(acknowledge, operationError.code, operationError.message);
+        }
+    });
+}
+
 function registerRoomHandlers(io, socket, identityManager, disconnectGraceManager) {
     const playerId = socket.data.playerId;
+    registerRoomChatHandlers(io, socket, identityManager);
     factOrCapSocketHandlers.registerSocketHandlers(io, socket);
     bruhWtfSocketHandlers.registerSocketHandlers(io, socket);
 
@@ -321,6 +497,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         }
 
         socket.data.roomCode = room.code;
+        addAndBroadcastSystemMessage(io, room, `${room.players.find(({ id }) => id === playerId)?.name ?? "A player"} joined the room.`);
         broadcastLobby(io, room);
         broadcastPublicRooms(io);
         acknowledge({ roomCode: room.code });
@@ -357,6 +534,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         }
 
         socket.data.roomCode = room.code;
+        addAndBroadcastSystemMessage(io, room, `${room.players.find(({ id }) => id === playerId)?.name ?? "A player"} joined the room.`);
         const lobby = roomManager.createLobbyState(room);
         broadcastLobby(io, room);
         broadcastPublicRooms(io);
@@ -388,6 +566,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         }
 
         socket.data.roomCode = room.code;
+        addAndBroadcastSystemMessage(io, room, `${room.players.find(({ id }) => id === playerId)?.name ?? "A player"} joined the room.`);
         const lobby = roomManager.createLobbyState(room);
         broadcastLobby(io, room);
         broadcastPublicRooms(io);
@@ -491,7 +670,8 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         const departingSocket = targetSocket ?? { id: targetSocketId ?? target.id, data: { playerId: target.id } };
         const result = await handlePlayerDeparture(io, departingSocket, {
             leaveSocket: true,
-            disconnectGraceManager
+            disconnectGraceManager,
+            departureMessage: `${target.name} was kicked from the room.`,
         });
         if (result?.leaveError) {
             acknowledgeError(acknowledge, result.leaveError.code, result.leaveError.message);
@@ -521,7 +701,8 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
 
         const result = await handlePlayerDeparture(io, socket, {
             leaveSocket: true,
-            disconnectGraceManager
+            disconnectGraceManager,
+            departureMessage: `${room.players.find(({ id }) => id === playerId)?.name ?? "A player"} left the room.`,
         });
         if (result?.leaveError) {
             acknowledgeError(acknowledge, result.leaveError.code, result.leaveError.message);
@@ -808,12 +989,21 @@ function handleDisconnect(io, socket, identityManager, disconnectGraceManager) {
     if (!room) return false;
 
     const disconnectedAt = disconnectGraceManager.now();
+    const disconnectedPlayer = room.players.find(({ id }) => id === playerId);
     const update = roomManager.setPlayerConnectionStatus(
         playerId,
         false,
         disconnectedAt
     );
     if (!update?.changed) return false;
+    if (disconnectedPlayer) {
+        addAndBroadcastSystemMessage(
+            io,
+            room,
+            `${disconnectedPlayer.name} disconnected.`,
+            { excludePlayerId: playerId },
+        );
+    }
 
     const gameTransition = gameManager.setPlayerConnectionStatus(room.code, playerId, false);
     scheduleAdvancedGameRound(io, room.code, gameTransition);

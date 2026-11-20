@@ -1475,6 +1475,13 @@ summary.room-visibility-pill::-webkit-details-marker {
   background: var(--color-disabled-background);
 }
 
+.room-chat-error {
+  margin: var(--space-2) 0 0;
+  color: var(--color-error);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
 .lobby-screen .lobby-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

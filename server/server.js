@@ -11,6 +11,7 @@ const { createProfileRepository } = require("./profileRepository");
 const { registerInvitationHandlers } = require("./invitationHandlers");
 const { registerDisabledAccountHandlers } = require("./disabledAccountHandlers");
 const { DisconnectGraceManager } = require("./disconnectGraceManager");
+const { createRoomChatManager } = require("./roomChatManager");
 const {
     GuestIdentityManager,
     createSocketIdentityMiddleware,
@@ -46,6 +47,7 @@ function startServer(
         authEnabled = defaultAuthEnabled,
         identityManager = new GuestIdentityManager(),
         disconnectGraceManager = new DisconnectGraceManager(),
+        roomChatManager = createRoomChatManager(),
     } = {},
 ) {
     if (typeof authEnabled !== "boolean") {
@@ -87,6 +89,7 @@ function startServer(
 
     io.guestIdentityManager = identityManager;
     io.disconnectGraceManager = disconnectGraceManager;
+    io.roomChatManager = roomChatManager;
     httpServer.once("close", () => disconnectGraceManager.cancelAll());
     io.on("connection", (socket) => {
         console.log("Player connected:", socket.id);

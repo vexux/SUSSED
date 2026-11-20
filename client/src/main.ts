@@ -46,7 +46,15 @@ import {
   firebaseConfigurationError,
 } from "./supabase";
 import { renderApp } from "./views";
-import { createInitialRoomChatState } from "./roomChat";
+import {
+  addRoomChatMessage,
+  applyRoomChatHistoryPage,
+  canSubmitRoomChatMessage,
+  createInitialRoomChatState,
+  settleRoomChatSend,
+  updateRoomChatPanelMessages,
+  type RoomChatMessage,
+} from "./roomChat";
 import type {
   AppActions,
   AuthViewState,
@@ -157,6 +165,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 const state = createInitialAppState();
 const roomChatState = createInitialRoomChatState();
+let roomChatRoomCode: string | null = null;
+let roomChatGeneration = 0;
+let previousRoomChatAvailable = false;
+const pendingRoomChatHistory = new Map<string, { before: string | null; roomCode: string; generation: number }>();
 let restorationInProgress = false;
 let restorationRequestId = 0;
 let bufferedRestorationLobby: LobbyState | null = null;
@@ -449,6 +461,80 @@ function showConnectionNotice(message: string): void {
   }, 4000);
 }
 
+function isRoomChatAvailable(): boolean {
+  if (state.currentView === "lobby") return state.lobby !== null;
+  if (state.currentView !== "game" || state.game?.status !== "finished") return false;
+  const gameState = state.game.state;
+  return typeof gameState === "object" && gameState !== null &&
+    "phase" in gameState && gameState.phase === "results";
+}
+
+function resetRoomChatState(): void {
+  roomChatGeneration += 1;
+  previousRoomChatAvailable = false;
+  pendingRoomChatHistory.clear();
+  Object.assign(roomChatState, createInitialRoomChatState());
+}
+
+function requestRoomChatHistory(before: string | null): void {
+  if (!socket.connected || !isRoomChatAvailable() || !roomChatRoomCode) return;
+  if (before === null ? roomChatState.historyLoading || roomChatState.historyLoaded : roomChatState.loadingOlder) return;
+  const requestId = `${roomChatGeneration}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  pendingRoomChatHistory.set(requestId, {
+    before,
+    roomCode: roomChatRoomCode,
+    generation: roomChatGeneration,
+  });
+  if (before === null) roomChatState.historyLoading = true;
+  else roomChatState.loadingOlder = true;
+  roomChatState.error = null;
+  if (before !== null) updateVisibleRoomChat("append");
+  socket.timeout(5000).emit(
+    "chat:history:request",
+    { before, limit: 50, requestId },
+    (error: Error | null, response?: { error?: { code?: string; message?: string }; ok?: boolean }) => {
+      const pending = pendingRoomChatHistory.get(requestId);
+      if (!pending) return;
+      pendingRoomChatHistory.delete(requestId);
+      if (pending.generation !== roomChatGeneration || pending.roomCode !== roomChatRoomCode) return;
+      if (error || response?.error || response?.ok !== true) {
+        roomChatState.historyLoading = false;
+        roomChatState.loadingOlder = false;
+        roomChatState.error = response?.error?.message ?? "Chat history could not be loaded. Try again.";
+        updateVisibleRoomChat("append");
+      }
+    },
+  );
+}
+
+function sendRoomChatMessage(text: string): void {
+  if (!canSubmitRoomChatMessage(roomChatState) || !roomChatRoomCode) return;
+  const roomCode = roomChatRoomCode;
+  const generation = roomChatGeneration;
+  roomChatState.sending = true;
+  roomChatState.error = null;
+  render();
+  socket.timeout(5000).emit(
+    "chat:send",
+    { text },
+    (error: Error | null, response?: { sent?: boolean; error?: { code?: string; message?: string } }) => {
+      if (generation !== roomChatGeneration || roomCode !== roomChatRoomCode) return;
+      roomChatState.sending = false;
+      if (error || response?.error || response?.sent !== true) {
+        settleRoomChatSend(roomChatState, text, response?.error?.message ?? "Your message could not be sent. Try again.");
+        render();
+        return;
+      }
+      const cleared = settleRoomChatSend(roomChatState, text, null);
+      if (cleared) {
+        const input = appRoot.querySelector<HTMLInputElement>("#room-chat-draft");
+        if (input) input.value = "";
+      }
+      render();
+    },
+  );
+}
+
 function render(): void {
   if (state.currentView !== "lobby") {
     state.isInvitationDialogOpen = false;
@@ -459,6 +545,24 @@ function render(): void {
       state.lobby?.reminderSessionId !== state.resultsReminderSentSessionId)
   ) {
     clearResultsReminderSuccess();
+  }
+  if (state.currentView !== "restoring") {
+    const activeRoomCode = state.lobby?.roomCode ?? state.game?.roomCode ?? state.roomCode;
+    if (activeRoomCode !== roomChatRoomCode) {
+      resetRoomChatState();
+      roomChatRoomCode = activeRoomCode;
+    }
+  }
+  const chatAvailable = isRoomChatAvailable();
+  if (!chatAvailable) previousRoomChatAvailable = false;
+  else if (!previousRoomChatAvailable) {
+    roomChatState.historyLoaded = false;
+    roomChatState.historyLoading = false;
+  }
+  previousRoomChatAvailable = chatAvailable;
+  roomChatState.canSend = chatAvailable && socket.connected && !roomChatState.sending;
+  if (chatAvailable && !roomChatState.historyLoaded && !roomChatState.historyLoading) {
+    requestRoomChatHistory(null);
   }
   renderApp(appRoot, state, actions, {
     hasSubmitted: fakeAnswerHasSubmitted,
@@ -514,16 +618,17 @@ function render(): void {
   }, authViewState, socialViewState, roomChatState, {
     onToggleExpanded() {
       roomChatState.expanded = !roomChatState.expanded;
+      if (roomChatState.expanded && !roomChatState.historyLoaded) requestRoomChatHistory(null);
       render();
     },
     onDraftChange(draft) {
       roomChatState.draft = draft.slice(0, 200);
     },
-    onSendMessage() {
-      // Sending is unavailable until a server chat contract is implemented.
+    onSendMessage(text) {
+      sendRoomChatMessage(text);
     },
-    onLoadOlder() {
-      // Cursor pagination is intentionally not simulated without a backend contract.
+    onLoadOlder(cursor) {
+      if (roomChatState.hasOlder && roomChatState.cursor === cursor) requestRoomChatHistory(cursor);
     },
   });
   document.body.classList.toggle(
@@ -3154,6 +3259,87 @@ socket.on("lobby-state", (lobby: LobbyState) => {
   receiveLobbyState(lobby);
 });
 
+function isRoomChatMessage(value: unknown): value is RoomChatMessage {
+  if (!isRecord(value)) return false;
+  return typeof value.id === "string" &&
+    (value.type === "player" || value.type === "system") &&
+    (value.senderName === null || typeof value.senderName === "string") &&
+    typeof value.text === "string" &&
+    typeof value.createdAt === "string";
+}
+
+function updateVisibleRoomChat(mode: "append" | "prepend" | "replace"): void {
+  const panel = appRoot.querySelector<HTMLElement>(".room-chat");
+  if (!panel) return;
+  updateRoomChatPanelMessages(panel, roomChatState, {
+    onToggleExpanded() {},
+    onDraftChange() {},
+    onSendMessage() {},
+    onLoadOlder(cursor) { if (roomChatState.hasOlder) requestRoomChatHistory(cursor); },
+  }, mode);
+}
+
+socket.on("chat:message", (payload: { roomCode?: unknown; roomId?: unknown; message?: unknown }) => {
+  if (
+    typeof payload?.roomCode !== "string" ||
+    payload.roomCode !== roomChatRoomCode ||
+    typeof payload.roomId !== "string" ||
+    !isRoomChatMessage(payload.message)
+  ) return;
+  if (roomChatState.roomId && roomChatState.roomId !== payload.roomId) return;
+  roomChatState.roomId = payload.roomId;
+  if (!addRoomChatMessage(roomChatState, payload.message)) return;
+  updateVisibleRoomChat("append");
+});
+
+socket.on("chat:history:response", (payload: {
+  roomCode?: unknown;
+  roomId?: unknown;
+  requestId?: unknown;
+  before?: unknown;
+  cursor?: unknown;
+  hasMore?: unknown;
+  totalCount?: unknown;
+  messages?: unknown;
+}) => {
+  if (typeof payload?.requestId !== "string") return;
+  const pending = pendingRoomChatHistory.get(payload.requestId);
+  if (!pending) return;
+  pendingRoomChatHistory.delete(payload.requestId);
+  if (
+    pending.generation !== roomChatGeneration ||
+    pending.roomCode !== roomChatRoomCode ||
+    payload.roomCode !== roomChatRoomCode
+  ) return;
+  if (
+    typeof payload.roomId !== "string" ||
+    (roomChatState.roomId !== null && roomChatState.roomId !== payload.roomId) ||
+    payload.before !== pending.before ||
+    !Array.isArray(payload.messages) ||
+    !payload.messages.every(isRoomChatMessage) ||
+    typeof payload.hasMore !== "boolean" ||
+    !(payload.cursor === null || typeof payload.cursor === "string") ||
+    typeof payload.totalCount !== "number"
+  ) {
+    roomChatState.historyLoading = false;
+    roomChatState.loadingOlder = false;
+    roomChatState.error = "The server returned invalid chat history. Try again.";
+    render();
+    return;
+  }
+
+  roomChatState.roomId = payload.roomId;
+  applyRoomChatHistoryPage(roomChatState, {
+    messages: payload.messages,
+    cursor: payload.cursor,
+    hasMore: payload.hasMore,
+    totalCount: payload.totalCount,
+  });
+  roomChatState.cursor = payload.cursor;
+  roomChatState.hasOlder = payload.hasMore;
+  updateVisibleRoomChat(pending.before !== null && roomChatState.expanded ? "prepend" : "replace");
+});
+
 socket.on("server-auth-config", (configuration: { authEnabled?: unknown }) => {
   if (typeof configuration?.authEnabled !== "boolean") return;
   socketAuthConfigurationMismatch = configuration.authEnabled !== authEnabled;
@@ -3262,6 +3448,14 @@ socket.on("connect", () => {
 
 socket.on("disconnect", () => {
   connectionWasLost = true;
+  roomChatGeneration += 1;
+  previousRoomChatAvailable = false;
+  pendingRoomChatHistory.clear();
+  roomChatState.historyLoaded = false;
+  roomChatState.historyLoading = false;
+  roomChatState.loadingOlder = false;
+  roomChatState.sending = false;
+  roomChatState.canSend = false;
   state.connectionStatus = "disconnected";
   const wasBrowsingPublicRooms = state.currentView === "public-rooms";
   const shouldRestoreRoom = Boolean(

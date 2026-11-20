@@ -18,7 +18,16 @@ import { reconcilePublicRooms } from "../src/publicRoomState.ts";
 import { resolveAuthFeatureFlag } from "../src/authFeatureFlag.ts";
 import { shouldConnectSocket } from "../src/socketConfig.ts";
 import { renderApp } from "../src/views.ts";
-import { createInitialRoomChatState, renderRoomChat, prependRoomChatMessages, canSubmitRoomChatMessage } from "../src/roomChat.ts";
+import {
+  addRoomChatMessage,
+  applyRoomChatHistoryPage,
+  createInitialRoomChatState,
+  renderRoomChat,
+  prependRoomChatMessages,
+  canSubmitRoomChatMessage,
+  settleRoomChatSend,
+  updateRoomChatPanelMessages,
+} from "../src/roomChat.ts";
 
 class FakeElement {
   constructor(tagName) {
@@ -2341,5 +2350,63 @@ test("room chat rerenders preserve the active draft input and focus", () => {
     assert.equal(root.query((node) => node.id === "room-chat-draft"), input);
     assert.equal(input.value, "draft survives");
     assert.equal(globalThis.document.activeElement, input);
+  });
+});
+
+test("room chat merges overlapping history and live messages and retains drafts on send failure", () => {
+  const state = createInitialRoomChatState();
+  const message = (id, text) => ({
+    id, type: "player", senderName: "Sam", text,
+    createdAt: `2026-11-20T10:00:0${id === "older" ? "0" : id.slice(-1)}.000Z`,
+  });
+  applyRoomChatHistoryPage(state, {
+    messages: [message("m1", "one"), message("m2", "two")],
+    cursor: "m1", hasMore: true, totalCount: 52,
+  });
+  assert.equal(state.historyLoaded, true);
+  assert.equal(state.messageCount, 52);
+  assert.equal(addRoomChatMessage(state, message("m3", "live")), true);
+  assert.equal(addRoomChatMessage(state, message("m2", "duplicate")), false);
+  applyRoomChatHistoryPage(state, {
+    messages: [message("m1", "one"), message("older", "older")],
+    cursor: "older", hasMore: false, totalCount: 53,
+  });
+  assert.deepEqual(state.messages.map(({ id }) => id), ["older", "m1", "m2", "m3"]);
+  assert.equal(new Set(state.messages.map(({ id }) => id)).size, state.messages.length);
+  assert.equal(state.messageCount, 53);
+
+  state.draft = "still here";
+  state.sending = true;
+  assert.equal(settleRoomChatSend(state, "still here", "Rate limit reached. Try again shortly."), false);
+  assert.equal(state.draft, "still here");
+  assert.equal(state.error, "Rate limit reached. Try again shortly.");
+  assert.equal(state.sending, false);
+  state.sending = true;
+  assert.equal(settleRoomChatSend(state, "still here", null), true);
+  assert.equal(state.draft, "");
+  assert.equal(state.error, null);
+});
+
+test("incoming room chat updates only the message list and leaves the composer node focused", () => {
+  withFakeDocument(() => {
+    const state = createInitialRoomChatState();
+    state.canSend = true;
+    const actions = {
+      onToggleExpanded() {}, onDraftChange(value) { state.draft = value; },
+      onSendMessage() {}, onLoadOlder() {},
+    };
+    const panel = renderRoomChat(state, actions);
+    const input = panel.query((node) => node.id === "room-chat-draft");
+    input.value = "unfinished draft";
+    input.focus();
+    state.draft = input.value;
+    assert.equal(addRoomChatMessage(state, {
+      id: "live-1", type: "player", senderName: "Alex", text: "New message", createdAt: "2026-11-20T10:00:00.000Z",
+    }), true);
+    updateRoomChatPanelMessages(panel, state, actions, "append");
+    assert.equal(panel.query((node) => node.id === "room-chat-draft"), input);
+    assert.equal(input.value, "unfinished draft");
+    assert.equal(globalThis.document.activeElement, input);
+    assert.equal(panel.query((node) => node.className === "room-chat-message").text.includes("New message"), true);
   });
 });
