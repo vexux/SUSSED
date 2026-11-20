@@ -464,6 +464,7 @@ function showConnectionNotice(message: string): void {
 function isRoomChatAvailable(): boolean {
   if (state.currentView === "lobby") return state.lobby !== null;
   if (state.currentView !== "game" || state.game?.status !== "finished") return false;
+  if (state.lobby?.players.find(({ id }) => id === state.localPlayerId)?.isInGame) return false;
   const gameState = state.game.state;
   return typeof gameState === "object" && gameState !== null &&
     "phase" in gameState && gameState.phase === "results";

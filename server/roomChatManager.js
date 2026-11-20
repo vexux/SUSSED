@@ -28,6 +28,7 @@ function normalizeMessageText(text) {
 }
 
 function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
+    let nextSweep = -Infinity;
     const histories = new Map();
     const rateLimits = new Map();
 
@@ -62,10 +63,11 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
         }
         const normalized = normalizeMessageText(text);
         const time = now();
-        for (const [activePlayerId, timestamps] of rateLimits) {
-            const active = timestamps.filter((sentAt) => time - sentAt < RATE_LIMIT_WINDOW_MS);
-            if (active.length === 0) rateLimits.delete(activePlayerId);
-            else if (active.length !== timestamps.length) rateLimits.set(activePlayerId, active);
+        if (time >= nextSweep) {
+            for (const [id, timestamps] of rateLimits) {
+                if (timestamps.every((sentAt) => time - sentAt >= RATE_LIMIT_WINDOW_MS)) rateLimits.delete(id);
+            }
+            nextSweep = time + RATE_LIMIT_WINDOW_MS;
         }
         const recent = (rateLimits.get(playerId) ?? []).filter((sentAt) => time - sentAt < RATE_LIMIT_WINDOW_MS);
         if (recent.length >= MAX_MESSAGES_PER_WINDOW) {

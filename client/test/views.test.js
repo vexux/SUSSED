@@ -2201,6 +2201,7 @@ test("results viewers remain marked in-game and can accept or dismiss host retur
     state.currentView = "game";
     state.resultsReminderSessionId = "finished-session";
     renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.id === "room-chat-draft"), null);
     assert.match(root.text, /The host is waiting in the lobby\./u);
     assert.match(root.text, /Return to Lobby\?/u);
     const reminderDialog = root.query((element) => element.className.includes("results-reminder-dialog"));

@@ -186,14 +186,7 @@ function resolveRoomChatAccess(room, playerId) {
         if (roomManager.getLobbyParticipants(room).some(({ id }) => id === playerId)) {
             return { available: true, sessionId: null };
         }
-        const sessionId = player.viewingResultsSessionId;
-        if (
-            sessionId &&
-            roomManager.getResultsViewers(room, sessionId).includes(playerId) &&
-            roomManager.getFinishedMatch(room, sessionId)
-        ) {
-            return { available: true, sessionId };
-        }
+
         return { available: false, sessionId: null };
     }
 
@@ -212,30 +205,10 @@ function resolveRoomChatAccess(room, playerId) {
 }
 
 function getAuthorizedChatRecipients(io, room, identityManager) {
-    let candidateIds = [];
-    if (room.status === "lobby") {
-        candidateIds = roomManager.getLobbyParticipants(room).map(({ id }) => id);
-        for (const sessionId of room.finishedMatches.keys()) {
-            candidateIds.push(...roomManager.getResultsViewers(room, sessionId));
-        }
-    } else if (room.status === "starting") {
-        const gamePlayerIds = gameManager.getGamePlayerIds(room.code);
-        const finished = gamePlayerIds.some((id) => {
-            try {
-                const game = gameManager.getPublicGameState(room.code, id);
-                return game.status === "finished" && game.state?.phase === "results";
-            } catch {
-                return false;
-            }
-        });
-        if (finished) candidateIds = gamePlayerIds;
-    }
-
-    return [...new Set(candidateIds)].filter((id) => {
-        const player = room.players.find(({ id: candidateId }) => candidateId === id);
+    return room.players.map(({ id }) => id).filter((id) => {
+        if (!resolveRoomChatAccess(room, id).available) return false;
         const socketId = identityManager.getSocketId(id);
-        return player?.connected !== false &&
-            typeof socketId === "string" &&
+        return typeof socketId === "string" &&
             identityManager.isActiveSocket(id, socketId) &&
             io.sockets.sockets.get(socketId)?.connected === true;
     });
@@ -246,7 +219,7 @@ function broadcastChatMessage(io, room, message, { excludePlayerId = null } = {}
     const recipients = getAuthorizedChatRecipients(io, room, io.guestIdentityManager);
     for (const recipientId of recipients) {
         if (recipientId !== excludePlayerId) {
-            io.to(getPersonalRoomName(recipientId)).emit("chat:message", {
+            io.sockets.sockets.get(io.guestIdentityManager.getSocketId(recipientId)).emit("chat:message", {
                 roomId: room.publicRoomId,
                 roomCode: room.code,
                 message,

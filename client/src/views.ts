@@ -2374,7 +2374,8 @@ function renderGame(
     }
     if (seenNames.size > 0) screen.append(findPlayers);
   }
-  if (game.status === "finished" && gameState && typeof gameState === "object" && "phase" in gameState && gameState.phase === "results") {
+  const viewingArchivedResults = state.lobby?.players.find(({ id }) => id === state.localPlayerId)?.isInGame;
+  if (!viewingArchivedResults && game.status === "finished" && gameState && typeof gameState === "object" && "phase" in gameState && gameState.phase === "results") {
     screen.append(renderRoomChat(chatState, chatActions));
   }
   return screen;

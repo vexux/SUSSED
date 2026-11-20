@@ -38,7 +38,10 @@ test("room chat rejects invalid, empty, and oversized text and rate limits by id
     assert.throws(() => chat.addPlayerMessage("room-a", "player-a", "Alex", "sixth"), { code: "CHAT_RATE_LIMITED" });
     // Rate state belongs to the player identity, so using a new socket changes nothing.
     assert.throws(() => chat.addPlayerMessage("room-b", "player-a", "Alex", "new connection"), { code: "CHAT_RATE_LIMITED" });
-    clock.advance(10_001);
+    chat.clearRoom("room-a");
+    clock.advance(9999);
+    assert.throws(() => chat.addPlayerMessage("room-b", "player-a", "Alex", "still limited"), { code: "CHAT_RATE_LIMITED" });
+    clock.advance(1);
     assert.equal(chat.addPlayerMessage("room-a", "player-a", "Alex", "after window").text, "after window");
 });
 
@@ -48,7 +51,7 @@ test("cursor history returns latest and older pages in stable chronological orde
     const chat = createRoomChatManager({ now: clock.now, createId: () => `message-${String(++id).padStart(3, "0")}` });
     for (let index = 0; index < 120; index += 1) {
         chat.addSystemMessage("room-a", `system ${index}`);
-        clock.advance(1);
+        // All messages share a timestamp to exercise ID ordering across page boundaries.
     }
     const latest = chat.getHistory("room-a", { before: null, limit: 500 });
     assert.equal(latest.messages.length, 50);
@@ -67,7 +70,7 @@ test("cursor history returns latest and older pages in stable chronological orde
 
     chat.addSystemMessage("room-a", "new live message");
     const nextOlder = chat.getHistory("room-a", { before: latest.cursor, limit: 50 });
-    assert.equal(nextOlder.messages.at(-1).id, older.messages.at(-1).id);
+    assert.deepEqual(nextOlder.messages, older.messages);
     assert.equal(new Set([...latest.messages, ...older.messages, ...oldest.messages].map(({ id: messageId }) => messageId)).size, 120);
 });
 

@@ -957,12 +957,23 @@ test("room chat is blocked during play, enabled at finished results, and exclude
     const finalState = finishManagedFactOrCapGame(game.roomCode, [game.host.playerId, game.players[0].playerId]);
     assert.equal(finalState.status, "finished");
     const resultEvent = waitForEvent(game.players[0], "chat:message");
-    const sent = await emitWithAck(game.host, "chat:send", { text: "Results chat" });
+    const viewer = game.players[0];
+    const sent = await emitWithAck(viewer, "chat:send", { text: "Results chat" });
     assert.equal(sent.sent, true);
     assert.equal((await resultEvent).message.text, "Results chat");
+    const query = { before: null, limit: 50 };
+    const history = waitForEvent(viewer, "chat:history:response");
+    assert.deepEqual(await emitWithAck(viewer, "chat:history:request", query), { ok: true });
+    assert.ok((await history).messages.some(({ id }) => id === sent.messageId));
 
     assert.deepEqual(await emitWithAck(game.host, "return-to-lobby", { sessionId: finalState.sessionId }), { returned: true });
-    assert.equal((await emitWithAck(game.players[0], "chat:send", { text: "still viewing" })).sent, true);
+    const leaked = [];
+    viewer.on("chat:message", (event) => leaked.push(event));
+    await harness.io.sockets.sockets.get(viewer.transportId).join(game.roomCode);
+    assert.equal((await emitWithAck(game.host, "chat:send", { text: "lobby only" })).sent, true);
+    assert.equal((await emitWithAck(viewer, "chat:send", { text: "still viewing" })).error.code, "CHAT_NOT_AVAILABLE");
+    assert.equal((await emitWithAck(viewer, "chat:history:request", query)).error.code, "CHAT_NOT_AVAILABLE");
+    assert.deepEqual(leaked, []);
     assert.deepEqual(await emitWithAck(game.players[0], "return-from-results", { sessionId: finalState.sessionId }), { returned: true, status: "lobby" });
     assert.equal((await emitWithAck(game.players[0], "chat:send", { text: "back in lobby" })).sent, true);
 });
@@ -985,6 +996,9 @@ test("room chat records join, leave, and disconnect system messages once and res
     const secondJoinEvent = waitForEvent(host, "chat:message");
     await emitWithAck(guest, "join-room", { roomCode: created.roomCode, playerName: "Guest" });
     await secondJoinEvent;
+    const rejoined = waitForEvent(guest, "chat:history:response");
+    assert.deepEqual(await emitWithAck(guest, "chat:history:request", { before: null, limit: 50 }), { ok: true });
+    assert.ok((await rejoined).messages.some(({ text }) => text === "Guest left the room."));
     const disconnectedEvent = waitForEvent(host, "chat:message");
     guest.disconnect();
     assert.equal((await disconnectedEvent).message.text, "Guest disconnected.");
