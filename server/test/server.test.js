@@ -157,6 +157,7 @@ test("Socket.IO polling allows the deployed frontend origins and rejects unliste
 });
 
 async function createHarness(context, {
+    gameLibrary,
     verifyAccessToken,
     profileRepository,
     authEnabled = true,
@@ -169,6 +170,7 @@ async function createHarness(context, {
         clearTimeoutFn: scheduler.clearTimeout.bind(scheduler)
     });
     const io = startServer(0, {
+        gameLibrary,
         verifyAccessToken,
         profileRepository,
         authEnabled,
@@ -361,6 +363,47 @@ test("discovery, join and reporting budgets are separate and survive guest recov
     const report = { targetPlayerId: "missing", reason: "spam" };
     for (let i = 0; i < 5; i++) assert.equal((await emitWithAck(recovered, "report-player", report)).error.code, "INVALID_REPORT");
     assert.equal((await emitWithAck(recovered, "report-player", report)).error.code, "RATE_LIMITED");
+});
+
+test("premium access follows the current host at selection and replay, never the joining player", async (context) => {
+    const gameId = "fact-or-cap";
+    const library = require("../gameLibrary").createGameLibrary({
+        games: [{ id: gameId, access: "premium" }],
+        bundles: [{ id: "party-pack", games: [gameId] }]
+    });
+    const harness = await createHarness(context, { gameLibrary: library, verifyAccessToken: async () => "owner" });
+    const host = await harness.connect({ auth: { accessToken: "verified" } });
+    const guest = await harness.connect();
+    const spoof = await emitWithAck(guest, "create-room", { playerName: "Guest", gameId, accountId: "owner", ownedGames: [gameId] });
+    assert.equal(spoof.error.code, "HOST_ACCESS_REQUIRED");
+    const { roomCode } = await emitWithAck(host, "create-room", { playerName: "Host", gameId: "bruh-wtf" });
+    harness.trackRoom(roomCode);
+    await emitWithAck(guest, "join-room", { roomCode, playerName: "Guest" });
+    assert.equal((await emitWithAck(host, "select-game", { gameId })).error.code, "HOST_ACCESS_REQUIRED");
+    const grant = { grantId: "test", accountId: "owner", kind: "bundle", productId: "party-pack", active: true, version: 1, source: "test" };
+    library.applyGrant(grant);
+    assert.equal((await emitWithAck(host, "select-game", { gameId })).selectedGameId, gameId);
+    await emitWithAck(host, "transfer-host", { targetPlayerId: guest.playerId });
+    await emitWithAck(host, "set-ready", { isReady: true });
+    assert.equal((await emitWithAck(guest, "start-game")).error.code, "HOST_ACCESS_REQUIRED");
+    await emitWithAck(guest, "transfer-host", { targetPlayerId: host.playerId });
+    await emitWithAck(guest, "set-ready", { isReady: true });
+    assert.equal((await emitWithAck(host, "start-game")).starting, true);
+    library.applyGrant({ ...grant, active: false, version: 2 });
+    const restored = await emitWithAck(guest, "restore-session");
+    assert.equal(restored.snapshot.game.gameId, gameId);
+    assert.equal(restored.snapshot.game.status, "active");
+    assert.equal(restored.snapshot.lobby.availableGames.find(g => g.id === gameId).canSelect, false);
+    const finished = finishManagedFactOrCapGame(roomCode, [host.playerId, guest.playerId]);
+    await emitWithAck(host, "return-to-lobby", { sessionId: finished.sessionId });
+    await emitWithAck(guest, "return-from-results", { sessionId: finished.sessionId });
+    await emitWithAck(guest, "set-ready", { isReady: true });
+    assert.equal((await emitWithAck(host, "start-game")).error.code, "HOST_ACCESS_REQUIRED");
+    assert.equal((await emitWithAck(host, "select-game", { gameId: "bruh-wtf" })).selectedGameId, "bruh-wtf");
+    library.applyGrant({ ...grant, version: 3 });
+    const recoveredGuestHost = await disconnectAndRecover(harness, host);
+    assert.equal((await emitWithAck(recoveredGuestHost, "restore-session")).status, "restored");
+    assert.equal((await emitWithAck(recoveredGuestHost, "select-game", { gameId })).error.code, "HOST_ACCESS_REQUIRED");
 });
 
 test("guest sockets use a stable server-issued player identity", async (context) => {

@@ -561,7 +561,7 @@ function createLobbyState(room) {
             maxPlayers,
             supportsRoundSelection: selectedGame.supportsRoundSelection === true
         },
-        availableGames: gameRegistry.list(),
+        availableGames: room.hostLibrary?.() ?? gameRegistry.list(),
         players: room.players.map((player) => ({
             id: player.id,
             name: player.name,

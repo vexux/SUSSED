@@ -48,6 +48,7 @@ function startServer(
         identityManager = new GuestIdentityManager(),
         disconnectGraceManager = new DisconnectGraceManager(),
         roomChatManager = createRoomChatManager(),
+        gameLibrary = require("./gameLibrary").createGameLibrary(JSON.parse(process.env.SUSSED_GAME_CATALOGUE || "{}")),
     } = {},
 ) {
     if (typeof authEnabled !== "boolean") {
@@ -90,6 +91,18 @@ function startServer(
     io.guestIdentityManager = identityManager;
     io.disconnectGraceManager = disconnectGraceManager;
     io.roomChatManager = roomChatManager;
+    io.gameLibrary = gameLibrary;
+    const unsubscribeLibrary = gameLibrary.onChange((accountId) => {
+        for (const client of io.sockets.sockets.values()) {
+            if (!client.data.sessionReady) continue;
+            const room = require("./roomManager").getPlayerRoom(client.data.playerId);
+            const host = room && io.sockets.sockets.get(identityManager.getSocketId(room.hostId));
+            if (!accountId || (room ? host?.data.accountId : client.data.accountId) === accountId) {
+                client.emit("game-library-changed");
+            }
+        }
+    });
+    httpServer.once("close", unsubscribeLibrary);
     io.moderation = require("./moderation").createModeration();
     httpServer.once("close", () => disconnectGraceManager.cancelAll());
     io.on("connection", (socket) => {

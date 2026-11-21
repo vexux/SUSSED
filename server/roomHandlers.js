@@ -295,6 +295,11 @@ function registerRoomChatHandlers(io, socket, identityManager) {
     });
 }
 
+function hostLibrary(io, room) {
+    const hostSocket = io.sockets.sockets.get(io.guestIdentityManager.getSocketId(room.hostId));
+    return io.gameLibrary.list(hostSocket?.data.accountId);
+}
+
 function registerRoomHandlers(io, socket, identityManager, disconnectGraceManager) {
     const playerId = socket.data.playerId;
     registerRoomChatHandlers(io, socket, identityManager);
@@ -385,7 +390,8 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
 
     socket.on("list-games", (acknowledge) => {
         if (typeof acknowledge === "function") {
-            acknowledge({ games: gameRegistry.list() });
+            const room = roomManager.getPlayerRoom(playerId);
+            acknowledge({ games: room ? hostLibrary(io, room) : io.gameLibrary.list(socket.data.accountId) });
         }
     });
 
@@ -459,7 +465,9 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
 
         let room;
         try {
+            io.gameLibrary.authorize(socket.data.accountId, gameId === undefined ? gameRegistry.DEFAULT_GAME_ID : gameId);
             room = roomManager.createRoom(playerId, playerName, gameId, visibility);
+            room.hostLibrary = hostLibrary.bind(null, io, room);
             await joinReservedSeat(room);
         } catch (error) {
             const operationError = getOperationError(error);
@@ -718,6 +726,9 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         }
 
         try {
+            if (roomManager.getPlayerRoom(playerId)?.hostId === playerId) {
+                io.gameLibrary.authorize(socket.data.accountId, payload.gameId);
+            }
             const room = roomManager.selectGame(playerId, payload.gameId);
             broadcastLobby(io, room);
             broadcastPublicRooms(io);
@@ -780,6 +791,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         let startingRoom;
         try {
             const room = roomManager.validateRoomStart(playerId);
+            io.gameLibrary.authorize(socket.data.accountId, room.selectedGameId);
             const eligibleRoom = roomManager.createGameStartRoom(room);
             const selectedGame = gameManager.validateGameStart(eligibleRoom, room.selectedGameId);
             startingRoom = roomManager.startRoom(playerId);

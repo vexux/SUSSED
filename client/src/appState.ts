@@ -144,6 +144,11 @@ export function getConnectionNotice(
 }
 
 export interface LobbyGame {
+  artwork?: string;
+  category?: string;
+  access?: "free" | "premium";
+  available?: boolean;
+  canSelect?: boolean;
   id: string;
   displayName: string;
   description: string;
@@ -181,6 +186,9 @@ export interface GameSessionState {
 }
 
 export interface AppState {
+  libraryCategory?: string;
+  libraryAccess?: string;
+  libraryError?: string;
   canReviewReports?: boolean;
   currentView: AppView;
   theme: ThemePreference;

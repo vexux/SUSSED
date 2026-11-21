@@ -1432,6 +1432,19 @@ test("game selection is registry-driven and selecting a card does not create a r
     assert.ok(root.query((element) => element.className.includes("icon-lock")).classList.contains("room-visibility-icon-private"));
     root.query((element) => element.className.includes("create-selected-game")).dispatch("click");
     assert.deepEqual(calls.created, ["fact-or-cap-anime"]);
+    Object.assign(state.availableGames[1], { category: "Bluffing", access: "premium", available: true, canSelect: false });
+    state.libraryCategory = "Bluffing";
+    state.libraryAccess = "premium";
+    render();
+    assert.equal(root.query(element => element.className.includes("game-card-grid")).children.length, 1);
+    assert.match(root.text, /Host access required/u);
+    assert.equal(root.query(element => element.className.includes("create-selected-game")).disabled, true);
+    state.availableGames[1].canSelect = true;
+    render();
+    assert.match(root.text, /You have host access/u);
+    state.libraryAccess = "free";
+    render();
+    assert.match(root.text, /No games match/u);
   });
 });
 

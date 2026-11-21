@@ -21,6 +21,7 @@ export interface AppActions {
   onRoomCodeChange(code: string): void;
   onCreateRoom(): void;
   onChooseGame(gameId: string): void;
+  onLibraryFilter(key: "libraryCategory" | "libraryAccess", value: string): void;
   onChooseRoomVisibility(visibility: "public" | "private"): void;
   onConfirmCreateRoom(gameId: string): void;
   onBackToHome(): void;
@@ -1085,7 +1086,7 @@ function renderHome(
   createHeading.append(createIcon("game"), createElement("span", undefined, "Create a room"));
   const createButton = createElement("button", "primary-button", "Choose a game");
   createButton.type = "button";
-  createButton.disabled = state.connectionStatus !== "connected" || state.isBusy || state.availableGames.length === 0;
+  createButton.disabled = state.connectionStatus !== "connected" || state.isBusy;
   createButton.addEventListener("click", actions.onCreateRoom);
   createPanel.append(createHeading, createButton);
 
@@ -1483,6 +1484,7 @@ function createGameCard(
   options: {
     selected: boolean;
     className?: string;
+    viewingAsGuest?: boolean;
     action?: {
       label: string;
       icon?: IconName;
@@ -1497,7 +1499,12 @@ function createGameCard(
     `game-card${options.selected ? " selected" : ""}${options.className ? ` ${options.className}` : ""}`,
   );
   card.dataset.gameId = game.id;
-  card.append(createGameCardArt(game.id));
+  if (game.artwork) {
+    const image = createElement("img", "game-card-art");
+    image.alt = "";
+    image.src = game.artwork;
+    card.append(image);
+  } else card.append(createGameCardArt(game.id));
   const details = createElement("div", "game-card-details");
   details.append(
     createElement("h2", "game-card-title", game.displayName),
@@ -1510,6 +1517,9 @@ function createGameCard(
         : `${game.minPlayers}–${game.maxPlayers} players`,
     ),
   );
+  if (game.access) details.append(createElement("p", "game-card-player-count",
+      game.available === false ? "Currently unavailable" : game.access === "free" ? "Free" :
+      game.canSelect ? (options.viewingAsGuest ? "Premium · Host provides access" : "Premium · You have host access") : "Premium · Host access required"));
   if (options.action) {
     const action = createElement(
       "button",
@@ -1552,16 +1562,37 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
   }
 
   const cards = createElement("div", "game-card-grid");
-  state.availableGames.forEach((game) => {
+  for (const [key, label, values] of [
+    ["libraryCategory", "All categories", [...new Set(state.availableGames.map(g => g.category).filter(Boolean))]],
+    ["libraryAccess", "All access types", ["free", "premium"]],
+  ] as const) {
+    const select = createElement("select", "text-input");
+    select.setAttribute("aria-label", label);
+    for (const value of ["", ...values]) {
+      const option = createElement("option", undefined, value || label);
+      option.value = value || "";
+      select.append(option);
+    }
+    select.value = state[key] || "";
+    select.addEventListener("change", () => actions.onLibraryFilter(key, select.value));
+    screen.append(select);
+  }
+  const visibleGames = state.availableGames.filter(g =>
+    (!state.libraryCategory || g.category === state.libraryCategory) && (!state.libraryAccess || g.access === state.libraryAccess));
+  if (state.libraryError || !visibleGames.length) screen.append(createElement("p", "status-message",
+    state.libraryError || (state.availableGames.length ? "No games match these filters." : "Loading game library…")));
+  visibleGames.forEach((game) => {
     const selected = selectedGameId === game.id;
     cards.append(createGameCard(game, {
       selected,
+      viewingAsGuest: isLobbySelection && !localPlayer?.isHost,
       action: {
         label: selected ? "Selected" : "Select game",
         disabled:
           state.isBusy ||
           state.connectionStatus !== "connected" ||
           selected ||
+          game.canSelect === false ||
           (isLobbySelection && !canChangeLobbyGame),
         ariaPressed: selected,
         onClick: () => actions.onChooseGame(game.id),
@@ -1590,7 +1621,8 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
   if (!isLobbySelection) {
     const createButton = createElement("button", "primary-button create-selected-game", "Create room");
     createButton.type = "button";
-    createButton.disabled = !state.pendingGameId || state.isBusy || state.connectionStatus !== "connected";
+    createButton.disabled = !state.pendingGameId || state.isBusy || state.connectionStatus !== "connected" ||
+      state.availableGames.some(game => game.id === state.pendingGameId && game.canSelect === false);
     createButton.addEventListener("click", () => {
       if (state.pendingGameId) actions.onConfirmCreateRoom(state.pendingGameId);
     });
@@ -1786,10 +1818,11 @@ function renderLobby(
   );
   const isHost = localPlayer?.isHost === true;
   const selectedGameCard = createGameCard(
-    lobby.selectedGame,
+    { ...lobby.selectedGame, ...lobby.availableGames.find(g => g.id === lobby.selectedGameId) },
     {
       selected: true,
       className: "selected-lobby-game",
+      viewingAsGuest: !isHost,
       action: isHost && lobby.status === "lobby"
         ? {
             label: "Switch game",
@@ -2033,7 +2066,8 @@ function renderLobby(
     lobbyActions.append(lock);
     const startButton = createElement("button", "primary-button", "Start game");
     startButton.type = "button";
-    startButton.disabled = state.isBusy || lobby.readinessStatus !== "ready";
+    startButton.disabled = state.isBusy || lobby.readinessStatus !== "ready" ||
+      lobby.availableGames.some(g => g.id === lobby.selectedGameId && g.canSelect === false);
     startButton.addEventListener("click", actions.onStartGame);
     lobbyActions.append(startButton);
     if (lobby.reminderSessionId && lobby.status === "lobby") {

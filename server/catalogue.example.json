@@ -1,0 +1,10 @@
+{
+  "games": [
+    { "id": "fact-or-cap", "access": "free", "order": 1 },
+    { "id": "fact-or-cap-anime", "access": "premium", "order": 2 },
+    { "id": "bruh-wtf", "access": "premium", "order": 3 }
+  ],
+  "bundles": [
+    { "id": "party-pack", "games": ["fact-or-cap-anime", "bruh-wtf"] }
+  ]
+}

@@ -49,7 +49,15 @@ Only an activated socket joins the player's personal delivery room. Room creatio
 
 ## Match participation and archived results
 
-### Adding a game
+### Catalogue and host entitlements
+
+The registry supplies IDs, names, descriptions, categories and effective seat limits. The server library adds visibility and host access metadata. Configure `SUSSED_GAME_CATALOGUE` with the JSON contents of `server/catalogue.example.json` to enable its hybrid catalogue. Without an override, existing games remain available and free. The example groups the Anime variant and Bruh WTF into one premium bundle; no launch prices are assumed. Policy entries support access, availability, order, artwork and optional prices by region. For example, `prices: {"IN":{"currency":"INR","amountMinor":9900}}` uses integer minor units; a `default` price is optional. Missing prices do not imply a purchase offer.
+
+`list-games` and lobby `availableGames` contain the public catalogue and a per-game `canSelect` decision. In a room it describes the current host's rights; outside a room it describes the requesting connection. Ownership records, account IDs and transaction references are private. Room creation (including default game), host selection, start and replay independently check the verified socket account and current policy. Join, invitation, restore and gameplay use ordinary membership checks. A host disconnect reserves their seat as before. Recovery of a guest ID alone does not restore account ownership. Host transfer or permanent departure changes whose rights apply to the next start. Revocation and unavailability leave an active match intact and keep the room usable for switching games.
+
+The server-only library accepts `applyGrant({grantId,version,accountId,kind,productId,source,active,transactionRef?})`. Kinds are game and bundle; promotional and administrative grants can use independent keys. The default store is process-local development storage, cleared on restart. No socket operation writes grants. For a future provider, verify authenticity and independently resolve the account and product on the server before calling this boundary. Normalize events to stable independent grant keys and ordered versions; refunds submit an inactive version. Duplicate and older versions have no effect, including grants arriving after a refund. For durable deployment replace the store and enforce the version comparison and write atomically across workers, using durable event deduplication. No provider credentials, webhooks or checkout are implemented.
+
+### Game module interface
 
 Register the server module at startup in `gameRegistry.js`. Registration rejects duplicate IDs, malformed metadata, invalid seat ranges, and missing lifecycle hooks. All production modules are trusted server code. The public catalog contains the ID, display name, description, category, and effective player limits.
 

@@ -673,16 +673,25 @@ function focusPublicRoomJoin(roomId: string): void {
 }
 
 function requestAvailableGames(): void {
+  const lobby = state.lobby;
+  state.libraryError = undefined;
   socket.timeout(5000).emit(
     "list-games",
     (error: Error | null, response?: GameListResponse) => {
-      if (error || !response || !Array.isArray(response.games)) return;
+      if (state.lobby !== lobby) return;
+      if (error || !response || !Array.isArray(response.games)) {
+        state.libraryError = "The game library could not be loaded. Reopen it to retry.";
+        render();
+        return;
+      }
       state.availableGames = response.games;
       if (state.lobby) state.lobby.availableGames = response.games;
       render();
     },
   );
 }
+
+socket.on("game-library-changed", requestAvailableGames);
 
 function applyPublicRoomsResponse(
   requestId: number,
@@ -1679,15 +1688,20 @@ const actions: AppActions = {
     }
   },
   onCreateRoom() {
+    requestAvailableGames();
     state.currentView = "game-selection";
     state.errorMessage = null;
     state.errorCode = null;
     state.nameEntryError = null;
     render();
   },
+  onLibraryFilter(key, value) {
+    state[key] = value;
+    render();
+  },
   onChooseGame(gameId) {
     if (state.isBusy) return;
-    if (!state.availableGames.some((game) => game.id === gameId)) return;
+    if (!state.availableGames.some((game) => game.id === gameId && game.canSelect !== false)) return;
     if (state.lobby) {
       const localPlayer = state.lobby.players.find(({ id }) => id === state.localPlayerId);
       if (localPlayer?.isHost !== true || state.lobby.status !== "lobby") return;
