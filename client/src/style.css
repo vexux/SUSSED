@@ -67,6 +67,7 @@
   --radius-lg: 1rem;
   --radius-pill: 999px;
   --focus-ring: 2px solid var(--color-accent-light);
+  --control-touch-size: 44px;
 
   font-family: var(--font-family);
   color: var(--color-text);
@@ -3968,9 +3969,21 @@ select:focus:not(:focus-visible) {
   max-height: 84vh;
   overflow: auto;
   overflow-wrap: anywhere;
-  background: var(--surface, #211b27);
-  color: inherit;
-  border-radius: 1rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
 .report-review article { padding-block: 1rem; border-bottom: 1px solid currentColor; }
 .report-review button { display: block; margin-block: .5rem; }
+
+.library-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-2);
+}
+.library-filters select, .player-detail-actions button, .report-review button,
+.room-chat-toggle, .room-chat-send { min-height: var(--control-touch-size); }
+.catalogue-category, .own-answer-note { color: var(--color-text-muted); font-size: .875rem; }
+.own-answer-note { margin-inline-start: auto; }
+.report-review::backdrop { background: var(--color-overlay); }

@@ -15,6 +15,7 @@ export interface RoomChatState {
   historyLoading: boolean;
   hasOlder: boolean;
   loadingOlder: boolean;
+  hasLoadedEarlier?: boolean;
   cursor: string | null;
   sending: boolean;
   canSend: boolean;
@@ -48,6 +49,7 @@ export function createInitialRoomChatState(): RoomChatState {
     historyLoading: false,
     hasOlder: false,
     loadingOlder: false,
+    hasLoadedEarlier: false,
     cursor: null,
     sending: false,
     canSend: false,
@@ -85,6 +87,7 @@ export function applyRoomChatHistoryPage(
   page: RoomChatHistoryPage,
 ): void {
   state.messages = mergeRoomChatMessages(state.messages, page.messages);
+  if (state.loadingOlder) state.hasLoadedEarlier = true;
   state.messageCount = Math.max(state.messageCount, page.totalCount);
   state.cursor = page.cursor;
   state.hasOlder = page.hasMore;
@@ -121,9 +124,10 @@ function initials(name: string): string {
   return (parts.length > 1 ? `${parts[0]?.[0] ?? ""}${parts.at(-1)?.[0] ?? ""}` : parts[0]?.slice(0, 2) ?? "?").toUpperCase();
 }
 
+const timeFormat = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
 function localTime(value: string): string {
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(date);
+  return Number.isNaN(date.getTime()) ? "" : timeFormat.format(date);
 }
 
 function renderMessage(message: RoomChatMessage): HTMLElement {
@@ -165,9 +169,9 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
 
   const list = element("ol", "room-chat-message-list");
   list.setAttribute("aria-live", "polite");
-  const visibleMessages = state.expanded ? state.messages.slice(-50) : state.messages.slice(-3);
+  const visibleMessages = state.expanded && state.hasLoadedEarlier ? state.messages : state.messages.slice(state.expanded ? -50 : -3);
   for (const message of visibleMessages) list.append(renderMessage(message));
-  if (visibleMessages.length === 0) list.append(element("li", "room-chat-empty", "No messages yet."));
+  if (visibleMessages.length === 0) list.append(element("li", "room-chat-empty", state.historyLoading ? "Loading messages…" : "No messages yet."));
   if (state.loadingOlder) list.append(element("li", "room-chat-loading", "Loading earlier messages…"));
   if (state.expanded) {
     list.classList.add("is-expanded");
@@ -192,7 +196,8 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
   send.setAttribute("aria-label", "Send room chat message");
   input.addEventListener("input", () => {
     actions.onDraftChange(input.value);
-    send.disabled = !canSubmitRoomChatMessage(state);
+    const currentSend = input.parentElement?.querySelector<HTMLButtonElement>(".room-chat-send");
+    if (currentSend) currentSend.disabled = !canSubmitRoomChatMessage(state);
   });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -229,6 +234,7 @@ export function updateRoomChatPanelMessages(
   if (!nextList) return;
   const nextItems = Array.from(nextList.children) as HTMLElement[];
   if (mode === "prepend") {
+    currentList.querySelector(".room-chat-loading")?.remove();
     const existingIds = new Set(Array.from(currentList.children, (item) => (item as HTMLElement).dataset.messageId));
     prependRoomChatMessages(currentList, nextItems.filter((item) => !existingIds.has(item.dataset.messageId)));
   } else {

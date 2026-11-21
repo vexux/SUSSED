@@ -680,7 +680,7 @@ function requestAvailableGames(): void {
     (error: Error | null, response?: GameListResponse) => {
       if (state.lobby !== lobby) return;
       if (error || !response || !Array.isArray(response.games)) {
-        state.libraryError = "The game library could not be loaded. Reopen it to retry.";
+        state.libraryError = "The game library could not be loaded.";
         render();
         return;
       }
@@ -1697,6 +1697,10 @@ const actions: AppActions = {
   },
   onLibraryFilter(key, value) {
     state[key] = value;
+    render();
+  },
+  onRetryLibrary() {
+    requestAvailableGames();
     render();
   },
   onChooseGame(gameId) {

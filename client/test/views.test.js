@@ -1609,6 +1609,7 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     state.lobby.locked = true;
     renderApp(root, state, actions, {}, {});
     assert.ok(root.query((element) => element.textContent === "Unlock room"));
+    assert.equal(root.query((element) => element.className.includes("invite-friends-button")).disabled, true);
     assert.equal(hostActions.parentElement.className.includes("lobby-content-grid"), true);
     assert.equal(root.query((element) => element.className.includes("visibility-field")), null);
 
@@ -1696,6 +1697,27 @@ test("game selection provides in-flow name entry and keeps selected creation set
     assert.equal(globalThis.document.activeElement, name);
     assert.equal(root.query((element) => element.id === "selection-player-name").getAttribute("aria-invalid"), "true");
     assert.match(root.text, /Enter a player name between 1 and 20 characters/u);
+  });
+});
+
+test("game library retry follows connection state and preserves the creation selections", () => {
+  withFakeDocument(() => {
+    const state = createInitialAppState();
+    state.currentView = "game-selection";
+    state.libraryError = "The game library could not be loaded.";
+    state.pendingRoomVisibility = "private";
+    let attempts = 0;
+    const actions = { ...createActions(), onRetryLibrary() { attempts++; } };
+    const root = new FakeElement("root");
+    const retry = () => root.query((element) => element.textContent === "Retry game library");
+    renderApp(root, state, actions, {}, {});
+    assert.equal(retry().disabled, true);
+    state.connectionStatus = "connected";
+    renderApp(root, state, actions, {}, {});
+    assert.equal(retry().disabled, false);
+    retry().dispatch("click");
+    assert.equal(attempts, 1);
+    assert.equal(root.query((element) => element.id === "create-room-visibility-private").checked, true);
   });
 });
 
@@ -2337,6 +2359,14 @@ test("room chat limits collapsed history, exposes expansion and keeps its compos
     toggle.dispatch("click");
     panel = renderRoomChat(state, actions);
     assert.equal(panel.queryAll((node) => node.className === "room-chat-message").length, 50);
+    state.loadingOlder = true;
+    applyRoomChatHistoryPage(state, {
+      messages: [{ ...state.messages[0], id: "earlier", text: "Earlier message" }],
+      totalCount: 61, cursor: "earlier", hasMore: false,
+    });
+    panel = renderRoomChat(state, actions);
+    assert.equal(panel.queryAll((node) => node.className === "room-chat-message").length, 61);
+    assert.ok(panel.query((node) => node.dataset.messageId === "earlier"));
     assert.equal(panel.query((node) => node.className === "room-chat-toggle").getAttribute("aria-expanded"), "true");
     assert.ok(panel.query((node) => node.className === "room-chat-composer"));
     const input = panel.query((node) => node.id === "room-chat-draft");

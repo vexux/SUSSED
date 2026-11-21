@@ -46,6 +46,7 @@ export function createStatusMessage(
   const status = document.createElement("p");
   status.className = className;
   status.textContent = text;
+  if (className === "status-message") status.setAttribute("role", "status");
   return status;
 }
 
@@ -180,6 +181,8 @@ export function createSubmissionForm(options: {
   input.type = "text";
   input.maxLength = 160;
   input.required = true;
+  input.pattern = ".*\\S.*";
+  input.title = "Enter an answer of up to 160 characters.";
   input.autocomplete = "off";
   input.disabled = options.isSubmitting;
   input.value = options.draft;
@@ -194,7 +197,7 @@ export function createSubmissionForm(options: {
   form.append(label, input, submit);
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    options.onSubmit(input.value);
+    if (!input.disabled && input.value.trim()) options.onSubmit(input.value);
   });
   return form;
 }
@@ -249,6 +252,12 @@ export function createVotingForm(options: {
     const answer = document.createElement("span");
     answer.textContent = options.formatAnswer?.(option.completion) ?? option.completion;
     label.append(input, answer);
+    if (option.isOwnAnswer) {
+      const own = document.createElement("small");
+      own.className = "own-answer-note";
+      own.textContent = "Your answer";
+      label.append(own);
+    }
     form.append(label);
   }
   submit = document.createElement("button");

@@ -255,7 +255,7 @@ export function renderBruhWtfGame(
       returnButton.addEventListener("click", onReturnToLobby);
       screen.append(returnButton);
     } else if (isSessionFinished) {
-      screen.append(createStatusMessage("Waiting for the host to return everyone to the lobby…"));
+      screen.append(createStatusMessage("Waiting for the host to reopen the lobby. You can review the results here, then return when you’re ready."));
     }
     if (view.returnToLobbyError) {
       const error = createStatusMessage(view.returnToLobbyError, "error-message");
@@ -289,7 +289,7 @@ export function renderBruhWtfGame(
         ? `Answer submitted. Waiting for ${waitingCount} ${waitingCount === 1 ? "player" : "players"}...`
         : "Answer submitted. Preparing the answers…"));
     } else {
-      screen.append(createStatusMessage("Submit your answer when you’re ready."));
+      screen.append(createStatusMessage("Write a funny response to the prompt. Everyone will vote on the anonymous answers."));
       if (view.submitError) {
         const error = createStatusMessage(view.submitError, "error-message");
         error.setAttribute("role", "alert");

@@ -703,7 +703,7 @@ function createFinalResultsScreen(
   } else {
     const waiting = document.createElement("p");
     waiting.className = "status-message";
-    waiting.textContent = "Waiting for the host to return everyone to the lobby…";
+    waiting.textContent = "Waiting for the host to reopen the lobby. You can review the results here, then return when you’re ready.";
     screen.append(waiting);
   }
   if (submission.returnToLobbyError) {
@@ -903,7 +903,7 @@ export function renderFakeAnswerGame(
 
     const waiting = document.createElement("p");
     waiting.className = "status-message";
-    waiting.textContent = "Submit your answer when you’re ready.";
+    waiting.textContent = "Write a believable fake completion. Other players will try to spot the real one.";
     screen.append(waiting, progress, playerList);
     updateFakeAnswerProgress(screen, publicState, submission.currentPlayerId);
     if (submission.submissionError) {
@@ -941,7 +941,7 @@ export function renderFakeAnswerGame(
     const instructions = document.createElement("p");
     instructions.className = "screen-description voting-instructions";
     instructions.textContent = "Choose the real completion.";
-    const viewerHasVoted = publicState.voteProgress?.some(
+    const viewerHasVoted = submission.hasVoted || publicState.voteProgress?.some(
       ({ playerId, voted }) =>
         playerId === submission.currentPlayerId && voted,
     ) === true;

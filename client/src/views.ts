@@ -3,6 +3,7 @@ import {
   type AppState,
   type AppView,
   type LobbyPlayer,
+  type LobbyState,
   type ThemePreference,
 } from "./appState.ts";
 import type { AuthFormMode } from "./auth.ts";
@@ -22,6 +23,7 @@ export interface AppActions {
   onCreateRoom(): void;
   onChooseGame(gameId: string): void;
   onLibraryFilter(key: "libraryCategory" | "libraryAccess", value: string): void;
+  onRetryLibrary(): void;
   onChooseRoomVisibility(visibility: "public" | "private"): void;
   onConfirmCreateRoom(gameId: string): void;
   onBackToHome(): void;
@@ -647,7 +649,7 @@ function renderWelcome(
   guest.addEventListener("click", actions.onPlayAsGuest);
 
   buttons.append(guest);
-  content.append(title, tagline, buttons);
+  content.append(title, tagline, createElement("p", "screen-description", "Play party games with friends in your browser. Guests can create or join a room without an account."), buttons);
   screen.append(content);
   const message = authState.errorMessage ?? state.errorMessage;
   if (message) {
@@ -1051,6 +1053,7 @@ function renderHome(
     HOME_TAGLINE,
   );
   screen.append(title, tagline);
+  screen.append(createElement("p", "screen-description", "Choose a party game to host, enter a friend’s room code, or find an open table. Guests play without an account."));
   if (state.canReviewReports) {
     const review = createElement("button", "secondary-button", "Review player reports");
     review.addEventListener("click", actions.onReviewReports);
@@ -1106,6 +1109,9 @@ function renderHome(
   roomCodeInput.value = state.joinRoomCode;
   roomCodeInput.required = true;
   roomCodeInput.inputMode = "text";
+  roomCodeInput.setAttribute("autocapitalize", "characters");
+  roomCodeInput.spellcheck = false;
+  if (state.errorCode === "INVALID_ROOM_CODE") roomCodeInput.setAttribute("aria-invalid", "true");
   roomCodeInput.setAttribute("aria-label", "Room code");
   roomCodeInput.addEventListener("input", () => {
     actions.onRoomCodeChange(roomCodeInput.value);
@@ -1120,6 +1126,12 @@ function renderHome(
   });
 
   const roomCodeField = createElement("div", "field");
+  roomCodeInput.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.isComposing && state.connectionStatus === "connected" && !state.isBusy) {
+      event.preventDefault();
+      actions.onJoinRoom(roomCodeInput.value);
+    }
+  });
   roomCodeField.append(joinLabel, roomCodeInput);
   joinPanel.append(roomCodeField, joinButton);
 
@@ -1517,6 +1529,7 @@ function createGameCard(
         : `${game.minPlayers}–${game.maxPlayers} players`,
     ),
   );
+  if (game.category) details.append(createElement("span", "catalogue-category", game.category));
   if (game.access) details.append(createElement("p", "game-card-player-count",
       game.available === false ? "Currently unavailable" : game.access === "free" ? "Free" :
       game.canSelect ? (options.viewingAsGuest ? "Premium · Host provides access" : "Premium · You have host access") : "Premium · Host access required"));
@@ -1553,8 +1566,8 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
       "p",
       "screen-description",
       isLobbySelection
-        ? "Select a different registered game for this lobby."
-        : "Pick the kind of trouble you want to get into.",
+        ? "Choose what your room will play next."
+        : "Browse the library, then select a game to create a room.",
     ),
   );
   if (!isLobbySelection) {
@@ -1562,6 +1575,7 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
   }
 
   const cards = createElement("div", "game-card-grid");
+  const filters = createElement("div", "library-filters");
   for (const [key, label, values] of [
     ["libraryCategory", "All categories", [...new Set(state.availableGames.map(g => g.category).filter(Boolean))]],
     ["libraryAccess", "All access types", ["free", "premium"]],
@@ -1575,8 +1589,9 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
     }
     select.value = state[key] || "";
     select.addEventListener("change", () => actions.onLibraryFilter(key, select.value));
-    screen.append(select);
+    filters.append(select);
   }
+  screen.append(filters);
   const visibleGames = state.availableGames.filter(g =>
     (!state.libraryCategory || g.category === state.libraryCategory) && (!state.libraryAccess || g.access === state.libraryAccess));
   if (state.libraryError || !visibleGames.length) screen.append(createElement("p", "status-message",
@@ -1599,6 +1614,12 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
       },
     }));
   });
+  if (state.libraryError) {
+    const retry = createElement("button", "secondary-button", "Retry game library");
+    retry.disabled = state.connectionStatus !== "connected";
+    retry.addEventListener("click", actions.onRetryLibrary);
+    screen.append(retry);
+  }
   screen.append(cards);
 
   if (!isLobbySelection) {
@@ -1610,6 +1631,9 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
     });
     visibilityField.classList.add("create-visibility-field");
     screen.append(visibilityField);
+    visibilityField.append(createElement("p", "field-hint", state.pendingRoomVisibility === "public"
+      ? "Players can find this room in Find a table or join with its code."
+      : "Share the room code or invitation link with the people you want to play with."));
   }
 
   const actionsPanel = createElement("div", "selection-actions");
@@ -1662,6 +1686,11 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
   refresh.addEventListener("click", actions.onRefreshPublicRooms);
   controls.append(back, refresh);
   screen.append(controls);
+  if (state.isBusy) {
+    const status = createElement("p", "status-message", "Joining your selected room…");
+    status.setAttribute("role", "status");
+    screen.append(status);
+  }
 
   if (state.isLoadingPublicRooms && state.publicRooms.length === 0) {
     const loading = createElement("p", "status-message", "Finding open rooms…");
@@ -1720,7 +1749,7 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
       const join = createElement(
         "button",
         "primary-button public-room-join",
-        state.isBusy ? "Joining…" : roomIsFull ? "Full" : "Join",
+        roomIsFull ? "Full" : "Join",
       );
       join.type = "button";
       join.disabled = state.connectionStatus !== "connected" || state.isBusy || roomIsFull;
@@ -1801,11 +1830,13 @@ function renderLobby(
     createElement("span", "invite-label-short", "Invite"),
   );
   inviteButton.type = "button";
-  inviteButton.disabled = state.isBusy || state.isInvitationBusy || lobby.playerCount >= lobby.maxPlayers;
+  const atCapacity = roomAtCapacity(lobby);
+  inviteButton.disabled = state.isBusy || state.isInvitationBusy || atCapacity || lobby.locked === true;
   inviteButton.addEventListener("click", actions.onOpenInvitationDialog);
   invitationActions.append(roomCodeControl, inviteButton);
   roomCodePanel.append(invitationActions);
-  if (lobby.playerCount >= lobby.maxPlayers) {
+  if (lobby.locked) screen.append(createElement("p", "status-message", "Room locked · New players cannot join."));
+  if (atCapacity) {
     screen.append(createElement("p", "status-message", "This room is full and cannot accept new players."));
   }
   const playerCount = createElement(
@@ -1834,7 +1865,9 @@ function renderLobby(
     },
   );
   const readinessText =
-    lobby.readinessStatus === "insufficient-players"
+    lobby.availableGames.some(game => game.id === lobby.selectedGameId && game.canSelect === false)
+      ? (isHost ? "Choose an accessible game to start." : "Waiting for the host to choose an accessible game.")
+      : lobby.readinessStatus === "insufficient-players"
       ? `At least ${lobby.selectedGame.minPlayers} players are required to start.`
       : lobby.readinessStatus === "waiting-for-ready"
         ? "Waiting for everyone to be ready..."
@@ -2111,6 +2144,10 @@ function renderLobby(
   return screen;
 }
 
+function roomAtCapacity(lobby: LobbyState): boolean {
+  return Math.max(lobby.playerCount, lobby.players.length) >= lobby.maxPlayers;
+}
+
 function createInvitationDialog(
   state: AppState,
   actions: AppActions,
@@ -2118,7 +2155,8 @@ function createInvitationDialog(
   authState: AuthViewState,
   socialState: SocialViewState,
 ): HTMLDialogElement {
-  const isRoomFull = state.lobby !== null && state.lobby.playerCount >= state.lobby.maxPlayers;
+  const isRoomFull = state.lobby !== null && roomAtCapacity(state.lobby);
+  const unavailable = isRoomFull || state.lobby?.locked === true;
   const dialog = createElement("dialog", "invitation-dialog");
   dialog.setAttribute("aria-labelledby", "invitation-dialog-title");
   dialog.setAttribute("aria-describedby", "invitation-dialog-description");
@@ -2142,7 +2180,7 @@ function createInvitationDialog(
   const urlRow = createElement("div", "invitation-url-row");
   const copyButton = createElement("button", "secondary-button invitation-copy-button");
   copyButton.type = "button";
-  copyButton.disabled = state.isBusy || state.isInvitationBusy || isRoomFull;
+  copyButton.disabled = state.isBusy || state.isInvitationBusy || unavailable;
   copyButton.setAttribute("aria-label", state.invitationFeedback === "Invitation link copied." ? "Invitation link copied" : "Copy invitation link");
   copyButton.title = state.invitationFeedback === "Invitation link copied." ? "Invitation link copied" : "Copy invitation link";
   copyButton.setAttribute("data-invitation-focus", "copy");
@@ -2154,12 +2192,12 @@ function createInvitationDialog(
   const actionPanel = createElement("div", "invitation-dialog-actions");
   const shareButton = createElement("button", "primary-button", "Share invite");
   shareButton.type = "button";
-  shareButton.disabled = state.isBusy || state.isInvitationBusy || isRoomFull;
+  shareButton.disabled = state.isBusy || state.isInvitationBusy || unavailable;
   shareButton.setAttribute("data-invitation-focus", "share");
   shareButton.addEventListener("click", actions.onShareInvitationLink);
   const qrButton = createElement("button", "secondary-button", state.isInvitationQrVisible ? "Hide QR code" : "Show QR code");
   qrButton.type = "button";
-  qrButton.disabled = state.isBusy || state.isInvitationBusy || isRoomFull;
+  qrButton.disabled = state.isBusy || state.isInvitationBusy || unavailable;
   qrButton.setAttribute("aria-expanded", String(state.isInvitationQrVisible));
   qrButton.setAttribute("data-invitation-focus", "qr");
   qrButton.addEventListener("click", actions.onToggleInvitationQr);
@@ -2170,6 +2208,8 @@ function createInvitationDialog(
   friendSection.append(createElement("h3", "social-section-title", "Invite a friend"));
   if (isRoomFull) {
     friendSection.append(createElement("p", "empty-state", "This room is full and cannot accept new players."));
+  } else if (state.lobby?.locked) {
+    friendSection.append(createElement("p", "empty-state", "The host must unlock this room before friends can join."));
   } else if (!authState.isAuthenticated) {
     friendSection.append(createElement("p", "empty-state", "Sign in to choose a friend, or share this room link."));
   } else if (socialState.isLoading) {
@@ -2193,7 +2233,7 @@ function createInvitationDialog(
         `Invite @${friend.handle}`,
       );
       invite.type = "button";
-      invite.disabled = state.isInvitationBusy || isRoomFull;
+      invite.disabled = state.isInvitationBusy || unavailable;
       invite.addEventListener("click", () => actions.onInviteFriend(friend.handle));
       row.append(invite);
       friendSection.append(row);
