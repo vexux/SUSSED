@@ -1591,13 +1591,17 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.equal(root.query((element) => element.className.includes("lobby-settings-panel")), null);
     const hostActions = root.query((element) => element.className.includes("host-lobby-actions"));
     assert.deepEqual(hostActions.children.map((button) => button.text), [
-      "Start game", "Leave room", "Ask everyone to return to lobby",
+      "Lock room", "Start game", "Leave room", "Ask everyone to return to lobby",
     ]);
+    state.lobby.locked = true;
+    renderApp(root, state, actions, {}, {});
+    assert.ok(root.query((element) => element.textContent === "Unlock room"));
     assert.equal(hostActions.parentElement.className.includes("lobby-content-grid"), true);
     assert.equal(root.query((element) => element.className.includes("visibility-field")), null);
 
     state.localPlayerId = "guest";
     renderApp(root, state, actions, {}, {});
+    assert.equal(root.query((element) => element.textContent === "Unlock room"), null);
     assert.equal(root.query((element) => element.className.includes("room-visibility-menu")), null);
     assert.equal(root.query((element) => element.getAttribute("aria-label") === "Room visibility: Private").tagName, "span");
     assert.doesNotMatch(root.text, /Room visibility/u);
@@ -1938,6 +1942,13 @@ test("public room browser renders compact cards, accessible refresh, and a conci
       "fact-or-cap", "fact-or-cap-anime", "bruh-wtf", "future-game",
     ]);
     assert.equal(root.text.includes("Anime facts."), false);
+    state.discoveryGame = "bruh-wtf";
+    render();
+    assert.deepEqual(root.query((element) => element.className.includes("public-room-grid")).children.map(card => card.dataset.gameId), ["bruh-wtf"]);
+    state.discoveryGame = "absent";
+    render();
+    assert.match(root.text, /No open rooms for this game/u);
+    state.discoveryGame = "";
     const originalArtByRoom = new Map(publicCards.map((card) => [card.dataset.roomId, card.children[0].className]));
     state.publicRooms.reverse();
     render();

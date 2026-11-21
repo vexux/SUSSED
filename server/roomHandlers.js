@@ -61,9 +61,16 @@ function broadcastConnectionState(io, room) {
 }
 
 function broadcastPublicRooms(io) {
-    io.to(PUBLIC_ROOM_BROWSERS).emit("public-rooms-updated", {
-        rooms: roomManager.listPublicRooms()
-    });
+    for (const id of io.sockets.adapter.rooms.get(PUBLIC_ROOM_BROWSERS) ?? []) {
+        const client = io.sockets.sockets.get(id);
+        if (!client) continue;
+        const rooms = roomManager.listPublicRooms(client.data.playerId);
+        const snapshot = JSON.stringify(rooms);
+        if (client.data.publicListingSnapshot !== snapshot) {
+            client.data.publicListingSnapshot = snapshot;
+            client.emit("public-rooms-updated", { rooms });
+        }
+    }
 }
 
 function scheduleAdvancedGameRound(io, roomCode, transition) {
@@ -382,11 +389,15 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         }
     });
 
+    require("./moderation").register(io, socket, roomManager, broadcastLobbyToAllMembers, broadcastPublicRooms, handlePlayerDeparture, disconnectGraceManager);
     socket.on("subscribe-public-rooms", async (acknowledge) => {
         if (!isAcknowledgement(acknowledge)) return;
         try {
+            if (!io.moderation.allow(playerId, "discover", 30)) return acknowledgeError(acknowledge, "RATE_LIMITED", "Please wait before refreshing.");
             await socket.join(PUBLIC_ROOM_BROWSERS);
-            acknowledge({ rooms: roomManager.listPublicRooms() });
+            const rooms = roomManager.listPublicRooms(playerId);
+            socket.data.publicListingSnapshot = JSON.stringify(rooms);
+            acknowledge({ rooms });
         } catch (error) {
             const operationError = getOperationError(error);
             acknowledgeError(acknowledge, operationError.code, operationError.message);
@@ -395,7 +406,8 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
 
     socket.on("refresh-public-rooms", (acknowledge) => {
         if (!isAcknowledgement(acknowledge)) return;
-        acknowledge({ rooms: roomManager.listPublicRooms() });
+        if (!io.moderation.allow(playerId, "discover", 30)) return acknowledgeError(acknowledge, "RATE_LIMITED", "Please wait before refreshing.");
+        acknowledge({ rooms: roomManager.listPublicRooms(playerId) });
     });
 
     socket.on("unsubscribe-public-rooms", () => {
@@ -466,6 +478,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         if (!isAcknowledgement(acknowledge)) {
             return;
         }
+        if (!io.moderation.allow(playerId, "join", 12)) return acknowledgeError(acknowledge, "RATE_LIMITED", "Please wait before joining again.");
         if (!isRecord(payload)) {
             acknowledgeError(acknowledge, "INVALID_REQUEST", "Room code and player name are required.");
             return;
@@ -499,7 +512,8 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
 
     socket.on("join-public-room", async (payload, acknowledge) => {
         if (!isAcknowledgement(acknowledge)) return;
-        if (!isRecord(payload) || typeof payload.publicRoomId !== "string" || typeof payload.playerName !== "string") {
+        if (!io.moderation.allow(playerId, "join", 12)) return acknowledgeError(acknowledge, "RATE_LIMITED", "Please wait before joining again.");
+        if (!isRecord(payload) || Object.keys(payload).length !== 2 || typeof payload.publicRoomId !== "string" || typeof payload.playerName !== "string") {
             acknowledgeError(acknowledge, "INVALID_REQUEST", "A public room reference and player name are required.");
             return;
         }
@@ -584,7 +598,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         }
     });
 
-    socket.on("kick-player", async (payload, acknowledge) => {
+    const removeMember = (ban) => async (payload, acknowledge) => {
         if (!isAcknowledgement(acknowledge)) return;
         if (
             !isRecord(payload) ||
@@ -606,13 +620,14 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
             return;
         }
 
+        if (ban) room.banned.add(target.id);
         const targetSocketId = identityManager.getSocketId(target.id);
         const targetSocket = targetSocketId ? io.sockets.sockets.get(targetSocketId) : null;
         if (targetSocket) {
             targetSocket.emit("removed-from-room", {
                 roomCode: room.code,
                 reason: "kicked",
-                message: "The host removed you from this room.",
+                message: ban ? "You were banned from this room." : "The host removed you from this room.",
             });
         }
 
@@ -631,7 +646,9 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
             return;
         }
         acknowledge({ kicked: true, playerId: target.id });
-    });
+    };
+    socket.on("kick-player", removeMember(false));
+    socket.on("ban-player", removeMember(true));
 
     socket.on("leave-room", async (payload, acknowledge) => {
         const hasPayload = typeof payload !== "function";
@@ -974,6 +991,7 @@ function handleDisconnect(io, socket, identityManager, disconnectGraceManager) {
 }
 
 module.exports = {
+    broadcastPublicRooms,
     handleDisconnect,
     handlePlayerDeparture,
     handlePlayerReconnect,

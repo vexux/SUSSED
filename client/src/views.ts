@@ -50,7 +50,10 @@ export interface AppActions {
   onSetRoomVisibility(visibility: "public" | "private"): void;
   onRequestKickPlayer(playerId: string): void;
   onRequestHostTransfer(playerId: string): void;
+  onDiscoveryGame(gameId: string): void;
+  onReviewReports(): void;
   onConfirmKickPlayer(): void;
+  onModerate(event: "set-room-lock" | "ban-player" | "report-player", payload: object): void;
   onConfirmHostTransfer(): void;
   onCancelKickPlayer(): void;
   onOpenPlayerCard(playerId: string): void;
@@ -1047,6 +1050,11 @@ function renderHome(
     HOME_TAGLINE,
   );
   screen.append(title, tagline);
+  if (state.canReviewReports) {
+    const review = createElement("button", "secondary-button", "Review player reports");
+    review.addEventListener("click", actions.onReviewReports);
+    screen.append(review);
+  }
 
   const playerNameLabel = createElement("label", "field-label", "Player name");
   playerNameLabel.htmlFor = "player-name";
@@ -1636,7 +1644,23 @@ function renderPublicRooms(state: AppState, actions: AppActions): HTMLElement {
     screen.append(empty);
   } else {
     const cards = createElement("div", "public-room-grid");
-    state.publicRooms.forEach((room) => {
+    const games = new Map(state.publicRooms.map(room => [room.gameId, room.gameName]));
+    if (state.discoveryGame && !games.has(state.discoveryGame)) games.set(state.discoveryGame, state.availableGames.find(game => game.id === state.discoveryGame)?.displayName ?? state.discoveryGame);
+    if (games.size > 1 || state.discoveryGame) {
+      const filter = createElement("select", "text-input");
+      filter.setAttribute("aria-label", "Filter by game");
+      for (const [id, name] of [["", "All games"], ...games]) {
+        const option = createElement("option", undefined, name);
+        option.value = id;
+        filter.append(option);
+      }
+      filter.value = state.discoveryGame;
+      filter.addEventListener("change", () => actions.onDiscoveryGame(filter.value));
+      screen.append(filter);
+    }
+    const visible = state.publicRooms.filter(room => !state.discoveryGame || room.gameId === state.discoveryGame);
+    if (!visible.length && state.discoveryGame) screen.append(createElement("p", "status-message", "No open rooms for this game."));
+    visible.forEach((room) => {
       const card = createElement("article", "public-room-card");
       card.dataset.roomId = room.roomId;
       card.dataset.gameId = room.gameId;
@@ -2003,6 +2027,10 @@ function renderLobby(
     lobbyActions.append(readyButton);
   }
   if (isHost) {
+    const lock = createElement("button", "secondary-button", lobby.locked ? "Unlock room" : "Lock room");
+    lock.disabled = state.isBusy;
+    lock.addEventListener("click", () => actions.onModerate("set-room-lock", { locked: !lobby.locked }));
+    lobbyActions.append(lock);
     const startButton = createElement("button", "primary-button", "Start game");
     startButton.type = "button";
     startButton.disabled = state.isBusy || lobby.readinessStatus !== "ready";
@@ -2205,6 +2233,18 @@ function createPlayerDetailDialog(
   }
   if (player.isHost) status.append(createElement("span", "host-badge", "Host"));
   dialog.append(status);
+  if (player.id !== state.localPlayerId) {
+    const reason = createElement("select", "text-input");
+    reason.setAttribute("aria-label", "Report reason");
+    for (const [value, label] of [["harassment", "Harassment"], ["spam", "Spam"], ["name", "Inappropriate name"], ["disruption", "Disruptive behavior"], ["other", "Other"]]) {
+      const option = createElement("option", undefined, label);
+      option.value = value;
+      reason.append(option);
+    }
+    const report = createElement("button", "secondary-button", "Report player");
+    report.addEventListener("click", () => actions.onModerate("report-player", { targetPlayerId: player.id, reason: reason.value }));
+    dialog.append(reason, report);
+  }
 
   if (isHost && state.localPlayerId !== player.id && state.lobby?.status === "lobby") {
     const actionsPanel = createElement("div", "player-detail-actions");
@@ -2220,7 +2260,11 @@ function createPlayerDetailDialog(
     remove.disabled = state.isBusy;
     remove.setAttribute("data-player-detail-focus", "remove");
     remove.addEventListener("click", () => actions.onRequestKickPlayer(player.id));
-    actionsPanel.append(makeHost, remove);
+    const ban = createElement("button", "destructive-button", "Ban from room");
+    ban.addEventListener("click", () => {
+      if (window.confirm("Remove " + player.name + " and prevent this identity from rejoining this room?")) actions.onModerate("ban-player", { targetPlayerId: player.id });
+    });
+    actionsPanel.append(makeHost, remove, ban);
     dialog.append(actionsPanel);
   }
 

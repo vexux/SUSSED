@@ -127,6 +127,8 @@ function createRoom(playerId, playerName, selectedGameId = gameRegistry.DEFAULT_
         selectedGameId,
         selectedRoundCount: DEFAULT_ROUND_COUNT,
         players: [host],
+        locked: false,
+        banned: new Set(),
         finishedMatches: new Map(),
         reminderSessionId: null
     };
@@ -175,6 +177,8 @@ function addPlayerToRoom(room, playerId, playerName) {
         throw new RoomError("ALREADY_IN_ROOM", "You are already in a room.");
     }
     const name = normalizePlayerName(playerName);
+    if (room.locked) throw new RoomError('ROOM_LOCKED', 'This room is locked.');
+    if (room.banned.has(playerId)) throw new RoomError('ROOM_BANNED', 'You cannot rejoin this room.');
     validateRoomCanAcceptPlayer(room);
     const comparisonName = name.toLowerCase();
     if (room.players.some((player) => player.name.toLowerCase() === comparisonName)) {
@@ -542,6 +546,7 @@ function createLobbyState(room) {
         revision: room.revision,
         status: room.status,
         visibility: room.visibility,
+        ...(room.locked ? { locked: true } : {}),
         playerCount: room.status === "lobby" ? getLobbyParticipants(room).length : room.players.length,
         maxPlayers,
         readinessStatus,
@@ -568,9 +573,9 @@ function createLobbyState(room) {
     };
 }
 
-function listPublicRooms() {
+function listPublicRooms(playerId) {
     return [...rooms.values()]
-        .filter((room) => room.visibility === "public" && room.status === "lobby" && room.players.length < getRoomCapacity(room))
+        .filter((room) => !room.locked && !room.banned.has(playerId) && room.visibility === "public" && room.status === "lobby" && room.players.length < getRoomCapacity(room))
         .map((room) => {
             const game = gameRegistry.get(room.selectedGameId);
             const host = room.players.find((player) => player.id === room.hostId);

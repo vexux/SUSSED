@@ -1,4 +1,5 @@
 const roomManager = require("./roomManager");
+const { broadcastPublicRooms } = require("./roomHandlers");
 const { getPersonalRoomName } = require("./guestIdentityManager");
 
 const ERROR_MESSAGES = {
@@ -8,6 +9,8 @@ const ERROR_MESSAGES = {
     PROFILE_UNAVAILABLE: "Invitations are temporarily unavailable. Room play is unaffected.",
     ROOM_NOT_AVAILABLE: "This room is no longer available to join.",
     ROOM_FULL: "This room is full.",
+    ROOM_LOCKED: "This room is locked.",
+    ROOM_BANNED: "You cannot rejoin this room.",
     ALREADY_IN_ROOM: "You are already in a room.",
     DUPLICATE_PLAYER_NAME: "That name is already used in this room. Choose another name.",
     INVALID_PLAYER_NAME: "Choose a player name between 2 and 20 characters.",
@@ -91,6 +94,8 @@ function registerInvitationHandlers(io, socket, profileRepository, reportFailure
                 return { error: { code: "ALREADY_IN_ROOM", message: ERROR_MESSAGES.ALREADY_IN_ROOM } };
             }
             const invitation = await profileRepository.getGameInvitation(accountId, payload.invitationId);
+            const isActive = () => io.guestIdentityManager.isActiveSocket(playerId, socket.id);
+            if (!isActive()) return { error: { code: "ROOM_NOT_AVAILABLE" } };
             if (!invitation || invitation.status !== "pending" || Date.parse(invitation.expiresAt) <= Date.now()) {
                 return { error: { code: "INVALID_TRANSITION", message: ERROR_MESSAGES.INVALID_TRANSITION } };
             }
@@ -103,21 +108,28 @@ function registerInvitationHandlers(io, socket, profileRepository, reportFailure
             }
 
             let joinedRoom;
+            let seat;
+            const stillReserved = () => roomManager.getPlayerRoom(playerId) === joinedRoom && joinedRoom.players.includes(seat);
+            async function expiredEntry() {
+                if (roomManager.getPlayerRoom(playerId)?.code !== joinedRoom.code) await socket.leave(joinedRoom.code);
+                return { error: { code: "ROOM_NOT_AVAILABLE" } };
+            }
             try {
                 joinedRoom = roomManager.joinRoom(invitation.roomCode, playerId, payload.playerName);
+                seat = joinedRoom.players.find(p => p.id === playerId);
                 await socket.join(joinedRoom.code);
+                if (!isActive() || !stillReserved()) return expiredEntry();
                 await profileRepository.setGameInvitationStatus(accountId, payload.invitationId, "accepted");
+                if (!isActive() || !stillReserved()) return expiredEntry();
             } catch (error) {
-                if (joinedRoom) {
+                if (joinedRoom && isActive() && stillReserved()) {
                     roomManager.removePlayer(playerId);
                     try {
                         await socket.leave(joinedRoom.code);
                     } catch (leaveError) {
                         reportFailure(leaveError);
                     }
-                    io.to("public-room-browsers").emit("public-rooms-updated", {
-                        rooms: roomManager.listPublicRooms(),
-                    });
+                    broadcastPublicRooms(io);
                 }
                 throw error;
             }
@@ -126,9 +138,7 @@ function registerInvitationHandlers(io, socket, profileRepository, reportFailure
             for (const player of joinedRoom.players) {
                 io.to(getPersonalRoomName(player.id)).emit("lobby-state", lobby);
             }
-            io.to("public-room-browsers").emit("public-rooms-updated", {
-                rooms: roomManager.listPublicRooms(),
-            });
+            broadcastPublicRooms(io);
             return { lobby };
         });
     });

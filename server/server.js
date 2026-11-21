@@ -90,6 +90,7 @@ function startServer(
     io.guestIdentityManager = identityManager;
     io.disconnectGraceManager = disconnectGraceManager;
     io.roomChatManager = roomChatManager;
+    io.moderation = require("./moderation").createModeration();
     httpServer.once("close", () => disconnectGraceManager.cancelAll());
     io.on("connection", (socket) => {
         console.log("Player connected:", socket.id);
@@ -184,7 +185,8 @@ async function activateGuestSession(
             registerDisabledAccountHandlers(socket);
         }
         socket.emit("server-auth-config", { authEnabled });
-        socket.emit("guest-session-ready", { playerId: activatedPlayerId });
+        socket.emit("guest-session-ready", { playerId: activatedPlayerId,
+            ...(io.moderation.admins.has(socket.data.accountId) ? { canReviewReports: true } : {}) });
         if (identityManager.isActiveSocket(activatedPlayerId, socket.id)) {
             handlePlayerReconnect(io, activatedPlayerId, disconnectGraceManager);
         }

@@ -3963,3 +3963,14 @@ select:focus:not(:focus-visible) {
     animation: none !important;
   }
 }
+.report-review {
+  width: min(42rem, 92vw);
+  max-height: 84vh;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  background: var(--surface, #211b27);
+  color: inherit;
+  border-radius: 1rem;
+}
+.report-review article { padding-block: 1rem; border-bottom: 1px solid currentColor; }
+.report-review button { display: block; margin-block: .5rem; }

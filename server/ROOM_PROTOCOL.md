@@ -79,6 +79,18 @@ If another match starts, restoration still returns the archived snapshot to its 
 
 ## Room visibility
 
+### Discovery and moderation
+
+The public browser returns opaque room IDs, host display names, game metadata, occupancy, capacity and lobby status. Only public, unlocked lobbies with a free seat are listed. A room that banned the requesting identity is omitted. Started games, finished games awaiting host return, private rooms and expired rooms do not appear. Subscribe and refresh return snapshots. Subsequent changes replace the snapshot only when that subscriber's listing changes. A listing reserves no seat.
+
+The lobby host can send `set-room-lock { locked }`, `kick-player { targetPlayerId }` or `ban-player { targetPlayerId }`. Locks apply to new public, code and invitation joins. Existing seats, including seats reserved during disconnect grace, remain valid. Kick removes the seat immediately. Ban also records the server-issued player ID on that room instance until destruction. Host transfer preserves that set. A recovered identity remains banned; a fresh guest identity represents a different player.
+
+Room members can submit `report-player { targetPlayerId, reason }` for another current member. Reasons are `harassment`, `spam`, `name`, `disruption` and `other`. One unresolved report per reporter, target and room is allowed. Reports alone do not change permissions. Per player ID, one-minute windows allow 30 discovery requests, 12 combined public/code join attempts and five report attempts.
+
+Configure `MODERATOR_FIREBASE_UIDS` as a comma-separated server environment variable and restart the server to apply changes. Moderator access requires an allowlisted UID obtained by server verification of the Firebase ID token on this connection. With authentication disabled or the list empty, the review API is unavailable to all users. Ordinary players can still play and report as guests.
+
+Authorized moderators can open **Review player reports** from Home. Both `moderation:list {}` and `moderation:review { id, decision }` independently check authorization. A reviewer can dismiss or issue a room-specific ban while the target is still in that room. Each decision records the reviewer UID and timestamp. The queue contains reason, timestamps, opaque room instance ID and multiplayer IDs. It excludes credentials, chat history and IP addresses. Reports expire seven days after creation, are pruned on report/review access, and disappear on restart. The queue rejects new reports at 5,000 retained entries. Decisions are neither durable audit records nor global bans.
+
 - `create-room` accepts `{ playerName, gameId, visibility }`. `visibility` is `public` or `private`; omission defaults to `private` for older clients.
 - `set-room-visibility` accepts `{ visibility }` and acknowledges `{ visibility, lobby }`. Only the host can change it, and only while the room is in the lobby.
 - Lobby state includes `visibility` and effective `maxPlayers`.

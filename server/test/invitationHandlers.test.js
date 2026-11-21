@@ -30,6 +30,8 @@ function createIo() {
     const events = [];
     return {
         events,
+        guestIdentityManager: { isActiveSocket: (id, socketId) => id === socketId },
+        sockets: { adapter: { rooms: new Map() } },
         to(target) {
             return {
                 emit(event, payload) {
@@ -153,6 +155,9 @@ test("expired, missing, full, and failed invitation joins do not leave a room me
     }
 
     const expired = await attempt(missingRoom.code, "expired");
+    missingRoom.locked = true;
+    assert.equal((await attempt(missingRoom.code)).response.error.code, "ROOM_LOCKED");
+    missingRoom.locked = false;
     assert.equal(expired.response.error.code, "INVALID_TRANSITION");
     const absent = await attempt("ZZZZ");
     assert.equal(absent.response.error.code, "ROOM_NOT_AVAILABLE");

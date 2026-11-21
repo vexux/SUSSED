@@ -300,6 +300,69 @@ test("disabled auth skips account services while guest room gameplay stays avail
     );
 });
 
+test("room lock, identity bans and private report review use authoritative membership", async (context) => {
+    const harness = await createHarness(context, { verifyAccessToken: async () => "reviewer" });
+    harness.io.moderation.admins.add("reviewer");
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const outsider = await harness.connect();
+    const admin = await harness.connect({ auth: { accessToken: "verified" } });
+    const { roomCode } = await emitWithAck(host, "create-room", { playerName: "Host", visibility: "public" });
+    harness.trackRoom(roomCode);
+    const room = roomManager.getRoom(roomCode);
+    const join = { publicRoomId: room.publicRoomId, playerName: "Guest" };
+    await emitWithAck(guest, "join-public-room", join);
+    assert.equal((await emitWithAck(guest, "set-room-lock", { locked: true })).error.code, "FORBIDDEN");
+    await emitWithAck(host, "set-room-lock", { locked: true });
+    assert.deepEqual((await emitWithAck(outsider, "refresh-public-rooms")).rooms, []);
+    assert.equal((await emitWithAck(outsider, "join-public-room", join)).error.code, "ROOM_LOCKED");
+    assert.equal((await emitWithAck(outsider, "join-room", { roomCode, playerName: "Other" })).error.code, "ROOM_LOCKED");
+    const report = { targetPlayerId: guest.playerId, reason: "spam" };
+    assert.equal((await emitWithAck(outsider, "report-player", report)).error.code, "INVALID_REPORT");
+    assert.equal((await emitWithAck(guest, "report-player", report)).error.code, "INVALID_REPORT");
+    assert.equal((await emitWithAck(host, "report-player", report)).reported, true);
+    assert.equal((await emitWithAck(host, "report-player", report)).error.code, "DUPLICATE_REPORT");
+    assert.equal((await emitWithAck(host, "moderation:list", {})).error.code, "FORBIDDEN");
+    const [entry] = (await emitWithAck(admin, "moderation:list", {})).reports;
+    assert.equal((await emitWithAck(host, "moderation:review", { id: entry.id, decision: "room-ban", accountId: "reviewer" })).error.code, "FORBIDDEN");
+    assert.equal((await emitWithAck(host, "report-player", { ...report, reason: "unknown" })).error.code, "INVALID_REPORT");
+    assert.equal((await emitWithAck(admin, "moderation:review", { id: entry.id, decision: "dismiss" })).reviewed, true);
+    assert.equal((await emitWithAck(guest, "ban-player", { targetPlayerId: host.playerId })).error.code, "NOT_HOST");
+    await emitWithAck(host, "set-room-lock", { locked: false });
+    assert.equal((await emitWithAck(host, "ban-player", { targetPlayerId: guest.playerId })).kicked, true);
+    assert.equal((await emitWithAck(guest, "join-public-room", join)).error.code, "ROOM_BANNED");
+    assert.deepEqual((await emitWithAck(guest, "refresh-public-rooms")).rooms, []);
+    assert.equal((await emitWithAck(guest, "join-room", { roomCode, playerName: "Guest" })).error.code, "ROOM_BANNED");
+    await emitWithAck(outsider, "join-room", { roomCode, playerName: "Other" });
+    assert.equal((await emitWithAck(host, "report-player", { targetPlayerId: outsider.playerId, reason: "disruption" })).reported, true);
+    const pending = (await emitWithAck(admin, "moderation:list", {})).reports.find(r => !r.decision);
+    assert.equal((await emitWithAck(admin, "moderation:review", { id: pending.id, decision: "room-ban" })).reviewed, true);
+    assert.equal((await emitWithAck(outsider, "restore-session")).status, "no-room");
+    assert.equal((await emitWithAck(outsider, "join-public-room", join)).error.code, "ROOM_BANNED");
+    const decided = (await emitWithAck(admin, "moderation:list", {})).reports.find(r => r.id === pending.id);
+    assert.equal(decided.reviewer, "reviewer");
+    assert.ok(decided.reviewedAt >= decided.createdAt);
+    const unrelated = await emitWithAck(guest, "create-room", { playerName: "Guest" });
+    assert.ok(unrelated.roomCode);
+    harness.trackRoom(unrelated.roomCode);
+});
+
+test("discovery, join and reporting budgets are separate and survive guest recovery", async (context) => {
+    const harness = await createHarness(context, { authEnabled: false });
+    const guest = await harness.connect();
+    for (let i = 0; i < 30; i++) assert.ok((await emitWithAck(guest, "refresh-public-rooms")).rooms);
+    const created = await emitWithAck(guest, "create-room", { playerName: "Guest" });
+    harness.trackRoom(created.roomCode);
+    const recovered = await disconnectAndRecover(harness, guest);
+    await emitWithAck(recovered, "leave-room");
+    assert.equal((await emitWithAck(recovered, "subscribe-public-rooms")).error.code, "RATE_LIMITED");
+    for (let i = 0; i < 12; i++) assert.equal((await emitWithAck(recovered, "join-public-room", { publicRoomId: "missing", playerName: "Guest" })).error.code, "PUBLIC_ROOM_NOT_FOUND");
+    assert.equal((await emitWithAck(recovered, "join-room", { roomCode: "ABCD", playerName: "Guest" })).error.code, "RATE_LIMITED");
+    const report = { targetPlayerId: "missing", reason: "spam" };
+    for (let i = 0; i < 5; i++) assert.equal((await emitWithAck(recovered, "report-player", report)).error.code, "INVALID_REPORT");
+    assert.equal((await emitWithAck(recovered, "report-player", report)).error.code, "RATE_LIMITED");
+});
+
 test("guest sockets use a stable server-issued player identity", async (context) => {
     let profileRepositoryCalls = 0;
     const harness = await createHarness(context, {

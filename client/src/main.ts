@@ -1,4 +1,5 @@
 import "./style.css";
+import { openReportReview } from "./reportReview";
 import { onIdTokenChanged } from "firebase/auth";
 import {
   createInitialAppState,
@@ -2284,6 +2285,27 @@ const actions: AppActions = {
       render();
     });
   },
+  onDiscoveryGame(gameId) {
+    state.discoveryGame = gameId;
+    state.pendingPublicRoomId = null;
+    render();
+  },
+  onReviewReports() {
+    if (state.canReviewReports) openReportReview(socket);
+  },
+  onModerate(event, payload) {
+    if (state.isBusy) return;
+    state.isBusy = true;
+    state.selectedPlayerId = null;
+    render();
+    emitRoomOperation(event, payload, (response) => {
+      state.isBusy = false;
+      if (response.error) return showOperationError(response);
+      if (response.lobby) applyLobbyState(response.lobby);
+      if (event !== "set-room-lock") showPlayerActionFeedback(event === "report-player" ? "Report submitted." : "Player banned from this room.");
+      render();
+    });
+  },
   onSetRoomVisibility(visibility) {
     state.isBusy = true;
     state.errorMessage = null;
@@ -3212,7 +3234,8 @@ socket.on("guest-session-error", (failure: { message?: unknown; code?: unknown }
   render();
 });
 
-socket.on("guest-session-ready", (session: { playerId?: unknown }) => {
+socket.on("guest-session-ready", (session: { playerId?: unknown; canReviewReports?: boolean }) => {
+  state.canReviewReports = session.canReviewReports === true;
   if (typeof session?.playerId !== "string" || session.playerId.length === 0) {
     state.errorMessage = "The server returned an invalid guest player identity.";
     state.errorCode = "RECOVERY_INTERNAL_ERROR";
@@ -3451,6 +3474,7 @@ socket.on("connect", () => {
 });
 
 socket.on("disconnect", () => {
+  state.canReviewReports = false;
   connectionWasLost = true;
   roomChatGeneration += 1;
   previousRoomChatAvailable = false;

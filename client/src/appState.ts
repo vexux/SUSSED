@@ -99,6 +99,7 @@ export interface LobbyPlayer {
 }
 
 export interface LobbyState {
+  locked?: boolean;
   roomCode: string;
   revision: number;
   playerCount: number;
@@ -180,6 +181,7 @@ export interface GameSessionState {
 }
 
 export interface AppState {
+  canReviewReports?: boolean;
   currentView: AppView;
   theme: ThemePreference;
   connectionStatus: ConnectionStatus;
@@ -212,6 +214,7 @@ export interface AppState {
   kickFeedback: string | null;
   connectionNotice: string | null;
   invitationFeedback: string | null;
+  discoveryGame: string;
   publicRooms: PublicRoom[];
   isLoadingPublicRooms: boolean;
   publicRoomsError: string | null;
@@ -257,6 +260,7 @@ export function createInitialAppState(): AppState {
     kickFeedback: null,
     connectionNotice: null,
     invitationFeedback: null,
+    discoveryGame: "",
     publicRooms: [],
     isLoadingPublicRooms: false,
     publicRoomsError: null,
