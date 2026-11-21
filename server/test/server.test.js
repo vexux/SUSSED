@@ -5039,3 +5039,81 @@ test("results viewers restore their finished result screen; expiry yields no roo
     );
     assert.equal(recovered.playerId, expiredPlayerId);
 });
+test("delayed restoration across host transfer, grace expiry and game start can fetch one current snapshot", async context => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const next = await harness.connect();
+    const leaving = await harness.connect();
+    const {roomCode} = await emitWithAck(host,"create-room",{playerName:"Host"});
+    harness.trackRoom(roomCode);
+    for (const [client,playerName] of [[next,"Next"],[leaving,"Leaving"]]) {
+        await emitWithAck(client,"join-room",{roomCode,playerName});
+    }
+    // Hold delivery of the original acknowledgement while live events continue.
+    const serverSocket = harness.io.sockets.sockets.get(host.transportId);
+    const sendPacket = serverSocket.packet.bind(serverSocket);
+    let release;
+    let captured;
+    const ackCaptured = new Promise(resolve => { captured = resolve; });
+    serverSocket.packet = (packet, options) => {
+        if (packet.data?.[0]?.status === "restored") {
+            serverSocket.packet = sendPacket;
+            release = () => sendPacket(packet, options);
+            captured();
+            return;
+        }
+        return sendPacket(packet, options);
+    };
+    const delayedAck = emitWithAck(host, "restore-session");
+    await ackCaptured;
+    await emitWithAck(host,"transfer-host",{targetPlayerId:next.id});
+    const closed = new Promise(resolve => harness.io.sockets.sockets.get(leaving.transportId).once("disconnect",resolve));
+    leaving.disconnect();
+    await closed;
+    await harness.advanceGrace();
+    await emitWithAck(host,"set-ready",{isReady:true});
+    assert.equal((await emitWithAck(next,"start-game")).starting,true);
+    release();
+    const original = await delayedAck;
+    assert.equal(original.snapshot.game, null);
+    const {snapshot} = await emitWithAck(host,"restore-session");
+    assert.ok(snapshot.lobby.revision > original.snapshot.lobby.revision);
+    assert.equal(snapshot.lobby.status,"starting");
+    assert.equal(snapshot.lobby.players.find(p=>p.isHost).id,next.id);
+    assert.equal(snapshot.lobby.players.some(p=>p.id===leaving.id),false);
+    assert.equal(snapshot.game.state.currentRound,1);
+    assert.equal(snapshot.game.sessionId,gameManager.getPublicGameState(roomCode,host.id).sessionId);
+});
+for (const gameId of ["fact-or-cap", "fact-or-cap-anime", "bruh-wtf"]) {
+    test(gameId + " restores a whole table before grace expiry without losing the empty submission round", async context => {
+        const harness = await createHarness(context);
+        const host = await harness.connect();
+        const {roomCode} = await emitWithAck(host, "create-room", {playerName: "Host"});
+        harness.trackRoom(roomCode);
+        const guests = await joinPlayers(harness, roomCode, 2);
+        await emitWithAck(host, "select-game", {gameId});
+        for (const guest of guests) await emitWithAck(guest, "set-ready", {isReady: true});
+        const submissions = waitForGameState(host, game => game.state.phase === "answer-submission");
+        await emitWithAck(host, "start-game");
+        const initial = await submissions;
+        const clients = [host, ...guests];
+        for (const client of clients) {
+            const closed = new Promise(resolve => harness.io.sockets.sockets.get(client.transportId).once("disconnect", resolve));
+            client.disconnect();
+            await closed;
+        }
+        await harness.advanceGrace(DISCONNECT_GRACE_PERIOD_MS - 1);
+        for (const client of clients) {
+            const restored = await harness.connect({storage: client.recoveryStorage});
+            const {snapshot} = await emitWithAck(restored, "restore-session");
+            assert.equal(restored.id, client.id);
+            assert.equal(snapshot.lobby.players.length, clients.length);
+            assert.equal(snapshot.lobby.players.find(p => p.isHost).id, host.id);
+            assert.equal(snapshot.game.sessionId, initial.sessionId);
+            assert.equal(snapshot.game.state.roundId, initial.state.roundId);
+            assert.equal(snapshot.game.state.phase, "answer-submission");
+            assert.equal(!!snapshot.game.state.viewerIsSpectator, client !== host);
+        }
+        assert.equal(harness.io.disconnectGraceManager.size, 0);
+    });
+}

@@ -32,3 +32,13 @@ test("restoration keeps a higher same-session revision but never replaces the sn
   assert.equal(chooseRestoredGame(snapshot, game("current-session", 99, "EFGH"), "ABCD"), snapshot);
   assert.equal(chooseRestoredGame(null, game("buffered-session", 1), "ABCD"), null);
 });
+test("delayed lobby restoration rechecks an intervening start, host transfer and seat expiry", async () => {
+  const snapshot = { roomCode:"ABCD", revision:1, status:"lobby", hostId:"old" };
+  const latest = { ...snapshot, revision:4, status:"starting", hostId:"new", players:[{id:"new"}] };
+  const { needsFreshGameSnapshot } = await import("../src/sessionRestoration.ts");
+  const started = game("next", 1);
+  // The original snapshot and a newer starting lobby alone would select the waiting screen.
+  assert.equal(chooseRestoredGame(null, started, snapshot.roomCode), null);
+  assert.equal(needsFreshGameSnapshot(snapshot,latest), true);
+  assert.equal(needsFreshGameSnapshot(latest,latest), false);
+});

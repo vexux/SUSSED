@@ -172,8 +172,8 @@ async function activateGuestSession(
             identityManager.abortSocket(socket.id);
             socket.data.pendingRecoveryCredential = undefined;
             socket.emit("guest-session-error", {
-                code: "RECOVERY_STORAGE_UNAVAILABLE",
-                message: "The guest recovery credential could not be stored in this tab.",
+                code: stored === "timeout" ? "RECOVERY_ACK_TIMEOUT" : "RECOVERY_STORAGE_UNAVAILABLE",
+                message: stored === "timeout" ? "Session confirmation timed out." : "Enable session storage in this tab and reload to reconnect.",
             });
             socket.disconnect(true);
             return;
@@ -226,9 +226,9 @@ function requestCredentialStorageAcknowledgement(socket, session) {
             if (settled) return;
             settled = true;
             clearTimeout(timeout);
-            resolve(stored === true);
+            resolve(stored);
         };
-        const timeout = setTimeout(() => finish(false), SESSION_STORAGE_ACK_TIMEOUT_MS);
+        const timeout = setTimeout(() => finish("timeout"), SESSION_STORAGE_ACK_TIMEOUT_MS);
         timeout.unref();
         socket.emit("guest-session-issued", session, (acknowledgement) => {
             finish(

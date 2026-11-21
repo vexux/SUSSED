@@ -165,6 +165,7 @@ function openSubmissions(state, expectedRoundId) {
             "That action belongs to a different round."
         );
     }
+    if (state.pausedForReconnect) return { opened: false };
     state.phase = "answer-submission";
     if (allActiveParticipantsSubmitted(state)) {
         createVotingOptions(state);
@@ -589,6 +590,7 @@ function removeParticipant(state, playerId) {
     state.connectedPlayerIds.delete(playerId);
     state.roundEligiblePlayerIds.delete(playerId);
     state.continueReady.delete(playerId);
+    if (state.pausedForReconnect) return { removed: true, advancedRound: false };
     let needsVoting = false;
     if (state.phase === "answer-submission" && allActiveParticipantsSubmitted(state)) {
         createVotingOptions(state);
@@ -619,6 +621,10 @@ function suspendParticipant(state, playerId) {
     ) {
         return { changed: false, advancedRound: false };
     }
+    return reconcileRound(state);
+}
+
+function reconcileRound(state) {
 
     let needsVoting = false;
     if (state.phase === "answer-submission" && allActiveParticipantsSubmitted(state)) {
@@ -658,9 +664,20 @@ function setPlayerConnectionStatus(state, playerId, connected) {
     }
     if (connected) {
         state.connectedPlayerIds.add(playerId);
+        if (state.pausedForReconnect) {
+            state.pausedForReconnect = false;
+            state.roundEligiblePlayerIds.add(playerId);
+            if (state.phase === "question") openSubmissions(state, state.roundId);
+            return reconcileRound(state);
+        }
         return { changed: true, advancedRound: false };
     }
     state.connectedPlayerIds.delete(playerId);
+    if (!state.connectedPlayerIds.size) {
+        state.roundEligiblePlayerIds.delete(playerId);
+        state.pausedForReconnect = true;
+        return { changed: true, advancedRound: false };
+    }
     return { ...suspendParticipant(state, playerId), changed: true };
 }
 

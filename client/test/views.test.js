@@ -340,6 +340,15 @@ test("session restoration announces progress and exposes an accessible retry aft
     assert.ok(retry);
     retry.dispatch("click");
     assert.equal(calls[0][0], "onRetrySessionRestore");
+
+    state.connectionStatus = "disconnected";
+    state.errorCode = "RECONNECT_EXHAUSTED";
+    renderApp(root, state, actions, {}, {});
+    root.query(element => element.text === "Reconnect").dispatch("click");
+    assert.equal(calls[1][0], "onRetrySessionRestore");
+    state.errorCode = "RECOVERY_STORAGE_UNAVAILABLE";
+    renderApp(root, state, actions, {}, {});
+    assert.equal(root.query(element => element.text === "Reconnect"), null);
   });
 });
 

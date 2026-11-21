@@ -907,7 +907,7 @@ function handlePlayerReconnect(io, playerId, disconnectGraceManager) {
 
     const update = roomManager.setPlayerConnectionStatus(playerId, true);
     if (!update?.changed) return false;
-    gameManager.setPlayerConnectionStatus(room.code, playerId, true);
+    scheduleAdvancedGameRound(io, room.code, gameManager.setPlayerConnectionStatus(room.code, playerId, true));
     broadcastConnectionState(io, room);
     return true;
 }
@@ -936,7 +936,7 @@ async function handleDisconnectGraceExpiry(
         disconnectGraceManager.finish(entry);
         const update = roomManager.setPlayerConnectionStatus(entry.playerId, true);
         if (update?.changed) {
-            gameManager.setPlayerConnectionStatus(room.code, entry.playerId, true);
+            scheduleAdvancedGameRound(io, room.code, gameManager.setPlayerConnectionStatus(room.code, entry.playerId, true));
             broadcastConnectionState(io, room);
         }
         return false;

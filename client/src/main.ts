@@ -26,7 +26,8 @@ import {
 } from "./socket";
 import {
   promoteRecoveryCredential,
-  rejectRecoveryCredential,
+  createHandshakeRetry,
+  handleGuestHandshakeError,
   stageRecoveryCredential,
 } from "./guestSession";
 import {
@@ -87,7 +88,7 @@ import {
   updateBruhSubmissionProgress,
   updateBruhVoteProgress,
 } from "./games/bruhWtf";
-import { chooseRestoredGame, shouldClearGameOnLobbyUpdate } from "./sessionRestoration";
+import { needsFreshGameSnapshot, chooseRestoredGame, shouldClearGameOnLobbyUpdate } from "./sessionRestoration";
 
 interface FakeAnswerSubmissionResponse {
   submitted?: boolean;
@@ -306,6 +307,7 @@ state.connectionStatus = socketConfigurationError
     ? "connected"
     : "connecting";
 if (socketConfigurationError) {
+  state.errorCode = guestRecoveryStorageError ? "RECOVERY_STORAGE_UNAVAILABLE" : "CONNECTION_CONFIGURATION";
   state.errorMessage = socketConfigurationError;
 }
 const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
@@ -1477,6 +1479,10 @@ function requestSessionRestoration(): void {
       ) {
         lobby = bufferedRestorationLobby;
       }
+      if (needsFreshGameSnapshot(snapshot.lobby, lobby)) {
+        requestSessionRestoration();
+        return;
+      }
       const localPlayer = lobby.players.find(({ id }) => id === playerId);
       const pendingRemoval = pendingRemovalDuringRestore;
       pendingRemovalDuringRestore = null;
@@ -1762,7 +1768,8 @@ const actions: AppActions = {
     render();
   },
   onRetrySessionRestore() {
-    requestSessionRestoration();
+    if (state.errorCode === "RECONNECT_EXHAUSTED") handshakeRetry.manual();
+    else requestSessionRestoration();
   },
   onOpenEmailAuth() {
     if (!authEnabled) return;
@@ -3224,7 +3231,7 @@ socket.on(
     session: { recoveryCredential?: unknown },
     acknowledge: (response: { stored: boolean }) => void,
   ) => {
-    const staged = typeof session?.recoveryCredential === "string"
+    const staged = guestRecoveryStorageError ? { ok: false, error: guestRecoveryStorageError } : typeof session?.recoveryCredential === "string"
       ? stageRecoveryCredential(guestSessionStorage, session.recoveryCredential)
       : { ok: false, error: "The server returned an invalid guest recovery credential." };
     if (!staged.ok) {
@@ -3238,12 +3245,37 @@ socket.on(
   },
 );
 
+const handshakeRetry = createHandshakeRetry(() => {
+  if (socket.connected || socket.active) return;
+  state.errorCode = null;
+  state.errorMessage = null;
+  guestSessionFailureMessage = null;
+  socket.connect();
+  render();
+});
+
+function handleHandshakeRefusal(code: string | undefined): boolean {
+  const failure = handleGuestHandshakeError(code, guestSessionStorage, recoveryCredentialSource, handshakeRetry.retry);
+  if (!failure) return false;
+  if (failure.code === "RECOVERY_STORAGE_UNAVAILABLE") handshakeRetry.reset();
+  state.currentView = "restoring";
+  state.errorCode = failure.code;
+  state.errorMessage = failure.message;
+  return true;
+}
+
 let guestSessionFailureMessage: string | null = null;
 let socketAuthConfigurationMismatch = false;
 socket.on("guest-session-error", (failure: { message?: unknown; code?: unknown }) => {
   guestSessionFailureMessage = typeof failure?.message === "string"
     ? failure.message
     : "The guest session could not be activated. Reconnect and try again.";
+  if (failure?.code === "RECOVERY_ACK_TIMEOUT") {
+    handleHandshakeRefusal(failure.code);
+    guestSessionFailureMessage = state.errorMessage;
+    render();
+    return;
+  }
   if (failure?.code === "RECOVERY_STORAGE_UNAVAILABLE") {
     socket.io.opts.reconnection = false;
   }
@@ -3253,6 +3285,7 @@ socket.on("guest-session-error", (failure: { message?: unknown; code?: unknown }
 });
 
 socket.on("guest-session-ready", (session: { playerId?: unknown; canReviewReports?: boolean }) => {
+  handshakeRetry.reset();
   state.canReviewReports = session.canReviewReports === true;
   if (typeof session?.playerId !== "string" || session.playerId.length === 0) {
     state.errorMessage = "The server returned an invalid guest player identity.";
@@ -3487,6 +3520,7 @@ let connectionWasLost = false;
 let hasConnectedOnce = false;
 socket.on("connect", () => {
   retrySocketWithFreshIdToken.reset();
+  state.errorCode = null;
   state.connectionStatus = "connecting";
   render();
 });
@@ -3505,6 +3539,7 @@ socket.on("disconnect", () => {
   state.connectionStatus = "disconnected";
   const wasBrowsingPublicRooms = state.currentView === "public-rooms";
   const shouldRestoreRoom = Boolean(
+    guestSessionFailureMessage ||
     state.roomCode ||
     state.localPlayerId ||
     recoveryCredentialSource ||
@@ -3543,8 +3578,8 @@ socket.on("disconnect", () => {
   clearResultsReminderSuccess();
   clearInvitationFeedback();
   clearPlayerActionFeedback();
+  if (!guestSessionFailureMessage) state.errorCode = null;
   if (wasBrowsingPublicRooms) state.publicRoomsError = "Connection lost. Reconnect to browse public rooms.";
-  state.errorCode = null;
   render();
 });
 
@@ -3558,20 +3593,11 @@ socket.on("connect_error", (error) => {
     state.errorMessage =
       "The client has authentication enabled but the server has it disabled. Configure VITE_AUTH_ENABLED and AUTH_ENABLED consistently, then restart both.";
     state.errorCode = "AUTH_CONFIG_MISMATCH";
-  } else if (
-    errorData?.code === "INVALID_RECOVERY_CREDENTIAL" ||
-    errorData?.code === "RECOVERY_REPLAYED"
-  ) {
-    const cleared = rejectRecoveryCredential(guestSessionStorage, recoveryCredentialSource);
-    state.errorMessage = cleared.ok
-      ? "The previous guest recovery credential is no longer valid. Starting a new guest session."
-      : cleared.error;
-    state.errorCode = cleared.ok ? errorData.code : "RECOVERY_STORAGE_UNAVAILABLE";
-    if (!cleared.ok) socket.io.opts.reconnection = false;
-  } else if (errorData?.code === "PLAYER_ALREADY_CONNECTED") {
-    state.errorMessage = "This guest session is still active in another connection. Close the other tab and reconnect.";
-    state.errorCode = errorData.code;
+  } else if (handleHandshakeRefusal(errorData?.code)) {
+    render();
+    return;
   } else if (error.message === "Invalid or expired access token.") {
+    state.errorCode = "AUTH_TOKEN_REJECTED";
     void retrySocketWithFreshIdToken.refreshAndReconnect().then((retried) => {
       if (retried) return;
       state.errorMessage =
@@ -3579,6 +3605,7 @@ socket.on("connect_error", (error) => {
       render();
     });
   } else {
+    if (error.message === "Authentication verification is temporarily unavailable.") state.errorCode = "AUTH_VERIFICATION_UNAVAILABLE";
     state.errorMessage = error.message === "Authentication verification is temporarily unavailable."
       ? "The server could not verify your Firebase sign-in right now. Check the server's Firebase Admin configuration and try again."
       : "Unable to connect to the server. Retrying…";
@@ -3588,7 +3615,6 @@ socket.on("connect_error", (error) => {
     clearPublicRoomSelection();
     state.publicRoomsError = "Unable to connect. Reconnect to browse public rooms.";
   }
-  state.errorCode = null;
   render();
 });
 

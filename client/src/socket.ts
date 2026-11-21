@@ -18,9 +18,7 @@ const configuration = resolveSocketConfiguration(
 );
 export const guestSessionStorage = getBrowserSessionStorage();
 export let recoveryCredentialSource: RecoveryCredentialSource = null;
-export let guestRecoveryStorageError = guestSessionStorage
-  ? null
-  : "Browser session storage is unavailable. Guest session recovery cannot be secured.";
+export let guestRecoveryStorageError = readRecoveryCredential(guestSessionStorage).error;
 export const hasStoredGuestRecoveryCredential =
   readRecoveryCredential(guestSessionStorage).credential !== null;
 

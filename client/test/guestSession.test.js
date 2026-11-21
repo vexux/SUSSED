@@ -101,3 +101,92 @@ test("storage failures produce explicit errors without throwing", () => {
   assert.equal(promoteRecoveryCredential(storage).ok, false);
   assert.equal(rejectRecoveryCredential(storage, "pending").ok, false);
 });
+test("middleware refusals retry one socket, preserve ownership credentials and stop at the bound", async () => {
+  const {createHandshakeRetry, handleGuestHandshakeError} = await import("../src/guestSession.ts");
+  const storage = createStorage({[GUEST_RECOVERY_STORAGE_KEY]:firstCredential});
+  const attempts = [];
+  let scheduled;
+  const controller = createHandshakeRetry(
+    () => attempts.push(readRecoveryCredential(storage).credential),
+    (callback, delay) => { scheduled = {callback,delay}; return 1; },
+    () => { scheduled = undefined; },
+  );
+  const refuse = code => handleGuestHandshakeError(code,storage,readRecoveryCredential(storage).source,controller.retry);
+  const fire = () => { const task = scheduled; scheduled = undefined; task.callback(); };
+
+  // The storage acknowledgement never arrived. Server still recognizes the old key.
+  stageRecoveryCredential(storage,nextCredential);
+  assert.equal(refuse("RECOVERY_ACK_TIMEOUT").code,"RECOVERY_ACK_TIMEOUT");
+  fire();
+  assert.equal(attempts.at(-1),nextCredential);
+  assert.equal(refuse("INVALID_RECOVERY_CREDENTIAL").code,"INVALID_RECOVERY_CREDENTIAL");
+  fire();
+  assert.equal(attempts.at(-1),firstCredential);
+  controller.reset();
+
+  for (const delay of [1000,2000,4000,8000,16000,16000]) {
+    assert.equal(refuse("PLAYER_ALREADY_CONNECTED").code,"PLAYER_ALREADY_CONNECTED");
+    const task = scheduled;
+    refuse("RECOVERY_IN_PROGRESS");
+    assert.equal(task,scheduled);
+    assert.equal(task.delay,delay);
+    fire();
+  }
+  assert.equal(refuse("PLAYER_ALREADY_CONNECTED").code,"RECONNECT_EXHAUSTED");
+  assert.equal(scheduled,undefined);
+  controller.manual();
+  assert.equal(attempts.length,9);
+  assert.equal(attempts.at(-1),firstCredential);
+  controller.reset();
+
+  assert.equal(refuse("AUTH_DISABLED"),null);
+  assert.equal(scheduled,undefined);
+  assert.equal(handleGuestHandshakeError("RECOVERY_REPLAYED",null,"current",controller.retry).code,"RECOVERY_STORAGE_UNAVAILABLE");
+  assert.equal(scheduled,undefined);
+  // A restarted process cannot recognize the final stored credential.
+  refuse("INVALID_RECOVERY_CREDENTIAL");
+  fire();
+  assert.equal(attempts.at(-1),null);
+});
+test("an overlapping handshake and a lost storage acknowledgement recover exactly one original identity", async () => {
+  const { GuestIdentityManager } = await import("../../server/guestIdentityManager.js");
+  const { createHandshakeRetry, handleGuestHandshakeError } = await import("../src/guestSession.ts");
+  const manager = new GuestIdentityManager();
+  const initial = manager.beginNewSession("old");
+  const storage = createStorage({[GUEST_RECOVERY_STORAGE_KEY]: initial.recoveryCredential});
+  manager.activateSocket("old", true);
+  let nextAttempt;
+  let attempts = 0;
+  const controller = createHandshakeRetry(connect, callback => { nextAttempt = callback; return 1; }, () => {});
+  const refusals = [];
+  function connect() {
+    attempts++;
+    const {source, credential} = readRecoveryCredential(storage);
+    try {
+      const session = manager.beginRecovery("replacement", credential);
+      assert.equal(session.playerId, initial.playerId);
+      stageRecoveryCredential(storage, session.recoveryCredential);
+      if (attempts === 2) {
+        manager.abortSocket("replacement");
+        refusals.push(handleGuestHandshakeError("RECOVERY_ACK_TIMEOUT", storage, source, controller.retry).code);
+      } else {
+        manager.activateSocket("replacement", true);
+        promoteRecoveryCredential(storage);
+        controller.reset();
+      }
+    } catch (error) {
+      if (!error.code || error.code === "ERR_ASSERTION") throw error;
+      refusals.push(handleGuestHandshakeError(error.code, storage, source, controller.retry).code);
+    }
+  }
+  connect();
+  manager.releaseSocket("old");
+  nextAttempt(); // Server never received the staged key's storage acknowledgement.
+  nextAttempt(); // Only the pending key is rejected and removed.
+  nextAttempt(); // Previous active key is still valid.
+  assert.deepEqual(refusals, ["PLAYER_ALREADY_CONNECTED","RECOVERY_ACK_TIMEOUT","INVALID_RECOVERY_CREDENTIAL"]);
+  assert.equal(attempts, 4);
+  assert.equal(manager.isActiveSocket(initial.playerId, "old"), false);
+  assert.equal(manager.isActiveSocket(initial.playerId, "replacement"), true);
+  assert.equal(manager.records.size, 1);
+});

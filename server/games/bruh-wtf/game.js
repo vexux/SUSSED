@@ -324,6 +324,7 @@ function removeParticipant(state, playerId) {
     state.questionOrder = [...currentAndPast, ...future];
     state.totalRounds = state.currentRound + future.length;
 
+    if (state.pausedForReconnect) return { removed: true, advancedRound: false };
     let advancedRound = false;
     if (!wasPublished && state.phase === "answer-submission" && allActiveParticipantsSubmitted(state)) {
         createVotingOptions(state);
@@ -349,6 +350,10 @@ function suspendParticipant(state, playerId) {
     ) {
         return { changed: false, advancedRound: false };
     }
+    return reconcileRound(state);
+}
+
+function reconcileRound(state) {
 
     if (state.phase === "answer-submission" && allActiveParticipantsSubmitted(state)) {
         createVotingOptions(state);
@@ -387,9 +392,19 @@ function setPlayerConnectionStatus(state, playerId, connected) {
     }
     if (connected) {
         state.connectedPlayerIds.add(playerId);
+        if (state.pausedForReconnect) {
+            state.pausedForReconnect = false;
+            state.roundEligiblePlayerIds.add(playerId);
+            return reconcileRound(state);
+        }
         return { changed: true, advancedRound: false };
     }
     state.connectedPlayerIds.delete(playerId);
+    if (!state.connectedPlayerIds.size) {
+        state.roundEligiblePlayerIds.delete(playerId);
+        state.pausedForReconnect = true;
+        return { changed: true, advancedRound: false };
+    }
     return { ...suspendParticipant(state, playerId), changed: true };
 }
 

@@ -30,3 +30,10 @@ export function chooseRestoredGame(
   }
   return snapshot;
 }
+
+type LobbyRevision = { roomCode: string; revision: number; status: string };
+
+export function needsFreshGameSnapshot(snapshot: LobbyRevision, latest: LobbyRevision): boolean {
+  return latest.roomCode === snapshot.roomCode && latest.revision > snapshot.revision &&
+    snapshot.status === "lobby" && latest.status === "starting";
+}

@@ -148,3 +148,60 @@ export function rejectRecoveryCredential(
     };
   }
 }
+
+/** Middleware refusals stop Socket.IO's transport reconnection loop. */
+export function createHandshakeRetry(
+  connect: () => void,
+  schedule: (callback: () => void, delay: number) => ReturnType<typeof setTimeout> = setTimeout,
+  cancel: typeof clearTimeout = clearTimeout,
+) {
+  const delays = [1000, 2000, 4000, 8000, 16000, 16000];
+  let attempts = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  function reset() {
+    cancel(timer);
+    timer = undefined;
+    attempts = 0;
+  }
+  return {
+    reset,
+    manual() { reset(); connect(); },
+    retry() {
+      if (timer !== undefined) return true;
+      if (attempts >= delays.length) return false;
+      timer = schedule(() => { timer = undefined; connect(); }, delays[attempts++]);
+      return true;
+    },
+  };
+}
+
+export function handleGuestHandshakeError(
+  code: string | undefined,
+  storage: GuestSessionStorage | null,
+  source: RecoveryCredentialSource,
+  retry: () => boolean,
+): { code: string; message: string } | null {
+  let message: string;
+  switch (code) {
+    case "INVALID_RECOVERY_CREDENTIAL":
+    case "RECOVERY_REPLAYED": {
+      const cleared = rejectRecoveryCredential(storage, source);
+      if (!cleared.ok) return { code: "RECOVERY_STORAGE_UNAVAILABLE", message: cleared.error! };
+      message = source === "pending" ? "Checking the previous guest session credential."
+        : "The previous session expired. Connecting as a new guest.";
+      break;
+    }
+    case "PLAYER_ALREADY_CONNECTED":
+    case "RECOVERY_IN_PROGRESS":
+      message = "Waiting for the previous connection to close.";
+      break;
+    case "RECOVERY_ACK_TIMEOUT":
+      message = "Session confirmation timed out. Reconnecting.";
+      break;
+    default: return null;
+  }
+  return retry() ? { code, message } : {
+    code: "RECONNECT_EXHAUSTED",
+    message: "Automatic reconnect attempts stopped. Check your connection and reconnect.",
+  };
+}

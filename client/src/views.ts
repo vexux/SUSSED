@@ -2379,15 +2379,17 @@ function renderSessionRestoring(state: AppState, actions: AppActions): HTMLEleme
       "screen-description",
       state.connectionStatus === "connected"
         ? "Checking your current room and game…"
-        : "Reconnecting to your current room and game…",
+        : state.errorCode === "RECONNECT_EXHAUSTED" ? "Reconnect when you are ready to try again."
+          : state.errorCode === "RECOVERY_STORAGE_UNAVAILABLE" ? "Enable session storage and reload this tab."
+          : "Reconnecting to your current room and game…",
     ),
   );
   if (state.errorMessage) {
     const error = createElement("p", "error-message", state.errorMessage);
     error.setAttribute("role", "alert");
     screen.append(error);
-    if (state.connectionStatus === "connected") {
-      const retry = createElement("button", "primary-button", "Retry restoration");
+    if (state.connectionStatus === "connected" || state.errorCode === "RECONNECT_EXHAUSTED") {
+      const retry = createElement("button", "primary-button", state.connectionStatus === "connected" ? "Retry restoration" : "Reconnect");
       retry.type = "button";
       retry.addEventListener("click", actions.onRetrySessionRestore);
       screen.append(retry);
