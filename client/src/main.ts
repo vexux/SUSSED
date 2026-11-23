@@ -640,6 +640,7 @@ function render(): void {
       sendRoomChatMessage(text);
     },
     onReact: reactToMessage,
+    localPlayerId: state.localPlayerId,
     playerTarget,
     onLoadOlder(cursor) {
       if (roomChatState.hasOlder && roomChatState.cursor === cursor) requestRoomChatHistory(cursor);
@@ -3371,6 +3372,7 @@ function updateVisibleRoomChat(mode: "append" | "prepend" | "replace"): void {
     onDraftChange() {},
     onSendMessage() {},
     onReact: reactToMessage,
+    localPlayerId: state.localPlayerId,
     playerTarget,
     onLoadOlder(cursor) { if (roomChatState.hasOlder) requestRoomChatHistory(cursor); },
   }, mode);

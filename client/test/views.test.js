@@ -96,7 +96,7 @@ class FakeElement {
     this.selectionEnd = end;
     this.selectionDirection = direction;
   }
-  dispatch(type, extra = {}) { this.listeners[type]?.({ preventDefault() {}, stopPropagation() {}, ...extra }); }
+  dispatch(type, extra = {}) { return this.listeners[type]?.({ preventDefault() {}, stopPropagation() {}, ...extra }); }
   query(predicate) {
     if (predicate(this)) return this;
     for (const child of this.children) {
@@ -136,11 +136,15 @@ function withFakeDocument(callback) {
     createElement: (tagName) => new FakeElement(tagName),
     createElementNS: (_namespace, tagName) => new FakeElement(tagName),
   };
-  try { callback(); }
-  finally {
+  function restore() {
     if (previousDocument === undefined) delete globalThis.document;
     else globalThis.document = previousDocument;
   }
+  try {
+    const result = callback();
+    if (result instanceof Promise) return result.finally(restore);
+  } catch (error) { restore(); throw error; }
+  restore();
 }
 
 function createAnswerEntryState(gameId) {
@@ -2439,8 +2443,8 @@ test("room chat older-message insertion preserves the visible scroll anchor", ()
   assert.equal(list.scrollTop, 100);
 });
 
-test("reaction picker opens from a button, offers more emoji and renders the viewer's grouped selection", () => {
-  withFakeDocument(() => {
+test("reaction picker opens from a button, offers more emoji and renders the viewer's grouped selection", async () => {
+  await withFakeDocument(async () => {
     document.documentElement = { clientWidth: 360, clientHeight: 800 };
     const create = document.createElement;
     document.createElement = tag => {
@@ -2470,21 +2474,41 @@ test("reaction picker opens from a button, offers more emoji and renders the vie
     assert.ok(dialog.open);
     for (const emoji of ["👍", "❤️", "😂", "😮", "😭", "🔥"]) assert.ok(dialog.query(node => node.textContent === emoji));
     assert.equal(dialog.query(node => node.textContent === "More" || node.textContent === "Close"), null);
-    dialog.query(node => node.getAttribute("aria-label") === "Browse all emoji").dispatch("click");
+    await dialog.query(node => node.getAttribute("aria-label") === "Browse all emoji").dispatch("click");
     const input = dialog.querySelector("input");
-    dialog.query(node => node.textContent === "Activities").dispatch("click");
+    const activityTab = dialog.query(node => node.getAttribute("aria-label") === "Activities");
+    assert.equal(activityTab.textContent, "");
+    activityTab.dispatch("click");
+    assert.equal(activityTab.getAttribute("aria-pressed"), "true");
+    assert.equal(dialog.query(node => node.getAttribute("aria-label") === "Recently Used"), null);
+    const scroller = dialog.querySelector(".emoji-scroll");
+    scroller.children[0].children.forEach((section, index) => { section.offsetTop = 8 + index * 100; });
+    scroller.scrollTop = 0;
+    scroller.dispatch("scroll");
+    assert.equal(dialog.query(node => node.getAttribute("aria-label") === "Smileys & People").getAttribute("aria-pressed"), "true");
+    activityTab.dispatch("click");
+    const previousTop = scroller.scrollTop;
     input.value = "laugh";
     input.dispatch("input");
     assert.ok(dialog.query(node => node.textContent === "🤣"));
     input.value = "unknown phrase";
     input.dispatch("input");
     assert.equal(dialog.querySelector(".emoji-grid").textContent, "No matching emoji.");
-    input.value = "";
-    input.dispatch("input");
+    dialog.query(node => node.getAttribute("aria-label") === "Clear emoji search").dispatch("click");
+    assert.equal(scroller.scrollTop, previousTop);
     dialog.query(node => node.textContent === "🚀").dispatch("click");
     assert.deepEqual(selected, ["1", "🚀"]);
     assert.equal(row.querySelector("dialog"), null);
     assert.equal(document.activeElement, row.querySelector(".reaction-trigger"));
+    const trigger = row.querySelector(".reaction-trigger");
+    trigger.dispatch("click");
+    row.query(node => node.textContent === "😭").dispatch("click");
+    trigger.dispatch("click");
+    await row.query(node => node.getAttribute("aria-label") === "Browse all emoji").dispatch("click");
+    const recentTab = row.query(node => node.getAttribute("aria-label") === "Recently Used");
+    assert.equal(recentTab.getAttribute("aria-pressed"), "true");
+    const recentSection = row.querySelector(".emoji-scroll").children[0].children[0];
+    assert.deepEqual(recentSection.querySelector(".emoji-grid").children.map(node => node.textContent), ["😭", "🚀"]);
   });
 });
 

@@ -1,4 +1,4 @@
-export type IconName = "smile-plus" | "expand" | "collapse" | "unlock" | "send" | "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door" | "user" | "bell";
+export type IconName = "clock" | "smile" | "leaf" | "utensils" | "bulb" | "heart" | "flag" | "smile-plus" | "expand" | "collapse" | "unlock" | "send" | "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door" | "user" | "bell";
 
 export function createIcon(name: IconName): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -9,6 +9,13 @@ export function createIcon(name: IconName): SVGSVGElement {
   svg.setAttribute("focusable", "false");
   svg.classList.add(`icon-${name}`);
   const paths: Record<typeof name, string> = {
+    clock: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 6v6l4 2",
+    smile: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM8 14q4 6 8 0M8 9h.1m7.8 0h.1",
+    leaf: "M20 3C8 3 2 8 5 16c7 8 16-1 15-13ZM3 21l12-12",
+    utensils: "M5 2v7q3 4 6 0V2M8 2v19M19 2q-5 6-4 11h4V2v19",
+    bulb: "M9 17q0-2-2-4a7 7 0 1 1 10 0q-2 2-2 4ZM9 20h6m-5 3h4",
+    heart: "M12 21 3 12C-1 4 7 1 12 7c5-6 13-3 9 5Z",
+    flag: "M4 22V3q4-3 8 0t8 0v11q-4 3-8 0t-8 0",
     "smile-plus": "M21 12a9 9 0 1 1-9-9m5 0h6m-3-3v6M8 13q4 6 8 0M8.5 9h.1m5 0h.1",
     unlock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0",
     expand: "m6 6 6 6 6-6M6 12l6 6 6-6",

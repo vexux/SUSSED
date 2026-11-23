@@ -4044,12 +4044,22 @@ select:focus:not(:focus-visible) {
 .reaction-picker button { display: inline-grid; place-items: center; min-height: 44px; color: inherit; border: 0; background: transparent; border-radius: var(--radius-pill); }
 .quick-reactions button, .emoji-grid button { width: 44px; padding: 0; font-size: 1.25rem; }
 .reaction-picker button:hover, .emoji-categories [aria-pressed="true"] { background: var(--color-accent-surface-strong); }
-.expanded-picker { width: min(23rem, calc(100vw - 16px)); padding: 12px; border-radius: var(--radius-md); }
+.expanded-picker { width: min(28rem, calc(100vw - 16px)); padding: 12px; border-radius: var(--radius-md); max-height: min(84dvh, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))); }
 .expanded-picker header { display: flex; align-items: center; justify-content: space-between; }
 .expanded-picker header button { width: 44px; }
 .expanded-picker input { width: 100%; padding: 10px 12px; color: inherit; background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: var(--radius-pill); }
-.emoji-categories { display: flex; overflow-x: auto; gap: 4px; margin-block: 6px; }
-.emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); max-height: 32dvh; overflow: auto; }
+
+.emoji-search { position: relative; }
+.emoji-search input { padding-inline-end: 44px; min-height: 44px; }
+.emoji-search input::-webkit-search-cancel-button { display: none; }
+.emoji-search button { position: absolute; inset: 0 0 0 auto; width: 44px; }
+.emoji-categories { position: relative; display: flex; overflow-x: auto; margin-block: 6px; }
+.emoji-categories button { flex: 1 0 44px; color: var(--color-text-muted); border-bottom: 3px solid transparent; border-radius: 0; }
+.emoji-categories button[aria-pressed="true"] { border-bottom-color: var(--color-accent); color: var(--color-text); }
+.expanded-picker [hidden] { display: none; }
+.emoji-scroll { position: relative; height: min(42dvh, 22rem); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.emoji-scroll h3 { margin: 8px 0; font-size: .9rem; }
+.emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); justify-items: center; }
 .emoji-grid:not(:has(button)) { display: block; padding-block: var(--space-2); color: var(--color-text-muted); }
 .reaction-groups { display: flex; flex-wrap: wrap; gap: var(--space-1); }
 .reaction-chip, .reaction-trigger, .chat-unread {

@@ -1,43 +1,25 @@
-type Category = "Smileys" | "People" | "Animals" | "Food" | "Activities" | "Symbols";
-type Entry = [emoji: string, name: string, keywords: string];
+import data from "emojibase-data/en/compact.json" with { type: "json" };
+import aliases from "emojibase-data/en/shortcodes/emojibase.json" with { type: "json" };
 
-export const catalogue: Record<Category, Entry[]> = {
-  Smileys: [
-    ["😂", "Tears of joy", "laugh funny lol"], ["🤣", "Rolling on the floor laughing", "laugh funny rofl"],
-    ["😮", "Surprised face", "wow shock"], ["😭", "Loudly crying", "cry sad tears"],
-    ["🥹", "Holding back tears", "cry happy"], ["😎", "Sunglasses", "cool"], ["🥳", "Party face", "celebration birthday"],
-    ["🤔", "Thinking face", "hmm suspect"], ["😍", "Heart eyes", "love"], ["😅", "Grinning with sweat", "awkward relief"],
-  ],
-  People: [
-    ["👍", "Thumbs up", "yes agree"], ["👎", "Thumbs down", "no disagree"], ["👏", "Clapping", "applause celebration"],
-    ["🙌", "Raised hands", "celebration hooray"], ["🫶", "Heart hands", "love"], ["🤝", "Handshake", "deal agree"],
-    ["👀", "Eyes", "look watching"], ["💪", "Flexed arm", "strong muscle"],
-  ],
-  Animals: [
-    ["🐶", "Dog", "puppy"], ["🐱", "Cat", "kitten"], ["🐐", "Goat", "greatest"], ["🦊", "Fox", "clever"],
-    ["🐸", "Frog", "toad"], ["🐼", "Panda", "bear"], ["🦋", "Butterfly", "pretty"], ["🐧", "Penguin", "bird"],
-  ],
-  Food: [
-    ["🍕", "Pizza", "slice"], ["🍿", "Popcorn", "watch drama"], ["🌶️", "Hot pepper", "spicy chili"],
-    ["🎂", "Birthday cake", "celebration"], ["🍪", "Cookie", "biscuit"], ["🍉", "Watermelon", "fruit"],
-    ["🍔", "Burger", "hamburger"], ["☕", "Coffee", "drink tea"],
-  ],
-  Activities: [
-    ["🎉", "Party popper", "celebration confetti"], ["🎊", "Confetti ball", "celebration party"],
-    ["🏆", "Trophy", "winner award"], ["🎯", "Bullseye", "target accurate"], ["🎮", "Video game", "controller"],
-    ["🎲", "Dice", "luck roll"], ["⚽", "Soccer ball", "football sport"], ["🚀", "Rocket", "launch space"],
-  ],
-  Symbols: [
-    ["❤️", "Red heart", "love"], ["💜", "Purple heart", "love"], ["💔", "Broken heart", "sad"],
-    ["🔥", "Fire", "flame hot"], ["✨", "Sparkles", "magic stars"], ["✅", "Check mark", "correct yes"],
-    ["💯", "Hundred points", "perfect score"], ["❓", "Question mark", "what confused"],
-  ],
-};
+export const categories = ["Recently Used", "Smileys & People", "Animals & Nature", "Food & Drink", "Travel & Places", "Activities", "Objects", "Symbols", "Flags"] as const;
+export type Category = typeof categories[number];
+export interface Entry { emoji: string; name: string; category: Category; search: string }
 
-export const categories = Object.keys(catalogue) as Category[];
-export const quickReactions = ["👍", "❤️", "😂", "😮", "😭", "🔥"];
-
-export function findReactions(category: Category, query: string): Entry[] {
-  const term = query.trim().toLowerCase();
-  return term ? Object.values(catalogue).flat().filter(entry => entry.join(" ").toLowerCase().includes(term)) : catalogue[category];
+const groupNames: Category[] = [categories[1], categories[1], categories[1], ...categories.slice(2)];
+export const catalogue = new Map<string, Entry>();
+for (const base of data) {
+  // Uncategorised components (such as isolated regional indicators) are not reactions.
+  if (base.group === undefined) continue;
+  for (const item of [base, ...(base.skins ?? [])]) {
+    // Some default-emoji singletons have a redundant presentation selector in Emojibase.
+    const emoji = item.unicode.replace(/^(\p{Emoji_Presentation})\uFE0F$/u, (_, singleton: string) => singleton);
+    const words = [item.label, base.label, ...(base.tags ?? []), aliases[base.hexcode], aliases[item.hexcode], emoji];
+    const search = words.flat().filter(Boolean).join(" ").replaceAll("_", " ").toLowerCase();
+    catalogue.set(emoji, { emoji, name: item.label, category: groupNames[base.group]!, search });
+  }
+}
+export const entries = Array.from(catalogue.values());
+export function findReactions(query: string) {
+  const terms = query.trim().toLowerCase().split(/\s+/);
+  return entries.filter(entry => terms.every(term => entry.search.includes(term)));
 }

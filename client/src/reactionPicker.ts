@@ -1,7 +1,19 @@
-import { catalogue, categories, findReactions, quickReactions } from "./reactionCatalogue.ts";
-import { createIcon } from "./ui/icon.ts";
+import { rememberReaction, recentReactions } from "./recentReactions.ts";
+import type { Category } from "./reactionCatalogue.ts";
+import { createIcon, type IconName } from "./ui/icon.ts";
 
-export function attachReactionPicker(row: HTMLElement, trigger: HTMLButtonElement, select: (emoji: string) => void): void {
+const quickReactions = [
+  ["👍", "Thumbs up"], ["❤️", "Red heart"], ["😂", "Face with tears of joy"],
+  ["😮", "Face with open mouth"], ["😭", "Loudly crying face"], ["🔥", "Fire"],
+];
+const categoryIcons: Record<Category, IconName> = {
+  "Recently Used": "clock", "Smileys & People": "smile", "Animals & Nature": "leaf", "Food & Drink": "utensils",
+  "Travel & Places": "globe", Activities: "game", Objects: "bulb", Symbols: "heart", Flags: "flag",
+};
+
+
+export function attachReactionPicker(row: HTMLElement, trigger: HTMLButtonElement, select: (emoji: string) => void, playerId?: string | null): void {
+  let temporaryRecents: string[] = [];
   function open() {
     if (!row.isConnected || row.querySelector("dialog")) return;
     const dialog = document.createElement("dialog");
@@ -16,6 +28,8 @@ export function attachReactionPicker(row: HTMLElement, trigger: HTMLButtonElemen
       return node;
     }
     function choose(emoji: string) {
+      if (playerId) rememberReaction(playerId, emoji);
+      else temporaryRecents = [emoji, ...temporaryRecents.filter(value => value !== emoji)].slice(0, 24);
       dialog.close();
       select(emoji);
     }
@@ -24,7 +38,18 @@ export function attachReactionPicker(row: HTMLElement, trigger: HTMLButtonElemen
       node.setAttribute("aria-label", name);
       return node;
     }
-    function expanded() {
+    async function expanded() {
+      more.disabled = true;
+      let data: typeof import("./reactionCatalogue.ts");
+      try { data = await import("./reactionCatalogue.ts"); }
+      catch {
+        more.disabled = false;
+        more.setAttribute("aria-label", "Emoji catalogue could not load. Retry");
+        more.title = "Emoji catalogue could not load. Retry";
+        return;
+      }
+      if (!dialog.open) return;
+      const { catalogue, categories, entries, findReactions } = data;
       dialog.className = "reaction-picker expanded-picker";
       dialog.style.left = "";
       dialog.style.top = "";
@@ -42,27 +67,88 @@ export function attachReactionPicker(row: HTMLElement, trigger: HTMLButtonElemen
       search.setAttribute("aria-label", "Search emoji");
       const nav = document.createElement("div");
       nav.className = "emoji-categories";
-      const grid = document.createElement("div");
-      grid.className = "emoji-grid";
-      let category = categories[0]!;
-      function update() {
-        for (const control of Array.from(nav.children)) control.setAttribute("aria-pressed", String(control.textContent === category));
-        const matches = findReactions(category, search.value);
-        grid.replaceChildren(...matches.map(([emoji, name]) => emojiButton(emoji, name)));
-        if (!matches.length) grid.textContent = "No matching emoji.";
-        grid.scrollTop = 0;
+      nav.setAttribute("role", "navigation");
+      nav.setAttribute("aria-label", "Emoji categories");
+      const scroller = document.createElement("div");
+      scroller.className = "emoji-scroll";
+      const browse = document.createElement("div");
+      const recent = playerId ? recentReactions(playerId, emoji => catalogue.has(emoji)) : temporaryRecents;
+      const sections = new Map<Category, HTMLElement>();
+      const controls = new Map<Category, HTMLButtonElement>();
+      let active: Category | undefined;
+      function mark(name: Category) {
+        if (active === name) return;
+        active = name;
+        for (const [category, control] of controls) control.setAttribute("aria-pressed", String(category === name));
+        const tab = controls.get(name);
+        if (tab && tab.offsetLeft < nav.scrollLeft) nav.scrollLeft = tab.offsetLeft;
+        else if (tab && tab.offsetLeft + tab.offsetWidth > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = tab.offsetLeft + tab.offsetWidth - nav.clientWidth;
       }
-      for (const name of categories) nav.append(button(name, () => { category = name; update(); }));
+      function jump(name: Category) {
+        const section = sections.get(name);
+        if (section) scroller.scrollTop = section.offsetTop;
+        mark(name);
+      }
+      for (const name of categories) {
+        const values = name === "Recently Used" ? recent.map(emoji => catalogue.get(emoji)!) : entries.filter(entry => entry.category === name);
+        if (!values.length) continue;
+        const section = document.createElement("section");
+        const label = document.createElement("h3");
+        label.textContent = name;
+        const grid = document.createElement("div");
+        grid.className = "emoji-grid";
+        grid.append(...values.map(entry => emojiButton(entry.emoji, entry.name)));
+        section.append(label, grid);
+        browse.append(section);
+        const control = button("", () => jump(name));
+        control.append(createIcon(categoryIcons[name]));
+        control.setAttribute("aria-label", name);
+        control.title = name;
+        nav.append(control);
+        controls.set(name, control);
+        sections.set(name, section);
+      }
+      scroller.append(browse);
+      scroller.addEventListener("scroll", () => {
+        if (search.value.trim()) return;
+        let visible = sections.keys().next().value;
+        for (const [name, section] of sections) {
+          if (section.offsetTop > scroller.scrollTop + 2) break;
+          visible = name;
+        }
+        if (visible) mark(visible);
+      });
+      const clear = button("", () => { search.value = ""; update(); search.focus(); });
+      clear.setAttribute("aria-label", "Clear emoji search");
+      clear.append(createIcon("close"));
+      clear.hidden = true;
+      const field = document.createElement("div");
+      field.className = "emoji-search";
+      field.append(search, clear);
+      function update() {
+        const term = search.value.trim();
+        clear.hidden = !search.value;
+        nav.hidden = Boolean(term);
+        if (!term) {
+          scroller.replaceChildren(browse);
+          if (active) jump(active);
+          return;
+        }
+        const results = document.createElement("div");
+        results.className = "emoji-grid";
+        const matches = findReactions(term);
+        results.append(...matches.map(entry => emojiButton(entry.emoji, entry.name)));
+        if (!matches.length) results.textContent = "No matching emoji.";
+        scroller.replaceChildren(results);
+        scroller.scrollTop = 0;
+      }
       search.addEventListener("input", update);
-      dialog.replaceChildren(heading, search, nav, grid);
-      update();
+      dialog.replaceChildren(heading, field, nav, scroller);
+      mark(recent.length ? "Recently Used" : "Smileys & People");
       search.focus();
     }
     choices.className = "quick-reactions";
-    for (const emoji of quickReactions) {
-      const entry = Object.values(catalogue).flat().find(([value]) => value === emoji)!;
-      choices.append(emojiButton(emoji, entry[1]));
-    }
+    for (const [emoji, name] of quickReactions) choices.append(emojiButton(emoji!, name!));
     const more = button("", expanded);
     more.setAttribute("aria-label", "Browse all emoji");
     more.append(createIcon("smile-plus"));

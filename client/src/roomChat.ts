@@ -32,6 +32,7 @@ export interface RoomChatState {
 }
 
 export interface RoomChatActions {
+  localPlayerId?: string | null;
   onReact?(message: RoomChatMessage, emoji: string): void;
   playerTarget?(id: string): ((id: string, anchorId: string) => void) | undefined;
   onToggleExpanded(): void;
@@ -178,7 +179,7 @@ function renderMessage(message: RoomChatMessage, actions: RoomChatActions): HTML
     trigger.type = "button";
     trigger.setAttribute("aria-label", "React to message from " + message.senderName);
     metadata.append(trigger);
-    attachReactionPicker(item, trigger, react);
+    attachReactionPicker(item, trigger, react, actions.localPlayerId);
     if (message.reactions?.length) {
       const groups = element("div", "reaction-groups");
       for (const { emoji, count } of message.reactions) {
