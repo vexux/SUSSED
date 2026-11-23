@@ -252,12 +252,6 @@ export function createVotingForm(options: {
     const answer = document.createElement("span");
     answer.textContent = options.formatAnswer?.(option.completion) ?? option.completion;
     label.append(input, answer);
-    if (option.isOwnAnswer) {
-      const own = document.createElement("small");
-      own.className = "own-answer-note";
-      own.textContent = "Your answer";
-      label.append(own);
-    }
     form.append(label);
   }
   submit = document.createElement("button");

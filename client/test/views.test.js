@@ -1209,6 +1209,8 @@ test("lobby offers a room-code chip and invitation dialog while preserving host-
     renderApp(root, state, actions, {}, {});
     const playerDialog = root.query((element) => element.className.includes("player-detail-dialog"));
     assert.equal(playerDialog.getAttribute("aria-labelledby"), "player-detail-title");
+    assert.doesNotMatch(playerDialog.text, /Report player|Report reason/u);
+    assert.equal(playerDialog.query(node => node.getAttribute("aria-label") === "Report reason"), null);
     assert.equal(playerDialog.getAttribute("aria-modal"), "false");
     assert.equal(globalThis.document.activeElement.className, "player-detail-close");
     const makeHostButton = playerDialog.query((element) => element.getAttribute("aria-label") === "Make Guest host");
@@ -1444,11 +1446,12 @@ test("game selection is registry-driven and selecting a card does not create a r
     Object.assign(state.availableGames[1], { category: "Bluffing", access: "premium", available: true, canSelect: false });
     render();
     assert.equal(root.query(element => element.className.includes("game-card-grid")).children.length, 3);
-    assert.match(root.text, /Host access required/u);
+    assert.doesNotMatch(root.text, /Premium|Host access required/u);
+    assert.equal(root.query(node => node.textContent === "Bluffing"), null);
     assert.equal(root.query(element => element.className.includes("create-selected-game")).disabled, true);
     state.availableGames[1].canSelect = true;
     render();
-    assert.match(root.text, /You have host access/u);
+    assert.doesNotMatch(root.text, /You have host access/u);
     assert.equal(root.query(element => element.getAttribute("aria-label") === "All categories"), null);
   });
 });
@@ -2497,5 +2500,22 @@ test("incoming room chat updates only the message list and leaves the composer n
     assert.equal(input.value, "unfinished draft");
     assert.equal(globalThis.document.activeElement, input);
     assert.equal(panel.query((node) => node.className === "room-chat-message").text.includes("New message"), true);
+  });
+});
+
+test("chat author controls resolve the stable sender for both triggers", () => {
+  withFakeDocument(() => {
+    const state = createInitialRoomChatState();
+    const base = {type:"player", senderName:"Sam", text:"Hi", createdAt:"2026-01-01"};
+    state.messages = [{...base,id:"a",senderId:"member"},{...base,id:"b",senderId:"departed"},{...base,id:"c",type:"system"}];
+    const calls = [];
+    const panel = renderRoomChat(state,{playerTarget: id => id === "member" ? (...args) => calls.push(args) : undefined});
+    const controls = panel.queryAll(node => node.classList.contains("chat-player-trigger"));
+    assert.equal(controls.length,2);
+    controls.forEach(button => button.dispatch("click"));
+    assert.deepEqual(calls,[["member","room-chat-avatar-a"],["member","room-chat-sender-a"]]);
+    assert.ok(panel.query(node=>node.classList.contains("icon-expand")));
+    state.expanded=true;
+    assert.ok(renderRoomChat(state,{}).query(node=>node.classList.contains("icon-collapse")));
   });
 });

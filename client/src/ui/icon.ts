@@ -1,4 +1,4 @@
-export type IconName = "unlock" | "send" | "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door" | "user" | "bell";
+export type IconName = "expand" | "collapse" | "unlock" | "send" | "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door" | "user" | "bell";
 
 export function createIcon(name: IconName): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -10,6 +10,8 @@ export function createIcon(name: IconName): SVGSVGElement {
   svg.classList.add(`icon-${name}`);
   const paths: Record<typeof name, string> = {
     unlock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0",
+    expand: "M14 4h6v6m0-6-7 7M4 14v6h6m-6 0 7-7",
+    collapse: "M20 4l-7 7m0-6v6h6M4 20l7-7m0 6v-6H5",
     send: "m21 3-7 18-4-8-8-4 19-6ZM10 13 21 3",
     sun: "M12 3v2m0 14v2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42M3 12h2m14 0h2M5.64 18.36l1.42-1.42m9.88-9.88 1.42-1.42M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z",
     moon: "M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z",

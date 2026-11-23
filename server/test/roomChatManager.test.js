@@ -14,7 +14,7 @@ test("room chat stores server timestamps, snapshots names, and supports plain te
     const first = chat.addPlayerMessage("room-a", "player-a", "Alex", "  Hello 🙂  ");
     const system = chat.addSystemMessage("room-a", "Alex joined the room.");
     assert.deepEqual(first, {
-        id: "message-1", type: "player", senderName: "Alex", text: "Hello 🙂",
+        id: "message-1", type: "player", senderName: "Alex", senderId: "player-a", text: "Hello 🙂",
         createdAt: "2026-11-20T10:00:00.000Z",
     });
     assert.deepEqual(system, {

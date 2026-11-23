@@ -216,6 +216,7 @@ export interface AppState {
   pendingRoomVisibility: "public" | "private";
   pendingKickPlayerId: string | null;
   pendingHostTransferId: string | null;
+  playerCardAnchorId?: string;
   selectedPlayerId: string | null;
   kickFeedback: string | null;
   connectionNotice: string | null;

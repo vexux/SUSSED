@@ -1030,10 +1030,11 @@ test("room chat sends only server-authored member messages and paginates history
         id: sent.messageId,
         type: "player",
         senderName: "Host",
+        senderId: host.playerId,
         text: "Hello room 🙂",
         createdAt: received.message.createdAt,
     });
-    assert.equal("senderId" in received.message, false);
+    assert.equal("accountId" in received.message, false);
     assert.equal("playerId" in received.message, false);
     assert.equal((await emitWithAck(host, "chat:send", { text: "forged", senderId: guest.playerId })).error.code, "INVALID_REQUEST");
 
@@ -1934,7 +1935,7 @@ test("host selects a registered game and broadcasts authoritative metadata to al
     assert.deepEqual(hostLobby.selectedGame, {
         id: "fact-or-cap-anime",
         displayName: "Fact or Cap (Anime)",
-        description: "A bluffing party game about surprising and verifiable anime facts.",
+        description: "A bluffing party game about surprising anime facts.",
         minPlayers: 2,
         maxPlayers: roomManager.MAX_ROOM_CAPACITY,
         supportsRoundSelection: true

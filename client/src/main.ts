@@ -636,6 +636,7 @@ function render(): void {
     onSendMessage(text) {
       sendRoomChatMessage(text);
     },
+    playerTarget,
     onLoadOlder(cursor) {
       if (roomChatState.hasOlder && roomChatState.cursor === cursor) requestRoomChatHistory(cursor);
     },
@@ -1002,6 +1003,8 @@ function applyLobbyState(lobby: LobbyState, shouldRender = true): void {
 }
 
 function focusPlayerCardTrigger(playerId: string): void {
+  const anchor = state.playerCardAnchorId && document.getElementById(state.playerCardAnchorId);
+  if (anchor) { anchor.focus({preventScroll:true}); return; }
   const cards = Array.from(appRoot.querySelectorAll<HTMLButtonElement>(".player-card"));
   const target = cards
     .find(({ dataset }) => dataset.playerId === playerId)
@@ -2331,7 +2334,7 @@ const actions: AppActions = {
       if (response.lobby) applyLobbyState(response.lobby);
       if (event === "set-room-lock" && response.lobby?.revision === state.lobby?.revision) {
         showPlayerActionFeedback(state.lobby?.locked ? "Room locked." : "Room unlocked.");
-      } else if (event !== "set-room-lock") showPlayerActionFeedback(event === "report-player" ? "Report submitted." : "Player banned from this room.");
+      } else if (event !== "set-room-lock") showPlayerActionFeedback("Player banned from this room.");
       render();
     });
   },
@@ -2350,8 +2353,9 @@ const actions: AppActions = {
       else render();
     });
   },
-  onOpenPlayerCard(playerId) {
+  onOpenPlayerCard(playerId, anchorId) {
     if (state.isBusy || !state.lobby || !state.lobby.players.some(({ id }) => id === playerId)) return;
+    state.playerCardAnchorId = anchorId;
     state.selectedPlayerId = state.selectedPlayerId === playerId ? null : playerId;
     render();
     if (state.selectedPlayerId) {
@@ -3345,9 +3349,14 @@ function isRoomChatMessage(value: unknown): value is RoomChatMessage {
   if (!isRecord(value)) return false;
   return typeof value.id === "string" &&
     (value.type === "player" || value.type === "system") &&
+    (value.senderId === undefined || typeof value.senderId === "string") &&
     (value.senderName === null || typeof value.senderName === "string") &&
     typeof value.text === "string" &&
     typeof value.createdAt === "string";
+}
+
+function playerTarget(id: string) {
+  return state.lobby?.players.some(player => player.id === id) ? actions.onOpenPlayerCard : undefined;
 }
 
 function updateVisibleRoomChat(mode: "append" | "prepend" | "replace"): void {
@@ -3357,6 +3366,7 @@ function updateVisibleRoomChat(mode: "append" | "prepend" | "replace"): void {
     onToggleExpanded() {},
     onDraftChange() {},
     onSendMessage() {},
+    playerTarget,
     onLoadOlder(cursor) { if (roomChatState.hasOlder) requestRoomChatHistory(cursor); },
   }, mode);
 }

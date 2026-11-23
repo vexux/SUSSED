@@ -1359,7 +1359,7 @@ summary.room-visibility-pill::-webkit-details-marker {
 
 .room-chat-time { color: var(--color-text-muted); }
 
-.room-chat-chevron {
+.room-chat-size-icon {
   margin-left: auto;
   color: var(--color-text-muted);
   font-size: 1.35rem;
@@ -1367,8 +1367,8 @@ summary.room-visibility-pill::-webkit-details-marker {
   transition: transform 140ms ease;
 }
 
-.room-chat-toggle[aria-expanded="true"] .room-chat-chevron {
-  transform: rotate(180deg);
+.room-chat-toggle[aria-expanded="true"] .room-chat-size-icon {
+  transform: scale(.92);
 }
 
 .room-chat-message-list {
@@ -1377,7 +1377,7 @@ summary.room-visibility-pill::-webkit-details-marker {
   overflow-y: auto;
   overscroll-behavior-y: contain;
   overflow-anchor: none;
-  background: color-mix(in srgb, var(--color-surface), black 8%);
+  background: color-mix(in srgb, var(--color-surface) 55%, #121215);
   border-radius: var(--radius-md);
   display: grid;
   gap: var(--space-2);
@@ -1453,6 +1453,7 @@ summary.room-visibility-pill::-webkit-details-marker {
 }
 
 .room-chat-composer {
+  align-items: center;
   display: flex;
   min-width: 0;
   gap: var(--space-2);
@@ -3988,8 +3989,8 @@ select:focus:not(:focus-visible) {
 
 .player-detail-actions button, .report-review button,
 .room-chat-toggle, .room-chat-send { min-height: var(--control-touch-size); }
-.catalogue-category, .own-answer-note { color: var(--color-text-muted); font-size: .875rem; }
-.own-answer-note { margin-inline-start: auto; }
+.catalogue-category { color: var(--color-text-muted); font-size: .875rem; }
+
 .report-review::backdrop { background: var(--color-overlay); }
 
 .lobby-heading-bar { justify-content: flex-start; }
@@ -4014,3 +4015,12 @@ select:focus:not(:focus-visible) {
   .lock-changed svg { animation: room-lock-change 150ms ease-out; }
   @keyframes room-lock-change { from { transform: translateY(2px); opacity: .65; } }
 }
+
+:root[data-theme="light"] .room-chat-message-list { background: #edecef; }
+.room-chat-composer > .room-chat-input, .room-chat-composer > .room-chat-send {
+  box-sizing: border-box; height: var(--control-touch-size); min-height: var(--control-touch-size); margin: 0;
+}
+.chat-player-trigger { border: 0; cursor: pointer; }
+button.room-chat-avatar { width: 44px; height: 44px; flex-basis: 44px; }
+button.room-chat-sender { min-width: 44px; padding: 0; min-height: 44px; text-align: left; background: transparent; }
+button.room-chat-sender:hover { text-decoration: underline; }

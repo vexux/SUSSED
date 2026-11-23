@@ -36,7 +36,7 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
     const rateLimits = new Map();
     const receipts = new Map();
 
-    function makeMessage(roomId, type, senderName, text) {
+    function makeMessage(roomId, type, senderName, text, senderId) {
         if (typeof roomId !== "string" || roomId.length === 0) {
             throw new TypeError("A logical room identity is required.");
         }
@@ -49,6 +49,7 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
             id: createId(),
             type,
             senderName,
+            ...(senderId ? { senderId } : {}),
             text,
             createdAt: new Date(now()).toISOString(),
         };
@@ -80,7 +81,7 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
         }
         recent.push(time);
         rateLimits.set(playerId, recent);
-        return makeMessage(roomId, "player", senderName.trim(), normalized);
+        return makeMessage(roomId, "player", senderName.trim(), normalized, playerId);
     }
 
     function send(roomId, playerId, senderName, text, requestId) {

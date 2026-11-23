@@ -56,10 +56,10 @@ export interface AppActions {
   onDiscoveryGame(gameId: string): void;
   onReviewReports(): void;
   onConfirmKickPlayer(): void;
-  onModerate(event: "set-room-lock" | "ban-player" | "report-player", payload: object): void;
+  onModerate(event: "set-room-lock" | "ban-player", payload: object): void;
   onConfirmHostTransfer(): void;
   onCancelKickPlayer(): void;
-  onOpenPlayerCard(playerId: string): void;
+  onOpenPlayerCard(playerId: string, anchorId?: string): void;
   onClosePlayerCard(): void;
   onCopyRoomCode(): void;
   onOpenInvitationDialog(): void;
@@ -1456,7 +1456,6 @@ function createGameCard(
   options: {
     selected: boolean;
     className?: string;
-    viewingAsGuest?: boolean;
     action?: {
       label: string;
       icon?: IconName;
@@ -1491,10 +1490,6 @@ function createGameCard(
         : `${game.minPlayers}–${game.maxPlayers} players`,
     ),
   );
-  if (game.category) metadata.append(createElement("span", "catalogue-category", game.category));
-  if (game.access) metadata.append(createElement("p", "game-card-player-count",
-      game.access === "free" ? "Free" :
-      game.canSelect ? (options.viewingAsGuest ? "Premium · Host provides access" : "Premium · You have host access") : "Premium · Host access required"));
   if (game.available === false) metadata.append(createElement("span", "catalogue-category", "Currently unavailable"));
   details.append(metadata);
   if (options.action) {
@@ -1545,7 +1540,6 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
     const selected = selectedGameId === game.id;
     cards.append(createGameCard(game, {
       selected,
-      viewingAsGuest: isLobbySelection && !localPlayer?.isHost,
       action: {
         label: selected ? "Selected" : "Select game",
         disabled:
@@ -1795,7 +1789,6 @@ function renderLobby(
     {
       selected: true,
       className: "selected-lobby-game",
-      viewingAsGuest: !isHost,
       action: isHost && lobby.status === "lobby"
         ? {
             label: "Switch game",
@@ -2266,18 +2259,6 @@ function createPlayerDetailDialog(
   }
   if (player.isHost) status.append(createElement("span", "host-badge", "Host"));
   dialog.append(status);
-  if (player.id !== state.localPlayerId) {
-    const reason = createElement("select", "text-input");
-    reason.setAttribute("aria-label", "Report reason");
-    for (const [value, label] of [["harassment", "Harassment"], ["spam", "Spam"], ["name", "Inappropriate name"], ["disruption", "Disruptive behavior"], ["other", "Other"]]) {
-      const option = createElement("option", undefined, label);
-      option.value = value;
-      reason.append(option);
-    }
-    const report = createElement("button", "secondary-button", "Report player");
-    report.addEventListener("click", () => actions.onModerate("report-player", { targetPlayerId: player.id, reason: reason.value }));
-    dialog.append(reason, report);
-  }
 
   if (isHost && state.localPlayerId !== player.id && state.lobby?.status === "lobby") {
     const actionsPanel = createElement("div", "player-detail-actions");
@@ -2456,6 +2437,8 @@ function renderGame(
   const viewingArchivedResults = state.lobby?.players.find(({ id }) => id === state.localPlayerId)?.isInGame;
   if (!viewingArchivedResults && game.status === "finished" && gameState && typeof gameState === "object" && "phase" in gameState && gameState.phase === "results") {
     screen.append(renderRoomChat(chatState, chatActions));
+    const player = state.lobby?.players.find(p => p.id === state.selectedPlayerId);
+    if (player) screen.append(createPlayerDetailDialog(state, player, false, actions));
   }
   return screen;
 }
@@ -2877,7 +2860,7 @@ export function renderApp(
       if (
         activeDialog?.open &&
         !activeDialog.contains(target) &&
-        !target.closest(".player-card")
+        !target.closest(".player-card, .chat-player-trigger")
       ) {
         actions.onClosePlayerCard();
       }
@@ -2918,7 +2901,7 @@ export function renderApp(
     if (typeof window === "undefined") return;
     const dialog = root.querySelector<HTMLDialogElement>(".player-detail-dialog");
     if (!dialog?.open) return;
-    const trigger = Array.from(root.querySelectorAll<HTMLButtonElement>(".player-card"))
+    const trigger = (state.playerCardAnchorId && document.getElementById(state.playerCardAnchorId)) || Array.from(root.querySelectorAll<HTMLButtonElement>(".player-card"))
       .find(({ dataset }) => dataset.playerId === dialog.dataset.playerId);
     if (!trigger) return;
 

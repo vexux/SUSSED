@@ -2,6 +2,7 @@ import { createIcon } from "./ui/icon.ts";
 export interface RoomChatMessage {
   id: string;
   type: "player" | "system";
+  senderId?: string;
   senderName: string | null;
   text: string;
   createdAt: string;
@@ -24,6 +25,7 @@ export interface RoomChatState {
 }
 
 export interface RoomChatActions {
+  playerTarget?(id: string): ((id: string, anchorId: string) => void) | undefined;
   onToggleExpanded(): void;
   onDraftChange(draft: string): void;
   onSendMessage(text: string): void;
@@ -128,7 +130,7 @@ function localTime(value: string): string {
   return Number.isNaN(date.getTime()) ? "" : timeFormat.format(date);
 }
 
-function renderMessage(message: RoomChatMessage): HTMLElement {
+function renderMessage(message: RoomChatMessage, actions: RoomChatActions): HTMLElement {
   if (message.type === "system") {
     const item = element("li", "room-chat-system-message", message.text);
     item.dataset.messageId = message.id;
@@ -137,11 +139,22 @@ function renderMessage(message: RoomChatMessage): HTMLElement {
   }
   const item = element("li", "room-chat-message");
   item.dataset.messageId = message.id;
-  const avatar = element("span", "room-chat-avatar", initials(message.senderName ?? "?"));
-  avatar.setAttribute("aria-hidden", "true");
+  const senderId = message.senderId;
+  const open = senderId && actions.playerTarget?.(senderId);
+  function senderControl(className: string, text: string) {
+    if (!open || !senderId) return element("span", className, text);
+    const button = element("button", className + " chat-player-trigger", text);
+    button.type = "button";
+    button.id = className + "-" + message.id;
+    button.setAttribute("aria-label", "Open player card for " + message.senderName);
+    button.addEventListener("click", () => open(senderId, button.id));
+    return button;
+  }
+  const avatar = senderControl("room-chat-avatar", initials(message.senderName ?? "?"));
+  if (!open) avatar.setAttribute("aria-hidden", "true");
   const body = element("div", "room-chat-message-body");
   const metadata = element("div", "room-chat-message-meta");
-  metadata.append(element("span", "room-chat-sender", message.senderName ?? "Player"));
+  metadata.append(senderControl("room-chat-sender", message.senderName ?? "Player"));
   metadata.append(element("time", "room-chat-time", localTime(message.createdAt)));
   const text = element("p", "room-chat-message-text", message.text);
   body.append(metadata, text);
@@ -166,10 +179,10 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
   count.id = "room-chat-count";
   toggle.setAttribute("aria-describedby", count.id);
   toggle.append(count);
-  const chevron = createIcon("chevron");
-  chevron.classList.add("room-chat-chevron");
-  chevron.setAttribute("aria-hidden", "true");
-  toggle.append(chevron);
+  const sizeIcon = createIcon(state.expanded ? "collapse" : "expand");
+  sizeIcon.classList.add("room-chat-size-icon");
+  sizeIcon.setAttribute("aria-hidden", "true");
+  toggle.append(sizeIcon);
   toggle.addEventListener("click", actions.onToggleExpanded);
   heading.append(toggle);
 
@@ -178,7 +191,7 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
   list.setAttribute("aria-label", "Message history");
   list.tabIndex = 0;
   const visibleMessages = state.messages;
-  for (const message of visibleMessages) list.append(renderMessage(message));
+  for (const message of visibleMessages) list.append(renderMessage(message, actions));
   if (visibleMessages.length === 0) list.append(element("li", "room-chat-empty", state.historyLoading ? "Loading messages…" : "No messages yet."));
   if (state.loadingOlder) list.append(element("li", "room-chat-loading", "Loading earlier messages…"));
   if (state.expanded) list.classList.add("is-expanded");

@@ -542,6 +542,7 @@ test("Fact-or-Cap voting renderer retains shared voting labels, option markup, a
     assert.equal(ownRadio.attributes["aria-disabled"], "true");
     assert.equal(ownRadio.className, validRadio.className);
     assert.match(screen.text, /my answer/u);
+    assert.doesNotMatch(screen.text, /Your answer/u);
     assert.equal(button.textContent, "Submit");
     assert.equal(button.disabled, true);
     validRadio.dispatch("change");
