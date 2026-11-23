@@ -4,6 +4,7 @@ export interface RoomChatMessage {
   id: string;
   type: "player" | "system";
   senderId?: string;
+  systemEvent?: "player_joined" | "player_disconnected" | "player_reconnected";
   senderName: string | null;
   text: string;
   createdAt: string;
@@ -145,6 +146,7 @@ function renderMessage(message: RoomChatMessage, actions: RoomChatActions): HTML
   if (message.type === "system") {
     const item = element("li", "room-chat-system-message", message.text);
     item.dataset.messageId = message.id;
+    if (message.systemEvent) item.dataset.systemEvent = message.systemEvent;
     item.setAttribute("aria-label", `System message: ${message.text}`);
     return item;
   }
@@ -181,10 +183,11 @@ function renderMessage(message: RoomChatMessage, actions: RoomChatActions): HTML
       const groups = element("div", "reaction-groups");
       for (const { emoji, count } of message.reactions) {
         const chip = element("button", "reaction-chip");
-        chip.append(element("span", "reaction-emoji", emoji), element("span", "reaction-count", String(count)));
+        chip.append(element("span", "reaction-emoji", emoji));
+        if (count > 1) chip.append(element("span", "reaction-count", String(count)));
         chip.type = "button";
         chip.setAttribute("aria-pressed", String(message.myReaction === emoji));
-        chip.setAttribute("aria-label", emoji + ", " + count + " reactions" + (message.myReaction === emoji ? ", you reacted" : ""));
+        chip.setAttribute("aria-label", emoji + ", " + count + (count === 1 ? " reaction" : " reactions") + (message.myReaction === emoji ? ", you reacted" : ""));
         chip.addEventListener("click", () => react(emoji));
         groups.append(chip);
       }
@@ -269,8 +272,13 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
     event.preventDefault();
     if (canSubmitRoomChatMessage(state)) actions.onSendMessage(state.draft.trim());
   });
+  send.addEventListener("pointerdown", event => {
+    if (input.ownerDocument.activeElement === input && event.button === 0) event.preventDefault();
+  });
   form.append(input, send);
-  panel.append(heading, list, unread);
+  const history = element("div", "room-chat-history");
+  history.append(list, unread);
+  panel.append(heading, history);
   if (state.error) {
     const error = element("p", "room-chat-error", state.error);
     error.setAttribute("role", state.rateLimited ? "status" : "alert");
@@ -278,6 +286,24 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
   }
   panel.append(form);
   return panel;
+}
+
+export function syncRoomChatComposer(root: HTMLElement, state: RoomChatState) {
+  const form = root.querySelector<HTMLElement>(".room-chat-composer");
+  const panel = form?.parentElement;
+  if (!form || !panel) return;
+  const input = form.querySelector<HTMLInputElement>(".room-chat-input");
+  const send = form.querySelector<HTMLButtonElement>(".room-chat-send");
+  if (input && input.value !== state.draft) input.value = state.draft;
+  if (send) send.disabled = !canSubmitRoomChatMessage(state);
+  const feedback = panel.querySelector<HTMLElement>(".room-chat-error");
+  if (!state.error) feedback?.remove();
+  else {
+    const node = feedback ?? element("p", "room-chat-error");
+    node.textContent = state.error;
+    node.setAttribute("role", state.rateLimited ? "status" : "alert");
+    if (!feedback) panel.insertBefore(node, form);
+  }
 }
 
 function syncUnread(button: HTMLElement, state: RoomChatState) {

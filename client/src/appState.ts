@@ -55,6 +55,10 @@ export function toggleThemePreference(
     : "dark";
 }
 
+export function roomLockFeedback(locked: boolean): string {
+  return locked ? "Room locked. New players cannot join." : "Room unlocked. New players can join.";
+}
+
 export const THEME_STORAGE_KEY = "sussed-theme";
 
 type ThemeStorage = Pick<Storage, "getItem" | "setItem">;

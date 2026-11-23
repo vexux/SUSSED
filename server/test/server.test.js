@@ -1175,6 +1175,9 @@ test("room chat records join, leave, and disconnect system messages once and res
     const history = await restoredHistoryEvent;
     assert.equal(history.messages.filter(({ text }) => text === "Guest disconnected.").length, 1);
     assert.equal(history.messages.filter(({ text }) => text === "Guest reconnected.").length, 1);
+    for (const [suffix, event] of [["joined the room.", "player_joined"], ["disconnected.", "player_disconnected"], ["reconnected.", "player_reconnected"]]) {
+        assert.equal(history.messages.find(message => message.text === "Guest " + suffix).systemEvent, event);
+    }
     const room = roomManager.getRoom(created.roomCode);
     const count = harness.io.roomChatManager.getMessageCount(room.publicRoomId);
     assert.equal(await handlePlayerReconnect(harness.io, recovered.playerId, harness.io.disconnectGraceManager), false);

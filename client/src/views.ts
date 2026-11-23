@@ -1770,7 +1770,7 @@ function renderLobby(
   inviteButton.addEventListener("click", actions.onOpenInvitationDialog);
   invitationActions.append(roomCodeControl, inviteButton);
   roomCodePanel.append(invitationActions);
-  if (lobby.locked) screen.append(createElement("p", "status-message", "Room locked · New players cannot join."));
+
   if (atCapacity) {
     screen.append(createElement("p", "status-message", "This room is full and cannot accept new players."));
   }

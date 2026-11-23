@@ -6,6 +6,7 @@ import {
   getConnectionNotice,
   persistThemePreference,
   resolveThemePreference,
+  roomLockFeedback,
   resolveAuthEntryView,
   resolveInitialAppView,
   toggleThemePreference,
@@ -54,6 +55,7 @@ import {
   canSubmitRoomChatMessage,
   createInitialRoomChatState,
   settleRoomChatSend,
+  syncRoomChatComposer,
   updateRoomChatPanelMessages,
   type RoomChatMessage,
 } from "./roomChat";
@@ -520,26 +522,24 @@ function sendRoomChatMessage(text: string): void {
   if (pendingChatSend?.text !== text) pendingChatSend = { text, requestId: crypto.getRandomValues(new Uint32Array(4)).join("-") };
   roomChatState.sending = true;
   roomChatState.error = null;
-  render();
+  syncRoomChatComposer(appRoot, roomChatState);
+  let settled = false;
   socket.timeout(5000).emit(
     "chat:send",
     pendingChatSend,
     (error: Error | null, response?: { sent?: boolean; error?: { code?: string; message?: string } }) => {
-      if (generation !== roomChatGeneration || roomCode !== roomChatRoomCode) return;
+      if (settled || generation !== roomChatGeneration || roomCode !== roomChatRoomCode) return;
+      settled = true;
       roomChatState.sending = false;
       if (error || response?.error || response?.sent !== true) {
         roomChatState.rateLimited = response?.error?.code === "CHAT_RATE_LIMITED";
         settleRoomChatSend(roomChatState, text, response?.error?.message ?? "Delivery was not confirmed. Retry to check or send this message.");
-        render();
+        syncRoomChatComposer(appRoot, roomChatState);
         return;
       }
       pendingChatSend = null;
-      const cleared = settleRoomChatSend(roomChatState, text, null);
-      if (cleared && !roomChatState.draft) {
-        const input = appRoot.querySelector<HTMLInputElement>("#room-chat-draft");
-        if (input) input.value = "";
-      }
-      render();
+      settleRoomChatSend(roomChatState, text, null);
+      syncRoomChatComposer(appRoot, roomChatState);
     },
   );
 }
@@ -569,7 +569,7 @@ function render(): void {
     roomChatState.historyLoading = false;
   }
   previousRoomChatAvailable = chatAvailable;
-  roomChatState.canSend = chatAvailable && socket.connected && !roomChatState.sending;
+  roomChatState.canSend = chatAvailable && socket.connected;
   if (chatAvailable && !roomChatState.historyLoaded && !roomChatState.historyLoading) {
     requestRoomChatHistory(null);
   }
@@ -2337,7 +2337,7 @@ const actions: AppActions = {
       if (response.error) return showOperationError(response);
       if (response.lobby) applyLobbyState(response.lobby);
       if (event === "set-room-lock" && response.lobby?.revision === state.lobby?.revision) {
-        showPlayerActionFeedback(state.lobby?.locked ? "Room locked." : "Room unlocked.");
+        showPlayerActionFeedback(roomLockFeedback(Boolean(state.lobby?.locked)));
       } else if (event !== "set-room-lock") showPlayerActionFeedback("Player banned from this room.");
       render();
     });

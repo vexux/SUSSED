@@ -8,6 +8,7 @@ import {
   persistThemePreference,
   readThemePreference,
   resolveThemePreference,
+  roomLockFeedback,
   resolveAuthEntryView,
   resolveInitialAppView,
   toggleThemePreference,
@@ -26,6 +27,7 @@ import {
   prependRoomChatMessages,
   canSubmitRoomChatMessage,
   settleRoomChatSend,
+  syncRoomChatComposer,
   updateRoomChatPanelMessages,
 } from "../src/roomChat.ts";
 
@@ -1619,6 +1621,9 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     state.lobby.locked = true;
     renderApp(root, state, actions, {}, {});
     assert.ok(root.query((element) => element.getAttribute("aria-label") === "Unlock room"));
+    assert.equal(root.query(node => node.textContent === "Room locked · New players cannot join."), null);
+    assert.equal(roomLockFeedback(true), "Room locked. New players cannot join.");
+    assert.equal(roomLockFeedback(false), "Room unlocked. New players can join.");
     assert.equal(root.query((element) => element.className.includes("invite-friends-button")).disabled, true);
     assert.equal(hostActions.parentElement.className.includes("lobby-content-grid"), true);
     assert.equal(root.query((element) => element.className.includes("visibility-field")), null);
@@ -2411,6 +2416,7 @@ test("unread counts track unique incoming player messages while reading older hi
     applyRoomChatHistoryPage(state, { messages: [message], cursor: "1", hasMore: false, totalCount: 4 });
     const panel = renderRoomChat(state, {});
     const indicator = panel.querySelector(".chat-unread");
+    assert.equal(indicator.parentElement, panel.querySelector(".room-chat-message-list").parentElement);
     assert.equal(indicator.textContent, "1 new message");
     indicator.dispatch("click");
     assert.equal(indicator.hidden, true);
@@ -2435,9 +2441,11 @@ test("room chat older-message insertion preserves the visible scroll anchor", ()
 
 test("reaction picker opens from a button, offers more emoji and renders the viewer's grouped selection", () => {
   withFakeDocument(() => {
+    document.documentElement = { clientWidth: 360, clientHeight: 800 };
     const create = document.createElement;
     document.createElement = tag => {
       const node = create(tag);
+      node.getBoundingClientRect = () => ({ top: 50, bottom: 80, right: 200, width: 200, height: 44 });
       if (tag === "dialog") {
         node.showModal = () => { node.open = true; };
         node.close = () => node.dispatch("close");
@@ -2454,18 +2462,58 @@ test("reaction picker opens from a button, offers more emoji and renders the vie
     row.isConnected = true;
     const chips = row.queryAll(node => node.className === "reaction-chip");
     assert.deepEqual(chips.map(chip => chip.getAttribute("aria-pressed")), ["true", "false", "false"]);
-    assert.deepEqual(chips.map(chip => chip.querySelector(".reaction-count").textContent), ["1", "12", "123"]);
+    assert.deepEqual(chips.map(chip => chip.querySelector(".reaction-count")?.textContent), [undefined, "12", "123"]);
     chips[1].dispatch("click");
     assert.deepEqual(selected, ["1", "😂"]);
     row.querySelector(".reaction-trigger").dispatch("click");
     const dialog = row.querySelector("dialog");
     assert.ok(dialog.open);
     for (const emoji of ["👍", "❤️", "😂", "😮", "😭", "🔥"]) assert.ok(dialog.query(node => node.textContent === emoji));
-    dialog.query(node => node.textContent === "More").dispatch("click");
+    assert.equal(dialog.query(node => node.textContent === "More" || node.textContent === "Close"), null);
+    dialog.query(node => node.getAttribute("aria-label") === "Browse all emoji").dispatch("click");
+    const input = dialog.querySelector("input");
+    dialog.query(node => node.textContent === "Activities").dispatch("click");
+    input.value = "laugh";
+    input.dispatch("input");
+    assert.ok(dialog.query(node => node.textContent === "🤣"));
+    input.value = "unknown phrase";
+    input.dispatch("input");
+    assert.equal(dialog.querySelector(".emoji-grid").textContent, "No matching emoji.");
+    input.value = "";
+    input.dispatch("input");
     dialog.query(node => node.textContent === "🚀").dispatch("click");
     assert.deepEqual(selected, ["1", "🚀"]);
     assert.equal(row.querySelector("dialog"), null);
     assert.equal(document.activeElement, row.querySelector(".reaction-trigger"));
+  });
+});
+
+test("pending, rejected and confirmed sends preserve the focused composer and subsequent edits", () => {
+  withFakeDocument(() => {
+    const state = createInitialRoomChatState();
+    state.canSend = true;
+    state.draft = "First";
+    const panel = renderRoomChat(state, {});
+    const input = panel.querySelector(".room-chat-input");
+    const send = panel.querySelector(".room-chat-send");
+    input.focus();
+    state.sending = true;
+    syncRoomChatComposer(panel, state);
+    assert.equal(send.disabled, true);
+    settleRoomChatSend(state, "First", "Try again.");
+    syncRoomChatComposer(panel, state);
+    assert.equal(input.value, "First");
+    assert.equal(send.disabled, false);
+    state.draft = input.value = "Next";
+    settleRoomChatSend(state, "First", null);
+    syncRoomChatComposer(panel, state);
+    assert.equal(input.value, "Next");
+    settleRoomChatSend(state, "Next", null);
+    syncRoomChatComposer(panel, state);
+    assert.equal(input.value, "");
+    assert.equal(send.disabled, true);
+    assert.equal(panel.querySelector(".room-chat-input"), input);
+    assert.equal(document.activeElement, input);
   });
 });
 

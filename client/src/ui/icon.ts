@@ -1,4 +1,4 @@
-export type IconName = "expand" | "collapse" | "unlock" | "send" | "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door" | "user" | "bell";
+export type IconName = "smile-plus" | "expand" | "collapse" | "unlock" | "send" | "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door" | "user" | "bell";
 
 export function createIcon(name: IconName): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -9,6 +9,7 @@ export function createIcon(name: IconName): SVGSVGElement {
   svg.setAttribute("focusable", "false");
   svg.classList.add(`icon-${name}`);
   const paths: Record<typeof name, string> = {
+    "smile-plus": "M21 12a9 9 0 1 1-9-9m5 0h6m-3-3v6M8 13q4 6 8 0M8.5 9h.1m5 0h.1",
     unlock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0",
     expand: "m6 6 6 6 6-6M6 12l6 6 6-6",
     collapse: "m6 12 6-6 6 6M6 18l6-6 6 6",

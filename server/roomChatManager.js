@@ -73,7 +73,7 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
         return { changed: true, forViewer: id => project(message, id) };
     }
 
-    function makeMessage(roomId, type, senderName, text, senderId) {
+    function makeMessage(roomId, type, senderName, text, senderId, systemEvent) {
         if (typeof roomId !== "string" || roomId.length === 0) {
             throw new TypeError("A logical room identity is required.");
         }
@@ -87,6 +87,7 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
             type,
             senderName,
             ...(senderId ? { senderId } : {}),
+            ...(systemEvent ? { systemEvent } : {}),
             text,
             createdAt: new Date(now()).toISOString(),
         };
@@ -136,9 +137,9 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
         return { message, duplicate: false };
     }
 
-    function addSystemMessage(roomId, text) {
+    function addSystemMessage(roomId, text, systemEvent) {
         const normalized = normalizeMessageText(text);
-        return makeMessage(roomId, "system", null, normalized);
+        return makeMessage(roomId, "system", null, normalized, null, systemEvent);
     }
 
     function getHistory(roomId, { before = null, limit = MAX_PAGE_SIZE, playerId } = {}) {

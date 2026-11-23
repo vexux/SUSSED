@@ -213,9 +213,9 @@ function broadcastChatMessage(io, room, message, { excludePlayerId = null } = {}
     }
 }
 
-function addAndBroadcastSystemMessage(io, room, text, { excludePlayerId = null } = {}) {
+function addAndBroadcastSystemMessage(io, room, text, { excludePlayerId = null, systemEvent } = {}) {
     if (!io.roomChatManager) return null;
-    const message = io.roomChatManager.addSystemMessage(room.publicRoomId, text);
+    const message = io.roomChatManager.addSystemMessage(room.publicRoomId, text, systemEvent);
     broadcastChatMessage(io, room, message, { excludePlayerId });
     return message;
 }
@@ -508,7 +508,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         }
 
         socket.data.roomCode = room.code;
-        addAndBroadcastSystemMessage(io, room, `${room.players.find(({ id }) => id === playerId)?.name ?? "A player"} joined the room.`);
+        addAndBroadcastSystemMessage(io, room, `${room.players.find(({ id }) => id === playerId)?.name ?? "A player"} joined the room.`, { systemEvent: "player_joined" });
         broadcastLobby(io, room);
         broadcastPublicRooms(io);
         acknowledge({ roomCode: room.code });
@@ -543,7 +543,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         }
 
         socket.data.roomCode = room.code;
-        addAndBroadcastSystemMessage(io, room, `${room.players.find(({ id }) => id === playerId)?.name ?? "A player"} joined the room.`);
+        addAndBroadcastSystemMessage(io, room, `${room.players.find(({ id }) => id === playerId)?.name ?? "A player"} joined the room.`, { systemEvent: "player_joined" });
         const lobby = roomManager.createLobbyState(room);
         broadcastLobby(io, room);
         broadcastPublicRooms(io);
@@ -573,7 +573,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
         }
 
         socket.data.roomCode = room.code;
-        addAndBroadcastSystemMessage(io, room, `${room.players.find(({ id }) => id === playerId)?.name ?? "A player"} joined the room.`);
+        addAndBroadcastSystemMessage(io, room, `${room.players.find(({ id }) => id === playerId)?.name ?? "A player"} joined the room.`, { systemEvent: "player_joined" });
         const lobby = roomManager.createLobbyState(room);
         broadcastLobby(io, room);
         broadcastPublicRooms(io);
@@ -943,7 +943,7 @@ async function handlePlayerReconnect(io, playerId, disconnectGraceManager) {
     }
     const update = roomManager.setPlayerConnectionStatus(playerId, true);
     if (!update?.changed) return false;
-    addAndBroadcastSystemMessage(io, room, player.name + " reconnected.");
+    addAndBroadcastSystemMessage(io, room, player.name + " reconnected.", { systemEvent: "player_reconnected" });
     scheduleAdvancedGameRound(io, room.code, gameManager.setPlayerConnectionStatus(room.code, playerId, true));
     broadcastConnectionState(io, room);
     return true;
@@ -973,7 +973,7 @@ async function handleDisconnectGraceExpiry(
         disconnectGraceManager.finish(entry);
         const update = roomManager.setPlayerConnectionStatus(entry.playerId, true);
         if (update?.changed) {
-            addAndBroadcastSystemMessage(io, room, player.name + " reconnected.");
+            addAndBroadcastSystemMessage(io, room, player.name + " reconnected.", { systemEvent: "player_reconnected" });
             scheduleAdvancedGameRound(io, room.code, gameManager.setPlayerConnectionStatus(room.code, entry.playerId, true));
             broadcastConnectionState(io, room);
         }
@@ -1014,7 +1014,7 @@ function handleDisconnect(io, socket, identityManager, disconnectGraceManager) {
             io,
             room,
             `${disconnectedPlayer.name} disconnected.`,
-            { excludePlayerId: playerId },
+            { excludePlayerId: playerId, systemEvent: "player_disconnected" },
         );
     }
 
