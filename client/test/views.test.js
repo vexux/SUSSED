@@ -2447,12 +2447,16 @@ test("reaction picker opens from a button, offers more emoji and renders the vie
     };
     const state = createInitialRoomChatState();
     state.messages = [{ id: "1", type: "player", senderName: "Sam", text: "Hi", createdAt: "2026-11-20T10:00:00Z",
-      reactions: [{ emoji: "🔥", count: 2 }], reactionVersion: 2, myReaction: "🔥" }];
+      reactions: [{ emoji: "🔥", count: 1 }, { emoji: "😂", count: 12 }, { emoji: "❤️", count: 123 }], reactionVersion: 2, myReaction: "🔥" }];
     let selected;
     const panel = renderRoomChat(state, { onReact(message, emoji) { selected = [message.id, emoji]; } });
     const row = panel.querySelector(".room-chat-message");
     row.isConnected = true;
-    assert.equal(row.querySelector(".reaction-chip").getAttribute("aria-pressed"), "true");
+    const chips = row.queryAll(node => node.className === "reaction-chip");
+    assert.deepEqual(chips.map(chip => chip.getAttribute("aria-pressed")), ["true", "false", "false"]);
+    assert.deepEqual(chips.map(chip => chip.querySelector(".reaction-count").textContent), ["1", "12", "123"]);
+    chips[1].dispatch("click");
+    assert.deepEqual(selected, ["1", "😂"]);
     row.querySelector(".reaction-trigger").dispatch("click");
     const dialog = row.querySelector("dialog");
     assert.ok(dialog.open);

@@ -180,7 +180,8 @@ function renderMessage(message: RoomChatMessage, actions: RoomChatActions): HTML
     if (message.reactions?.length) {
       const groups = element("div", "reaction-groups");
       for (const { emoji, count } of message.reactions) {
-        const chip = element("button", "reaction-chip", emoji + " " + count);
+        const chip = element("button", "reaction-chip");
+        chip.append(element("span", "reaction-emoji", emoji), element("span", "reaction-count", String(count)));
         chip.type = "button";
         chip.setAttribute("aria-pressed", String(message.myReaction === emoji));
         chip.setAttribute("aria-label", emoji + ", " + count + " reactions" + (message.myReaction === emoji ? ", you reacted" : ""));

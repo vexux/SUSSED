@@ -1395,7 +1395,9 @@ summary.room-visibility-pill::-webkit-details-marker {
 }
 
 .room-chat-message {
-  display: flex;
+  position: relative;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
   min-width: 0;
   align-items: flex-start;
   gap: 10px;
@@ -1406,7 +1408,6 @@ summary.room-visibility-pill::-webkit-details-marker {
   width: 36px;
   height: 36px;
   padding: 0;
-  flex: 0 0 36px;
   place-items: center;
   border-radius: 50%;
   color: var(--color-accent-light);
@@ -1417,7 +1418,6 @@ summary.room-visibility-pill::-webkit-details-marker {
 
 .room-chat-message-body {
   min-width: 0;
-  flex: 1;
 }
 
 .room-chat-message-meta {
@@ -1429,7 +1429,10 @@ summary.room-visibility-pill::-webkit-details-marker {
 .room-chat-time { flex: none; white-space: nowrap; }
 
 .room-chat-sender {
-  overflow-wrap: anywhere;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--color-text-strong);
   font-size: 0.83rem;
   font-weight: 700;
@@ -4036,9 +4039,11 @@ select:focus:not(:focus-visible) {
 .reaction-picker > div, .reaction-groups { display: flex; flex-wrap: wrap; gap: var(--space-1); }
 .reaction-picker > div { max-height: 40dvh; overflow-y: auto; overscroll-behavior: contain; margin-block-end: var(--space-2); }
 .reaction-picker input { max-width: 100%; color: var(--color-text); background: var(--color-surface); }
-.reaction-picker button, .reaction-chip, .reaction-trigger, .chat-unread {
+.reaction-picker button, .chat-unread {
   min-height: 44px;
   min-width: 44px;
+}
+.reaction-picker button, .reaction-chip, .reaction-trigger, .chat-unread {
   color: var(--color-text);
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border-subtle);
@@ -4050,14 +4055,43 @@ select:focus:not(:focus-visible) {
 .reaction-picker > button + button { margin-inline-start: var(--space-2); }
 .chat-unread { display: block; margin: 0 auto var(--space-2); padding-inline: var(--space-3); }
 .chat-unread[hidden] { display: none; }
-.reaction-chip[aria-pressed="true"], .chat-unread { color: var(--color-accent-light); outline: 1px solid var(--color-accent-border); }
-.reaction-trigger { margin-inline-start: auto; }
+.chat-unread { color: var(--color-accent-light); outline: 1px solid var(--color-accent-border); }
+.reaction-groups { margin-block-start: 5px; }
+.reaction-chip {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  height: 29px;
+  gap: 4px;
+  padding: 0 9px;
+  border-radius: var(--radius-pill);
+  line-height: 1;
+}
+.reaction-emoji { font-size: 18px; }
+.reaction-count { font-size: 13px; font-variant-numeric: tabular-nums; }
+.reaction-chip[aria-pressed="true"] {
+  color: var(--color-accent-light);
+  background: var(--color-accent-surface-strong);
+  border-color: var(--color-accent-border-strong);
+}
+.reaction-trigger {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+.reaction-trigger:focus-visible { opacity: 1; pointer-events: auto; }
 @media (hover: hover) {
-  .room-chat-message:not(:hover):not(:focus-within) .reaction-trigger { opacity: 0; }
+  .room-chat-message:hover .reaction-trigger, .room-chat-message:focus-within .reaction-trigger { opacity: 1; pointer-events: auto; }
 }
 @media (pointer: coarse) {
   .room-chat-message-text { user-select: none; }
 }
 .chat-player-trigger { border: 0; cursor: pointer; }
-button.room-chat-sender { min-width: 44px; padding: 0; min-height: 24px; text-align: left; background: transparent; }
+button.room-chat-sender { padding: 0; min-height: 24px; text-align: left; background: transparent; }
 button.room-chat-sender:hover { text-decoration: underline; }
