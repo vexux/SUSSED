@@ -318,7 +318,7 @@ function applyThemePreference(): void {
   const systemPreference = prefersLight ? "light" : "dark";
   const resolvedTheme = resolveThemePreference(state.theme, systemPreference);
   document.documentElement.dataset.theme = resolvedTheme;
-  if (themeColor) themeColor.content = resolvedTheme === "dark" ? "#17131c" : "#f7f4fa";
+  if (themeColor) themeColor.content = getComputedStyle(document.documentElement).getPropertyValue("--color-background").trim();
 }
 applyThemePreference();
 const systemThemeQuery = window.matchMedia?.("(prefers-color-scheme: light)");
@@ -468,7 +468,6 @@ function showConnectionNotice(message: string): void {
 function isRoomChatAvailable(): boolean {
   if (state.currentView === "lobby") return state.lobby !== null;
   if (state.currentView !== "game" || state.game?.status !== "finished") return false;
-  if (state.lobby?.players.find(({ id }) => id === state.localPlayerId)?.isInGame) return false;
   const gameState = state.game.state;
   return typeof gameState === "object" && gameState !== null &&
     "phase" in gameState && gameState.phase === "results";
@@ -494,6 +493,7 @@ function requestRoomChatHistory(before: string | null): void {
   if (before === null) roomChatState.historyLoading = true;
   else roomChatState.loadingOlder = true;
   roomChatState.error = null;
+  roomChatState.rateLimited = false;
   if (before !== null) updateVisibleRoomChat("append");
   socket.timeout(5000).emit(
     "chat:history:request",
@@ -528,6 +528,7 @@ function sendRoomChatMessage(text: string): void {
       if (generation !== roomChatGeneration || roomCode !== roomChatRoomCode) return;
       roomChatState.sending = false;
       if (error || response?.error || response?.sent !== true) {
+        roomChatState.rateLimited = response?.error?.code === "CHAT_RATE_LIMITED";
         settleRoomChatSend(roomChatState, text, response?.error?.message ?? "Delivery was not confirmed. Retry to check or send this message.");
         render();
         return;
@@ -638,6 +639,7 @@ function render(): void {
     onSendMessage(text) {
       sendRoomChatMessage(text);
     },
+    onReact: reactToMessage,
     playerTarget,
     onLoadOlder(cursor) {
       if (roomChatState.hasOlder && roomChatState.cursor === cursor) requestRoomChatHistory(cursor);
@@ -3368,10 +3370,39 @@ function updateVisibleRoomChat(mode: "append" | "prepend" | "replace"): void {
     onToggleExpanded() {},
     onDraftChange() {},
     onSendMessage() {},
+    onReact: reactToMessage,
     playerTarget,
     onLoadOlder(cursor) { if (roomChatState.hasOlder) requestRoomChatHistory(cursor); },
   }, mode);
 }
+
+function applyReaction(message: RoomChatMessage) {
+  const current = roomChatState.messages.find(item => item.id === message.id);
+  if (!current || (message.reactionVersion ?? 0) <= (current.reactionVersion ?? 0)) return;
+  Object.assign(current, message);
+  updateVisibleRoomChat("append");
+}
+
+function reactToMessage(message: RoomChatMessage, emoji: string) {
+  if (!socket.connected || !isRoomChatAvailable() || !roomChatState.roomId) return;
+  const roomId = roomChatState.roomId;
+  const generation = roomChatGeneration;
+  socket.timeout(5000).emit("chat:reaction:set", { roomId, messageId: message.id,
+    emoji: message.myReaction === emoji ? null : emoji, version: message.reactionVersion ?? 0 },
+    (error: Error | null, response?: { message?: RoomChatMessage; error?: { message: string } }) => {
+      if (roomId !== roomChatState.roomId || generation !== roomChatGeneration) return;
+      if (!error && response?.message) applyReaction(response.message);
+      else {
+        roomChatState.rateLimited = false;
+        roomChatState.error = response?.error?.message ?? "Reaction could not be confirmed.";
+        updateVisibleRoomChat("append");
+      }
+    });
+}
+
+socket.on("chat:reaction", payload => {
+  if (payload?.roomId === roomChatState.roomId && isRoomChatMessage(payload.message)) applyReaction(payload.message);
+});
 
 socket.on("chat:message", (payload: { roomCode?: unknown; roomId?: unknown; totalCount?: unknown; message?: unknown }) => {
   if (
@@ -3382,7 +3413,9 @@ socket.on("chat:message", (payload: { roomCode?: unknown; roomId?: unknown; tota
   ) return;
   if (roomChatState.roomId && roomChatState.roomId !== payload.roomId) return;
   roomChatState.roomId = payload.roomId;
-  if (!addRoomChatMessage(roomChatState, payload.message)) return;
+  const list = appRoot.querySelector(".room-chat-message-list");
+  const readingOlder = Boolean(list && list.scrollHeight - list.scrollTop - list.clientHeight > 28);
+  if (!addRoomChatMessage(roomChatState, payload.message, readingOlder, state.localPlayerId)) return;
   if (typeof payload.totalCount === "number") roomChatState.messageCount = payload.totalCount;
   updateVisibleRoomChat("append");
 });
@@ -3549,6 +3582,10 @@ socket.on("disconnect", () => {
   previousRoomChatAvailable = false;
   pendingRoomChatHistory.clear();
   roomChatState.historyLoaded = false;
+  roomChatState.messages = [];
+  roomChatState.unread = 0;
+  roomChatState.cursor = null;
+  roomChatState.hasOlder = false;
   roomChatState.historyLoading = false;
   roomChatState.loadingOlder = false;
   roomChatState.sending = false;

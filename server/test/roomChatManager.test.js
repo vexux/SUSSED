@@ -7,6 +7,45 @@ function createClock() {
     return { now: () => time, advance: (milliseconds) => { time += milliseconds; } };
 }
 
+test("reaction projections group, replace and remove by stable identity and reject stale replays", () => {
+    const clock = createClock();
+    const chat = createRoomChatManager({ now: clock.now });
+    const { id } = chat.addPlayerMessage("room", "author", "Pat", "Hello");
+    const set = (actor, emoji, version) => chat.setReaction("room", id, actor, emoji, version);
+    set("a", "😂", 0);
+    assert.equal(set("a", "😂", 0).changed, false);
+    const both = set("b", "😂", 0).forViewer("b");
+    assert.deepEqual(both.reactions, [{ emoji: "😂", count: 2 }]);
+    assert.equal(both.myReaction, "😂");
+    set("a", "❤️", 2);
+    assert.throws(() => set("a", "😂", 0), { code: "STALE_REACTION" });
+    const last = set("b", null, 3).forViewer("b");
+    assert.deepEqual(last.reactions, [{ emoji: "❤️", count: 1 }]);
+    assert.equal(last.myReaction, null);
+    assert.throws(() => set("a", "abc", 4), { code: "INVALID_REQUEST" });
+    clock.advance(1);
+    const system = chat.addSystemMessage("room", "Notice");
+    assert.throws(() => chat.setReaction("room", system.id, "a", "😂", 0));
+    const page = chat.getHistory("room", { limit: 1, playerId: "a" });
+    assert.ok(page.hasMore);
+    const older = chat.getHistory("room", { before: page.cursor, playerId: "a" });
+    assert.equal(older.messages[0].myReaction, "❤️");
+    assert.throws(() => chat.setReaction("other-instance", id, "a", "😂", 0));
+    chat.clearRoom("room");
+    assert.throws(() => set("a", "😂", 0));
+});
+
+test("ten distinct reaction groups allow existing groups and replacements at the cap", () => {
+    const chat = createRoomChatManager();
+    const { id } = chat.addPlayerMessage("room", "author", "Pat", "Hello");
+    const emojis = Array.from("😀😁😂😃😄😅😆😇😈😉");
+    emojis.forEach((emoji, i) => chat.setReaction("room", id, String(i), emoji, 0));
+    assert.throws(() => chat.setReaction("room", id, "extra", "🔥", 10), { code: "REACTION_LIMIT" });
+    chat.setReaction("room", id, "extra", "😂", 10);
+    chat.setReaction("room", id, "0", "🔥", 11);
+    assert.equal(chat.getHistory("room", { playerId: "0" }).messages[0].myReaction, "🔥");
+});
+
 test("room chat stores server timestamps, snapshots names, and supports plain text and emoji", () => {
     const clock = createClock();
     let id = 0;

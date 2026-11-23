@@ -13,7 +13,7 @@ const {
     createAchievementEvent
 } = require("../achievementEvents");
 const { startServer } = require("../server");
-const { handleDisconnect } = require("../roomHandlers");
+const { handleDisconnect, handlePlayerReconnect } = require("../roomHandlers");
 const { DisconnectGraceManager, DISCONNECT_GRACE_PERIOD_MS } = require("../disconnectGraceManager");
 const { GuestIdentityManager, getPersonalRoomName } = require("../guestIdentityManager");
 const { DISABLED_ACCOUNT_EVENTS } = require("../disabledAccountHandlers");
@@ -1074,7 +1074,7 @@ test("two simultaneous Fake Answer rooms keep session actions and progress indep
     assert.equal(snapshot.snapshot.game.state.submissionCount, 0);
 });
 
-test("room chat is blocked during play, enabled at finished results, and excludes returned viewers", async (context) => {
+test("room chat is blocked during play and shared with valid archived viewers", async (context) => {
     const harness = await createHarness(context, { authEnabled: false });
     const game = await startFakeAnswer(harness, { playerCount: 2, waitForSubmission: false });
     assert.equal((await emitWithAck(game.host, "chat:send", { text: "during game" })).error.code, "CHAT_NOT_AVAILABLE");
@@ -1093,15 +1093,37 @@ test("room chat is blocked during play, enabled at finished results, and exclude
     assert.ok((await history).messages.some(({ id }) => id === sent.messageId));
 
     assert.deepEqual(await emitWithAck(game.host, "return-to-lobby", { sessionId: finalState.sessionId }), { returned: true });
-    const leaked = [];
-    viewer.on("chat:message", (event) => leaked.push(event));
-    await harness.io.sockets.sockets.get(viewer.transportId).join(game.roomCode);
+    const lobbyMessage = waitForEvent(viewer, "chat:message");
     assert.equal((await emitWithAck(game.host, "chat:send", { text: "lobby only" })).sent, true);
-    assert.equal((await emitWithAck(viewer, "chat:send", { text: "still viewing" })).error.code, "CHAT_NOT_AVAILABLE");
-    assert.equal((await emitWithAck(viewer, "chat:history:request", query)).error.code, "CHAT_NOT_AVAILABLE");
-    assert.deepEqual(leaked, []);
-    assert.deepEqual(await emitWithAck(game.players[0], "return-from-results", { sessionId: finalState.sessionId }), { returned: true, status: "lobby" });
-    assert.equal((await emitWithAck(game.players[0], "chat:send", { text: "back in lobby" })).sent, true);
+    const { roomId, message } = await lobbyMessage;
+    const reaction = waitForEvent(game.host, "chat:reaction");
+    const request = { roomId, messageId: message.id, emoji: "🔥", version: 0 };
+    const ack = await emitWithAck(viewer, "chat:reaction:set", request);
+    assert.equal(ack.message.myReaction, "🔥");
+    const hostProjection = (await reaction).message;
+    assert.deepEqual(hostProjection.reactions, [{ emoji: "🔥", count: 1 }]);
+    assert.equal(hostProjection.myReaction, null);
+    assert.deepEqual(await emitWithAck(viewer, "chat:reaction:set", request), ack);
+    const outsider = await harness.connect();
+    assert.equal((await emitWithAck(outsider, "chat:reaction:set", request)).error.code, "NOT_IN_ROOM");
+    assert.equal((await emitWithAck(viewer, "chat:send", { text: "still viewing" })).sent, true);
+    assert.equal((await emitWithAck(viewer, "chat:reaction:set", { ...request, roomId: "old-instance" })).error.code, "INVALID_REQUEST");
+    const [previousHandler] = harness.io.sockets.sockets.get(viewer.transportId).listeners("chat:reaction:set");
+    const restored = await disconnectAndRecover(harness, viewer);
+    previousHandler({ ...request, emoji: null, version: 1 }, result => assert.equal(result.error.code, "SESSION_NOT_ACTIVE"));
+    assert.equal((await emitWithAck(restored, "restore-session")).snapshot.game.sessionId, finalState.sessionId);
+    const archivedHistory = waitForEvent(restored, "chat:history:response");
+    assert.deepEqual(await emitWithAck(restored, "chat:history:request", query), { ok: true });
+    assert.equal((await archivedHistory).messages.find(entry => entry.id === message.id).myReaction, "🔥");
+    const changes = await Promise.all([
+        emitWithAck(restored, "chat:reaction:set", { ...request, version: 1, emoji: "😂" }),
+        emitWithAck(game.host, "chat:reaction:set", { ...request, version: 1, emoji: "😂" }),
+    ]);
+    assert.ok(changes.every(result => result.ok));
+    const newest = changes.find(result => result.message.reactionVersion === 3);
+    assert.deepEqual(newest.message.reactions, [{ emoji: "😂", count: 2 }]);
+    assert.deepEqual(await emitWithAck(restored, "return-from-results", { sessionId: finalState.sessionId }), { returned: true, status: "lobby" });
+    assert.equal((await emitWithAck(restored, "chat:send", { text: "back in lobby" })).sent, true);
 });
 
 test("replay host departure counts match participants and preserves archived results", async (context) => {
@@ -1152,7 +1174,14 @@ test("room chat records join, leave, and disconnect system messages once and res
     assert.deepEqual(await emitWithAck(recovered, "chat:history:request", { before: null, limit: 50, requestId: "restore" }), { ok: true });
     const history = await restoredHistoryEvent;
     assert.equal(history.messages.filter(({ text }) => text === "Guest disconnected.").length, 1);
-    assert.equal(history.messages.some(({ text }) => text.toLowerCase().includes("reconnected")), false);
+    assert.equal(history.messages.filter(({ text }) => text === "Guest reconnected.").length, 1);
+    const room = roomManager.getRoom(created.roomCode);
+    const count = harness.io.roomChatManager.getMessageCount(room.publicRoomId);
+    assert.equal(await handlePlayerReconnect(harness.io, recovered.playerId, harness.io.disconnectGraceManager), false);
+    assert.equal(await handlePlayerReconnect(harness.io, recovered.playerId, {
+        cancelPlayer: () => ({ roomCode: room.code, roomInstanceId: "previous-instance" }),
+    }), false);
+    assert.equal(harness.io.roomChatManager.getMessageCount(room.publicRoomId), count);
 });
 
 test("kicked members lose chat access and room destruction clears its lifetime history", async (context) => {
@@ -2737,6 +2766,10 @@ test("disconnect reserves a player seat and expiry removes the player", async (c
     ]);
     assert.equal(roomManager.getPlayerRoom(guest.id), null);
     assert.equal(roomManager.getRoom(createResponse.roomCode).players.length, 1);
+    const recovered = await harness.connect({ storage: guest.recoveryStorage });
+    assert.equal((await emitWithAck(recovered, "restore-session")).status, "no-room");
+    const room = roomManager.getRoom(createResponse.roomCode);
+    assert.equal(harness.io.roomChatManager.getHistory(room.publicRoomId).messages.some(message => message.text === "Guest reconnected."), false);
 });
 
 test("disconnect deletes a room only after every member's grace period expires", async (context) => {

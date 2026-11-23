@@ -201,7 +201,7 @@ async function activateGuestSession(
         socket.emit("guest-session-ready", { playerId: activatedPlayerId,
             ...(io.moderation.admins.has(socket.data.accountId) ? { canReviewReports: true } : {}) });
         if (identityManager.isActiveSocket(activatedPlayerId, socket.id)) {
-            handlePlayerReconnect(io, activatedPlayerId, disconnectGraceManager);
+            await handlePlayerReconnect(io, activatedPlayerId, disconnectGraceManager);
         }
     } catch (error) {
         identityManager.abortSocket(socket.id);

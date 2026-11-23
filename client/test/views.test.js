@@ -1372,7 +1372,7 @@ test("authenticated players can search results participants without using their 
       state.lobby.status = "lobby";
       state.lobby.players[0].isInGame = true;
       renderApp(root, state, actions, {}, {}, { isAuthenticated: true });
-      assert.equal(root.query((element) => element.className.includes("room-chat")), null);
+      assert.ok(root.query((element) => element.className.includes("room-chat")));
   });
 });
 
@@ -2399,6 +2399,25 @@ test("room chat retains scrollable collapsed history, exposes expansion and keep
   });
 });
 
+test("unread counts track unique incoming player messages while reading older history", () => {
+  withFakeDocument(() => {
+    const state = createInitialRoomChatState();
+    const message = { id: "1", type: "player", senderName: "Sam", senderId: "sam", text: "Hi", createdAt: "2026-11-20T10:00:00Z" };
+    addRoomChatMessage(state, message, true, "me");
+    addRoomChatMessage(state, message, true, "me");
+    addRoomChatMessage(state, { ...message, id: "2", senderId: "me" }, true, "me");
+    addRoomChatMessage(state, { ...message, id: "3", type: "system" }, true, "me");
+    addRoomChatMessage(state, { ...message, id: "4" }, false, "me");
+    applyRoomChatHistoryPage(state, { messages: [message], cursor: "1", hasMore: false, totalCount: 4 });
+    const panel = renderRoomChat(state, {});
+    const indicator = panel.querySelector(".chat-unread");
+    assert.equal(indicator.textContent, "1 new message");
+    indicator.dispatch("click");
+    assert.equal(indicator.hidden, true);
+    assert.equal(state.unread, 0);
+  });
+});
+
 test("room chat older-message insertion preserves the visible scroll anchor", () => {
   const list = {
     children: [{ id: "newest" }], scrollTop: 40, scrollHeight: 100,
@@ -2412,6 +2431,38 @@ test("room chat older-message insertion preserves the visible scroll anchor", ()
   prependRoomChatMessages(list, [{ id: "older-a" }, { id: "older-b" }]);
   assert.deepEqual(list.children.map(({ id }) => id), ["older-a", "older-b", "newest"]);
   assert.equal(list.scrollTop, 100);
+});
+
+test("reaction picker opens from a button, offers more emoji and renders the viewer's grouped selection", () => {
+  withFakeDocument(() => {
+    const create = document.createElement;
+    document.createElement = tag => {
+      const node = create(tag);
+      if (tag === "dialog") {
+        node.showModal = () => { node.open = true; };
+        node.close = () => node.dispatch("close");
+        node.prepend = (...items) => items.reverse().forEach(item => node.insertBefore(item, node.firstElementChild));
+      }
+      return node;
+    };
+    const state = createInitialRoomChatState();
+    state.messages = [{ id: "1", type: "player", senderName: "Sam", text: "Hi", createdAt: "2026-11-20T10:00:00Z",
+      reactions: [{ emoji: "🔥", count: 2 }], reactionVersion: 2, myReaction: "🔥" }];
+    let selected;
+    const panel = renderRoomChat(state, { onReact(message, emoji) { selected = [message.id, emoji]; } });
+    const row = panel.querySelector(".room-chat-message");
+    row.isConnected = true;
+    assert.equal(row.querySelector(".reaction-chip").getAttribute("aria-pressed"), "true");
+    row.querySelector(".reaction-trigger").dispatch("click");
+    const dialog = row.querySelector("dialog");
+    assert.ok(dialog.open);
+    for (const emoji of ["👍", "❤️", "😂", "😮", "😭", "🔥"]) assert.ok(dialog.query(node => node.textContent === emoji));
+    dialog.query(node => node.textContent === "More").dispatch("click");
+    dialog.query(node => node.textContent === "🚀").dispatch("click");
+    assert.deepEqual(selected, ["1", "🚀"]);
+    assert.equal(row.querySelector("dialog"), null);
+    assert.equal(document.activeElement, row.querySelector(".reaction-trigger"));
+  });
 });
 
 test("room chat rerenders preserve the active draft input and focus", () => {

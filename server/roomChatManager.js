@@ -35,6 +35,43 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
     const histories = new Map();
     const rateLimits = new Map();
     const receipts = new Map();
+    // Message objects belong to a single logical room history.
+    const reactions = new WeakMap();
+
+    function project(message, playerId) {
+        const record = reactions.get(message);
+        if (!record) return { ...message };
+        const counts = new Map();
+        for (const emoji of record.players.values()) counts.set(emoji, (counts.get(emoji) ?? 0) + 1);
+        return { ...message, reactionVersion: record.version, myReaction: record.players.get(playerId) ?? null,
+            reactions: Array.from(counts, ([emoji, count]) => ({ emoji, count })) };
+    }
+
+    function setReaction(roomId, messageId, playerId, emoji, version) {
+        const message = histories.get(roomId)?.find(entry => entry.id === messageId);
+        if (message?.type !== "player") throw new RoomChatError("INVALID_REQUEST", "Choose a player message in this room.");
+        if (emoji !== null && (typeof emoji !== "string" || emoji.length > 32 || !/^\p{RGI_Emoji}$/v.test(emoji))) {
+            throw new RoomChatError("INVALID_REQUEST", "Choose a single supported emoji.");
+        }
+        const record = reactions.get(message) ?? { players: new Map(), recentActors: [], version: 0 };
+        if (!Number.isSafeInteger(version) || version < 0 || version > record.version) throw new RoomChatError("INVALID_REQUEST", "Invalid reaction version.");
+        const existing = record.players.get(playerId) ?? null;
+        if (existing === emoji) return { changed: false, forViewer: id => project(message, id) };
+        const delta = record.version - version;
+        if (delta > record.recentActors.length || (delta && record.recentActors.slice(-delta).includes(playerId))) {
+            throw new RoomChatError("STALE_REACTION", "Reactions changed. Choose again.");
+        }
+        const groups = new Set();
+        for (const [id, value] of record.players) if (id !== playerId) groups.add(value);
+        if (emoji && !groups.has(emoji) && groups.size >= 10) throw new RoomChatError("REACTION_LIMIT", "This message already has ten different reactions.");
+        if (emoji) record.players.set(playerId, emoji);
+        else record.players.delete(playerId);
+        record.version++;
+        record.recentActors.push(playerId);
+        if (record.recentActors.length > 64) record.recentActors.shift();
+        reactions.set(message, record);
+        return { changed: true, forViewer: id => project(message, id) };
+    }
 
     function makeMessage(roomId, type, senderName, text, senderId) {
         if (typeof roomId !== "string" || roomId.length === 0) {
@@ -104,7 +141,7 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
         return makeMessage(roomId, "system", null, normalized);
     }
 
-    function getHistory(roomId, { before = null, limit = MAX_PAGE_SIZE } = {}) {
+    function getHistory(roomId, { before = null, limit = MAX_PAGE_SIZE, playerId } = {}) {
         if (typeof roomId !== "string" || roomId.length === 0) {
             throw new TypeError("A logical room identity is required.");
         }
@@ -125,7 +162,7 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
             end = cursorIndex;
         }
         const start = Math.max(0, end - pageSize);
-        const messages = history.slice(start, end).map((message) => ({ ...message }));
+        const messages = history.slice(start, end).map(message => project(message, playerId));
         return {
             messages,
             cursor: messages[0]?.id ?? null,
@@ -144,7 +181,7 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
         return histories.get(roomId)?.length ?? 0;
     }
 
-    return { send, addPlayerMessage, addSystemMessage, getHistory, clearRoom, getMessageCount };
+    return { send, setReaction, addPlayerMessage, addSystemMessage, getHistory, clearRoom, getMessageCount };
 }
 
 module.exports = {

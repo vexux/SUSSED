@@ -1,4 +1,5 @@
 import { createIcon } from "./ui/icon.ts";
+import { attachReactionPicker } from "./reactionPicker.ts";
 export interface RoomChatMessage {
   id: string;
   type: "player" | "system";
@@ -6,9 +7,14 @@ export interface RoomChatMessage {
   senderName: string | null;
   text: string;
   createdAt: string;
+  reactions?: { emoji: string; count: number }[];
+  reactionVersion?: number;
+  myReaction?: string | null;
 }
 
 export interface RoomChatState {
+  unread?: number;
+  rateLimited?: boolean;
   expanded: boolean;
   messages: RoomChatMessage[];
   draft: string;
@@ -25,6 +31,7 @@ export interface RoomChatState {
 }
 
 export interface RoomChatActions {
+  onReact?(message: RoomChatMessage, emoji: string): void;
   playerTarget?(id: string): ((id: string, anchorId: string) => void) | undefined;
   onToggleExpanded(): void;
   onDraftChange(draft: string): void;
@@ -45,6 +52,7 @@ export function createInitialRoomChatState(): RoomChatState {
   return {
     expanded: false,
     messages: [],
+    unread: 0,
     draft: "",
     messageCount: 0,
     historyLoaded: false,
@@ -69,16 +77,19 @@ export function mergeRoomChatMessages(
   incoming: RoomChatMessage[],
 ): RoomChatMessage[] {
   const messages = new Map<string, RoomChatMessage>();
-  for (const message of [...current, ...incoming]) messages.set(message.id, message);
+  for (const message of [...current, ...incoming]) {
+    if ((messages.get(message.id)?.reactionVersion ?? 0) <= (message.reactionVersion ?? 0)) messages.set(message.id, message);
+  }
   return [...messages.values()].sort((first, second) =>
     first.createdAt.localeCompare(second.createdAt) || first.id.localeCompare(second.id)
   );
 }
 
-export function addRoomChatMessage(state: RoomChatState, message: RoomChatMessage): boolean {
+export function addRoomChatMessage(state: RoomChatState, message: RoomChatMessage, readingOlder = false, playerId?: string | null): boolean {
   const merged = mergeRoomChatMessages(state.messages, [message]);
   if (merged.length === state.messages.length) return false;
   state.messages = merged;
+  if (readingOlder && message.type === "player" && message.senderId !== playerId) state.unread = (state.unread ?? 0) + 1;
   state.messageCount = Math.max(state.messageCount + 1, merged.length);
   return true;
 }
@@ -139,6 +150,7 @@ function renderMessage(message: RoomChatMessage, actions: RoomChatActions): HTML
   }
   const item = element("li", "room-chat-message");
   item.dataset.messageId = message.id;
+  item.dataset.reactionVersion = String(message.reactionVersion ?? 0);
   const senderId = message.senderId;
   const open = senderId && actions.playerTarget?.(senderId);
   function senderControl(className: string, text: string) {
@@ -158,6 +170,26 @@ function renderMessage(message: RoomChatMessage, actions: RoomChatActions): HTML
   metadata.append(element("time", "room-chat-time", localTime(message.createdAt)));
   const text = element("p", "room-chat-message-text", message.text);
   body.append(metadata, text);
+  if (actions.onReact) {
+    const react = (emoji: string) => actions.onReact?.(message, emoji);
+    const trigger = element("button", "reaction-trigger", "☺");
+    trigger.type = "button";
+    trigger.setAttribute("aria-label", "React to message from " + message.senderName);
+    metadata.append(trigger);
+    attachReactionPicker(item, trigger, react);
+    if (message.reactions?.length) {
+      const groups = element("div", "reaction-groups");
+      for (const { emoji, count } of message.reactions) {
+        const chip = element("button", "reaction-chip", emoji + " " + count);
+        chip.type = "button";
+        chip.setAttribute("aria-pressed", String(message.myReaction === emoji));
+        chip.setAttribute("aria-label", emoji + ", " + count + " reactions" + (message.myReaction === emoji ? ", you reacted" : ""));
+        chip.addEventListener("click", () => react(emoji));
+        groups.append(chip);
+      }
+      body.append(groups);
+    }
+  }
   item.append(avatar, body);
   return item;
 }
@@ -195,7 +227,20 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
   if (visibleMessages.length === 0) list.append(element("li", "room-chat-empty", state.historyLoading ? "Loading messages…" : "No messages yet."));
   if (state.loadingOlder) list.append(element("li", "room-chat-loading", "Loading earlier messages…"));
   if (state.expanded) list.classList.add("is-expanded");
+  const unread = element("button", "chat-unread");
+  unread.type = "button";
+  syncUnread(unread, state);
+  unread.addEventListener("click", () => {
+    list.scrollTop = list.scrollHeight;
+    state.unread = 0;
+    syncUnread(unread, state);
+    list.focus();
+  });
   list.addEventListener("scroll", () => {
+    if (list.scrollHeight - list.scrollTop - list.clientHeight <= 28) {
+      state.unread = 0;
+      syncUnread(unread, state);
+    }
     if (list.scrollTop <= 24 && state.hasOlder && !state.loadingOlder && state.cursor) actions.onLoadOlder(state.cursor);
   });
 
@@ -224,14 +269,19 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
     if (canSubmitRoomChatMessage(state)) actions.onSendMessage(state.draft.trim());
   });
   form.append(input, send);
-  panel.append(heading, list);
+  panel.append(heading, list, unread);
   if (state.error) {
     const error = element("p", "room-chat-error", state.error);
-    error.setAttribute("role", "alert");
+    error.setAttribute("role", state.rateLimited ? "status" : "alert");
     panel.append(error);
   }
   panel.append(form);
   return panel;
+}
+
+function syncUnread(button: HTMLElement, state: RoomChatState) {
+  button.hidden = !state.unread;
+  button.textContent = state.unread === 1 ? "1 new message" : (state.unread ?? 0) + " new messages";
 }
 
 export function prependRoomChatMessages(list: HTMLElement, messages: HTMLElement[]): void {
@@ -260,15 +310,33 @@ export function updateRoomChatPanelMessages(
   } else {
     const previousTop = currentList.scrollTop;
     const wasNearBottom = currentList.scrollHeight - currentList.scrollTop - currentList.clientHeight <= 28;
-    currentList.replaceChildren(...nextItems);
+    const existing = new Map(Array.from(currentList.children, child => {
+      const item = child as HTMLElement;
+      return [item.dataset.messageId, item] as const;
+    }));
+    const retained = new Set(nextItems.map(item => item.dataset.messageId));
+    for (const child of Array.from(currentList.children) as HTMLElement[]) {
+      if (!child.dataset.messageId || !retained.has(child.dataset.messageId)) child.remove();
+    }
+    nextItems.forEach((item, index) => {
+      const previous = existing.get(item.dataset.messageId);
+      if (previous && item.dataset.messageId && previous.dataset.reactionVersion === item.dataset.reactionVersion) return;
+      previous?.remove();
+      currentList.insertBefore(item, currentList.children[index] ?? null);
+    });
     if (wasNearBottom) currentList.scrollTop = currentList.scrollHeight;
     else currentList.scrollTop = previousTop;
   }
   const count = panel.querySelector<HTMLElement>(".room-chat-count");
   if (count) count.textContent = chatCount(state);
+  const unread = panel.querySelector<HTMLElement>(".chat-unread");
+  if (unread) syncUnread(unread, state);
   const currentError = panel.querySelector<HTMLElement>(".room-chat-error");
   const nextError = nextPanel.querySelector<HTMLElement>(".room-chat-error");
-  if (currentError && nextError) currentError.textContent = nextError.textContent;
+  if (currentError && nextError) {
+    currentError.textContent = nextError.textContent;
+    currentError.setAttribute("role", state.rateLimited ? "status" : "alert");
+  }
   else if (!currentError && nextError) panel.insertBefore(nextError, panel.querySelector(".room-chat-composer"));
   else currentError?.remove();
 }

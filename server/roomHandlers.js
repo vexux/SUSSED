@@ -4,6 +4,7 @@ const gameRegistry = require("./gameRegistry");
 const gameProtocols = require("./gameProtocols");
 const { getPersonalRoomName } = require("./guestIdentityManager");
 const { RoomChatError, MAX_PAGE_SIZE } = require("./roomChatManager");
+const { DISCONNECT_GRACE_PERIOD_MS } = require("./disconnectGraceManager");
 
 const PUBLIC_ROOM_BROWSERS = "public-room-browsers";
 
@@ -161,6 +162,9 @@ function resolveRoomChatAccess(room, playerId) {
     if (!room || typeof playerId !== "string") return { available: false, sessionId: null };
     const player = room.players.find(({ id }) => id === playerId);
     if (!player || player.connected === false) return { available: false, sessionId: null };
+    if (player.viewingResultsSessionId) {
+        return { available: Boolean(roomManager.getFinishedMatchForViewer(room, playerId)), sessionId: player.viewingResultsSessionId };
+    }
 
     if (room.status === "lobby") {
         if (roomManager.getLobbyParticipants(room).some(({ id }) => id === playerId)) {
@@ -264,6 +268,29 @@ function registerRoomChatHandlers(io, socket, identityManager) {
         }
     });
 
+    socket.on("chat:reaction:set", (payload, acknowledge) => {
+        if (!isAcknowledgement(acknowledge)) return;
+        const room = getAuthorizedRoom(acknowledge);
+        if (!room) return;
+        if (!isRecord(payload) || payload.roomId !== room.publicRoomId ||
+            Object.keys(payload).some(key => !["roomId", "messageId", "emoji", "version"].includes(key))) {
+            reject(acknowledge, "INVALID_REQUEST", "Choose a message in the current room.");
+            return;
+        }
+        try {
+            const result = io.roomChatManager.setReaction(room.publicRoomId, payload.messageId, playerId, payload.emoji, payload.version);
+            if (result.changed) for (const id of getAuthorizedChatRecipients(io, room, identityManager)) {
+                io.sockets.sockets.get(identityManager.getSocketId(id)).emit("chat:reaction", {
+                    roomId: room.publicRoomId, message: result.forViewer(id),
+                });
+            }
+            acknowledge({ ok: true, message: result.forViewer(playerId) });
+        } catch (error) {
+            const failure = getOperationError(error);
+            reject(acknowledge, failure.code, failure.message);
+        }
+    });
+
     socket.on("chat:history:request", (payload, acknowledge) => {
         if (!isAcknowledgement(acknowledge)) return;
         if (
@@ -282,6 +309,7 @@ function registerRoomChatHandlers(io, socket, identityManager) {
         if (!room) return;
         try {
             const response = io.roomChatManager.getHistory(room.publicRoomId, {
+                playerId,
                 before: payload.before,
                 limit: Math.min(MAX_PAGE_SIZE, payload.limit),
             });
@@ -894,7 +922,7 @@ function registerRoomHandlers(io, socket, identityManager, disconnectGraceManage
     });
 }
 
-function handlePlayerReconnect(io, playerId, disconnectGraceManager) {
+async function handlePlayerReconnect(io, playerId, disconnectGraceManager) {
     const entry = disconnectGraceManager.cancelPlayer(playerId);
     if (!entry) return false;
 
@@ -909,8 +937,13 @@ function handlePlayerReconnect(io, playerId, disconnectGraceManager) {
         return false;
     }
 
+    if (disconnectGraceManager.now() - entry.disconnectedAt >= DISCONNECT_GRACE_PERIOD_MS) {
+        await handlePlayerDeparture(io, { data: { playerId } }, { disconnectGraceManager });
+        return false;
+    }
     const update = roomManager.setPlayerConnectionStatus(playerId, true);
     if (!update?.changed) return false;
+    addAndBroadcastSystemMessage(io, room, player.name + " reconnected.");
     scheduleAdvancedGameRound(io, room.code, gameManager.setPlayerConnectionStatus(room.code, playerId, true));
     broadcastConnectionState(io, room);
     return true;
@@ -936,10 +969,11 @@ async function handleDisconnectGraceExpiry(
         return false;
     }
 
-    if (identityManager.getSocketId(entry.playerId)) {
+    if (identityManager.getSocketId(entry.playerId) && disconnectGraceManager.now() - entry.disconnectedAt < DISCONNECT_GRACE_PERIOD_MS) {
         disconnectGraceManager.finish(entry);
         const update = roomManager.setPlayerConnectionStatus(entry.playerId, true);
         if (update?.changed) {
+            addAndBroadcastSystemMessage(io, room, player.name + " reconnected.");
             scheduleAdvancedGameRound(io, room.code, gameManager.setPlayerConnectionStatus(room.code, entry.playerId, true));
             broadcastConnectionState(io, room);
         }

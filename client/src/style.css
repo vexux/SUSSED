@@ -1,6 +1,7 @@
 :root {
   color-scheme: dark;
   --color-background: #17131c;
+  --chat-history: #19171c;
   --color-surface: #211b27;
   --color-surface-raised: #1d1822;
   --color-surface-alt: #302737;
@@ -118,11 +119,12 @@
 }
 
 :root[data-theme="light"] {
-  color-scheme: light;
-  --color-background: #f7f4fa;
+  color-scheme: only light;
+  --color-background: #f8f6f2;
+  --chat-history: #ece9e5;
   --color-surface: #ffffff;
-  --color-surface-raised: #f0ebf5;
-  --color-surface-alt: #e9e1ee;
+  --color-surface-raised: #f4f1ef;
+  --color-surface-alt: #ebe6ec;
   --color-text: #241c2b;
   --color-text-strong: #30263a;
   --color-text-secondary: #51465a;
@@ -904,15 +906,15 @@ button:disabled {
 }
 
 .guest-entry-button {
-  border-color: #514b57;
-  color: #f7f4fa;
-  background: #39343e;
+  border-color: var(--color-control-border);
+  color: var(--color-text);
+  background: var(--color-surface-alt);
 }
 
 .guest-entry-button:hover:not(:disabled) {
-  border-color: #777080;
-  color: #ffffff;
-  background: #49434f;
+  border-color: var(--color-accent-border);
+  color: var(--color-text-strong);
+  background: var(--color-accent-surface-strong);
 }
 
 .email-auth-screen {
@@ -1377,7 +1379,7 @@ summary.room-visibility-pill::-webkit-details-marker {
   overflow-y: auto;
   overscroll-behavior-y: contain;
   overflow-anchor: none;
-  background: color-mix(in srgb, var(--color-surface) 55%, #121215);
+  background: var(--chat-history);
   border-radius: var(--radius-md);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1451,6 +1453,7 @@ summary.room-visibility-pill::-webkit-details-marker {
 }
 
 .room-chat-system-message {
+  text-align: center;
   font-style: italic;
 }
 
@@ -1498,7 +1501,7 @@ summary.room-visibility-pill::-webkit-details-marker {
 }
 
 .room-chat-error {
-  margin: var(--space-2) 0 0;
+  margin: 0 0 var(--space-3);
   color: var(--color-error);
   font-size: 0.82rem;
   overflow-wrap: anywhere;
@@ -4028,7 +4031,33 @@ select:focus:not(:focus-visible) {
   @keyframes room-lock-change { from { transform: translateY(2px); opacity: .65; } }
 }
 
-:root[data-theme="light"] .room-chat-message-list { background: #edecef; }
+.room-chat-error[role="status"] { color: var(--color-text-secondary); }
+.reaction-picker { width: min(24rem, 90vw); max-height: 65dvh; overflow: auto; background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.reaction-picker > div, .reaction-groups { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.reaction-picker > div { max-height: 40dvh; overflow-y: auto; overscroll-behavior: contain; margin-block-end: var(--space-2); }
+.reaction-picker input { max-width: 100%; color: var(--color-text); background: var(--color-surface); }
+.reaction-picker button, .reaction-chip, .reaction-trigger, .chat-unread {
+  min-height: 44px;
+  min-width: 44px;
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+}
+.reaction-picker > div button { font-size: 1.3rem; }
+.reaction-picker button:focus-visible, .reaction-trigger:focus-visible,
+.reaction-chip:focus-visible, .chat-unread:focus-visible { outline: var(--focus-ring); }
+.reaction-picker > button + button { margin-inline-start: var(--space-2); }
+.chat-unread { display: block; margin: 0 auto var(--space-2); padding-inline: var(--space-3); }
+.chat-unread[hidden] { display: none; }
+.reaction-chip[aria-pressed="true"], .chat-unread { color: var(--color-accent-light); outline: 1px solid var(--color-accent-border); }
+.reaction-trigger { margin-inline-start: auto; }
+@media (hover: hover) {
+  .room-chat-message:not(:hover):not(:focus-within) .reaction-trigger { opacity: 0; }
+}
+@media (pointer: coarse) {
+  .room-chat-message-text { user-select: none; }
+}
 .chat-player-trigger { border: 0; cursor: pointer; }
 button.room-chat-sender { min-width: 44px; padding: 0; min-height: 24px; text-align: left; background: transparent; }
 button.room-chat-sender:hover { text-decoration: underline; }
