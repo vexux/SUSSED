@@ -5117,3 +5117,25 @@ for (const gameId of ["fact-or-cap", "fact-or-cap-anime", "bruh-wtf"]) {
         assert.equal(harness.io.disconnectGraceManager.size, 0);
     });
 }
+test("locked room restores a reserved member and acknowledges retried chat without another broadcast", async context => {
+    const harness = await createHarness(context);
+    const host = await harness.connect();
+    const guest = await harness.connect();
+    const { roomCode } = await emitWithAck(host, "create-room", {playerName:"Host"});
+    harness.trackRoom(roomCode);
+    await emitWithAck(guest, "join-room", {roomCode, playerName:"Guest"});
+    await emitWithAck(host, "set-room-lock", {locked:true});
+    const request = {text:"<script>alert(1)</script>", requestId:"test-send-1"};
+    const deliveries = [];
+    host.on("chat:message", ({message}) => { if (message.type === "player") deliveries.push(message); });
+    const first = await emitWithAck(guest, "chat:send", request);
+    const recovered = await disconnectAndRecover(harness, guest);
+    const {snapshot} = await emitWithAck(recovered, "restore-session");
+    assert.equal(snapshot.lobby.locked,true);
+    assert.equal(recovered.id,guest.id);
+    assert.equal(first.sent,true);
+    assert.deepEqual(await emitWithAck(recovered, "chat:send", request),first);
+    assert.equal((await emitWithAck(recovered, "chat:send", {...request,text:"changed"})).error.code,"INVALID_REQUEST");
+    await emitWithAck(host,"restore-session");
+    assert.deepEqual(deliveries.map(m=>m.text),[request.text]);
+});

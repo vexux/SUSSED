@@ -1,3 +1,4 @@
+import { createIcon, type IconName } from "./ui/icon.ts";
 import {
   HOME_TAGLINE,
   type AppState,
@@ -22,7 +23,6 @@ export interface AppActions {
   onRoomCodeChange(code: string): void;
   onCreateRoom(): void;
   onChooseGame(gameId: string): void;
-  onLibraryFilter(key: "libraryCategory" | "libraryAccess", value: string): void;
   onRetryLibrary(): void;
   onChooseRoomVisibility(visibility: "public" | "private"): void;
   onConfirmCreateRoom(gameId: string): void;
@@ -189,46 +189,6 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
     element.textContent = text;
   }
   return element;
-}
-
-type IconName = "sun" | "moon" | "copy" | "check" | "close" | "users" | "game" | "globe" | "lock" | "crown" | "key" | "refresh" | "chevron" | "switch" | "door" | "user" | "bell";
-
-function createIcon(name: IconName): SVGSVGElement {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("width", "20");
-  svg.setAttribute("height", "20");
-  svg.setAttribute("aria-hidden", "true");
-  svg.setAttribute("focusable", "false");
-  svg.classList.add(`icon-${name}`);
-  const paths: Record<typeof name, string> = {
-    sun: "M12 3v2m0 14v2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42M3 12h2m14 0h2M5.64 18.36l1.42-1.42m9.88-9.88 1.42-1.42M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z",
-    moon: "M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z",
-    copy: "M8 8V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3M5 8h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z",
-    check: "m5 12 4 4L19 6",
-    close: "m18 6-12 12M6 6l12 12",
-    users: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m16 0v-2a4 4 0 0 0-3-3.87M14 3.13a4 4 0 0 1 0 7.75M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
-    game: "M6 11h4m-2-2v4m7-1h.01M18 10h.01M7 6h10a4 4 0 0 1 3.9 3.1l1 5A3 3 0 0 1 17 17l-2-2H9l-2 2a3 3 0 0 1-4.9-2.9l1-5A4 4 0 0 1 7 6Z",
-    globe: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20",
-    lock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
-    crown: "m2 8 5 4 5-8 5 8 5-4-2 12H4L2 8Zm2 15h16",
-    key: "M21 2 11 12m0 0a5 5 0 1 1-7.1 7.1A5 5 0 0 1 11 12Zm3-3 3 3m-6 0 3 3",
-    refresh: "M21 2v6h-6M21 13a9 9 0 1 1-2.64-6.36L21 8",
-    chevron: "m6 9 6 6 6-6",
-    switch: "M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4m14-1v2a3 3 0 0 1-3 3H3",
-    door: "M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9M14 3l5 2v14l-5 2M14 3v18m-5-9h.01m12 0H11m4-4 4 4-4 4",
-    user: "M20 21a8 8 0 0 0-16 0m8-10a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z",
-    bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12a2 2 0 0 0 4 0",
-  };
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", paths[name]);
-  path.setAttribute("fill", "none");
-  path.setAttribute("stroke", "currentColor");
-  path.setAttribute("stroke-width", "2");
-  path.setAttribute("stroke-linecap", "round");
-  path.setAttribute("stroke-linejoin", "round");
-  svg.append(path);
-  return svg;
 }
 
 function createGoogleIcon(): SVGSVGElement {
@@ -1521,7 +1481,9 @@ function createGameCard(
   details.append(
     createElement("h2", "game-card-title", game.displayName),
     createElement("p", "game-card-description", game.description),
-    createElement(
+  );
+  const metadata = createElement("div", "game-card-metadata");
+  metadata.append(createElement(
       "p",
       "game-card-player-count",
       game.maxPlayers === undefined
@@ -1529,10 +1491,12 @@ function createGameCard(
         : `${game.minPlayers}–${game.maxPlayers} players`,
     ),
   );
-  if (game.category) details.append(createElement("span", "catalogue-category", game.category));
-  if (game.access) details.append(createElement("p", "game-card-player-count",
-      game.available === false ? "Currently unavailable" : game.access === "free" ? "Free" :
+  if (game.category) metadata.append(createElement("span", "catalogue-category", game.category));
+  if (game.access) metadata.append(createElement("p", "game-card-player-count",
+      game.access === "free" ? "Free" :
       game.canSelect ? (options.viewingAsGuest ? "Premium · Host provides access" : "Premium · You have host access") : "Premium · Host access required"));
+  if (game.available === false) metadata.append(createElement("span", "catalogue-category", "Currently unavailable"));
+  details.append(metadata);
   if (options.action) {
     const action = createElement(
       "button",
@@ -1575,28 +1539,9 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
   }
 
   const cards = createElement("div", "game-card-grid");
-  const filters = createElement("div", "library-filters");
-  for (const [key, label, values] of [
-    ["libraryCategory", "All categories", [...new Set(state.availableGames.map(g => g.category).filter(Boolean))]],
-    ["libraryAccess", "All access types", ["free", "premium"]],
-  ] as const) {
-    const select = createElement("select", "text-input");
-    select.setAttribute("aria-label", label);
-    for (const value of ["", ...values]) {
-      const option = createElement("option", undefined, value || label);
-      option.value = value || "";
-      select.append(option);
-    }
-    select.value = state[key] || "";
-    select.addEventListener("change", () => actions.onLibraryFilter(key, select.value));
-    filters.append(select);
-  }
-  screen.append(filters);
-  const visibleGames = state.availableGames.filter(g =>
-    (!state.libraryCategory || g.category === state.libraryCategory) && (!state.libraryAccess || g.access === state.libraryAccess));
-  if (state.libraryError || !visibleGames.length) screen.append(createElement("p", "status-message",
-    state.libraryError || (state.availableGames.length ? "No games match these filters." : "Loading game library…")));
-  visibleGames.forEach((game) => {
+  if (state.libraryError || !state.availableGames.length) screen.append(createElement("p", "status-message",
+    state.libraryError || "Loading game library..."));
+  state.availableGames.forEach((game) => {
     const selected = selectedGameId === game.id;
     cards.append(createGameCard(game, {
       selected,
@@ -1631,9 +1576,6 @@ function renderGameSelection(state: AppState, actions: AppActions): HTMLElement 
     });
     visibilityField.classList.add("create-visibility-field");
     screen.append(visibilityField);
-    visibilityField.append(createElement("p", "field-hint", state.pendingRoomVisibility === "public"
-      ? "Players can find this room in Find a table or join with its code."
-      : "Share the room code or invitation link with the people you want to play with."));
   }
 
   const actionsPanel = createElement("div", "selection-actions");
@@ -1959,7 +1901,28 @@ function renderLobby(
 
   let reminderButton: HTMLButtonElement | null = null;
   const headingBar = createElement("div", "lobby-heading-bar");
-  headingBar.append(heading, visibilityField);
+  headingBar.append(heading);
+  if (isHost && lobby.status === "lobby") {
+    const lock = createElement("button", "room-lock");
+    lock.type = "button";
+    lock.title = lobby.locked ? "Unlock room" : "Lock room";
+    lock.setAttribute("aria-label", lock.title);
+    lock.setAttribute("aria-pressed", String(!!lobby.locked));
+    lock.setAttribute("aria-disabled", String(state.isBusy));
+    lock.append(createIcon(lobby.locked ? "lock" : "unlock"));
+    lock.addEventListener("click", () => {
+      if (!state.isBusy) actions.onModerate("set-room-lock", { locked: !lobby.locked });
+    });
+    headingBar.append(lock);
+  } else {
+    const status = createElement("span", "room-lock-status");
+    status.title = lobby.locked ? "Room locked" : "Room unlocked";
+    status.setAttribute("role", "img");
+    status.setAttribute("aria-label", status.title);
+    status.append(createIcon(lobby.locked ? "lock" : "unlock"));
+    headingBar.append(status);
+  }
+  headingBar.append(visibilityField);
   screen.append(headingBar, selectedGameCard, roomCodePanel);
 
   const roundsField = createElement("div", "round-selector");
@@ -2093,10 +2056,6 @@ function renderLobby(
     lobbyActions.append(readyButton);
   }
   if (isHost) {
-    const lock = createElement("button", "secondary-button", lobby.locked ? "Unlock room" : "Lock room");
-    lock.disabled = state.isBusy;
-    lock.addEventListener("click", () => actions.onModerate("set-room-lock", { locked: !lobby.locked }));
-    lobbyActions.append(lock);
     const startButton = createElement("button", "primary-button", "Start game");
     startButton.type = "button";
     startButton.disabled = state.isBusy || lobby.readinessStatus !== "ready" ||
@@ -2740,12 +2699,12 @@ export function renderApp(
     state.currentView = "home";
   }
   const previousDialog = root.querySelector<HTMLDialogElement>(".invitation-dialog");
+  const previousLock = root.querySelector<HTMLButtonElement>(".room-lock");
   const previousChatList = root.querySelector<HTMLElement>(".room-chat-message-list");
   const previousChatScroll = previousChatList ? {
     top: Number(previousChatList.scrollTop) || 0,
     height: Number(previousChatList.scrollHeight) || 0,
     clientHeight: Number(previousChatList.clientHeight) || 0,
-    expanded: previousChatList.classList.contains("is-expanded"),
   } : null;
   const previousFocus = root.ownerDocument.activeElement;
   const previousFocusKey =
@@ -2852,12 +2811,21 @@ export function renderApp(
   if (!renderPreservingActiveTextEntry(root, shell)) {
     root.replaceChildren(shell);
   }
+  const nextLock = root.querySelector<HTMLButtonElement>(".room-lock");
+  if (previousLock && nextLock) {
+    if (previousFocus === previousLock) nextLock.focus({ preventScroll: true });
+    if (previousLock.getAttribute("aria-pressed") !== nextLock.getAttribute("aria-pressed")) {
+      nextLock.classList.add("lock-changed");
+    }
+  }
+  if (previousFocus?.classList.contains("room-chat-toggle")) root.querySelector<HTMLButtonElement>(".room-chat-toggle")?.focus({ preventScroll: true });
   const nextChatList = root.querySelector<HTMLElement>(".room-chat-message-list");
-  if (previousChatScroll && nextChatList?.classList.contains("is-expanded")) {
+  if (previousChatScroll && nextChatList) {
     const wasNearBottom = previousChatScroll.height - previousChatScroll.top - previousChatScroll.clientHeight <= 28;
-    if (!previousChatScroll.expanded || wasNearBottom) nextChatList.scrollTop = nextChatList.scrollHeight;
+    if (wasNearBottom) nextChatList.scrollTop = nextChatList.scrollHeight;
     else nextChatList.scrollTop = previousChatScroll.top;
   }
+  if (!previousChatScroll && nextChatList) nextChatList.scrollTop = nextChatList.scrollHeight;
   const invitationDialog = root.querySelector<HTMLDialogElement>(".invitation-dialog");
   if (state.isInvitationDialogOpen && invitationDialog) {
     if (typeof invitationDialog.showModal === "function") {

@@ -21,8 +21,11 @@ function normalizeMessageText(text) {
     if (!normalized) {
         throw new RoomChatError("INVALID_REQUEST", "Enter a message before sending.");
     }
-    if (normalized.length > MAX_MESSAGE_LENGTH) {
+    if (text.length > MAX_MESSAGE_LENGTH) {
         throw new RoomChatError("INVALID_REQUEST", `Messages can be at most ${MAX_MESSAGE_LENGTH} characters.`);
+    }
+    if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(text)) {
+        throw new RoomChatError("INVALID_REQUEST", "Remove control characters from the message.");
     }
     return normalized;
 }
@@ -31,6 +34,7 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
     let nextSweep = -Infinity;
     const histories = new Map();
     const rateLimits = new Map();
+    const receipts = new Map();
 
     function makeMessage(roomId, type, senderName, text) {
         if (typeof roomId !== "string" || roomId.length === 0) {
@@ -79,6 +83,21 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
         return makeMessage(roomId, "player", senderName.trim(), normalized);
     }
 
+    function send(roomId, playerId, senderName, text, requestId) {
+        const key = playerId + ":" + requestId;
+        const previous = requestId && receipts.get(roomId)?.get(key);
+        if (previous) {
+            if (normalizeMessageText(text) !== previous.text) throw new RoomChatError("INVALID_REQUEST", "This send request was already used.");
+            return { message: previous, duplicate: true };
+        }
+        const message = addPlayerMessage(roomId, playerId, senderName, text);
+        if (requestId) {
+            if (!receipts.has(roomId)) receipts.set(roomId, new Map());
+            receipts.get(roomId).set(key, message);
+        }
+        return { message, duplicate: false };
+    }
+
     function addSystemMessage(roomId, text) {
         const normalized = normalizeMessageText(text);
         return makeMessage(roomId, "system", null, normalized);
@@ -116,6 +135,7 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
     }
 
     function clearRoom(roomId) {
+        receipts.delete(roomId);
         return histories.delete(roomId);
     }
 
@@ -123,7 +143,7 @@ function createRoomChatManager({ now = Date.now, createId = randomUUID } = {}) {
         return histories.get(roomId)?.length ?? 0;
     }
 
-    return { addPlayerMessage, addSystemMessage, getHistory, clearRoom, getMessageCount };
+    return { send, addPlayerMessage, addSystemMessage, getHistory, clearRoom, getMessageCount };
 }
 
 module.exports = {

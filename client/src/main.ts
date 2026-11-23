@@ -169,6 +169,7 @@ const state = createInitialAppState();
 const roomChatState = createInitialRoomChatState();
 let roomChatRoomCode: string | null = null;
 let roomChatGeneration = 0;
+let pendingChatSend: { text: string; requestId: string } | null = null;
 let previousRoomChatAvailable = false;
 const pendingRoomChatHistory = new Map<string, { before: string | null; roomCode: string; generation: number }>();
 let restorationInProgress = false;
@@ -474,6 +475,7 @@ function isRoomChatAvailable(): boolean {
 }
 
 function resetRoomChatState(): void {
+  pendingChatSend = null;
   roomChatGeneration += 1;
   previousRoomChatAvailable = false;
   pendingRoomChatHistory.clear();
@@ -515,22 +517,24 @@ function sendRoomChatMessage(text: string): void {
   if (!canSubmitRoomChatMessage(roomChatState) || !roomChatRoomCode) return;
   const roomCode = roomChatRoomCode;
   const generation = roomChatGeneration;
+  if (pendingChatSend?.text !== text) pendingChatSend = { text, requestId: crypto.getRandomValues(new Uint32Array(4)).join("-") };
   roomChatState.sending = true;
   roomChatState.error = null;
   render();
   socket.timeout(5000).emit(
     "chat:send",
-    { text },
+    pendingChatSend,
     (error: Error | null, response?: { sent?: boolean; error?: { code?: string; message?: string } }) => {
       if (generation !== roomChatGeneration || roomCode !== roomChatRoomCode) return;
       roomChatState.sending = false;
       if (error || response?.error || response?.sent !== true) {
-        settleRoomChatSend(roomChatState, text, response?.error?.message ?? "Your message could not be sent. Try again.");
+        settleRoomChatSend(roomChatState, text, response?.error?.message ?? "Delivery was not confirmed. Retry to check or send this message.");
         render();
         return;
       }
+      pendingChatSend = null;
       const cleared = settleRoomChatSend(roomChatState, text, null);
-      if (cleared) {
+      if (cleared && !roomChatState.draft) {
         const input = appRoot.querySelector<HTMLInputElement>("#room-chat-draft");
         if (input) input.value = "";
       }
@@ -1701,10 +1705,6 @@ const actions: AppActions = {
     state.nameEntryError = null;
     render();
   },
-  onLibraryFilter(key, value) {
-    state[key] = value;
-    render();
-  },
   onRetryLibrary() {
     requestAvailableGames();
     render();
@@ -2319,15 +2319,19 @@ const actions: AppActions = {
     if (state.canReviewReports) openReportReview(socket);
   },
   onModerate(event, payload) {
-    if (state.isBusy) return;
+    if (state.isBusy || !state.lobby) return;
+    const generation = roomChatGeneration;
     state.isBusy = true;
     state.selectedPlayerId = null;
     render();
     emitRoomOperation(event, payload, (response) => {
+      if (generation !== roomChatGeneration) return;
       state.isBusy = false;
       if (response.error) return showOperationError(response);
       if (response.lobby) applyLobbyState(response.lobby);
-      if (event !== "set-room-lock") showPlayerActionFeedback(event === "report-player" ? "Report submitted." : "Player banned from this room.");
+      if (event === "set-room-lock" && response.lobby?.revision === state.lobby?.revision) {
+        showPlayerActionFeedback(state.lobby?.locked ? "Room locked." : "Room unlocked.");
+      } else if (event !== "set-room-lock") showPlayerActionFeedback(event === "report-player" ? "Report submitted." : "Player banned from this room.");
       render();
     });
   },
@@ -3357,7 +3361,7 @@ function updateVisibleRoomChat(mode: "append" | "prepend" | "replace"): void {
   }, mode);
 }
 
-socket.on("chat:message", (payload: { roomCode?: unknown; roomId?: unknown; message?: unknown }) => {
+socket.on("chat:message", (payload: { roomCode?: unknown; roomId?: unknown; totalCount?: unknown; message?: unknown }) => {
   if (
     typeof payload?.roomCode !== "string" ||
     payload.roomCode !== roomChatRoomCode ||
@@ -3367,6 +3371,7 @@ socket.on("chat:message", (payload: { roomCode?: unknown; roomId?: unknown; mess
   if (roomChatState.roomId && roomChatState.roomId !== payload.roomId) return;
   roomChatState.roomId = payload.roomId;
   if (!addRoomChatMessage(roomChatState, payload.message)) return;
+  if (typeof payload.totalCount === "number") roomChatState.messageCount = payload.totalCount;
   updateVisibleRoomChat("append");
 });
 
@@ -3415,7 +3420,7 @@ socket.on("chat:history:response", (payload: {
   });
   roomChatState.cursor = payload.cursor;
   roomChatState.hasOlder = payload.hasMore;
-  updateVisibleRoomChat(pending.before !== null && roomChatState.expanded ? "prepend" : "replace");
+  updateVisibleRoomChat(pending.before !== null ? "prepend" : "replace");
 });
 
 socket.on("server-auth-config", (configuration: { authEnabled?: unknown }) => {

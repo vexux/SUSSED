@@ -31,6 +31,9 @@ test("room chat rejects invalid, empty, and oversized text and rate limits by id
     assert.throws(() => chat.addPlayerMessage("room-a", "player-a", "Alex", null), { code: "INVALID_REQUEST" });
     assert.throws(() => chat.addPlayerMessage("room-a", "player-a", "Alex", " \n "), { code: "INVALID_REQUEST" });
     assert.throws(() => chat.addPlayerMessage("room-a", "player-a", "Alex", "x".repeat(201)), { code: "INVALID_REQUEST" });
+    for (const text of ["x".repeat(200) + " ", "x\u0000y"]) {
+        assert.throws(() => chat.addPlayerMessage("room-a", "player-a", "Alex", text), { code: "INVALID_REQUEST" });
+    }
     chat.addPlayerMessage("room-a", "player-a", "Alex", "x".repeat(200));
     for (let index = 0; index < 4; index += 1) {
         chat.addPlayerMessage("room-a", "player-a", "Alex", `message ${index}`);

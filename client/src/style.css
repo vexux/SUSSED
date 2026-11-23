@@ -1357,6 +1357,8 @@ summary.room-visibility-pill::-webkit-details-marker {
   font-size: 0.78rem;
 }
 
+.room-chat-time { color: var(--color-text-muted); }
+
 .room-chat-chevron {
   margin-left: auto;
   color: var(--color-text-muted);
@@ -1370,19 +1372,23 @@ summary.room-visibility-pill::-webkit-details-marker {
 }
 
 .room-chat-message-list {
+  height: 8rem;
+  align-content: start;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  overflow-anchor: none;
+  background: color-mix(in srgb, var(--color-surface), black 8%);
+  border-radius: var(--radius-md);
   display: grid;
   gap: var(--space-2);
   min-width: 0;
   margin: var(--space-3) 0;
-  padding: 0;
+  padding: var(--space-3);
   list-style: none;
 }
 
 .room-chat-message-list.is-expanded {
-  max-height: 300px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding-right: 2px;
+  height: min(45vh, 20rem);
 }
 
 .room-chat-message {
@@ -1418,6 +1424,7 @@ summary.room-visibility-pill::-webkit-details-marker {
 }
 
 .room-chat-sender {
+  overflow-wrap: anywhere;
   color: var(--color-text-strong);
   font-size: 0.83rem;
   font-weight: 700;
@@ -1434,7 +1441,7 @@ summary.room-visibility-pill::-webkit-details-marker {
 
 .room-chat-system-message,
 .room-chat-empty {
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   font-size: 0.82rem;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -1449,8 +1456,7 @@ summary.room-visibility-pill::-webkit-details-marker {
   display: flex;
   min-width: 0;
   gap: var(--space-2);
-  border-top: 1px solid var(--color-border-subtle);
-  padding-top: var(--space-3);
+
 }
 
 .room-chat-input {
@@ -1465,9 +1471,10 @@ summary.room-visibility-pill::-webkit-details-marker {
 }
 
 .room-chat-send {
-  min-height: 44px;
-  flex: 0 0 auto;
-  padding-inline: 16px;
+  width: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
 }
 
 .room-chat-send:disabled {
@@ -1603,8 +1610,10 @@ select:focus:not(:focus-visible) {
   outline: none;
 }
 
+.app-shell:has(.home-screen, .welcome-screen) > .app-header { border-bottom: 0; }
+
 .home-screen > .landing-name-field {
-  margin-top: var(--space-5);
+  margin-top: var(--space-3);
 }
 
 .landing-actions {
@@ -3977,13 +3986,31 @@ select:focus:not(:focus-visible) {
 .report-review article { padding-block: 1rem; border-bottom: 1px solid currentColor; }
 .report-review button { display: block; margin-block: .5rem; }
 
-.library-filters {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
-  gap: var(--space-2);
-}
-.library-filters select, .player-detail-actions button, .report-review button,
+.player-detail-actions button, .report-review button,
 .room-chat-toggle, .room-chat-send { min-height: var(--control-touch-size); }
 .catalogue-category, .own-answer-note { color: var(--color-text-muted); font-size: .875rem; }
 .own-answer-note { margin-inline-start: auto; }
 .report-review::backdrop { background: var(--color-overlay); }
+
+.lobby-heading-bar { justify-content: flex-start; }
+.lobby-heading-bar > :last-child { margin-inline-start: auto; }
+.room-lock { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+  border: 1px solid var(--color-border); border-radius: var(--radius-pill);
+  color: var(--color-text-muted); background: transparent; transition: background 140ms, color 140ms; }
+.room-lock-status { display: inline-flex; color: var(--color-text-muted); }
+.room-lock[aria-pressed="true"], .room-lock:hover:not([aria-disabled="true"]), .room-chat-toggle:hover {
+  background: var(--color-accent-surface-strong); color: var(--color-text-strong); }
+.room-chat-toggle { border-radius: var(--radius-sm); padding-inline: var(--space-2); }
+.room-chat-toggle .lobby-panel-title { font-size: 1rem; font-weight: 700; }
+.room-lock:active:not([aria-disabled="true"]), .room-chat-send:active:not(:disabled) { transform: scale(.97); }
+.room-chat-toggle:active { background: var(--color-accent-surface-strong); box-shadow: inset 0 0 0 1px var(--color-border); }
+
+.game-card-metadata { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .75rem; }
+.game-card-metadata > * { font-size: .8rem; font-weight: 550; color: var(--color-text-muted); }
+.room-chat-message-list:focus-visible { outline: var(--focus-ring); }
+
+.room-lock[aria-disabled="true"] { opacity: .65; cursor: wait; }
+@media (prefers-reduced-motion: no-preference) {
+  .lock-changed svg { animation: room-lock-change 150ms ease-out; }
+  @keyframes room-lock-change { from { transform: translateY(2px); opacity: .65; } }
+}

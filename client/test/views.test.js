@@ -1442,18 +1442,14 @@ test("game selection is registry-driven and selecting a card does not create a r
     root.query((element) => element.className.includes("create-selected-game")).dispatch("click");
     assert.deepEqual(calls.created, ["fact-or-cap-anime"]);
     Object.assign(state.availableGames[1], { category: "Bluffing", access: "premium", available: true, canSelect: false });
-    state.libraryCategory = "Bluffing";
-    state.libraryAccess = "premium";
     render();
-    assert.equal(root.query(element => element.className.includes("game-card-grid")).children.length, 1);
+    assert.equal(root.query(element => element.className.includes("game-card-grid")).children.length, 3);
     assert.match(root.text, /Host access required/u);
     assert.equal(root.query(element => element.className.includes("create-selected-game")).disabled, true);
     state.availableGames[1].canSelect = true;
     render();
     assert.match(root.text, /You have host access/u);
-    state.libraryAccess = "free";
-    render();
-    assert.match(root.text, /No games match/u);
+    assert.equal(root.query(element => element.getAttribute("aria-label") === "All categories"), null);
   });
 });
 
@@ -1613,18 +1609,20 @@ test("room visibility uses accessible radio choices and remains read-only for gu
     assert.equal(root.query((element) => element.className.includes("lobby-settings-panel")), null);
     const hostActions = root.query((element) => element.className.includes("host-lobby-actions"));
     assert.deepEqual(hostActions.children.map((button) => button.text), [
-      "Lock room", "Start game", "Leave room", "Ask everyone to return to lobby",
+      "Start game", "Leave room", "Ask everyone to return to lobby",
     ]);
+    headingBar.children[1].dispatch("click");
+    assert.deepEqual(changes.at(-1), ["onModerate", "set-room-lock", { locked: true }]);
     state.lobby.locked = true;
     renderApp(root, state, actions, {}, {});
-    assert.ok(root.query((element) => element.textContent === "Unlock room"));
+    assert.ok(root.query((element) => element.getAttribute("aria-label") === "Unlock room"));
     assert.equal(root.query((element) => element.className.includes("invite-friends-button")).disabled, true);
     assert.equal(hostActions.parentElement.className.includes("lobby-content-grid"), true);
     assert.equal(root.query((element) => element.className.includes("visibility-field")), null);
 
     state.localPlayerId = "guest";
     renderApp(root, state, actions, {}, {});
-    assert.equal(root.query((element) => element.textContent === "Unlock room"), null);
+    assert.equal(root.query((element) => element.getAttribute("aria-label") === "Unlock room"), null);
     assert.equal(root.query((element) => element.className.includes("room-visibility-menu")), null);
     assert.equal(root.query((element) => element.getAttribute("aria-label") === "Room visibility: Private").tagName, "span");
     assert.doesNotMatch(root.text, /Room visibility/u);
@@ -1843,7 +1841,7 @@ test("lobby controls expose compact invitation and visibility hooks and hide uns
     assert.ok(invite.query((element) => element.tagName === "svg"));
     assert.equal(root.query((element) => element.className.includes("round-selector")), null);
     assert.equal(root.query((element) => element.className.includes("lobby-settings-panel")), null);
-    assert.equal(root.query((element) => element.className.includes("lobby-heading-bar")).children[1].className.includes("room-visibility-menu"), true);
+    assert.equal(root.query((element) => element.className.includes("lobby-heading-bar")).children.at(-1).className.includes("room-visibility-menu"), true);
     assert.doesNotMatch(root.text, /Discoverable while seats are open|Join with a room code/u);
     const changeGame = root.query((element) => element.textContent === "Switch game");
     assert.ok(changeGame.query((element) => element.className.includes("icon-switch")));
@@ -2345,7 +2343,7 @@ test("duplicate-name feedback is shown by the name field and can be cleared for 
   });
 });
 
-test("room chat limits collapsed history, exposes expansion and keeps its composer available", () => {
+test("room chat retains scrollable collapsed history, exposes expansion and keeps its composer available", () => {
   withFakeDocument(() => {
     const state = createInitialRoomChatState();
     state.canSend = true;
@@ -2361,21 +2359,24 @@ test("room chat limits collapsed history, exposes expansion and keeps its compos
       onLoadOlder() {},
     };
     let panel = renderRoomChat(state, actions);
-    assert.equal(panel.queryAll((node) => node.className === "room-chat-message").length, 3);
+    assert.equal(panel.queryAll((node) => node.className === "room-chat-message").length, 60);
+    assert.ok(panel.query(node => node.getAttribute("aria-label") === "Send room chat message"));
     assert.ok(panel.query((node) => node.className === "room-chat-composer"));
     const toggle = panel.query((node) => node.className === "room-chat-toggle");
     assert.equal(toggle.getAttribute("aria-expanded"), "false");
     toggle.dispatch("click");
     panel = renderRoomChat(state, actions);
-    assert.equal(panel.queryAll((node) => node.className === "room-chat-message").length, 50);
+    assert.equal(panel.queryAll((node) => node.className === "room-chat-message").length, 60);
     state.loadingOlder = true;
     applyRoomChatHistoryPage(state, {
-      messages: [{ ...state.messages[0], id: "earlier", text: "Earlier message" }],
+      messages: [{ ...state.messages[0], id: "earlier", text: "<script>example</script>" }],
       totalCount: 61, cursor: "earlier", hasMore: false,
     });
     panel = renderRoomChat(state, actions);
     assert.equal(panel.queryAll((node) => node.className === "room-chat-message").length, 61);
-    assert.ok(panel.query((node) => node.dataset.messageId === "earlier"));
+    const earlier = panel.query((node) => node.dataset.messageId === "earlier");
+    assert.equal(earlier.query(node => node.className === "room-chat-message-text").textContent, "<script>example</script>");
+    assert.equal(earlier.query(node => node.tagName === "script"), null);
     assert.equal(panel.query((node) => node.className === "room-chat-toggle").getAttribute("aria-expanded"), "true");
     assert.ok(panel.query((node) => node.className === "room-chat-composer"));
     const input = panel.query((node) => node.id === "room-chat-draft");

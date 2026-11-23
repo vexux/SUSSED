@@ -1,3 +1,4 @@
+import { createIcon } from "./ui/icon.ts";
 export interface RoomChatMessage {
   id: string;
   type: "player" | "system";
@@ -15,7 +16,6 @@ export interface RoomChatState {
   historyLoading: boolean;
   hasOlder: boolean;
   loadingOlder: boolean;
-  hasLoadedEarlier?: boolean;
   cursor: string | null;
   sending: boolean;
   canSend: boolean;
@@ -49,7 +49,6 @@ export function createInitialRoomChatState(): RoomChatState {
     historyLoading: false,
     hasOlder: false,
     loadingOlder: false,
-    hasLoadedEarlier: false,
     cursor: null,
     sending: false,
     canSend: false,
@@ -87,7 +86,6 @@ export function applyRoomChatHistoryPage(
   page: RoomChatHistoryPage,
 ): void {
   state.messages = mergeRoomChatMessages(state.messages, page.messages);
-  if (state.loadingOlder) state.hasLoadedEarlier = true;
   state.messageCount = Math.max(state.messageCount, page.totalCount);
   state.cursor = page.cursor;
   state.hasOlder = page.hasMore;
@@ -151,6 +149,10 @@ function renderMessage(message: RoomChatMessage): HTMLElement {
   return item;
 }
 
+function chatCount(state: RoomChatState): string {
+  return state.historyLoaded ? `${state.messageCount} ${state.messageCount === 1 ? "message" : "messages"}` : `${state.messages.length} loaded`;
+}
+
 export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): HTMLElement {
   const panel = element("section", "room-chat lobby-panel");
   panel.setAttribute("aria-label", "Room chat");
@@ -160,8 +162,12 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
   toggle.setAttribute("aria-expanded", String(state.expanded));
   toggle.setAttribute("aria-label", state.expanded ? "Collapse room chat" : "Expand room chat");
   toggle.append(element("span", "lobby-panel-title", "Room chat"));
-  toggle.append(element("span", "room-chat-count", `${state.messageCount || state.messages.length} messages`));
-  const chevron = element("span", "room-chat-chevron", "⌄");
+  const count = element("span", "room-chat-count", chatCount(state));
+  count.id = "room-chat-count";
+  toggle.setAttribute("aria-describedby", count.id);
+  toggle.append(count);
+  const chevron = createIcon("chevron");
+  chevron.classList.add("room-chat-chevron");
   chevron.setAttribute("aria-hidden", "true");
   toggle.append(chevron);
   toggle.addEventListener("click", actions.onToggleExpanded);
@@ -169,16 +175,16 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
 
   const list = element("ol", "room-chat-message-list");
   list.setAttribute("aria-live", "polite");
-  const visibleMessages = state.expanded && state.hasLoadedEarlier ? state.messages : state.messages.slice(state.expanded ? -50 : -3);
+  list.setAttribute("aria-label", "Message history");
+  list.tabIndex = 0;
+  const visibleMessages = state.messages;
   for (const message of visibleMessages) list.append(renderMessage(message));
   if (visibleMessages.length === 0) list.append(element("li", "room-chat-empty", state.historyLoading ? "Loading messages…" : "No messages yet."));
   if (state.loadingOlder) list.append(element("li", "room-chat-loading", "Loading earlier messages…"));
-  if (state.expanded) {
-    list.classList.add("is-expanded");
-    list.addEventListener("scroll", () => {
-      if (list.scrollTop <= 24 && state.hasOlder && !state.loadingOlder && state.cursor) actions.onLoadOlder(state.cursor);
-    });
-  }
+  if (state.expanded) list.classList.add("is-expanded");
+  list.addEventListener("scroll", () => {
+    if (list.scrollTop <= 24 && state.hasOlder && !state.loadingOlder && state.cursor) actions.onLoadOlder(state.cursor);
+  });
 
   const form = element("form", "room-chat-composer");
   const input = element("input", "room-chat-input");
@@ -190,7 +196,8 @@ export function renderRoomChat(state: RoomChatState, actions: RoomChatActions): 
   input.maxLength = ROOM_CHAT_MAX_LENGTH;
   input.value = state.draft;
   input.setAttribute("aria-label", "Write a room chat message");
-  const send = element("button", "primary-button room-chat-send", "Send");
+  const send = element("button", "primary-button room-chat-send");
+  send.append(createIcon("send"));
   send.type = "submit";
   send.disabled = !canSubmitRoomChatMessage(state);
   send.setAttribute("aria-label", "Send room chat message");
@@ -241,11 +248,11 @@ export function updateRoomChatPanelMessages(
     const previousTop = currentList.scrollTop;
     const wasNearBottom = currentList.scrollHeight - currentList.scrollTop - currentList.clientHeight <= 28;
     currentList.replaceChildren(...nextItems);
-    if (mode === "replace" || wasNearBottom) currentList.scrollTop = currentList.scrollHeight;
+    if (wasNearBottom) currentList.scrollTop = currentList.scrollHeight;
     else currentList.scrollTop = previousTop;
   }
   const count = panel.querySelector<HTMLElement>(".room-chat-count");
-  if (count) count.textContent = `${state.messageCount || state.messages.length} messages`;
+  if (count) count.textContent = chatCount(state);
   const currentError = panel.querySelector<HTMLElement>(".room-chat-error");
   const nextError = nextPanel.querySelector<HTMLElement>(".room-chat-error");
   if (currentError && nextError) currentError.textContent = nextError.textContent;

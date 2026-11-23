@@ -202,6 +202,7 @@ function broadcastChatMessage(io, room, message, { excludePlayerId = null } = {}
             io.sockets.sockets.get(io.guestIdentityManager.getSocketId(recipientId)).emit("chat:message", {
                 roomId: room.publicRoomId,
                 roomCode: room.code,
+                totalCount: io.roomChatManager.getMessageCount(room.publicRoomId),
                 message,
             });
         }
@@ -238,21 +239,24 @@ function registerRoomChatHandlers(io, socket, identityManager) {
 
     socket.on("chat:send", (payload, acknowledge) => {
         if (!isAcknowledgement(acknowledge)) return;
-        if (!isRecord(payload) || Object.keys(payload).length !== 1 || typeof payload.text !== "string") {
-            reject(acknowledge, "INVALID_REQUEST", "Send chat with exactly one string text field.");
+        if (!isRecord(payload) || typeof payload.text !== "string" ||
+            Object.keys(payload).some(key => key !== "text" && key !== "requestId") ||
+            (Object.hasOwn(payload, "requestId") && (typeof payload.requestId !== "string" || !/^[a-zA-Z0-9-]{1,64}$/.test(payload.requestId)))) {
+            reject(acknowledge, "INVALID_REQUEST", "Supply message text and an optional send request ID.");
             return;
         }
         const room = getAuthorizedRoom(acknowledge);
         if (!room) return;
         const sender = room.players.find(({ id }) => id === playerId);
         try {
-            const message = io.roomChatManager.addPlayerMessage(
+            const { message, duplicate } = io.roomChatManager.send(
                 room.publicRoomId,
                 playerId,
                 sender.name,
                 payload.text,
+                payload.requestId,
             );
-            broadcastChatMessage(io, room, message);
+            if (!duplicate) broadcastChatMessage(io, room, message);
             acknowledge({ sent: true, messageId: message.id });
         } catch (error) {
             const operationError = getOperationError(error);
