@@ -1013,7 +1013,6 @@ function renderHome(
     HOME_TAGLINE,
   );
   screen.append(title, tagline);
-  screen.append(createElement("p", "screen-description", "Choose a party game to host, enter a friend’s room code, or find an open table. Guests play without an account."));
   if (state.canReviewReports) {
     const review = createElement("button", "secondary-button", "Review player reports");
     review.addEventListener("click", actions.onReviewReports);
