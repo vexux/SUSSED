@@ -62,3 +62,9 @@ jobs:
           node --check server/test/roomManager.test.js
           node --check server/test/gameManager.test.js
           node --check server/test/server.test.js
+
+      - name: Install Chromium for browser smoke test
+        run: npx playwright install --with-deps chromium
+
+      - name: Run two-player browser smoke test
+        run: npm run test:browser
