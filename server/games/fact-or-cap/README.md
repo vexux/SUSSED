@@ -7,12 +7,11 @@ use the same submission, voting, scoring, reveal, round, and rematch engine.
 The general game reads packs only from `content/general/`; the Anime game reads
 packs only from `content/anime/`. Each bank has independent question selection history.
 Each game variant has a curated library of playable, source-attributed
-questions. Rooms require at least two players and have no application-level
-player maximum. The host can choose 5, 7, or 10 rounds in the lobby; new rooms
+questions. Both variants require at least two players to start and support up
+to eight players per room. The host can choose 5, 7, or 10 rounds in the lobby; new rooms
 default to five. Each selected game session requires at least that many valid
 questions and reports `QUESTION_POOL_EXHAUSTED` if its bank is too small.
-Practical capacity still depends on available server memory, process resources,
-and Socket.IO transport capacity. Room codes also come from a finite code pool,
+Room codes come from a finite code pool,
 which limits simultaneously active rooms independently of player count.
 
 The existing `fake-answer:*` Socket.IO event names are retained as wire

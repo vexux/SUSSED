@@ -1,0 +1,9 @@
+# Working on SUSSED!
+
+Inspect the current branch, working tree, relevant handlers, callers and nearest tests before editing. Use `dev` for development. Preserve existing work, keep changes within the requested feature and leave release promotion, commits and pushes to explicit instructions.
+
+- Trace a room action from [client wiring](client/src/main.ts) through [room handlers](server/roomHandlers.js) to the [room manager](server/roomManager.js). Keep membership, capacity, readiness, host authorization and game transitions authoritative on the server. Check both code and public joins when changing admission.
+- Treat socket IDs as replaceable transports. Use the stable player ID for membership and game actions. Derive account privileges from server-verified socket metadata. Check [identity](server/guestIdentityManager.js), [auth](server/auth.js) and [grace handling](server/disconnectGraceManager.js) before changing recovery. Exercise disconnect, same-tab refresh, expiry and explicit departure separately.
+- For game work, inspect the existing adapter and its tests before changing shared code. Implement the hooks required by [the registry](server/gameRegistry.js), choose a [socket protocol](server/gameProtocols.js), and check library access, client rendering and restoration. Test what each recipient can see before and after reveal. Keep game-specific scoring and content under the game's own directory.
+- Keep socket payloads compatible with [the protocol](server/ROOM_PROTOCOL.md). Update the contract and affected consumers together when an intentional change requires it. Keep unrelated refactoring out of the patch.
+- Match changes with checks under [server tests](server/test) and [client tests](client/test). For lifecycle changes include a socket-level case. For content changes use the relevant game's validation workflow. Run the [verification commands](README.md) and report any skipped checks.

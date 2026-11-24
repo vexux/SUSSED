@@ -441,8 +441,10 @@ flag mismatch is reported when the Socket.IO connection is available; an
 authenticated client cannot connect with a token while server authentication
 is disabled.
 
-The Supabase URL and service-role key are used only for persistent account
-profiles and must remain server-side. They are not needed for guest or room
+The Supabase URL and service-role key support persistent profiles, friendships,
+notifications and game invitations and must remain server-side. See the
+[notification and invitation migration](./supabase/migrations/202610260003_notifications_game_invitations.sql).
+These credentials are optional for guest and room
 play. See [Persistent account profiles](#persistent-account-profiles) for the
 schema and safe manual migration steps.
 
@@ -492,5 +494,5 @@ server token verification. Firebase project settings and Google Cloud credential
 remain operator-configured as described above.
 Automated tests mock Firebase interactions; real email delivery, Google OAuth,
 and live project token verification require the local account-flow smoke test.
-Profile storage, account linking, and persistent reconnect are not part of this
-phase.
+For profile persistence, use the Supabase configuration above. Multiplayer
+recovery relies on the running backend's in-memory room state.
