@@ -1,10 +1,22 @@
 # Known issues and limitations
 
-| Confirmed behaviour or coverage gap | Possible follow-up (proposed) |
+## Accepted beta limitations
+
+The [decision register](DECISIONS.md) records the approval and review triggers for these limits.
+
+| Decision | Operational consequence |
 | --- | --- |
-| A backend restart loses live rooms, recovery reservations and results still being viewed. The client credential cannot restore them on a fresh process. [Room manager](../server/roomManager.js) | Decide whether planned restarts should drain rooms or whether matches need durable recovery. |
-| Reports and review decisions share a process-local store. Restart clears it. Queue operations prune records aged seven days from creation. [Moderation](../server/moderation.js) | Agree on review and retention requirements before introducing durable storage. |
-| Chat history is paged on read, but messages can accumulate throughout a room's lifetime without a total-history cap. [Chat manager](../server/roomChatManager.js) | Choose a retention limit and define what pagination returns when older messages expire. |
+| 6. Restart ends active sessions | A backend restart loses live rooms, recovery reservations and results still being viewed. A client credential cannot restore them on a fresh process. [Room manager](../server/roomManager.js) |
+| 7. Moderation records are temporary | Restart clears reports and review decisions. Queue operations also prune records aged seven days from creation, so even an uninterrupted process offers limited review history. [Moderation](../server/moderation.js) |
+| 8. Chat follows room lifetime | History is paged on read. A room can accumulate messages throughout its lifetime without a fixed age or count limit. [Chat manager](../server/roomChatManager.js) |
+
+## Risks requiring investigation
+
+| Open question or coverage gap | Proposed check |
+| --- | --- |
+| How much memory does a long-lived room consume? | Measure retained memory against message volume, reactions and retries, including after room destruction. |
+| What does a player see when a backend restart destroys their session? | Restart a local backend during play. Verify that the client clearly communicates the ended session and lets the player create or join another room. Compare with an ordinary reconnect while the server remains running. |
+| Does every room destruction path release associated chat state? | Trace each path to the cleanup hook and check message history, reactions and retry receipts. The manager stores reactions in a message-keyed WeakMap, so check whether any message references remain. [Room handlers](../server/roomHandlers.js), [chat manager](../server/roomChatManager.js) |
 | CI runs Node client tests and server socket tests. The multi-browser room, play and refresh journey is a manual smoke test. [CI](../.github/workflows/ci.yml), [manual checks](../DEPLOYMENT.md) | Automate a two-browser journey against the running client and server. |
 
 ## Resolved documentation inconsistencies
