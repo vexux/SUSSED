@@ -1,0 +1,11 @@
+{
+  "name": "sussed-studio",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k -n api,studio \"npm run api\" \"npm run ui\"",
+    "api": "node server/index.js",
+    "ui": "node ../client/node_modules/vite/bin/vite.js",
+    "build": "node ../client/node_modules/typescript/bin/tsc --noEmit && node ../client/node_modules/vite/bin/vite.js build",
+    "test": "node --test test/*.test.js"
+  }
+}
