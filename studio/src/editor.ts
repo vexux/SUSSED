@@ -1,3 +1,4 @@
+import { publicationPanel } from "./publication";
 declare const __API_ORIGIN__: string;
 type Target = "general" | "anime" | "bruh";
 type Question = Record<string, unknown>;
@@ -134,7 +135,9 @@ export async function openEditor(id: string, closed: () => void) {
     dialog.remove();
     closed();
   };
+  let publication: ReturnType<typeof publicationPanel> | undefined;
   function updateStatus() {
+    if (changed()) publication?.invalidate();
     dirty.textContent = changed() ? "Unsaved changes" : "Saved revision";
     const lines: string[] = [];
     const old = new Map(saved.pack.questions.map((q) => [q?.id, q]));
@@ -619,6 +622,8 @@ export async function openEditor(id: string, closed: () => void) {
       feedback,
       human,
     );
+    publication = publicationPanel(saved.version, (action, body) => request(id, action, body), changed);
+    if (saved.target !== "bruh") controls.append(publication.panel);
     dialog.replaceChildren(controls);
     updateStatus();
     showReport();

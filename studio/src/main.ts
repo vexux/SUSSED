@@ -1,3 +1,4 @@
+import { promotionPanel } from "./promotion";
 import "./style.css";
 import { openEditor } from "./editor";
 declare const __API_ORIGIN__: string;
@@ -463,6 +464,7 @@ function render() {
           ? analytics()
           : overview()) +
     "</main>";
+  if (view === "incoming") $("main").append(promotionPanel());
   $("#refresh").onclick = refresh;
   if (g && tab === "Questions") {
     $("#search").oninput = (e) =>

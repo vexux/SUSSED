@@ -3,6 +3,7 @@ const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const { scan } = require("./inventory");
 const { digest, workspace, operation } = require("./drafts");
+const { preview } = require("./publicationPreview");
 const ports = require("../ports.cjs");
 const root = path.resolve(__dirname, "../..");
 
@@ -105,11 +106,12 @@ function createServer(repository = root) {
       return reply(403, { error: "Local access only" });
     if (origin) res.setHeader("Access-Control-Allow-Origin", origin);
     const draft =
-      /^\/api\/drafts\/([a-f0-9]{64})(?:\/(target|candidate|metadata|validate|review))?$/.exec(
+      /^\/api\/drafts\/([a-f0-9]{64})(?:\/(target|candidate|metadata|validate|review|publication-preview|publish))?$/.exec(
         req.url,
       );
-    if (draft) {
-      if (!draft[2] && req.method === "GET") {
+    const promotion = req.url === "/api/publication-workflow";
+    if (draft || promotion) {
+      if (draft && !draft[2] && req.method === "GET") {
         try {
           return reply(200, workspace(repository, draft[1]));
         } catch (error) {
@@ -118,13 +120,13 @@ function createServer(repository = root) {
       }
       if (!origin)
         return reply(403, { error: "Local browser origin required" });
-      if (draft[2] && req.method === "OPTIONS") {
+      if ((promotion || draft[2]) && req.method === "OPTIONS") {
         res.setHeader("Access-Control-Allow-Methods", "POST");
         res.setHeader("Access-Control-Allow-Headers", "Content-Type");
         res.writeHead(204);
         return res.end();
       }
-      if (!draft[2] || req.method !== "POST")
+      if ((!promotion && !draft[2]) || req.method !== "POST")
         return reply(405, { error: "Unsupported draft operation" });
       if (req.headers["content-type"]?.split(";")[0] !== "application/json")
         return reply(415, { error: "JSON body required" });
@@ -137,11 +139,15 @@ function createServer(repository = root) {
             return reply(413, { error: "Draft request too large" });
           chunks.push(chunk);
         }
+        const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+        if (promotion) return reply(200, require("./publicationWorkflow").workflow(repository, body));
+        if (draft[2] === "publication-preview") return reply(200, preview(repository, draft[1], body));
+        if (draft[2] === "publish") return reply(200, require("./publicationBridge").publish(repository, draft[1], body));
         const result = operation(
           repository,
           draft[1],
           draft[2],
-          JSON.parse(Buffer.concat(chunks).toString("utf8")),
+          body,
         );
         if (draft[2] !== "validate") current = null;
         return reply(200, result);

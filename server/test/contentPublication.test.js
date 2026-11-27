@@ -331,6 +331,9 @@ test("explicit publication writes only approved additions and reconciles the Gen
     const receipt = JSON.parse(fs.readFileSync(result.receiptPath, "utf8"));
     assert.equal(receipt.ledgerReconciliation.status, "passed");
     assert.equal(receipt.reviewReport.candidateSha256, reviewed.report.candidateSha256);
+    // Golden bytes from the pre-extraction publisher at cfe318f.
+    assert.equal(receipt.packSha256, "a30bad666f0e71f8f6fc0cb76290720aef1bf9baab6c12387048c6e9c55f42d9");
+    assert.equal(receipt.ledgerSha256, "4266f292568aec3d91e9bf0b0c1dd57e5c6e2370e87bdca6feee35ff6f90a4c2");
 });
 
 test("repeating the same batch cannot overwrite or duplicate a published pack", (t) => {
@@ -350,7 +353,7 @@ test("multi-file write failure removes the pack and preserves the original ledge
     const approval = data.approvalFor(reviewed);
     const beforeLedger = fs.readFileSync(data.ledgerPath);
     let failed = false;
-    const injected = new Proxy(fs, { get(target, property) { if (property === "renameSync") return (...args) => { if (!failed && args[1] === data.ledgerPath) { failed = true; throw new Error("simulated ledger replacement failure"); } return target.renameSync(...args); }; const value = Reflect.get(target, property); return typeof value === "function" ? value.bind(target) : value; } });
+    const injected = new Proxy(fs, { get(target, property) { if (property === "linkSync") return (...args) => { if (!failed && args[1] === data.ledgerPath) { failed = true; throw new Error("simulated ledger replacement failure"); } return target.linkSync(...args); }; const value = Reflect.get(target, property); return typeof value === "function" ? value.bind(target) : value; } });
     assert.throws(() => publishBatch({ review: reviewed, approval, classificationManifest: data.classificationManifest, paths: data.paths, contentDirectories: data.contentDirectories, receiptPath: path.join(data.temporaryEvidence, "fixture-new-pack.json"), fileSystem: injected }), /rolled back/);
     assert.equal(fs.existsSync(path.join(data.generalDirectory, "fixture-new-pack.json")), false);
     assert.deepEqual(fs.readFileSync(data.ledgerPath), beforeLedger);
@@ -588,4 +591,19 @@ test("recovery command is harmless with no journal and report hashes use stable 
     const data = setup(t);
     assert.equal(recoverPublication({ paths: data.paths, contentDirectories: data.contentDirectories }).recovered, false);
     assert.equal(sha256(Buffer.from("fixture")), "f16d05ec6b29248d2c61adb1e9263f78e4f7bace1b955014a2d17872cfe4064d");
+});
+
+test("v1 approval accounts for every question exactly once and binds both hashes", t => {
+    const data = setup(t);
+    const review = data.review();
+    const approval = data.approvalFor(review);
+    const { validateApproval } = require("../games/fact-or-cap/publicationPlan");
+    const check = patch => validateApproval({ ...approval, ...patch }, review, data.candidate.questions).join("\n");
+    assert.match(check({ decisions: [] }), /does not account/);
+    assert.match(check({ decisions: [...approval.decisions, ...approval.decisions] }), /repeats decision/);
+    assert.match(check({ decisions: [{ questionId: "missing", outcome: "publish" }] }), /unknown/);
+    assert.match(check({ candidateSha256: "different" }), /candidate SHA-256/);
+    assert.match(check({ ledgerMetadataSha256: "different" }), /metadata SHA-256/);
+    assert.match(check({ decisions: [{ questionId: "new-one", outcome: "publish-distinct" }] }), /outcome must be/);
+    assert.match(validateApproval(approval, review, []).join(" "), /selects no new/);
 });

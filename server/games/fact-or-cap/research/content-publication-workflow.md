@@ -5,8 +5,7 @@ packs remain the runtime source of playable questions. The General topic ledger
 and Anime franchise ledger remain separate supporting research records; neither
 is evidence of factual accuracy or rights clearance.
 
-Run commands from `server/`. All commands are read-only except `publish` and
-`cleanup`. A review never edits its input, a pack, or a ledger.
+Run commands from `server/`. The legacy CLI also checks for an interrupted transaction before dispatch and can recover it. Use the Studio preview for a strictly read-only calculation.
 
 ## 1. Discover and review a batch
 
@@ -225,3 +224,25 @@ The temporary receipt and approval input document operator decisions during
 the publication operation. Neither makes a
 claim factually true, establishes that a source supports it, or clears content
 for reuse. Those assessments remain separate editorial and rights-review work.
+
+## 5. Studio publication and promotion
+
+From the repository root on `dev`, run `npm --prefix studio run dev` and open
+`http://127.0.0.1:43202`. The API listens on loopback port 43201. Keep both
+processes local. Studio uses the operator's existing Git and GitHub credentials.
+
+1. Open an Anime or General candidate from Incoming. Save edits and record the editorial checklist. Preview reads the latest review, the original bytes of the candidate and sidecar, both banks and the target ledger. The publisher-compatible metadata hash covers parsed JSON. The editorial sidecar binding covers its original bytes. Choose a disposition for every question and supply rationale for exclusions and duplicate overrides.
+2. Inspect exact output bytes, original ledger, duplicate matches, inventory and SHA-256 hashes. Download evidence to retain the source bytes and decision record. Evidence contains editorial notes. A simulation against dev can be exported; publishing requires recalculation in the dedicated data worktree.
+3. In the Incoming publication workflow, review **Set up data worktree**. Confirming it creates a sibling checkout at the development repository path suffixed with `-data`. The local and remote dev heads must match. Existing data worktrees must be registered in this repository. An existing divergent branch or occupied directory requires inspection. The setup does not switch the development checkout.
+4. In the editor confirm **Publish these files locally**. One transaction installs the pack, ledger, temporary CLI-format evidence, and a Git-trackable receipt at `server/games/fact-or-cap/research/publication-receipts/<transactionId>.json`. Retain temporary evidence through the commit step. The tracked receipt identifies its parent and exact resulting content. Git supplies the resulting commit ID after committing. Keep source drafts and review history in their original dev checkout.
+5. Refresh receipts and select the transaction. **Check progress** identifies the next step from the filesystem, commits, remote refs and matching PR. **Review commit**, **Review push**, **Review pull request** and **Review merge** each show the intended action and require separate confirmation. Commit writes a verified Git tree containing only three files and advances data using its expected old commit. This uses Git plumbing and does not invoke normal commit hooks. Push is restricted to the verified fast-forward or first creation of remote data.
+6. GitHub actions use an authenticated `gh` with access to `vexux/SUSSED`. If unavailable, review the exact pushed commit at [the data-to-dev comparison](https://github.com/vexux/SUSSED/compare/dev...data), confirm the three files and open or reuse that PR. Review and merge separately. Use a merge commit so the verified publication commit is an ancestor of dev. Keep the local data worktree available through verification. Remote dev can be verified even if GitHub deletes the merged head branch. **Verify integration** checks remote dev independently of local dev or GitHub CLI, including the receipt, both output blobs, selected IDs, complete inventory and target ledger reconciliation.
+7. After verification, **Review original cleanup** identifies the two exact incoming files. Excluded material, changed review, missing evidence or changed bytes block cleanup. The operation keeps restart evidence under Studio's ignored local directory. Repeat the same confirmed cleanup to resume. Refresh local dev through the usual reviewed workflow before the next publication.
+
+### Interrupted publication
+
+The transaction directory is exclusive. A version-2 journal records the owner, hashes and exact destinations before staging. The publisher retains hard links to identify installed files and displaces the old ledger into the recovery directory before exclusive installation of its replacement. The pack, ledger and receipt locations must support hard links; the ledger and its backup must share a filesystem. File data is synced, and directory entries are synced on platforms that support it through Node.
+
+Use **Inspect transaction recovery** in the data worktree workflow. A confirmed recovery first checks every file. Prepared transactions roll back; committed transactions verify installed bytes and finish cleanup. A different process cannot take over a live local publisher or recovery owner. A missing or invalid journal, unidentifiable owner, unexpected directory entry, or conflicting bytes requires manual inspection. Preserve the directory, the two receipt locations and both versions of the ledger. Do not retry publication against an ambiguous worktree. After rollback, generate a fresh preview and confirm again. After committed cleanup, resume from the tracked receipt. For a lost HTTP response, inspect progress before retrying any step.
+
+Private local review files and exported evidence are separate from the Git-tracked receipt. Keep local Studio state and temporary evidence available throughout an active operation. GitHub rules, credentials and the operator's filesystem can independently refuse a step; Studio leaves completed earlier steps available for inspection.

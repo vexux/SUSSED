@@ -3,13 +3,13 @@ const fact = require("../../server/games/fact-or-cap/questionLibrary");
 const bruh = require("../../server/games/bruh-wtf/questionLibrary");
 const {
   inspectBatch,
-} = require("../../server/games/fact-or-cap/scripts/manage-question-batch");
+} = require("../../server/games/fact-or-cap/questionBatchInspection");
 const {
   makeAnimeLedgerUpdate,
 } = require("../../server/games/fact-or-cap/animeLedgerPreview");
 const {
   buildGeneralTopicLedgerUpdate,
-} = require("../../server/games/fact-or-cap/generalTopicLedgerMaintenance");
+} = require("../../server/games/fact-or-cap/generalTopicLedgerPreview");
 const {
   safePath,
   read,

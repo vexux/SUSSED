@@ -454,3 +454,8 @@ summary {
     display: block;
   }
 }
+
+.promotion-panel { margin-top: 2rem; }
+.promotion-panel select { max-width: 100%; }
+.promotion-panel button { margin: .25rem; }
+.promotion-panel pre, .draft-workspace details pre { max-height: 28rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }

@@ -186,6 +186,9 @@ function load(repository, id, proposedTarget) {
   return {
     root,
     dir,
+    bytes,
+    stateBytes: stored,
+    sideBytes,
     stateFile,
     state,
     stateHash: stored ? digest(stored) : null,
@@ -388,4 +391,4 @@ function operation(repository, id, action, body) {
     fs.unlinkSync(lock);
   }
 }
-module.exports = { digest, workspace, operation };
+module.exports = { digest, workspace, operation, load };
