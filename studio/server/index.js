@@ -2,6 +2,7 @@ const http = require("node:http");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const { scan } = require("./inventory");
+const { digest, workspace, operation } = require("./drafts");
 const ports = require("../ports.cjs");
 const root = path.resolve(__dirname, "../..");
 
@@ -85,7 +86,7 @@ function questions(game, query) {
 
 function createServer(repository = root) {
   let current;
-  return http.createServer((req, res) => {
+  return http.createServer(async (req, res) => {
     const host = "127.0.0.1:" + req.socket.localPort;
     const origin = req.headers.origin;
     const reply = (status, value) => {
@@ -103,6 +104,51 @@ function createServer(repository = root) {
     )
       return reply(403, { error: "Local access only" });
     if (origin) res.setHeader("Access-Control-Allow-Origin", origin);
+    const draft =
+      /^\/api\/drafts\/([a-f0-9]{64})(?:\/(target|candidate|metadata|validate|review))?$/.exec(
+        req.url,
+      );
+    if (draft) {
+      if (!draft[2] && req.method === "GET") {
+        try {
+          return reply(200, workspace(repository, draft[1]));
+        } catch (error) {
+          return reply(error.status ?? 400, { error: error.message });
+        }
+      }
+      if (!origin)
+        return reply(403, { error: "Local browser origin required" });
+      if (draft[2] && req.method === "OPTIONS") {
+        res.setHeader("Access-Control-Allow-Methods", "POST");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        res.writeHead(204);
+        return res.end();
+      }
+      if (!draft[2] || req.method !== "POST")
+        return reply(405, { error: "Unsupported draft operation" });
+      if (req.headers["content-type"]?.split(";")[0] !== "application/json")
+        return reply(415, { error: "JSON body required" });
+      try {
+        const chunks = [];
+        let size = 0;
+        for await (const chunk of req) {
+          size += chunk.length;
+          if (size > 16 * 1024 * 1024)
+            return reply(413, { error: "Draft request too large" });
+          chunks.push(chunk);
+        }
+        const result = operation(
+          repository,
+          draft[1],
+          draft[2],
+          JSON.parse(Buffer.concat(chunks).toString("utf8")),
+        );
+        if (draft[2] !== "validate") current = null;
+        return reply(200, result);
+      } catch (error) {
+        return reply(error.status ?? 400, { error: error.message });
+      }
+    }
     if (req.method !== "GET") return reply(405, { error: "GET required" });
     const delimiter = req.url.indexOf("?");
     const route = delimiter < 0 ? req.url : req.url.slice(0, delimiter);
@@ -122,6 +168,7 @@ function createServer(repository = root) {
         const batches = current.batches.map(({ data, ...b }, index) => ({
           ...b,
           index,
+          draftId: b.kind === "Candidate" ? digest(b.filename) : undefined,
           packId: data?.contentPackId,
           count: data?.questions?.length,
         }));

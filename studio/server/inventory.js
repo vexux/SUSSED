@@ -320,4 +320,4 @@ function scanInbox(root, games) {
   }
   return batches;
 }
-module.exports = { scan, safePath };
+module.exports = { scan, safePath, read, incoming, directories, ledgers };

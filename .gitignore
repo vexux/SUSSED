@@ -10,3 +10,4 @@ ui-debug.log
 .firebase/
 /test-results/
 /playwright-report/
+/studio/.local/

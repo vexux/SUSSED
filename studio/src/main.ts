@@ -1,4 +1,5 @@
 import "./style.css";
+import { openEditor } from "./editor";
 declare const __API_ORIGIN__: string;
 type Key = "anime" | "general" | "bruh";
 type Pair = [string, number];
@@ -31,6 +32,7 @@ type Game = {
   };
 };
 type Batch = {
+  draftId?: string;
   index: number;
   filename: string;
   kind: string;
@@ -561,6 +563,15 @@ $("#app").onclick = async (event) => {
     page = 1;
     render();
   } else if (d.batch) {
+    const draftId = data.batches[+d.batch].draftId;
+    if (draftId) {
+      try {
+        await openEditor(draftId, () => void refresh());
+      } catch (e) {
+        detail("Draft unavailable", String(e));
+      }
+      return;
+    }
     const expected = data.batches[+d.batch].filename;
     try {
       const batch = await api<Batch & { data?: unknown }>(

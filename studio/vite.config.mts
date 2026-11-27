@@ -40,7 +40,7 @@ export default {
     fs: {
       strict: true,
       allow: [path.resolve("."), path.resolve("../client/node_modules/vite")],
-      deny: ["**/.env*", "**/.git/**", "**/server/**", "**/test/**"],
+      deny: ["**/.env*", "**/.git/**", "**/.local/**", "**/server/**", "**/test/**"],
     },
   },
   preview: { host: "127.0.0.1", port: ports.ui, strictPort: true },

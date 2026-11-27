@@ -392,3 +392,65 @@ summary {
     display: block;
   }
 }
+.draft-workspace {
+  width: min(1050px, 94vw);
+  max-width: 94vw;
+}
+.draft-controls {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.draft-status,
+.draft-columns {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.draft-columns {
+  align-items: stretch;
+  margin-top: 1rem;
+}
+.draft-columns section:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.draft-columns section:last-child {
+  flex: 2;
+  min-width: 0;
+}
+.draft-workspace section {
+  margin-bottom: 1rem;
+}
+.draft-workspace label {
+  display: block;
+  margin: 0.5rem 0;
+}
+.draft-workspace input:not([type="checkbox"]),
+.draft-workspace textarea,
+.draft-workspace select {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  font: inherit;
+}
+.draft-workspace input[type="checkbox"] {
+  margin-left: 0.6rem;
+}
+.draft-workspace .json-editor {
+  min-height: 14rem;
+  font-family: monospace;
+}
+.draft-workspace button {
+  margin: 0.25rem;
+}
+.draft-workspace [role="status"] {
+  color: #673e13;
+  font-weight: 600;
+}
+@media (max-width: 700px) {
+  .draft-columns,
+  .draft-status {
+    display: block;
+  }
+}
