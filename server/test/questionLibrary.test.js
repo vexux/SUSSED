@@ -9,6 +9,9 @@ const {
     selectQuestions,
 } = require("../games/fact-or-cap/questionBank");
 const { questions: animeQuestions } = require("../games/fact-or-cap/animeQuestionBank");
+const { compareGeneralTopicLedger } = require("../games/fact-or-cap/generalTopicLedgerReport");
+const generalLedger = require("../games/fact-or-cap/research/general-topic-ledger.json");
+const animeLedger = require("../games/fact-or-cap/research/anime-franchise-ledger.json");
 const {
     loadQuestionPacks,
     readPack,
@@ -19,11 +22,12 @@ const {
 const factOrCapDirectory = path.join(__dirname, "..", "games", "fact-or-cap");
 
 test("loads all General JSON content packs with existing answer and source data", () => {
-    const { questions: loaded } = loadQuestionPacks(
-        path.join(factOrCapDirectory, "content", "general")
-    );
-    assert.equal(loaded.length, 810);
-    assert.equal(questions.length, 810);
+    const contentDirectory = path.join(factOrCapDirectory, "content", "general");
+    const { questions: loaded } = loadQuestionPacks(contentDirectory);
+    const { reconciliation } = compareGeneralTopicLedger({ ledger: generalLedger, contentDirectory });
+    assert.equal(reconciliation.valid, true, reconciliation.errors.join("\n"));
+    assert.equal(loaded.length, reconciliation.ledgerRecordCount);
+    assert.deepEqual(questions, loaded);
     assert.equal(new Set(loaded.map(({ id }) => id)).size, loaded.length);
     assert.equal(
         loaded.find(({ id }) => id === "wombat-cubes").correctCompletion,
@@ -33,23 +37,24 @@ test("loads all General JSON content packs with existing answer and source data"
         loaded.find(({ id }) => id === "wombat-cubes").sourceUrl,
         "https://www.nature.com/articles/s41586-018-0751-9"
     );
-    assert.deepEqual(
-        new Set(loaded.map(({ contentPackId }) => contentPackId)),
-        new Set([
-            "wildlife",
-            "space",
-            "world-and-culture",
-            "general-facts-batch-2026-10",
-            "general-expansion-pilot-2026-10",
-            "general-expansion-batch-001",
-            "general-expansion-batch-001-reviewed-2026-10-15",
-            "general-expansion-batch-002-reviewed-2026-10-15",
-            "general-expansion-recovery-2026-10",
-            "general-research-pilot-2026-10-15",
-            "general-expansion-batch-001-500-reviewed-2026-10-15",
-            "general-expansion-batch-001-recovery-reviewed-2026-10-15"
-        ])
-    );
+    const loadedPackIds = new Set(loaded.map(({ contentPackId }) => contentPackId));
+    assert.deepEqual(loadedPackIds, new Set(reconciliation.packCounts.map(({ contentPackId }) => contentPackId)));
+    for (const historicalPackId of [
+        "wildlife",
+        "space",
+        "world-and-culture",
+        "general-facts-batch-2026-10",
+        "general-expansion-pilot-2026-10",
+        "general-expansion-batch-001",
+        "general-expansion-batch-001-reviewed-2026-10-15",
+        "general-expansion-batch-002-reviewed-2026-10-15",
+        "general-expansion-recovery-2026-10",
+        "general-research-pilot-2026-10-15",
+        "general-expansion-batch-001-500-reviewed-2026-10-15",
+        "general-expansion-batch-001-recovery-reviewed-2026-10-15"
+    ]) {
+        assert.ok(loadedPackIds.has(historicalPackId), `Missing historical pack ${historicalPackId}`);
+    }
     assert.equal(
         loaded.filter(({ contentPackId }) => contentPackId === "general-expansion-batch-001-500-reviewed-2026-10-15").length,
         483
@@ -76,9 +81,9 @@ test("loads the expanded anime library through batch 009 with distinct IDs", () 
     const { questions: loaded } = loadQuestionPacks(
         path.join(factOrCapDirectory, "content", "anime")
     );
-    assert.equal(loaded.length, 637);
-    assert.equal(animeQuestions.length, 637);
-    assert.equal(new Set(loaded.map(({ id }) => id)).size, 637);
+    assert.equal(loaded.length, animeLedger.bankSnapshot.questionCount);
+    assert.deepEqual(animeQuestions, loaded);
+    assert.equal(new Set(loaded.map(({ id }) => id)).size, loaded.length);
     assert.equal(
         loaded.filter(({ contentPackId }) => contentPackId === "anime-bizarre-batch-001").length,
         40

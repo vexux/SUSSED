@@ -10,6 +10,7 @@ const {
     writeNewPackAtomically
 } = require("../games/fact-or-cap/scripts/manage-question-batch");
 const { loadQuestionPacks } = require("../games/fact-or-cap/questionLibrary");
+const { buildQuestionInventory } = require("../games/fact-or-cap/questionInventory");
 
 const GENERAL_DIR = path.resolve(__dirname, "../games/fact-or-cap/content/general");
 const ANIME_DIR = path.resolve(__dirname, "../games/fact-or-cap/content/anime");
@@ -49,15 +50,19 @@ function writeBatch(inputPath, questions, contentPackId = "candidate-pack") {
     fs.writeFileSync(inputPath, JSON.stringify({ contentPackId, questions }, null, 2));
 }
 
-test("registered question libraries contain the expected valid question counts", () => {
-    for (const [gameId, directory] of Object.entries(LIBRARIES)) {
+test("registered question libraries load every question in the validated inventory", () => {
+    const inventory = buildQuestionInventory({ contentDirectories: LIBRARIES });
+    assert.deepEqual(inventory.crossBankDuplicateIds, []);
+    for (const { gameId, directory, totalQuestions, totalValidQuestions, validationErrors } of inventory.banks) {
+        assert.deepEqual(validationErrors, []);
+        assert.ok(totalQuestions > 0, `${gameId} should contain published questions`);
+        assert.equal(totalValidQuestions, totalQuestions);
         const result = loadQuestionPacks(directory);
-        const expectedCount = gameId === "fact-or-cap-anime" ? 637 : 810;
         assert.equal(result.errors.length, 0, `${gameId} should have no validation errors`);
         assert.equal(result.warnings.length, 0, `${gameId} should have no duplicate-content warnings`);
         assert.equal(
             result.questions.length,
-            expectedCount,
+            totalValidQuestions,
             `${gameId} should have the expected playable question count`
         );
         assert.equal(

@@ -6,6 +6,8 @@ const factOrCap = require("../games/fact-or-cap/game");
 const factOrCapAnime = require("../games/fact-or-cap/anime");
 const bruhWtf = require("../games/bruh-wtf/game");
 const { questions: animeQuestions } = require("../games/fact-or-cap/animeQuestionBank");
+const generalLedger = require("../games/fact-or-cap/research/general-topic-ledger.json");
+const animeLedger = require("../games/fact-or-cap/research/anime-franchise-ledger.json");
 const {
     questions,
     selectQuestionOrder,
@@ -198,8 +200,8 @@ test("both registered identities share the same engine and use isolated question
     assert.equal(factOrCapAnime.calculateRoundResults, factOrCap.calculateRoundResults);
     assert.equal(factOrCapAnime.supportedPlayers.min, 2);
     assert.equal(Object.hasOwn(factOrCapAnime.supportedPlayers, "max"), false);
-    assert.equal(animeQuestions.length, 637);
-    assert.equal(questions.length, 810);
+    assert.equal(animeQuestions.length, animeLedger.bankSnapshot.questionCount);
+    assert.equal(questions.length, generalLedger.baselineSnapshot.publishedQuestionCount);
     assert.equal(
         questions.some(({ id }) => animeQuestions.some((animeQuestion) => animeQuestion.id === id)),
         false

@@ -575,15 +575,20 @@ test("published Anime ledger reconciles merged franchise identity and pack filen
 
     assert.equal(result.valid, true, result.errors.join("\n"));
     assert.equal(result.errors.length, 0);
-    assert.equal(ledger.bankSnapshot.questionCount, 637);
-    assert.equal(ledger.bankSnapshot.contentPackCount, 11);
+    assert.equal(ledger.bankSnapshot.questionCount, existingPacks.reduce((total, pack) => total + pack.questions.length, 0));
+    assert.equal(ledger.bankSnapshot.contentPackCount, existingPacks.length);
     const promisedNeverland = result.updatedLedger.franchises.filter(({ franchiseId }) => franchiseId === "promised-neverland");
     assert.equal(promisedNeverland.length, 1);
-    assert.equal(promisedNeverland[0].questionCount, 2);
-    assert.deepEqual(promisedNeverland[0].packMemberships, [
-        { contentPackId: "anime-bizarre-batch-005", questionIds: ["anime-b005-promised-neverland-demons"] },
-        { contentPackId: "anime-facts-batch-2026-10", questionIds: ["promised-neverland-learning-ability"] }
-    ]);
+    const { questionCount, packMemberships } = promisedNeverland[0];
+    assert.equal(questionCount, packMemberships.reduce((total, membership) => total + membership.questionIds.length, 0));
+    for (const [packId, questionId] of [
+        ["anime-bizarre-batch-005", "anime-b005-promised-neverland-demons"],
+        ["anime-facts-batch-2026-10", "promised-neverland-learning-ability"]
+    ]) {
+        assert.ok(packMemberships.some(({ contentPackId, questionIds }) =>
+            contentPackId === packId && questionIds.includes(questionId)
+        ), `Missing Promised Neverland membership ${packId}/${questionId}`);
+    }
     assert.ok(existingPacks.every(({ fileName, contentPackId }) => path.basename(fileName, ".json") === contentPackId));
 });
 

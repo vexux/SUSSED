@@ -28,6 +28,9 @@ jobs:
       - name: Run server tests
         run: npm --prefix server test
 
+      - name: Run Studio tests
+        run: npm --prefix studio test
+
       - name: Run client tests
         run: npm --prefix client test
 
@@ -41,6 +44,9 @@ jobs:
 
       - name: Build client
         run: npm --prefix client run build
+
+      - name: Build Studio
+        run: npm --prefix studio run build
 
       - name: Check server JavaScript syntax
         run: |
